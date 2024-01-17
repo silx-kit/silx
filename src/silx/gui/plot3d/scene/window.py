@@ -58,6 +58,7 @@ class Context(object):
         self._context = glContextHandle
         self._isCurrent = False
         self._devicePixelRatio = 1.0
+        self._dotsPerInch = 96.0
 
     @property
     def isCurrent(self):
@@ -73,6 +74,16 @@ class Context(object):
         :param bool isCurrent: The state of the system OpenGL context.
         """
         self._isCurrent = bool(isCurrent)
+
+    @property
+    def dotsPerInch(self) -> float:
+        """Number of physical dots per inch on the screen"""
+        return self._dotsPerInch
+
+    @dotsPerInch.setter
+    def dotsPerInch(self, dpi: float):
+        assert dpi > 0.0
+        self._dotsPerInch = float(dpi)
 
     @property
     def devicePixelRatio(self):
@@ -350,11 +361,12 @@ class Window(event.Notifier):
 
         return numpy.array(image, copy=False, order="C")
 
-    def render(self, glcontext, devicePixelRatio):
+    def render(self, glcontext, dotsPerInch: float, devicePixelRatio: float):
         """Perform the rendering of attached viewports
 
         :param glcontext: System identifier of the OpenGL context
-        :param float devicePixelRatio:
+        :param dotsPerInch: Screen physical resolution in pixels per inch
+        :param devicePixelRatio:
             Ratio between device and device-independent pixels
         """
         if self.size == (0, 0):
@@ -364,6 +376,7 @@ class Window(event.Notifier):
             self._contexts[glcontext] = ContextGL2(glcontext)  # New context
 
         with self._contexts[glcontext] as context:
+            context.dotsPerInch = dotsPerInch
             context.devicePixelRatio = devicePixelRatio
             if self._isframebuffer:
                 self._renderWithOffscreenFramebuffer(context)

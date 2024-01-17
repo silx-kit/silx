@@ -183,7 +183,7 @@ def get_project_configuration():
         "Mako",
         # gui
         "qtconsole",
-        "matplotlib>=1.2.0",
+        "matplotlib>=3.1.0",
         "PyOpenGL",
         "python-dateutil",
         "PyQt5",

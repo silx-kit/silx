@@ -350,7 +350,9 @@ class Plot3DWidget(glu.OpenGLWidget):
         if self.viewport.dirty:
             self.viewport.adjustCameraDepthExtent()
 
-        self._window.render(self.context(), self.getDevicePixelRatio())
+        self._window.render(
+            self.context(), self.getDotsPerInch(), self.getDevicePixelRatio()
+        )
 
         if self._firstRender:  # TODO remove this ugly hack
             self._firstRender = False

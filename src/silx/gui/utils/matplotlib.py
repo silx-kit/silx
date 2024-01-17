@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -88,7 +88,7 @@ def qFontToFontProperties(font: qt.QFont):
     weightFactor = 10 if qt.BINDING == "PyQt5" else 1
     families = [font.family(), font.defaultFamily()]
     if _MATPLOTLIB_VERSION >= Version("3.6.0"):
-        # Prevent 'Font family not found warnings'
+        # Prevent 'Font family not found' warnings
         availableNames = font_manager.get_font_names()
         families = [f for f in families if f in availableNames]
         families.append(font_manager.fontManager.defaultFamily["ttf"])
@@ -106,83 +106,80 @@ def qFontToFontProperties(font: qt.QFont):
 
 def rasterMathText(
     text: str,
-    font: str | qt.QFont,
-    size: int = -1,
-    weight: int = -1,
-    italic: bool = False,
-    devicePixelRatio: float = 1.0,
-) -> tuple[numpy.ndarray, int]:
+    font: qt.QFont,
+    dotsPerInch: float = 96.0,
+) -> tuple[numpy.ndarray, float]:
     """Raster text using matplotlib supporting latex-like math syntax.
 
     It supports multiple lines.
 
     :param text: The text to raster
-    :param font: Font name or QFont to use
-    :param size:
-        Font size in points
-        Used only if font is given as name.
-    :param weight:
-        Font weight in [0, 99], see QFont.Weight.
-        Used only if font is given as name.
-    :param italic:
-        True for italic font (default: False).
-        Used only if font is given as name.
-    :param devicePixelRatio:
-        The current ratio between device and device-independent pixel
-        (default: 1.0)
+    :param font: Font to use
+    :param dotsPerInch: The DPI resolution of the created image
     :return: Corresponding image in gray scale and baseline offset from top
-    :rtype: (HxW numpy.ndarray of uint8, int)
     """
     # Implementation adapted from:
     # https://github.com/matplotlib/matplotlib/blob/d624571a19aec7c7d4a24123643288fc27db17e7/lib/matplotlib/mathtext.py#L264
-    dpi = 96  # default
-    qapp = qt.QApplication.instance()
-    if qapp:
-        screen = qapp.primaryScreen()
-        if screen:
-            dpi = screen.logicalDotsPerInchY()
-
-    # Make sure dpi is even, it causes issues with array reshape otherwise
-    dpi = ((dpi * devicePixelRatio) // 2) * 2
 
     stripped_text = text.strip("\n")
+    font_prop = qFontToFontProperties(font)
 
     parser = MathTextParser("path")
-    width, height, depth, _, _ = parser.parse(stripped_text, dpi=dpi)
-    width *= 2
-    height *= 2 * (stripped_text.count("\n") + 1)
-
-    if not isinstance(font, qt.QFont):
-        font = qt.QFont(font, size, weight, italic)
-
-    fig = figure.Figure(figsize=(width / dpi, height / dpi))
-    fig.text(
-        0,
-        depth / height,
-        stripped_text,
-        fontproperties=qFontToFontProperties(font),
+    lines_info = [
+        parser.parse(line, prop=font_prop, dpi=dotsPerInch)
+        for line in stripped_text.split("\n")
+    ]
+    max_line_width = max(info[0] for info in lines_info)
+    # Use lp string as minimum height/ascent
+    ref_info = parser.parse("lp", prop=font_prop, dpi=dotsPerInch)
+    line_height = max(
+        ref_info[1],
+        *(info[1] for info in lines_info),
     )
+    first_line_ascent = max(
+        ref_info[1] - ref_info[2], lines_info[0][1] - lines_info[0][2]
+    )
+
+    linespacing = 1.2
+
+    figure_height = numpy.ceil(line_height * len(lines_info) * linespacing) + 2
+    fig = figure.Figure(
+        figsize=(
+            (max_line_width + 1) / dotsPerInch,
+            figure_height / dotsPerInch,
+        )
+    )
+    fig.set_dpi(dotsPerInch)
+    text = fig.text(
+        0,
+        1,
+        stripped_text,
+        fontproperties=font_prop,
+        verticalalignment="top",
+    )
+    text.set_linespacing(linespacing)
     with io.BytesIO() as buffer:
-        fig.savefig(buffer, dpi=dpi, format="raw")
+        fig.savefig(buffer, dpi=dotsPerInch, format="raw")
+        canvas_width, canvas_height = fig.get_window_extent().max
         buffer.seek(0)
         image = numpy.frombuffer(buffer.read(), dtype=numpy.uint8).reshape(
-            int(height), int(width), 4
+            int(canvas_height), int(canvas_width), 4
         )
 
     # RGB to inverted R channel
     array = 255 - image[:, :, 0]
 
-    # Remove leading and trailing empty columns/rows but one on each side
+    # Remove leading/trailing empty columns and trailing rows but one on each side
     filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
     filled_columns = numpy.nonzero(numpy.sum(array, axis=0))[0]
     if len(filled_rows) == 0 or len(filled_columns) == 0:
-        return array, image.shape[0] - 1
-
-    clipped_array = numpy.ascontiguousarray(
-        array[
-            max(0, filled_rows[0] - 1) : filled_rows[-1] + 2,
-            max(0, filled_columns[0] - 1) : filled_columns[-1] + 2,
-        ]
+        return array, first_line_ascent
+    return (
+        numpy.ascontiguousarray(
+            array[
+                0 : filled_rows[-1] + 2,
+                max(0, filled_columns[0] - 1) : filled_columns[-1] + 2,
+            ]
+        ),
+        first_line_ascent,
     )
-
-    return clipped_array, image.shape[0] - 1  # baseline not available

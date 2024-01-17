@@ -46,7 +46,7 @@ class LabelledAxes(primitives.GroupBBox):
         super(LabelledAxes, self).__init__()
         self._ticksForBounds = None
 
-        self._font = text.Font()
+        self._font = text.Font(size=10)
 
         self._boxVisibility = True
 
@@ -225,6 +225,7 @@ class LabelledAxes(primitives.GroupBBox):
             for tick, label in zip(xticks, xlabels):
                 text2d = text.Text2D(text=label, font=self.font)
                 text2d.align = "center"
+                text2d.valign = "center"
                 text2d.foreground = color
                 text2d.transforms = [
                     transform.Translate(tx=tick, ty=offsets[1], tz=offsets[2])
@@ -234,6 +235,7 @@ class LabelledAxes(primitives.GroupBBox):
             for tick, label in zip(yticks, ylabels):
                 text2d = text.Text2D(text=label, font=self.font)
                 text2d.align = "center"
+                text2d.valign = "center"
                 text2d.foreground = color
                 text2d.transforms = [
                     transform.Translate(tx=offsets[0], ty=tick, tz=offsets[2])
@@ -243,6 +245,7 @@ class LabelledAxes(primitives.GroupBBox):
             for tick, label in zip(zticks, zlabels):
                 text2d = text.Text2D(text=label, font=self.font)
                 text2d.align = "center"
+                text2d.valign = "center"
                 text2d.foreground = color
                 text2d.transforms = [
                     transform.Translate(tx=offsets[0], ty=offsets[1], tz=tick)

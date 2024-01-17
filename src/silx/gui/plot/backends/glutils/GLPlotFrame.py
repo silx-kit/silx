@@ -25,6 +25,8 @@
 This modules provides the rendering of plot titles, axes and grid.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -83,6 +85,7 @@ class PlotAxis(object):
         orderOffsetVAlign=CENTER,
         titleRotate=0,
         titleOffset=(0.0, 0.0),
+        font: qt.QFont | None = None,
     ):
         self._tickFormatter = DefaultTickFormatter()
         self._ticks = None
@@ -108,12 +111,19 @@ class PlotAxis(object):
         self._titleVAlign = titleVAlign
         self._titleRotate = titleRotate
         self._titleOffset = titleOffset
+        self._font = font
 
     @property
     def dataRange(self):
         """The range of the data represented on the axis as a tuple
         of 2 floats: (min, max)."""
         return self._dataRange
+
+    @property
+    def font(self) -> qt.QFont:
+        if self._font is None:
+            return qt.QApplication.instance().font()
+        return self._font
 
     @dataRange.setter
     def dataRange(self, dataRange):
@@ -252,9 +262,6 @@ class PlotAxis(object):
         """
         vertices = list(self.displayCoords)  # Add start and end points
         labels = []
-        tickLabelsSize = [0.0, 0.0]
-
-        font = qt.QApplication.instance().font()
 
         xTickLength, yTickLength = self._tickLength
         xTickLength *= self.devicePixelRatio
@@ -267,7 +274,7 @@ class PlotAxis(object):
 
                 label = Text2D(
                     text=text,
-                    font=font,
+                    font=self.font,
                     color=self._foregroundColor,
                     x=xPixel - xTickLength,
                     y=yPixel - yTickLength,
@@ -275,13 +282,6 @@ class PlotAxis(object):
                     valign=self._labelVAlign,
                     devicePixelRatio=self.devicePixelRatio,
                 )
-
-                width, height = label.size
-                if width > tickLabelsSize[0]:
-                    tickLabelsSize[0] = width
-                if height > tickLabelsSize[1]:
-                    tickLabelsSize[1] = height
-
                 labels.append(label)
 
             vertices.append((xPixel, yPixel))
@@ -304,7 +304,7 @@ class PlotAxis(object):
 
         axisTitle = Text2D(
             text=self.title,
-            font=font,
+            font=self.font,
             color=self._foregroundColor,
             x=xAxisCenter + xOffset,
             y=yAxisCenter + yOffset,
@@ -320,7 +320,7 @@ class PlotAxis(object):
             labels.append(
                 Text2D(
                     text=self._orderAndOffsetText,
-                    font=font,
+                    font=self.font,
                     color=self._foregroundColor,
                     x=xOrderOffset,
                     y=yOrderOffet,
@@ -781,7 +781,7 @@ class GLPlotFrame(object):
         gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
         for label in labels:
-            label.render(matProj)
+            label.render(matProj, self.dotsPerInch)
 
     def renderGrid(self):
         if self._grid == self.GRID_NONE:
@@ -829,7 +829,11 @@ class GLPlotFrame2D(GLPlotFrame):
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
         :param font: Font used by the axes label
         """
-        super(GLPlotFrame2D, self).__init__(marginRatios, foregroundColor, gridColor, font)
+        super(GLPlotFrame2D, self).__init__(
+            marginRatios, foregroundColor, gridColor, font
+        )
+        self._font = font
+
         self.axes.append(
             PlotAxis(
                 self,
@@ -842,6 +846,7 @@ class GLPlotFrame2D(GLPlotFrame):
                 titleAlign=CENTER,
                 titleVAlign=TOP,
                 titleRotate=0,
+                font=self._font,
             )
         )
 
@@ -859,6 +864,7 @@ class GLPlotFrame2D(GLPlotFrame):
                 titleAlign=CENTER,
                 titleVAlign=BOTTOM,
                 titleRotate=ROTATE_270,
+                font=self._font,
             )
         )
 
@@ -873,6 +879,7 @@ class GLPlotFrame2D(GLPlotFrame):
             titleAlign=CENTER,
             titleVAlign=TOP,
             titleRotate=ROTATE_270,
+            font=self._font,
         )
 
         self._isYAxisInverted = False
@@ -1330,10 +1337,9 @@ class GLPlotFrame2D(GLPlotFrame):
         self._x2AxisCoords = ((xCoords[0], yCoords[1]), (xCoords[1], yCoords[1]))
 
         # Set order&offset anchor **before** handling Y axis inversion
-        font = qt.QApplication.instance().font()
-        fontPixelSize = font.pixelSize()
+        fontPixelSize = self._font.pixelSize()
         if fontPixelSize == -1:
-            fontPixelSize = font.pointSizeF() / 72.0 * self.dotsPerInch
+            fontPixelSize = self._font.pointSizeF() / 72.0 * self.dotsPerInch
 
         self.axes[0].orderOffetAnchor = (
             xCoords[1],
