@@ -88,7 +88,7 @@ def qFontToFontProperties(font: qt.QFont):
     weightFactor = 10 if qt.BINDING == "PyQt5" else 1
     families = [font.family(), font.defaultFamily()]
     if _MATPLOTLIB_VERSION >= Version("3.6.0"):
-        # Prevent 'Font family not found warnings'
+        # Prevent 'Font family not found' warnings
         availableNames = font_manager.get_font_names()
         families = [f for f in families if f in availableNames]
         families.append(font_manager.fontManager.defaultFamily["ttf"])
