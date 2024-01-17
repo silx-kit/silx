@@ -69,9 +69,7 @@ class Font(event.Notifier):
         "_size", doc="""Font size in points (int)""", converter=int
     )
 
-    weight = event.notifyProperty(
-        "_weight", doc="""Font size in points (int)""", converter=int
-    )
+    weight = event.notifyProperty("_weight", doc="""Font weight (int)""", converter=int)
 
     italic = event.notifyProperty(
         "_italic", doc="""True for italic (bool)""", converter=bool
