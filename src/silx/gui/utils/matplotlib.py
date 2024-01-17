@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -129,15 +129,15 @@ def rasterMathText(
         parser.parse(line, prop=font_prop, dpi=dotsPerInch)
         for line in stripped_text.split("\n")
     ]
-    max_line_width = max(info.width for info in lines_info)
+    max_line_width = max(info[0] for info in lines_info)
     # Use lp string as minimum height/ascent
     ref_info = parser.parse("lp", prop=font_prop, dpi=dotsPerInch)
     line_height = max(
-        ref_info.height,
-        *(info.height for info in lines_info),
+        ref_info[1],
+        *(info[1] for info in lines_info),
     )
     first_line_ascent = max(
-        ref_info.height - ref_info.depth, lines_info[0].height - lines_info[0].depth
+        ref_info[1] - ref_info[2], lines_info[0][1] - lines_info[0][2]
     )
 
     linespacing = 1.2
@@ -160,7 +160,7 @@ def rasterMathText(
     text.set_linespacing(linespacing)
     with io.BytesIO() as buffer:
         fig.savefig(buffer, dpi=dotsPerInch, format="raw")
-        canvas_width, canvas_height = fig.canvas.get_width_height(physical=True)
+        canvas_width, canvas_height = fig.get_window_extent().max
         buffer.seek(0)
         image = numpy.frombuffer(buffer.read(), dtype=numpy.uint8).reshape(
             int(canvas_height), int(canvas_width), 4
