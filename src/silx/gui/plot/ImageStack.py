@@ -175,6 +175,7 @@ class ImageStack(qt.QMainWindow):
         self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
         self._waitingOverlay = WaitingOverlay(self._plot)
         self._waitingOverlay.setIconSize(qt.QSize(30, 30))
+        self._waitingOverlay.hide()
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
