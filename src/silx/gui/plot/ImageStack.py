@@ -512,7 +512,8 @@ class ImageStack(qt.QMainWindow):
         with blockSignals(self._urlsTable):
             with blockSignals(self._slider):
                 self._urlsTable.setUrl(url)
-                self._slider.setUrlIndex(self._urlIndexes[url.path()])
+                if url is not None:
+                    self._slider.setUrlIndex(self._urlIndexes[url.path()])
                 if self._current_url is None:
                     self._plot.clear()
                 else:
