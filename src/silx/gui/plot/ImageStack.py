@@ -175,6 +175,7 @@ class ImageStack(qt.QMainWindow):
         self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
         self._waitingOverlay = WaitingOverlay(self._plot)
         self._waitingOverlay.setIconSize(qt.QSize(30, 30))
+        self._waitingOverlay.hide()
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
@@ -511,7 +512,8 @@ class ImageStack(qt.QMainWindow):
         with blockSignals(self._urlsTable):
             with blockSignals(self._slider):
                 self._urlsTable.setUrl(url)
-                self._slider.setUrlIndex(self._urlIndexes[url.path()])
+                if url is not None:
+                    self._slider.setUrlIndex(self._urlIndexes[url.path()])
                 if self._current_url is None:
                     self._plot.clear()
                 else:
@@ -571,3 +573,11 @@ class ImageStack(qt.QMainWindow):
         :rtype: bool
         """
         return self._autoResetZoom
+
+    def getWaiterOverlay(self):
+        """
+
+        :return: Return the instance of `WaitingOverlay` used to display if processing or not
+        :rtype: WaitingOverlay
+        """
+        return self._waitingOverlay

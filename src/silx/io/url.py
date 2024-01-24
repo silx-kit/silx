@@ -140,7 +140,9 @@ class DataUrl(object):
             assert scheme is None
             self.__parse_from_path(str(path))
         else:
-            self.__file_path = str(file_path)
+            if file_path is not None:
+                file_path = str(file_path)
+            self.__file_path = file_path
             self.__data_path = data_path
             self.__data_slice = data_slice
             self.__scheme = scheme
