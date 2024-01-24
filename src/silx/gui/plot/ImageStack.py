@@ -572,3 +572,11 @@ class ImageStack(qt.QMainWindow):
         :rtype: bool
         """
         return self._autoResetZoom
+
+    def getWaiterOverlay(self):
+        """
+
+        :return: Return the instance of `WaitingOverlay` used to display if processing or not
+        :rtype: WaitingOverlay
+        """
+        return self._waitingOverlay
