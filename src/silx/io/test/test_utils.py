@@ -900,6 +900,12 @@ class TestH5Strings(unittest.TestCase):
         if charset is not None:
             assert self.file["vlen_data"].id.get_type().get_cset() == charset
 
+        self.file["vlen_empty_array"] = self._make_array(value, 0)
+        data = utils.h5py_read_dataset(
+            self.file["vlen_empty_array"], decode_ascii=decode_ascii
+        )
+        assert data.shape == (0,)
+
         # Write+read fixed length
         self.file["flen_data"] = self._make_array(value, 2, vlen=False)
         data = utils.h5py_read_dataset(
