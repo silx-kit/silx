@@ -253,6 +253,8 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         from ..tools import roi as roi_tools
 
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
+        # Must be done before _RegionOfInterestBase.__init__
+        self._child = WeakList()
         _RegionOfInterestBase.__init__(self, parent)
         core.HighlightedMixIn.__init__(self)
         self.__text = None
@@ -261,7 +263,6 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         self._selectable = False
         self._focusProxy = None
         self._visible = True
-        self._child = WeakList()
 
     def _connectToPlot(self, plot):
         """Called after connection to a plot"""
