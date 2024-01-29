@@ -1,6 +1,321 @@
 Release Notes
 =============
 
+2.0.0: 2024/01/30
+-----------------
+
+This version of `silx` supports Python 3.7 to 3.12.
+This is the last version of `silx` supporting Python 3.7.
+The `silx.gui` package supports `PySide6`, `PyQt6` and `PyQt5` (`PySide2` is no longer supported).
+
+**Breaking API change**: `silx.gui.plot.PlotWidget`'s add methods (i.e., `addCurve`, `addImage`, ...) returns the plot item object instance instead of its legend (https://github.com/silx-kit/silx/pull/3996).
+
+silx applications
+.................
+
+* Added `silx compare`, a dedicated application to compare images (PR #3788, #3827, #3884, #3943, #3944)
+* `silx view`:
+
+  * Added `--slices` option (PR #3860)
+  * Added supports for data URL containing "**" to match multiple sub groups (PR #3795)
+  * Added keyboard shortcuts for open/close all (PR #3863)
+  * Improved: Stopped displaying a message box for each error (PR #3955)
+  * Improved: Use matplotlib if OpenGL is not available (PR #3905)
+  * Fixed support of NXData image with 0-length axis (PR #3768)
+  * Fixed setting focus at startup when opening a dataset (PR #3953)
+
+* `silx.app.utils`: Refactored (PR #3811)
+
+silx.io
+.......
+
+* `silx.io.dictdump`:
+
+  * Removed `dicttoh5`'s `overwrite_data` argument (PR #3806)
+  * Improved error message for `dicttoh5` with non-serializable data (PR #3937)
+  * Fixed `h5todict` errors argument issue (PR #3749) and fixed-length string issue (PR #3748)
+
+* `silx.io.h5py_utils`:
+
+  * Fixed `retry` (PR #3775)
+  * Fixed: Do not call multiprocessing module in frozen binaries (PR #3984)
+
+* `silx.io.nxdata.parser`: Fixed `NXdata` validation (PR #3782)
+
+* `silx.io.url`:
+
+  * Added support of URLs with slices to `DataUrl` (PR #3821)
+  * Added typings for `DataUrl` (PR #3968)
+  * Fixed `DataUrl`: Allow `file_path` to be `None` (PR #4051)
+
+* `silx.io.utils`:
+
+  * Added support of bare file to `get_data` with `check_schemas=True` argument (PR #3859)
+  * Improved: `open` do not lock the file (PR #3939)
+  * Fixed small/big endian support in test (PR #3873)
+  * Fixed `h5py_read_dataset` support of empty arrays (PR #4052)
+
+silx.math
+.........
+
+* Fixed several function docstrings (PR #3774)
+* `silx.math.colormap`: Added `normalize` function to normalize to `uint8` (PR #3785)
+* `silx.math.fit`: Added split pseudo-voigt with split lorentzian fraction (PR #3902)
+
+silx.opencl
+...........
+
+* Fixed regression with PoCL and order of floating point operations (PR #3935)
+* Fixed: skip test on broken platform (PR #3809)
+* Fixed: prevent crash at init when loading silx with PortableCL + Cuda devices (PR #3924)
+* `silx.opencl.atomic`: Added new checking for atomic32 and atomic64 operation (PR #3855)
+* `silx.opencl.backprojection`: Removed deprecated `fourier_filter` function (PR #3816)
+* `silx.opencl.codec`:
+
+  * Added `bitshuffle_lz4`` decompression (PR #3714)
+  * Added support of pyopencl's `Buffer` and `Array` to `BitshuffleLz4.decompress` (PR #3787)
+
+* `silx.opencl.common``:
+
+  * Removed `OpenCL.create_context` `useFp64` argument (PR #3801)
+  * Reworked initialisation of the module (PR #3903)
+  * Updated: Defer to pyopencl the interpretation of `PYOPENCL_CTX` (PR #3933)
+
+* `silx.opencl.convolution`: Removed Python 2 compatible code (PR #3818)
+
+silx.third_party
+................
+
+* Removed copy of scipy's Delaunay from third_party (PR #3808)
+* Deprecated `EdfFile` and `TiffIO` (PR #3841)
+
+silx.gui
+........
+
+* `silx.gui`:
+
+  * Added support for `QT_API` environment variable (PR #3981)
+  * Added a warning about pyOpenGL and Qt compatibility (PR #3738)
+  * Added some Python typing (PR #3957)
+  * Removed support of  PySide6<6.4 (PR #3872)
+  * Improved `qWidgetFactory` test fixture (PR #4009)
+  * Fixed support of PySide 6.4 enums (PR #3737)
+  * Fixed support of PyQt6 (PR #3960, #3966, #3989, #3999, #4003)
+  * Fixed support of OpenGL with python3.12 and pyopengl <=3.1.7 (PR #3982)
+  * Fixed OpenGL version parsing (PR #3733)
+
+* `silx.gui.colors`:
+
+  * Added indexed color names support to `rgba` (PR #3836, #3861)
+  * Added typing (PR #3974)
+  * `silx.gui.colors.rgba`: Changed from `AssertionError` to `ValueError` (PR #3864)
+  * Improved: `Colormap.setVRange` raises an exception if the range is not finite (PR #3794)
+
+* `silx.gui.constants`: Added: expose URI used to drag and drop `DataUrl` (PR #3796)
+
+* `silx.gui.data`:
+
+  * Fixed issue with hdf5 attributes string formatting (PR #3790)
+  * `silx.gui.data.DataView`: Removed patch for pymca <v5.3.0 support (PR #3800)
+  * `silx.gui.data.HDF5TableView`: Fixed virtual and external dataset information (PR #3717)
+  * `silx.gui.data.RecordTableView`: Fixed issue with datasets with many rows failing to load due to incorrect variable type (PR #3926)
+
+* `silx.gui.dialog`:
+
+  * `silx.gui.dialog.ColormapDialog`:
+
+    * Added `DisplayMode` to API by renaming `_DataInPlotMode` (PR #3964)
+    * Fixed layout (PR #3792)
+    * Fixed state when updating `Item` (PR #3833)
+    * Fixed robustness of tools with item inheriting from `ImageBase` (PR #3858)
+
+* `silx.gui.hdf5`:
+
+  * Added `NXnote` to the list of describable classes (PR #3832)
+  * Added tests for `H5Node` soft link to an external link issue (PR #3220)
+
+* `silx.gui.qt`:
+
+  * Updated PySide6 `loadUi` function (PR #3783)
+  * Fixed Python>3.9 support (PR #3779)
+
+* `silx.gui.plot`:
+
+  * `silx.gui.plot.actions`: Added typings for `PlotAction` (PR #3941)
+  * `silx.gui.plot.items`:
+
+    * Added `Marker` item font configuration (PR #3956)
+    * Added background color for markers and removed automatic background color (PR #4012)
+    * Added `get|setLineGapColor` methods to `Curve` and `Histogram` (PR #3973)
+    * Renamed `Shape.get|setLineBgColor` to `get|setLineGapColor` (PR #4001)
+    * Deprecated `Curve` and `Image` sequence-like access (PR #3803)
+    * Improved handling of data ndim and shape for image items (PR #3976)
+    * Fixed: Removed `ImageDataAggregated` all-NaN warning (PR #3786)
+    * Fixed `Shape` display with dashes and a background color (PR #3906)
+    * `silx.gui.plot.items.roi`:
+
+      * Added `RegionOfInterest`'s `getText` and `setText` methods (PR #3847)
+      * Added `populateContextMenu` method to ROIs (PR #3891)
+      * Added `ArcROI.getPositionRole` method (PR #3894)
+      * Added ROIs base classes to documentation (PR #3839)
+      * Removed deprecated methods `RegionOfInterest.get|setLabel` (PR #3810)
+      * Improved `ArcROI``: Hide the handler instead of hidding the symbol (PR #3887)
+      * Improved: highlighted RegionOfInterest takes priority for interactions (PR #3975)
+      * Fixed ROI initialisation with parent (PR #4053)
+
+  * `silx.gui.plot.ColorBar`: Fixed division by zero issue (PR #4013)
+  * `silx.gui.plot.CompareImages`:
+
+    * Added profile to compare image (PR #3845)
+    * Improved consistency of autoscale (PR #3823)
+    * Fixed the A-B visualization mode (PR #3856)
+
+  * `silx.gui.plot.ImageStack`:
+
+    * Added URL removal feature if the list is editable (PR #3913)
+    * Fixed `ImageStack` handling of visible state (PR #3834)
+    * Fixed issue (PR #4050)
+
+  * `silx.gui.plot.ImageView`: Fixed histogram visibility (PR #3742)
+  * `silx.gui.plot.PlotWidget`:
+
+    * Breaking changes:
+
+      * Changed `add*` methods return value to return the item instead of its legend (PR #3996)
+      * Refactored management of items (PR #3986, #3988)
+
+    * Added `margins` argument to `PlotWidget.setLimits` (PR #3828)
+    * Added `Plotwidget.get|setDefaultColors` and updated default colors behavior (PR #3835)
+    * Added `PlotWidget.sigBackendChanged` (PR #3890)
+    * Added per-axis zoom (PR #3842, #3843)
+    * Added support for 'other' kind of plot items (PR #3908)
+    * Added support of matplotlib tight layout as an experimental feature (PR #3865)
+    * Added support of line style defined as `(offset, (dash pattern))` (PR #4020)
+    * Added support for indexed color names support (PR #3836)
+    * Added sample script to check and compare backend features (PR #4031)
+    * Changed curve default colors to matchthe one from matplotlib >=2.0 (PR #3853)
+    * Changed curve highlighting to use by default a linewidth of 2 (PR #3854)
+    * Changed plot axes tick labels behavior to use offsets (PR #4007)
+    * Changed: use the default font from mpl (PR #4025)
+    * Changed font management (PR #4047)
+    * Improved rendering for OpenGL backend (PR #4002, #4015, #4023, #4034, #4038)
+    * Fixed documentation (PR #3773)
+    * Fixed mouse cursor update (PR #3904)
+    * Fixed: do not reset zoom when changing axes scales (PR #3862, #3869)
+    * Fixed: use `PlotWidget.get|setActiveScatter` instead of private method (PR #3987)
+    * Fixed tick display of time series (PR #4000)
+    * Fixed matplotlib marker without background (PR #4028)
+
+  * `silx.gui.plot.PlotWindow`: Fixed display of zoom in/out actions (PR #3837)
+  * `silx.gui.plot.RulerToolButton`: Added interactive plot measurement tool (PR #3959, #4005)
+  * `silx.gui.plot.StackView`: Removed `setColormap` `autoscale` argument (PR #3805)
+
+  * `silx.gui.plot.tools`:
+
+    * `silx.gui.plot.tools.PositionInfo`: Fixed support of dark theme (PR #3965)
+    * `silx.gui.plot.tools.profile`: Fixed concurrency issue with RGB profiles (PR #3846)
+    * `silx.gui.plot.tools.roi.RegionOfInterestManager`:
+
+      * Changed interaction mode for ROI creation (PR #3978)
+      * Fixed display glitch (PR #3954)
+
+* `silx.gui.plot3d`:
+
+  * Updated font management (PR #4047)
+  * Fixed deprecation warning (PR #4046)
+  * `silx.gui.plot3d.ParamTreeView`:
+
+    * Added typing and code cleanup (PR #3972)
+    * Fixed Qt6 support (PR #3971)
+
+* `silx.gui.utils.image`: Added support of `QImage.Format_Grayscale8` to `convertQImageToArray` (PR #3958)
+
+* `silx.gui.widgets`:
+
+  * `silx.gui.widgets.FloatEdit`:
+
+    * Added `widgetResizable` feature (PR #4006)
+    * Added typing and code cleanup (PR #3972)
+
+  * `silx.gui.widgets.StackedProgressBar`: Added widget displaying more complex information progress information (PR #4008)
+  * `silx.gui.plot.widgets.UrlList`: Added `UrlList` widget (PR #3913)
+  * `silx.gui.widget.UrlSelectionTable`:
+
+    * Improved look&feel and enabled drag&drop from `silx view` (PR #3797)
+    * Updated: Split the URL column in 3 columns (PR #3822)
+    * Fixed exception with interaction, renamed `get|setSelection` to `get|setUrlSelection` (PR #3791)
+
+  * `silx.gui.widgets.WaiterOverlay`: Added a widget to display processing wheel on top of another widget (PR #3876)
+
+* `silx.utils`:
+
+  * `silx.utils.launcher`: Improved error message (PR #3793)
+  * `silx.utils.retry`: Fixed: Lazy-loading of multiprocessing module (PR #3979)
+
+Miscellaneous
+.............
+
+* Dependencies:
+
+  * Removed support of Python 3.6 (PR #3712), `PySide2` (PR #3784) and `fabio`<0.9 (PR #3829)
+  * Replaced `setuptools`'s `pkg_resources` with `packaging` as runtime dependency (PR #3910)
+  * Fixed support of `pint` >= 0.20 (PR #3725), `cython` (PR #3770, #4033) and `PyInstaller` v6 (PR #4041)
+  * Fixed deprecation warnings from `numpy`, `scipy`, `matplotlib` and `h5py` (PR #3741, #3777, #4045, #3980)
+
+* Clean-up:
+
+  * Removed features deprecated since <1.0.0 (PR #3798, #3799, #3802, #3804)
+  * Removed remaining Python2 support (PR #3815, #3840, #3952)
+  * Removed unused imports (PR #3814)
+  * Replaced `OrderedDict` by `dict` (PR #3830)
+  * Updated: Using `black` to format the code (PR #3991)
+  * Fixed typo: 4 `"` quotes instead of 3. (PR #3838)
+
+* Build:
+
+  * Removed `setup.py` commands and options (PR #3831)
+  * Removed constraint on `setuptools` version (PR #3909)
+  * Updated build dependencies (PR #4035)
+  * Fixed Windows fat binary filename and links (PR #4048)
+  * Bump to 2.0.dev (PR #4014)
+
+* Debian packaging:
+
+  * Removed Debian 10 and 11 packaging (PR #4017)
+  * Added Debian 12 packaging (PR #3812)
+  * Added `pytest-mock` to Debian build dependencies (PR #3740)
+  * Updated `build-deb.sh` (PR #4022, #3772) and `rules` (PR #3732)
+
+* Updated documentation (PR #3765, #3899, #3970, #3994, #4037, #4036, #4039, #4042, #4055)
+* Updated continuous integration (PR #3727, #3967, #3983)
+* Fixed tests (PR #3722, #3723, #4043, #4044)
+
+1.1.2: 2022/12/16
+-----------------
+
+This is a bug fix version:
+
+* `silx.gui`:
+
+  * Fixed support of `PySide` 6.4 enums (PR #3737, #3738)
+  * Fixed OpenGL version parsing (PR #3733, #3738)
+
+  * `silx.gui.plot`:
+
+    * Fixed issue when `PlotWidget` has a size of 0 (PR #3736, #3738)
+    * Fixed reset of interaction when closing mask tool (PR #3735, #3738)
+
+* Miscellaneous: Updated Debian packaging (PR #3732, #3738)
+
+1.1.1: 2022/11/30
+-----------------
+
+This is a bug fix version:
+
+* Fixed support of `pint` >= 0.20 (PR #3725, #3728)
+* Fixed continuous integration (PR #3727, #3728)
+* Updated changelog (PR #3729)
+
 1.1.0: 2022/10/27
 -----------------
 
