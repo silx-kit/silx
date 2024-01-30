@@ -1,12 +1,14 @@
 <!--
-You are encouraged to write a PR title that is meaningful by itself.
-It will be used to auto-generate the complete changelog.
+Thank you for your pull request!
 
-To highlight a change in the changelog, please add a line starting with `Changelog: ` in the PR description.
-It will be used to generate the changelog's summary.
-
-E.g., Changelog: Added new wonderful feature
+Please use a Pull Request title that follows the requested syntax since it will be included in the release notes), see:
+https://github.com/silx-kit/silx/blob/main/CONTRIBUTING.rst#pull-request-title-format
 -->
 
+Checklist:
 
-Changelog: 
+- [ ] The PR title is formatted as: `<Module or Topic>: <Action> <Summary>` (see [contributing guidelines](https://github.com/silx-kit/silx/blob/main/CONTRIBUTING.rst#pull-request-title-format))
+
+<hr>
+
+<!-- provide a description of the changes below -->
