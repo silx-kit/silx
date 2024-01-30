@@ -257,7 +257,7 @@ Miscellaneous
 
 * Dependencies:
 
-  * Removed support of Python 3.6 (PR #3712), `PySide2` (PR #3784) and `fabio`<0.9 (PR #3829)
+  * Removed support of Python 3.6 (PR #3712), `PySide2` (PR #3784) and `fabio` <0.9 (PR #3829)
   * Replaced `setuptools`'s `pkg_resources` with `packaging` as runtime dependency (PR #3910)
   * Fixed support of `pint` >= 0.20 (PR #3725), `cython` (PR #3770, #4033) and `PyInstaller` v6 (PR #4041)
   * Fixed deprecation warnings from `numpy`, `scipy`, `matplotlib` and `h5py` (PR #3741, #3777, #4045, #3980)
