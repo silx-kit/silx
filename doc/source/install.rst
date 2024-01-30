@@ -11,11 +11,11 @@ This table summarizes the support matrix of silx:
 +------------+--------------+--------------------------------+
 | System     | Python vers. | Qt and its bindings            |
 +------------+--------------+--------------------------------+
-| `Windows`_ | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
+| `Windows`_ | 3.8-3.12     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
 +------------+--------------+--------------------------------+
-| `MacOS`_   | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
+| `MacOS`_   | 3.8-3.12     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
 +------------+--------------+--------------------------------+
-| `Linux`_   | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
+| `Linux`_   | 3.8-3.12     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
 +------------+--------------+--------------------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.

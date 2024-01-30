@@ -3,7 +3,7 @@ name: CI
 on:
   # Triggers the workflow on push only for the master branch or pull request events
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
 
   # Allows you to run this workflow manually from the Actions tab
@@ -23,46 +23,46 @@ jobs:
         include:
           - name-suffix: "PyQt5 sdist"
             os: ubuntu-20.04
-            python-version: '3.7'
+            python-version: "3.8"
             BUILD_OPTION: --sdist
             QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl --low-mem
           - name-suffix: "PyQt5 wheel"
             os: macos-latest
-            python-version: '3.10'
+            python-version: "3.10"
             BUILD_OPTION: --wheel
             QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl --low-mem
 
           - name-suffix: "PySide6 sdist"
             os: ubuntu-latest
-            python-version: '3.8'
+            python-version: "3.8"
             BUILD_OPTION: --sdist
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl --low-mem
           - name-suffix: "PySide6 wheel"
             os: macos-latest
-            python-version: '3.9'
+            python-version: "3.9"
             BUILD_OPTION: --wheel
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl --low-mem
 
           - name-suffix: "PyQt6 wheel"
             os: ubuntu-latest
-            python-version: '3.11'
+            python-version: "3.11"
             BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opengl --low-mem
           - name-suffix: "PyQt6 wheel"
             os: macos-latest
-            python-version: '3.10'
+            python-version: "3.10"
             BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opencl --low-mem
 
           - name-suffix: "No GUI wheel"
             os: windows-latest
-            python-version: '3.9'
+            python-version: "3.9"
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --no-gui --low-mem
