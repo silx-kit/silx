@@ -268,3 +268,33 @@ def test_path_creation(data):
     path = url.path()
     DataUrl(path=path)
     assert path == expected_path
+
+
+def test_file_path_none():
+    """
+    make sure a file path can be None
+    """
+    url = DataUrl(scheme="silx", file_path=None, data_path="/path/to/data")
+    assert url.file_path() is None
+    assert url.scheme() == "silx"
+    assert url.data_path() == "/path/to/data"
+
+
+def test_data_path_none():
+    """
+    make sure a data path can be None
+    """
+    url = DataUrl(scheme="silx", file_path="my_file.hdf5", data_path=None)
+    assert url.file_path() == "my_file.hdf5"
+    assert url.scheme() == "silx"
+    assert url.data_path() is None
+
+
+def test_scheme_none():
+    """
+    make sure a scheme can be None
+    """
+    url = DataUrl(scheme=None, file_path="my_file.hdf5", data_path="/path/to/data")
+    assert url.file_path() == "my_file.hdf5"
+    assert url.scheme() is None
+    assert url.data_path() == "/path/to/data"

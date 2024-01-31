@@ -140,11 +140,11 @@ create_license_file("LICENSE")
 
 # Run innosetup
 def innosetup():
-    from silx import version
+    from silx import strictversion
 
     config_name = "create-installer.iss"
     with open(config_name + ".template") as f:
-        content = f.read().replace("#Version", version)
+        content = f.read().replace("#Version", strictversion)
     with open(config_name, "w") as f:
         f.write(content)
 

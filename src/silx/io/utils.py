@@ -1223,7 +1223,10 @@ def h5py_value_isinstance(value, vtype):
         except AttributeError:
             pass
     else:
-        value = value[0]
+        try:
+            value = value[0]
+        except IndexError:
+            pass
     return isinstance(value, vtype)
 
 
