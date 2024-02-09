@@ -1,4 +1,4 @@
-.. _silx view:
+.. _silx-view:
 
 silx view
 =========

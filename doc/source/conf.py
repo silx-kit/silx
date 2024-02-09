@@ -67,7 +67,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
     "sphinx.ext.inheritance_diagram",
-    "sphinx_panels",
+    "sphinx_design",
     "sphinxext-archive",
     "snapshotqt_directive",
     "nbsphinx",
@@ -113,9 +113,10 @@ release = strictversion
 # Substitutions defined for all pages
 rst_prolog = f"""
 .. |silx_installer_btn| replace::
-   .. link-button:: https://github.com/silx-kit/silx/releases/download/v{release}/silx-{release}-windows-installer-x86_64.exe
-      :classes: btn-success
-      :text: Download Windows installer
+   .. button-link:: https://github.com/silx-kit/silx/releases/download/v{release}/silx-{release}-windows-installer-x86_64.exe
+      :color: success
+
+      **Download Windows installer**
 
 .. |silx_archive| replace:: :download:`silx ZIP archive <https://github.com/silx-kit/silx/releases/download/v{release}/silx-{release}-windows-application.zip>`
 """

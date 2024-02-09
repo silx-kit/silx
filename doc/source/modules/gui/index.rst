@@ -1,3 +1,4 @@
+.. _module-silx-gui:
 
 .. py:module:: silx.gui
 
