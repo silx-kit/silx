@@ -33,7 +33,6 @@ Build-Depends: cython3 (>= 0.23.2),
                python3-scipy,
                python3-setuptools,
                python3-sphinx,
-               python3-sphinx-panels,
                python3-sphinxcontrib.programoutput,
                xauth,
                xvfb
@@ -95,29 +94,3 @@ Description: Toolbox for X-Ray data analysis - Python3
     isosurface and cutting plane.
  .
  This is the Python 3 version of the package.
-
-Package: python-silx-doc
-Architecture: all
-Section: doc
-Depends: libjs-mathjax, ${misc:Depends}, ${sphinxdoc:Depends}
-Description: Toolbox for X-Ray data analysis - Documentation
- The silx project aims at providing a collection of Python packages to
- support the development of data assessment, reduction and analysis
- applications at synchrotron radiation facilities. It aims at
- providing reading/writing different file formats, data reduction
- routines and a set of Qt widgets to browse and visualize data.
- .
- The current version provides :
- .
-  * reading HDF5 file format (with support of SPEC file format)
-  * histogramming
-  * fitting
-  * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
-  * image plot widget with a set of associated tools (See changelog file).
-  * Unified browser for HDF5, SPEC and image file formats supporting inspection
-    and visualization of n-dimensional datasets.
-  * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
-  * OpenGL-based widget to display 3D scalar field with
-    isosurface and cutting plane.
- .
- This is the common documentation package.
