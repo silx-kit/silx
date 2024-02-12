@@ -217,7 +217,6 @@ class LegendIconWidget(qt.QWidget):
 
         :param style: The linestyle to use
         """
-        print("setLineStyle", style)
         if style not in _LineStyles:
             self.lineStyle = qt.Qt.SolidLine
             dashPattern = style[1]
