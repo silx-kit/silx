@@ -792,6 +792,7 @@ static void
 sfAssignScanNumbers(SpecFile *sf) {
 
   int i;
+  long bytesread;
   char *ptr;
   char buffer[50];
   char buffer2[50];
@@ -805,7 +806,10 @@ sfAssignScanNumbers(SpecFile *sf) {
         scan = (SpecScan *) object->contents;
 
         lseek(sf->fd,scan->offset,SEEK_SET);
-        read(sf->fd,buffer,sizeof(buffer));
+        bytesread = read(sf->fd,buffer,sizeof(buffer));
+        if (bytesread <= 4) {
+            continue;
+        }
         buffer[49] = '\0';
 
         for ( ptr = buffer+3,i=0; *ptr != ' ';ptr++,i++) buffer2[i] = *ptr;
