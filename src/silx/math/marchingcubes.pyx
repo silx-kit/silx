@@ -39,19 +39,6 @@ cimport cython
 cimport silx.math.mc as mc
 
 
-# From numpy_common.pxi to avoid warnings while compiling C code
-# See this thread:
-# https://mail.python.org/pipermail//cython-devel/2012-March/002137.html
-cdef extern from *:
-    bint FALSE "0"
-    void import_array()
-    void import_umath()
-
-if FALSE:
-    import_array()
-    import_umath()
-
-
 cdef class MarchingCubes:
     """Compute isosurface using marching cubes algorithm.
 
