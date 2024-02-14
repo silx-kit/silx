@@ -47,5 +47,38 @@ The process is similar to many other open-source projects like *numpy*, just lig
 
 If you encounter any problems or have any questions you can always ask on the `Issues page`_.
 
+
+Pull Request title format
+.........................
+
+To ease release notes authoring, please use the following syntax for the title of your Pull Requests (PR)::
+
+  <Subpackage/Module/Topic>: <Action> <summary of the main change affecting silx's users>
+
+
+With:
+
+- **Subpackage/Topic**: One of:
+
+  - A subpackage or a module: Use the fully qualified name of the subpackage or module of silx the PR is changing.
+    For example: ``silx.gui.qt`` or ``silx.gui.plot.PlotWidget``.
+  - A topic: If changes do not affect a particular subpackage or module, provide the topic of the change.
+    This can be for example: ``Build``, ``Documentation``, ``CI``,... or the name of a silx application (e.g., ``silx view``).
+
+- **Action**: How the changes affects the project from a silx user point of view.
+  Prefer using one of the following actions:
+
+  - **Added**: For new feature or new APIs
+  - **Deprecated**
+  - **Removed**
+  - **Changed**
+  - **Improved**
+  - **Refactored**
+  - **Fixed**
+  - More: If none of the previous actions match your changes, please use another keyword.
+
+- **Summary**: A short description of the main change as you would like to read it from release notes.
+
+
 .. _their own CONTRIBUTING guide: https://github.com/scikit-image/scikit-image/blob/3736339272b9d129f98fc723b508ac5490c171fa/CONTRIBUTING.rst
 .. _Issues page: https://github.com/silx-kit/silx/issues
