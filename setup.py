@@ -191,7 +191,6 @@ def get_project_configuration():
         "hdf5plugin",
         "scipy",
         "Pillow",
-        "bitshuffle",
     ]
 
     test_requires = ["pytest", "pytest-xvfb", "pytest-mock", "bitshuffle"]

@@ -1,0 +1,165 @@
+name: Build and deploy
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+jobs:
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      - name: Build sdist
+        run: python -m build --sdist
+      - name: Check the package
+        run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  test_sdist:
+    needs: [build_sdist]
+    name: Test source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist
+      - name: Install from sdist
+        run: pip install "$(ls dist/silx-*.tar.gz)[full,test]"
+      - name: Run tests
+        env:
+          WITH_QT_TEST: "False"
+          WITH_GL_TEST: "False"
+          SILX_OPENCL: "False"
+          SILX_TEST_LOW_MEM: "False"
+        run: python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3))"
+
+  build_doc:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install pandoc&graphviz
+        run: sudo apt-get install pandoc graphviz
+      - name: Install silx
+        # Post-install: Upgrade sphinx-panels to workaround dependency to old sphinx
+        run: |
+          pip install .[full,test,doc]
+          pip install --upgrade sphinx-panels --no-deps
+      - name: Build doc
+        env:
+          QT_QPA_PLATFORM: "offscreen"
+        run: |
+          export SILX_VERSION="$(python -c 'import silx; print(silx.strictversion)')"
+          sphinx-build doc/source/ "silx-${SILX_VERSION}_documentation/"
+          zip -r "silx-${SILX_VERSION}_documentation.zip" "silx-${SILX_VERSION}_documentation/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: silx-*_documentation.zip
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Ensure that a wheel builder finishes even if another fails
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            cibw_archs: "auto64"
+            with_sse2: true
+          - os: ubuntu-20.04
+            cibw_archs: "aarch64"
+            with_sse2: false
+          - os: ubuntu-20.04
+            cibw_archs: "ppc64le"
+            with_sse2: false
+          - os: windows-2019
+            cibw_archs: "auto64"
+            with_sse2: true
+          - os: macos-11
+            cibw_archs: "universal2"
+            with_sse2: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+        if: runner.os == 'Linux'
+        with:
+          platforms: all
+      - uses: pypa/cibuildwheel@v2.16.5
+        env:
+          # Configure silx build
+          SILX_FORCE_CYTHON: "True"
+          SILX_WITH_OPENMP: "False"
+          # Configure silx tests
+          WITH_QT_TEST: "False"
+          WITH_GL_TEST: "False"
+          SILX_OPENCL: "False"
+          SILX_TEST_LOW_MEM: "False"
+
+          CIBW_ENVIRONMENT_PASS_LINUX: SILX_FORCE_CYTHON SILX_WITH_OPENMP WITH_QT_TEST WITH_GL_TEST SILX_OPENCL SILX_TEST_LOW_MEM
+
+          # Use silx wheelhouse: needed for ppc64le
+          CIBW_ENVIRONMENT_LINUX: "PIP_FIND_LINKS=https://www.silx.org/pub/wheelhouse/ PIP_TRUSTED_HOST=www.silx.org"
+
+          CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
+          # Do not build for pypy and muslinux
+          CIBW_SKIP: pp* *-musllinux_*
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+          # Install test dependencies
+          CIBW_TEST_EXTRAS: "full,test"
+          CIBW_TEST_COMMAND: python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3))"
+          # Skip tests for emulated architectures and arm64 macos
+          # Skip cp38 test on macos: Issue with libOpenGL
+          # Skip cp311 and cp312 on macos: bitshuffle does not build there
+          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64 *-macosx_universal2:arm64 cp38-macosx* cp311-macosx* cp312-macosx*"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  pypi-publish:
+    needs: [build_doc, build_sdist, build_wheels, test_sdist]
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    # or, alternatively, upload to PyPI on every tag starting with 'v' (remove on: release above to use this)
+    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
