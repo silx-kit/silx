@@ -21,113 +21,106 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 
 You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <https://docs.conda.io>`_ or on Linux with the following commands:
 
-.. tabbed:: pip
+.. tab-set::
 
-   .. code-block:: bash
+   .. tab-item:: pip
 
-      pip install silx[full]
+      .. code-block:: bash
 
-.. tabbed:: conda
+         pip install silx[full]
 
-   .. code-block:: bash
+   .. tab-item:: conda
 
-      conda install -c conda-forge silx
+      .. code-block:: bash
 
-.. tabbed:: Debian & Ubuntu
+         conda install -c conda-forge silx
 
-   .. code-block:: bash
+   .. tab-item:: Debian & Ubuntu
 
-      sudo apt-get install silx
+      .. code-block:: bash
+
+         sudo apt-get install silx
 
 |silx_installer_btn| or decompress the |silx_archive|.
 
 :ref:`Applications`
 -------------------
 
-.. panels::
+.. grid:: 1 2 2 2
+   :gutter: 2
 
-   :column: col-lg-12
-   :body: text-center
+   .. grid-item-card::
+      :columns: 12
+      :text-align: center
+      :link: silx-view
+      :link-type: ref
 
-   **silx view**
-   ^^^^^^^^^^^^^
+      silx view
+      ^^^
 
-   .. image:: img/silx-view.gif
+      .. image:: img/silx-view.gif
 
-   .. link-button:: applications/view
-      :type: ref
-      :text: Unified viewer supporting HDF5, SPEC and image file formats
-      :classes: stretched-link
+      Unified viewer supporting HDF5, SPEC and image file formats
 
-   ---
+   .. grid-item-card::
+      :text-align: center
+      :link: silx-compare
+      :link-type: ref
 
-   **silx compare**
-   ^^^^^^^^^^^^^^^^
+      silx compare
+      ^^^
 
-   .. image:: applications/img/silx-compare.png
+      .. image:: applications/img/silx-compare.png
 
-   .. link-button:: applications/compare
-      :type: ref
-      :text: User interface to compare 2D data from files
-      :classes: stretched-link
+      User interface to compare 2D data from files
 
-   ---
+   .. grid-item-card::
+      :text-align: center
+      :link: silx-convert
+      :link-type: ref
 
-   **silx convert**
-   ^^^^^^^^^^^^^^^^
+      silx convert
+      ^^^
 
-   .. link-button:: applications/convert
-      :type: ref
-      :text: Converter of legacy file formats into HDF5 file
-      :classes: stretched-link
+      Converter of legacy file formats into HDF5 file
 
 :ref:`Python modules<API Reference>`
 ------------------------------------
 
-.. panels::
+.. grid:: 1 2 2 2
+   :gutter: 2
 
-   **silx.gui**
-   ^^^^^^^^^^^^
+   .. grid-item-card:: Qt widgets
+      :link: module-silx-gui
+      :link-type: ref
 
-   .. link-button:: modules/gui/index
-      :type: ref
-      :text: Qt widgets:
-      :classes: stretched-link
+      silx.gui
+      ^^^
+      * 1D and 2D visualization widgets and associated tools
+      * OpenGL-based 3D visualization widgets
+      * A unified HDF5, SPEC and image data file browser and n-dimensional dataset viewer
 
-   * 1D and 2D visualization widgets and associated tools
-   * OpenGL-based 3D visualization widgets
-   * a unified HDF5, SPEC and image data file browser and n-dimensional dataset viewer
+   .. grid-item-card:: OpenCL-based data processing
+      :link: module-silx-opencl
+      :link-type: ref
 
-   ---
+      silx.opencl
+      ^^^
 
-   **silx.opencl**
-   ^^^^^^^^^^^^^^^
+      * Image alignment (SIFT)
+      * Image processing (median filter, histogram)
+      * Filtered backprojection for tomography
 
-   .. link-button:: modules/opencl/index
-      :type: ref
-      :text: OpenCL-based data processing:
-      :classes: stretched-link
+   .. grid-item-card:: Supporting HDF5, SPEC and FabIO images file formats
+      :link: module-silx-io
+      :link-type: ref
 
-   * Image alignment (SIFT)
-   * Image processing (median filter, histogram)
-   * Filtered backprojection for tomography
+      silx.io
+      ^^^
 
-   ---
+   .. grid-item-card:: Data reduction: histogramming, fitting, median filter
+      :link: module-silx-math
+      :link-type: ref
 
-   **silx.io**
-   ^^^^^^^^^^^
-
-   .. link-button:: modules/io/index
-      :type: ref
-      :text: Supporting HDF5, SPEC and FabIO images file formats
-      :classes: stretched-link
-
-   ---
-
-   **silx.math**
-   ^^^^^^^^^^^^^
-
-   .. link-button:: modules/math/index
-      :type: ref
-      :text: Data reduction: histogramming, fitting, median filter
-      :classes: stretched-link
+      silx.math
+      ^^^

@@ -1,4 +1,4 @@
-.. _silx compare:
+.. _silx-compare:
 
 silx compare
 ============

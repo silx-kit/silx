@@ -1,3 +1,4 @@
+.. _module-silx-io:
 
 .. py:module:: silx.io
 

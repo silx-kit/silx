@@ -1,3 +1,4 @@
+.. _silx-convert:
 
 silx convert
 ============

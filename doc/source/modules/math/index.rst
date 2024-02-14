@@ -1,3 +1,4 @@
+.. _module-silx-math:
 
 .. py:module:: silx.math
 

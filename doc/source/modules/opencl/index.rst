@@ -1,3 +1,4 @@
+.. _module-silx-opencl:
 
 .. py:module:: silx.opencl
 
