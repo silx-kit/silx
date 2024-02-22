@@ -388,7 +388,7 @@ class File(h5py.File):
             )
             if locking is None:
                 locking = enable_file_locking
-        locking = _hdf5_file_locking(
+        _hdf5_file_locking(
             mode=mode, locking=locking, swmr=swmr, libver=libver
         )
         if self._LOCKING_MGR is None:
