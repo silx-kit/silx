@@ -2047,3 +2047,28 @@ class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
 
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
+
+
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize(
+    "xerror,yerror",
+    [
+        (2, 2),  # Single value
+        ((1, 2, 3), (3, 2, 1)),  # Flat array
+        (([1], [2], [3]), ([3], [2], [1])),  # Nx1 array
+        ([(1, 2, 3), (3, 2, 1)], [(3, 2, 1), (1, 2, 3)]),  # 2xN array
+        (-1, -1),  # Negative values
+        ((-1, 0, 1), (1, 0, -1)),  # Flat array with negative values
+    ],
+)
+def testCurveErrors(qapp, plotWidget, xerror, yerror):
+    """Test display of curves with different errors"""
+    item = plotWidget.addCurve(x=(1, 2, 3), y=(3, 2, 1), xerror=xerror, yerror=yerror)
+
+    assert numpy.array_equal(xerror, item.getXErrorData())
+    assert numpy.array_equal(yerror, item.getYErrorData())
+
+    plotWidget.resetZoom()
+    qapp.processEvents()
+    plotWidget.getXAxis().setScale("log")
+    plotWidget.getYAxis().setScale("log")
