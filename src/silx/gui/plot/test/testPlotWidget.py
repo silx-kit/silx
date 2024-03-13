@@ -1687,23 +1687,26 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
 
                 self.qapp.processEvents()
 
-                if xError is None:
-                    dataMin, dataMax = numpy.min(self.xData), numpy.max(self.xData)
-                else:
+                dataMin, dataMax = numpy.min(self.xData), numpy.max(self.xData)
+                if xError is not None:
+                    if isinstance(xError, numpy.ndarray) and xError.shape[-1] == 1:
+                        xError = numpy.ravel(xError)
                     xMinusError = self.xData - numpy.atleast_2d(xError)[0]
-                    dataMin = numpy.min(xMinusError[xMinusError > 0])
+                    dataMin = min(dataMin, numpy.min(xMinusError[xMinusError > 0]))
                     xPlusError = self.xData + numpy.atleast_2d(xError)[-1]
-                    dataMax = numpy.max(xPlusError[xPlusError > 0])
+                    dataMax = max(dataMax, numpy.max(xPlusError[xPlusError > 0]))
                 plotMin, plotMax = self.plot.getXAxis().getLimits()
                 assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
 
-                if yError is None:
-                    dataMin, dataMax = numpy.min(self.yData), numpy.max(self.yData)
-                else:
+                dataMin, dataMax = numpy.min(self.yData), numpy.max(self.yData)
+                if yError is not None:
+                    if isinstance(yError, numpy.ndarray) and yError.shape[-1] == 1:
+                        yError = numpy.ravel(yError)
+
                     yMinusError = self.yData - numpy.atleast_2d(yError)[0]
-                    dataMin = numpy.min(yMinusError[yMinusError > 0])
+                    dataMin = min(dataMin, numpy.min(yMinusError[yMinusError > 0]))
                     yPlusError = self.yData + numpy.atleast_2d(yError)[-1]
-                    dataMax = numpy.max(yPlusError[yPlusError > 0])
+                    dataMax = max(dataMax, numpy.max(yPlusError[yPlusError > 0]))
                 plotMin, plotMax = self.plot.getYAxis().getLimits()
                 assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
 
