@@ -34,6 +34,7 @@ from collections import abc
 from copy import deepcopy
 import logging
 import enum
+import numbers
 from typing import Optional, Tuple, Union
 import weakref
 
@@ -1422,7 +1423,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
 
-    # note: _logFilterData must be overloaded if you overload
+    # note: _filterData must be overloaded if you overload
     #       getData to change its signature
 
     _DEFAULT_Z_LAYER = 1
@@ -1517,8 +1518,22 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             )
         return self._clippedCache[(xPositive, yPositive)]
 
-    def _logFilterData(self, xPositive, yPositive):
-        """Filter out values with x or y <= 0 on log axes
+    @staticmethod
+    def _filterNegativeValues(
+        data: numpy.ndarray | numbers.Number | None,
+    ) -> numpy.ndarray | numbers.Number | None:
+        """Returns data with negative values to 0"""
+        if data is None:
+            return None
+
+        # Convert data to array to avoid specific case for complex scalar
+        if numpy.all(numpy.array(data, copy=False) >= 0):
+            return data
+
+        return numpy.clip(data, 0, None)  # Also works for scalars
+
+    def _filterData(self, xPositive, yPositive):
+        """Filter out errors<0 and values with x or y <= 0 on log axes
 
         :param bool xPositive: True to filter arrays according to X coords.
         :param bool yPositive: True to filter arrays according to Y coords.
@@ -1527,8 +1542,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         """
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
-        xerror = self.getXErrorData(copy=False)
-        yerror = self.getYErrorData(copy=False)
+        xerror = self._filterNegativeValues(self.getXErrorData(copy=False))
+        yerror = self._filterNegativeValues(self.getYErrorData(copy=False))
 
         if xPositive or yPositive:
             clipped = self._getClippingBoolArray(xPositive, yPositive)
@@ -1592,7 +1607,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
-                # Scatter._logFilterData)
+                # Scatter._filterData)
                 x, y, xerror, yerror = data[0], data[1], data[3], data[4]
             else:
                 x, y, xerror, yerror = data
@@ -1609,31 +1624,30 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
-        """Return cached filtered data if applicable,
-        i.e. if any axis is in log scale.
+        """Return cached filtered data if applicable.
+
         Return None if caching is not applicable."""
         plot = self.getPlot()
-        if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
-            if xPositive or yPositive:
-                # At least one axis has log scale, filter data
-                if (xPositive, yPositive) not in self._filteredCache:
-                    self._filteredCache[(xPositive, yPositive)] = self._logFilterData(
-                        xPositive, yPositive
-                    )
-                return self._filteredCache[(xPositive, yPositive)]
-        return None
+        if plot is None:
+            return None
+
+        xPositive = plot.getXAxis()._isLogarithmic()
+        yPositive = plot.getYAxis()._isLogarithmic()
+        if (xPositive, yPositive) not in self._filteredCache:
+            self._filteredCache[(xPositive, yPositive)] = self._filterData(
+                xPositive, yPositive
+            )
+        return self._filteredCache[(xPositive, yPositive)]
 
     def getData(self, copy=True, displayed=False):
         """Returns the x, y values of the curve points and xerror, yerror
 
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
-        :param bool displayed: True to only get curve points that are displayed
-                               in the plot. Default: False
-                               Note: If plot has log scale, negative points
-                               are not displayed.
+        :param bool displayed:
+            True to only get curve points that are displayed in the plot.
+            Note: If plot has log scale, negative points are not displayed.
+            Negative errors are set to 0.
         :returns: (x, y, xerror, yerror)
         :rtype: 4-tuple of numpy.ndarray
         """
