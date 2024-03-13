@@ -1555,11 +1555,11 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 y = numpy.array(y, copy=True, dtype=numpy.float64)
                 y[clipped] = numpy.nan
 
-                if xPositive and xerror is not None:
-                    xerror = self._logFilterError(x, xerror)
+            if xPositive and xerror is not None:
+                xerror = self._logFilterError(x, xerror)
 
-                if yPositive and yerror is not None:
-                    yerror = self._logFilterError(y, yerror)
+            if yPositive and yerror is not None:
+                yerror = self._logFilterError(y, yerror)
 
         return x, y, xerror, yerror
 
