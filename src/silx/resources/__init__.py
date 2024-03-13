@@ -62,15 +62,15 @@ __date__ = "08/03/2019"
 import atexit
 import contextlib
 import functools
-import importlib
-import importlib.resources
 import logging
 import os
 import sys
 from typing import NamedTuple, Optional
 
 if sys.version_info < (3, 9):
-    import pkg_resources
+    import importlib_resources
+else:
+    import importlib.resources as importlib_resources
 
 
 logger = logging.getLogger(__name__)
@@ -155,12 +155,7 @@ def list_dir(resource: str) -> list[str]:
         path = resource_filename(resource)
         return os.listdir(path)
 
-    if sys.version_info < (3, 9):
-        return pkg_resources.resource_listdir(
-            resource_directory.package_name, resource_name
-        )
-
-    path = importlib.resources.files(resource_directory.package_name) / resource_name
+    path = importlib_resources.files(resource_directory.package_name) / resource_name
     return [entry.name for entry in path.iterdir()]
 
 
@@ -244,12 +239,9 @@ def _get_resource_filename(package: str, resource: str) -> str:
     :param resource: Resource path relative to package using '/' path separator
     :return: Abolute resource path in the file system
     """
-    if sys.version_info < (3, 9):
-        return pkg_resources.resource_filename(package, resource)
-
     # Caching prevents extracting the resource twice
-    file_context = importlib.resources.as_file(
-        importlib.resources.files(package) / resource
+    file_context = importlib_resources.as_file(
+        importlib_resources.files(package) / resource
     )
     path = _file_manager.enter_context(file_context)
     return str(path.absolute())
