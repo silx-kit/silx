@@ -840,7 +840,12 @@ LineStyleType = Union[
     str,
     Tuple[Union[float, int], None],
     Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int]]],
-    Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int], Union[float, int], Union[float, int]]],
+    Tuple[
+        Union[float, int],
+        Tuple[
+            Union[float, int], Union[float, int], Union[float, int], Union[float, int]
+        ],
+    ],
 ]
 """Type for :class:`LineMixIn`'s line style"""
 
@@ -1448,48 +1453,66 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         self._boundsCache = {}
 
     @staticmethod
-    def _logFilterError(value, error):
+    def _errorAs2DArray(
+        error: numpy.ndarray | numbers.Number,
+        length: int,
+    ) -> numpy.ndarray:
+        """Convert error to a 2D array
+
+        :param error: The error argument to convert to an array
+        :param length: Expected size of error array
+        :returns: 2D array of errors
+        """
+        # Convert scalar to array
+        if not isinstance(error, numpy.ndarray):
+            error = numpy.full((length,), error, dtype=numpy.float64)
+
+        # Convert Nx1 to N array
+        if error.ndim == 2 and error.shape[1] == 1 and length != 1:
+            error = numpy.ravel(error)
+
+        # Return 2D array
+        return numpy.atleast_2d(error)
+
+    @classmethod
+    def _logFilterError(
+        cls,
+        value: numpy.ndarray,
+        error: numpy.ndarray | float | int | None,
+    ) -> numpy.ndarray | None:
         """Filter/convert error values if they go <= 0.
 
         Replace error leading to negative values by nan
 
-        :param numpy.ndarray value: 1D array of values
-        :param numpy.ndarray error:
+        :param value: 1D array of values
+        :param error:
             Array of errors: scalar, N, Nx1 or 2xN or None.
         :return: Filtered error so error bars are never negative
         """
-        if error is not None:
-            # Convert Nx1 to N
-            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
-                error = numpy.ravel(error)
+        if error is None:
+            return None
 
-            # Supports error being scalar, N or 2xN array
-            valueMinusError = value - numpy.atleast_2d(error)[0]
-            errorClipped = numpy.isnan(valueMinusError)
-            mask = numpy.logical_not(errorClipped)
-            errorClipped[mask] = valueMinusError[mask] <= 0
+        errorArray = cls._errorAs2DArray(error, len(value))
 
-            if numpy.any(errorClipped):  # Need filtering
-                # expand errorbars to 2xN
-                if error.size == 1:  # Scalar
-                    error = numpy.full((2, len(value)), error, dtype=numpy.float64)
+        # Supports error being scalar, N or 2xN array
+        valueMinusError = value - errorArray[0]
+        errorClipped = numpy.isnan(valueMinusError)
+        mask = numpy.logical_not(errorClipped)
+        errorClipped[mask] = valueMinusError[mask] <= 0
 
-                elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)), dtype=numpy.float64)
-                    newError[0, :] = error
-                    newError[1, :] = error
-                    error = newError
+        if not numpy.any(errorClipped):  # No filtering
+            return error
 
-                elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(error, copy=True, dtype=numpy.float64)
+        # expand errorbars to 2xN
+        if len(errorArray) == 1:
+            filteredError = numpy.empty((2, len(value)), dtype=numpy.float64)
+            filteredError[0, :] = errorArray[0]
+            filteredError[1, :] = errorArray[0]
+        else:  # 2xN array
+            filteredError = numpy.array(errorArray, copy=True, dtype=numpy.float64)
 
-                else:
-                    _logger.error("Unhandled error array")
-                    return error
-
-                error[0, errorClipped] = numpy.nan
-
-        return error
+        filteredError[0, errorClipped] = numpy.nan
+        return filteredError
 
     def _getClippingBoolArray(self, xPositive, yPositive):
         """Compute a boolean array to filter out points with negative
@@ -1563,8 +1586,9 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
         return x, y, xerror, yerror
 
-    @staticmethod
+    @classmethod
     def __minMaxDataWithError(
+        cls,
         data: numpy.ndarray,
         error: Optional[Union[float, numpy.ndarray]],
         positiveOnly: bool,
@@ -1573,14 +1597,18 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             min_, max_ = min_max(data, finite=True)
             return min_, max_
 
-        # float, 1D or 2D array
-        dataMinusError = data - numpy.atleast_2d(error)[0]
+        errorArray = cls._errorAs2DArray(error, len(data))
+        isNanError = numpy.isnan(errorArray)
+
+        dataMinusError = data - errorArray[0]
+        dataMinusError[isNanError[0]] = data[isNanError[0]]
         dataMinusError = dataMinusError[numpy.isfinite(dataMinusError)]
         if positiveOnly:
             dataMinusError = dataMinusError[dataMinusError > 0]
         min_ = numpy.nan if dataMinusError.size == 0 else numpy.min(dataMinusError)
 
-        dataPlusError = data + numpy.atleast_2d(error)[-1]
+        dataPlusError = data + errorArray[-1]
+        dataPlusError[isNanError[-1]] = data[isNanError[-1]]
         dataPlusError = dataPlusError[numpy.isfinite(dataPlusError)]
         if positiveOnly:
             dataPlusError = dataPlusError[dataPlusError > 0]
