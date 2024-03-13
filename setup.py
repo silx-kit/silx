@@ -166,7 +166,7 @@ def get_project_configuration():
 
     install_requires = [
         # for most of the computation
-        "numpy%s" % numpy_requested_version,
+        "numpy%s,<2" % numpy_requested_version,
         # for version parsing
         "packaging",
         # for io support
