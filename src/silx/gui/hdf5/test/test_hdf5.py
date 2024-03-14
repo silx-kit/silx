@@ -502,9 +502,9 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         """Test NXentry with start_time"""
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
-        create_NXentry(h5, "a").create_dataset("start_time", data=numpy.string_("2015"))
-        create_NXentry(h5, "b").create_dataset("start_time", data=numpy.string_("2013"))
-        create_NXentry(h5, "c").create_dataset("start_time", data=numpy.string_("2014"))
+        create_NXentry(h5, "a").create_dataset("start_time", data=numpy.bytes_("2015"))
+        create_NXentry(h5, "b").create_dataset("start_time", data=numpy.bytes_("2013"))
+        create_NXentry(h5, "c").create_dataset("start_time", data=numpy.bytes_("2014"))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -518,13 +518,13 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
         create_NXentry(h5, "a").create_dataset(
-            "start_time", data=numpy.array([numpy.string_("2015")])
+            "start_time", data=numpy.array([numpy.bytes_("2015")])
         )
         create_NXentry(h5, "b").create_dataset(
-            "start_time", data=numpy.array([numpy.string_("2013")])
+            "start_time", data=numpy.array([numpy.bytes_("2013")])
         )
         create_NXentry(h5, "c").create_dataset(
-            "start_time", data=numpy.array([numpy.string_("2014")])
+            "start_time", data=numpy.array([numpy.bytes_("2014")])
         )
         model.insertH5pyObject(h5)
 
@@ -539,13 +539,13 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
         create_NXentry(h5, "a").create_dataset(
-            "end_time", data=numpy.array([numpy.string_("2015")])
+            "end_time", data=numpy.array([numpy.bytes_("2015")])
         )
         create_NXentry(h5, "b").create_dataset(
-            "end_time", data=numpy.array([numpy.string_("2013")])
+            "end_time", data=numpy.array([numpy.bytes_("2013")])
         )
         create_NXentry(h5, "c").create_dataset(
-            "end_time", data=numpy.array([numpy.string_("2014")])
+            "end_time", data=numpy.array([numpy.bytes_("2014")])
         )
         model.insertH5pyObject(h5)
 
@@ -574,9 +574,9 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         """If it is not NXentry, start_time is not used"""
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
-        h5.create_group("a").create_dataset("start_time", data=numpy.string_("2015"))
-        h5.create_group("b").create_dataset("start_time", data=numpy.string_("2013"))
-        h5.create_group("c").create_dataset("start_time", data=numpy.string_("2014"))
+        h5.create_group("a").create_dataset("start_time", data=numpy.bytes_("2015"))
+        h5.create_group("b").create_dataset("start_time", data=numpy.bytes_("2013"))
+        h5.create_group("c").create_dataset("start_time", data=numpy.bytes_("2014"))
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
