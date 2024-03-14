@@ -33,7 +33,6 @@ __date__ = "16/08/2017"
 
 
 import numpy
-cimport numpy as cnumpy
 cimport cython
 
 cimport silx.math.mc as mc

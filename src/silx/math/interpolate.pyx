@@ -35,7 +35,6 @@ import numpy
 
 cimport cython
 from libc.math cimport floor
-cimport numpy as cnumpy
 
 
 ctypedef fused _floating:
@@ -135,9 +134,9 @@ def interp3d(_floating[:, :, :] values not None,
     :return: Values evaluated at given input points.
     :rtype: numpy.ndarray
     """
-    if _floating is cnumpy.float32_t:
+    if _floating is float:
         dtype = numpy.float32
-    elif _floating is cnumpy.float64_t:
+    elif _floating is double:
         dtype = numpy.float64
     else:  # This should not happen
         raise ValueError("Unsupported input dtype")

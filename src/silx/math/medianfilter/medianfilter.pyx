@@ -33,10 +33,11 @@ from cython.parallel import prange
 cimport cython
 cimport silx.math.medianfilter.median_filter as median_filter
 import numpy
-cimport numpy as cnumpy
 from libcpp cimport bool
 
 import numbers
+
+from libc.stdint cimport int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
 
 ctypedef unsigned long uint64
 ctypedef unsigned int uint32
@@ -253,7 +254,7 @@ def mirror(int index, int length_max):
 @cython.initializedcheck(False)
 def _median_filter_float32(float[:, ::1] input_buffer not None,
                            float[:, ::1] output_buffer not None,
-                           cnumpy.int32_t[::1] kernel_size not None,
+                           int32_t[::1] kernel_size not None,
                            bool conditional,
                            int mode,
                            float cval):
@@ -284,7 +285,7 @@ def _median_filter_float32(float[:, ::1] input_buffer not None,
 @cython.initializedcheck(False)
 def _median_filter_float64(double[:, ::1] input_buffer not None,
                            double[:, ::1] output_buffer not None,
-                           cnumpy.int32_t[::1] kernel_size not None,
+                           int32_t[::1] kernel_size not None,
                            bool conditional,
                            int mode,
                            double cval):
@@ -313,12 +314,12 @@ def _median_filter_float64(double[:, ::1] input_buffer not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
-                         cnumpy.int64_t[:, ::1] output_buffer not None,
-                         cnumpy.int32_t[::1] kernel_size not None,
+def _median_filter_int64(int64_t[:, ::1] input_buffer not None,
+                         int64_t[:, ::1] output_buffer not None,
+                         int32_t[::1] kernel_size not None,
                          bool conditional,
                          int mode,
-                         cnumpy.int64_t cval):
+                         int64_t cval):
 
     cdef:
         int y = 0
@@ -343,12 +344,12 @@ def _median_filter_int64(cnumpy.int64_t[:, ::1] input_buffer not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_uint64(cnumpy.uint64_t[:, ::1] input_buffer not None,
-                          cnumpy.uint64_t[:, ::1] output_buffer not None,
-                          cnumpy.int32_t[::1] kernel_size not None,
+def _median_filter_uint64(uint64_t[:, ::1] input_buffer not None,
+                          uint64_t[:, ::1] output_buffer not None,
+                          int32_t[::1] kernel_size not None,
                           bool conditional,
                           int mode,
-                          cnumpy.uint64_t cval):
+                          uint64_t cval):
 
     cdef: 
         int y = 0
@@ -374,12 +375,12 @@ def _median_filter_uint64(cnumpy.uint64_t[:, ::1] input_buffer not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
-                         cnumpy.int32_t[:, ::1] output_buffer not None,
-                         cnumpy.int32_t[::1] kernel_size not None,
+def _median_filter_int32(int32_t[:, ::1] input_buffer not None,
+                         int32_t[:, ::1] output_buffer not None,
+                         int32_t[::1] kernel_size not None,
                          bool conditional,
                          int mode,
-                         cnumpy.int32_t cval):
+                         int32_t cval):
 
     cdef:
         int y = 0
@@ -405,12 +406,12 @@ def _median_filter_int32(cnumpy.int32_t[:, ::1] input_buffer not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
-                          cnumpy.uint32_t[:, ::1] output_buffer not None,
-                          cnumpy.int32_t[::1] kernel_size not None,
+def _median_filter_uint32(uint32_t[:, ::1] input_buffer not None,
+                          uint32_t[:, ::1] output_buffer not None,
+                          int32_t[::1] kernel_size not None,
                           bool conditional,
                           int mode,
-                          cnumpy.uint32_t cval):
+                          uint32_t cval):
 
     cdef:
         int y = 0
@@ -436,12 +437,12 @@ def _median_filter_uint32(cnumpy.uint32_t[:, ::1] input_buffer not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
-                         cnumpy.int16_t[:, ::1] output_buffer not None,
-                         cnumpy.int32_t[::1] kernel_size not None,
+def _median_filter_int16(int16_t[:, ::1] input_buffer not None,
+                         int16_t[:, ::1] output_buffer not None,
+                         int32_t[::1] kernel_size not None,
                          bool conditional,
                          int mode,
-                         cnumpy.int16_t cval):
+                         int16_t cval):
 
     cdef:
         int y = 0
@@ -468,12 +469,12 @@ def _median_filter_int16(cnumpy.int16_t[:, ::1] input_buffer not None,
 @cython.wraparound(False)
 @cython.initializedcheck(False)
 def _median_filter_uint16(
-      cnumpy.uint16_t[:, ::1] input_buffer not None,
-      cnumpy.uint16_t[:, ::1] output_buffer not None,
-      cnumpy.int32_t[::1] kernel_size not None,
+      uint16_t[:, ::1] input_buffer not None,
+      uint16_t[:, ::1] output_buffer not None,
+      int32_t[::1] kernel_size not None,
       bool conditional,
       int mode,
-      cnumpy.uint16_t cval):
+      uint16_t cval):
 
     cdef:
         int y = 0
