@@ -311,9 +311,9 @@ class TextFormatter(qt.QObject):
                     )
                 return "(" + " ".join(text) + ")"
             return self.__formatBinary(data)
-        elif isinstance(data, (numpy.unicode_, str)):
+        elif isinstance(data, (numpy.str_, str)):
             return self.__formatText(data)
-        elif isinstance(data, (numpy.string_, bytes)):
+        elif isinstance(data, (numpy.bytes_, bytes)):
             if dtype is None and hasattr(data, "dtype"):
                 dtype = data.dtype
             if dtype is not None:

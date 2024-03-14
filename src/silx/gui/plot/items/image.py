@@ -281,7 +281,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                 else:
                     dtype = numpy.float64
                 data = numpy.array(data, dtype=dtype, copy=True)
-                data[mask != 0] = numpy.NaN
+                data[mask != 0] = numpy.nan
             self.__valueDataCache = data
         return numpy.array(self.__valueDataCache, copy=copy)
 
