@@ -37,9 +37,9 @@ __date__ = "21/12/2023"
 import os
 cimport cython
 from cython.parallel import prange
-cimport numpy as cnumpy
 from libc.math cimport frexp, sinh, sqrt
 from libc.math cimport pow as c_pow
+from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
 from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
@@ -66,14 +66,14 @@ cdef int USE_OPENMP_THRESHOLD = 1000
 
 # Supported data types
 ctypedef fused data_types:
-    cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
-    cnumpy.uint32_t
-    cnumpy.int32_t
-    cnumpy.uint64_t
-    cnumpy.int64_t
+    uint8_t
+    int8_t
+    uint16_t
+    int16_t
+    uint32_t
+    int32_t
+    uint64_t
+    int64_t
     float
     double
     long double
@@ -81,18 +81,18 @@ ctypedef fused data_types:
 
 # Data types using a LUT to apply the colormap
 ctypedef fused lut_types:
-    cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
+    uint8_t
+    int8_t
+    uint16_t
+    int16_t
 
 
 # Data types using default colormap implementation
 ctypedef fused default_types:
-    cnumpy.uint32_t
-    cnumpy.int32_t
-    cnumpy.uint64_t
-    cnumpy.int64_t
+    uint32_t
+    int32_t
+    uint64_t
+    int64_t
     float
     double
     long double
@@ -100,7 +100,7 @@ ctypedef fused default_types:
 
 # Supported colors/output types
 ctypedef fused image_types:
-    cnumpy.uint8_t
+    uint8_t
     float
 
 
@@ -407,13 +407,13 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
     length = <int> data.size
     nb_channels = <int> colors.shape[1]
 
-    if lut_types is cnumpy.int8_t:
+    if lut_types is int8_t:
         type_min = -128
         type_max = 127
-    elif lut_types is cnumpy.uint8_t:
+    elif lut_types is uint8_t:
         type_min = 0
         type_max = 255
-    elif lut_types is cnumpy.int16_t:
+    elif lut_types is int16_t:
         type_min = -32768
         type_max = 32767
     else:  # uint16_t
