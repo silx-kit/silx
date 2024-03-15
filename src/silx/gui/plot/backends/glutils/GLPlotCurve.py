@@ -58,7 +58,7 @@ def _notNaNSlices(array, length=1):
     :return: Array of (start, end) slice indices
     :rtype: numpy.ndarray
     """
-    isnan = numpy.isnan(numpy.array(array, copy=False).reshape(-1))
+    isnan = numpy.isnan(numpy.asarray(array).reshape(-1))
     notnan = numpy.logical_not(isnan)
     start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
     if notnan[0]:
@@ -392,11 +392,11 @@ class GLLines2D(object):
         offset=(0.0, 0.0),
     ):
         if xVboData is not None and not isinstance(xVboData, VertexBufferAttrib):
-            xVboData = numpy.array(xVboData, copy=False, dtype=numpy.float32)
+            xVboData = numpy.asarray(xVboData, dtype=numpy.float32)
         self.xVboData = xVboData
 
         if yVboData is not None and not isinstance(yVboData, VertexBufferAttrib):
-            yVboData = numpy.array(yVboData, copy=False, dtype=numpy.float32)
+            yVboData = numpy.asarray(yVboData, dtype=numpy.float32)
         self.yVboData = yVboData
 
         # Compute distances if not given while providing numpy array coordinates
@@ -408,7 +408,7 @@ class GLLines2D(object):
             distVboData = distancesFromArrays(self.xVboData, self.yVboData)
 
         if distVboData is not None and not isinstance(distVboData, VertexBufferAttrib):
-            distVboData = numpy.array(distVboData, copy=False, dtype=numpy.float32)
+            distVboData = numpy.asarray(distVboData, dtype=numpy.float32)
         self.distVboData = distVboData
 
         if colorVboData is not None:
@@ -840,11 +840,11 @@ class Points2D(object):
         self.offset = offset
 
         if xVboData is not None and not isinstance(xVboData, VertexBufferAttrib):
-            xVboData = numpy.array(xVboData, copy=False, dtype=numpy.float32)
+            xVboData = numpy.asarray(xVboData, dtype=numpy.float32)
         self.xVboData = xVboData
 
         if yVboData is not None and not isinstance(yVboData, VertexBufferAttrib):
-            yVboData = numpy.array(yVboData, copy=False, dtype=numpy.float32)
+            yVboData = numpy.asarray(yVboData, dtype=numpy.float32)
         self.yVboData = yVboData
 
         if colorVboData is not None:
@@ -1007,16 +1007,12 @@ class _ErrorBars(object):
         self.offset = offset
 
         if xError is not None or yError is not None:
-            self._xData = numpy.array(xData, order="C", dtype=numpy.float32, copy=False)
-            self._yData = numpy.array(yData, order="C", dtype=numpy.float32, copy=False)
+            self._xData = numpy.asarray(xData, order="C", dtype=numpy.float32)
+            self._yData = numpy.asarray(yData, order="C", dtype=numpy.float32)
 
             # This also works if xError, yError is a float/int
-            self._xError = numpy.array(
-                xError, order="C", dtype=numpy.float32, copy=False
-            )
-            self._yError = numpy.array(
-                yError, order="C", dtype=numpy.float32, copy=False
-            )
+            self._xError = numpy.asarray(xError, order="C", dtype=numpy.float32)
+            self._yError = numpy.asarray(yError, order="C", dtype=numpy.float32)
         else:
             self._xData, self._yData = None, None
             self._xError, self._yError = None, None

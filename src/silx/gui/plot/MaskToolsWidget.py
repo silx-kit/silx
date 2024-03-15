@@ -334,7 +334,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self.resetSelectionMask()
             return self._data.shape[:2]
 
-        mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
+        mask = numpy.asarray(mask, dtype=numpy.uint8)
         if len(mask.shape) != 2:
             _logger.error("Not an image, shape: %d", len(mask.shape))
             return None

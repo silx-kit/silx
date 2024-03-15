@@ -538,7 +538,7 @@ class FitManager(object):
         from a list of parameter dictionaries, if field ``code`` is not set
         to ``"IGNORE"``.
         """
-        x = self.xdata if x is None else numpy.array(x, copy=False)
+        x = self.xdata if x is None else numpy.asarray(x)
 
         if paramlist is None:
             paramlist = self.fit_results

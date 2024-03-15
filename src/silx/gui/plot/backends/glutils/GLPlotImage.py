@@ -272,7 +272,7 @@ class GLPlotColormap(_GLPlotData2D):
         assert normalization in self.SUPPORTED_NORMALIZATIONS
 
         super(GLPlotColormap, self).__init__(data, origin, scale)
-        self.colormap = numpy.array(colormap, copy=False)
+        self.colormap = numpy.asarray(colormap)
         self.normalization = normalization
         self.gamma = gamma
         self._cmapRange = (1.0, 10.0)  # Colormap range

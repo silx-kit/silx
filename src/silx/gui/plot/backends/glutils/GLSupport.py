@@ -63,7 +63,7 @@ class FilledShape2D(object):
     _HATCH_STEP = 20
 
     def __init__(self, points, style="solid", color=(0.0, 0.0, 0.0, 1.0)):
-        self.vertices = numpy.array(points, dtype=numpy.float32, copy=False)
+        self.vertices = numpy.asarray(points, dtype=numpy.float32)
         self._indices = buildFillMaskIndices(len(self.vertices))
 
         tVertex = numpy.transpose(self.vertices)

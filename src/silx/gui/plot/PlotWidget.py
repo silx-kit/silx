@@ -1440,7 +1440,7 @@ class PlotWidget(qt.QMainWindow):
         """
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
-        data = numpy.array(data, copy=False)
+        data = numpy.asarray(data)
         assert data.ndim in (2, 3)
 
         image = self.getImage(legend)

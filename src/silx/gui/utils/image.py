@@ -51,7 +51,7 @@ def convertArrayToQImage(array: numpy.ndarray) -> qt.QImage:
     :type array: numpy.ndarray of uint8
     :return: Corresponding Qt image with RGB888 or ARGB32 format.
     """
-    array = numpy.array(array, copy=False, order="C", dtype=numpy.uint8)
+    array = numpy.asarray(array, order="C", dtype=numpy.uint8)
 
     if array.ndim != 3 or array.shape[2] not in (3, 4):
         raise ValueError("Image must be a 3D array with 3 or 4 channels per pixel")
