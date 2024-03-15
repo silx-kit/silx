@@ -126,7 +126,7 @@ cdef class Normalization:
         if isinstance(data, numbers.Real):
             return self.apply_double(<double> data, vmin, vmax)
         else:
-            data = numpy.array(data, copy=False)
+            data = numpy.asarray(data)
             length = <int> data.size
             result = numpy.empty(length, dtype=numpy.float64)
             data1d = numpy.ravel(data)
@@ -149,7 +149,7 @@ cdef class Normalization:
         if isinstance(data, numbers.Real):
             return self.revert_double(<double> data, vmin, vmax)
         else:
-            data = numpy.array(data, copy=False)
+            data = numpy.asarray(data)
             length = <int> data.size
             result = numpy.empty(length, dtype=numpy.float64)
             data1d = numpy.ravel(data)
@@ -328,7 +328,7 @@ cdef image_types[:, ::1] compute_cmap(
     length = <int> data.size
 
     output = numpy.empty((length, nb_channels),
-                         dtype=numpy.array(colors, copy=False).dtype)
+                         dtype=numpy.asarray(colors).dtype)
 
     normalized_vmin = normalization.apply_double(vmin, vmin, vmax)
     normalized_vmax = normalization.apply_double(vmax, vmin, vmax)
@@ -527,16 +527,16 @@ def cmap(data not None,
     cdef Normalization norm
 
     # Make data a numpy array of native endian type (no need for contiguity)
-    data = numpy.array(data, copy=False)
+    data = numpy.asarray(data)
     if data.dtype.kind not in ('b', 'i', 'u', 'f'):
         raise ValueError("Unsupported data dtype: %s" % data.dtype)
     native_endian_dtype = data.dtype.newbyteorder('N')
     if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
         native_endian_dtype = "=f4"  # Use native float32 instead of float16
-    data = numpy.array(data, copy=False, dtype=native_endian_dtype)
+    data = numpy.asarray(data, dtype=native_endian_dtype)
 
     # Make colors a contiguous array of native endian type
-    colors = numpy.array(colors, copy=False)
+    colors = numpy.asarray(colors)
     if colors.dtype.kind == 'f':
         colors_dtype = numpy.dtype('float32')
     elif colors.dtype.kind in ('b', 'i', 'u'):

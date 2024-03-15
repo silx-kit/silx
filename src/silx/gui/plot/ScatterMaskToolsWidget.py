@@ -235,7 +235,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.resetSelectionMask()
             return self._data_scatter.getXData(copy=False).shape
 
-        mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
+        mask = numpy.asarray(mask, dtype=numpy.uint8)
 
         if (
             self._data_scatter.getXData(copy=False).shape == (0,)

@@ -58,7 +58,7 @@ def mat4LookAtDir(position, direction, up):
     assert dirnorm != 0.0
     direction /= dirnorm
 
-    side = numpy.cross(direction, numpy.array(up, copy=False, dtype=numpy.float32))
+    side = numpy.cross(direction, numpy.asarray(up, dtype=numpy.float32))
     sidenorm = numpy.linalg.norm(side)
     assert sidenorm != 0.0
     up = numpy.cross(side / sidenorm, direction)
@@ -85,8 +85,8 @@ def mat4LookAt(position, center, up):
     :returns: Corresponding matrix.
     :rtype: numpy.ndarray of shape (4, 4)
     """
-    position = numpy.array(position, copy=False, dtype=numpy.float32)
-    center = numpy.array(center, copy=False, dtype=numpy.float32)
+    position = numpy.asarray(position, dtype=numpy.float32)
+    center = numpy.asarray(center, dtype=numpy.float32)
     direction = center - position
     return mat4LookAtDir(position, direction, up)
 
@@ -375,7 +375,7 @@ class Transform(event.Notifier):
         else:
             matrix = self.getInverseMatrix(copy=False)
 
-        points = numpy.array(points, copy=False)
+        points = numpy.asarray(points)
         assert points.ndim == 2
 
         points = numpy.transpose(points)
@@ -400,7 +400,7 @@ class Transform(event.Notifier):
     def _prepareVector(vector, w):
         """Add 4th coordinate (w) to vector if missing."""
         assert len(vector) in (3, 4)
-        vector = numpy.array(vector, copy=False, dtype=numpy.float32)
+        vector = numpy.asarray(vector, dtype=numpy.float32)
         if len(vector) == 3:
             vector = numpy.append(vector, w)
         return vector

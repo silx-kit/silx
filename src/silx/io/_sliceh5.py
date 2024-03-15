@@ -174,7 +174,7 @@ class DatasetSlice(commonh5.Dataset):
 
     def __getitem__(self, item):
         if item is Ellipsis:
-            return numpy.array(self.__dataset[self.__expanded_indices], copy=False)
+            return numpy.asarray(self.__dataset[self.__expanded_indices])
         if item == ():
             return self.__dataset[self.__expanded_indices]
 

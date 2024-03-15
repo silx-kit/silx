@@ -59,7 +59,7 @@ class Test_leastsq(unittest.TestCase):
         self.my_exp = myexp
 
         def gauss(x, *params):
-            params = numpy.array(params, copy=False, dtype=numpy.float64)
+            params = numpy.asarray(params, dtype=numpy.float64)
             result = params[0] + params[1] * x
             for i in range(2, len(params), 3):
                 p = params[i : (i + 3)]

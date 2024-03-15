@@ -75,8 +75,8 @@ class _ShapeItem(dict):
         if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
             raise NotImplementedError("Unsupported shape {0}".format(shape))
 
-        x = numpy.array(x, copy=False)
-        y = numpy.array(y, copy=False)
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
 
         if shape == "rectangle":
             xMin, xMax = x
@@ -946,8 +946,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         assert yaxis in ("left", "right")
 
         # Convert input data
-        x = numpy.array(x, copy=False)
-        y = numpy.array(y, copy=False)
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
 
         # Check if float32 is enough
         if (
@@ -958,14 +958,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             dtype = numpy.float64
 
-        x = numpy.array(x, dtype=dtype, copy=False, order="C")
-        y = numpy.array(y, dtype=dtype, copy=False, order="C")
+        x = numpy.asarray(x, dtype=dtype, order="C")
+        y = numpy.asarray(y, dtype=dtype, order="C")
 
         # Convert errors to float32
         if xerror is not None:
-            xerror = numpy.array(xerror, dtype=numpy.float32, copy=False, order="C")
+            xerror = numpy.asarray(xerror, dtype=numpy.float32, order="C")
         if yerror is not None:
-            yerror = numpy.array(yerror, dtype=numpy.float32, copy=False, order="C")
+            yerror = numpy.asarray(yerror, dtype=numpy.float32, order="C")
 
         # Handle axes log scale: convert data
 
@@ -1071,7 +1071,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 if glu.isSupportedGLType(dtype)
             ]
             if data.dtype in dtypes:
-                data = numpy.array(data, copy=False, order="C")
+                data = numpy.asarray(data, order="C")
             else:
                 _logger.info("addImage: Convert %s data to float32", str(data.dtype))
                 data = numpy.array(data, dtype=numpy.float32, order="C")
@@ -1105,11 +1105,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             assert data.shape[2] in (3, 4)
 
             if numpy.issubdtype(data.dtype, numpy.floating):
-                data = numpy.array(data, dtype=numpy.float32, copy=False)
+                data = numpy.asarray(data, dtype=numpy.float32)
             elif data.dtype in [numpy.uint8, numpy.uint16]:
                 pass
             elif numpy.issubdtype(data.dtype, numpy.integer):
-                data = numpy.array(data, dtype=numpy.uint8, copy=False)
+                data = numpy.asarray(data, dtype=numpy.uint8)
             else:
                 raise ValueError("Unsupported data type")
 
@@ -1140,8 +1140,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def addShape(
         self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
     ):
-        x = numpy.array(x, copy=False)
-        y = numpy.array(y, copy=False)
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
 
         # TODO is this needed?
         if self._plotFrame.xAxis.isLog and x.min() <= 0.0:

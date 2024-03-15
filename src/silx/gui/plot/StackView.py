@@ -84,6 +84,7 @@ from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui.plot.actions import io as silx_io
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
@@ -640,7 +641,7 @@ class StackView(qt.QMainWindow):
             "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
-            return numpy.array(self._stack, copy=copy), params
+            return numpy.array(self._stack, copy=copy or NP_OPTIONAL_COPY), params
 
         # if a list of 2D arrays was cast into a ListOfImages,
         # return the original list
@@ -691,7 +692,7 @@ class StackView(qt.QMainWindow):
             "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
-            return numpy.array(self.__transposed_view, copy=copy), params
+            return numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY), params
         return self.__transposed_view, params
 
     def setFrameNumber(self, number):

@@ -500,7 +500,7 @@ class Image(AxesImage):
 
     def set_data(self, A):
         """Overridden to add a fast path for RGBA unit8 images"""
-        A = numpy.array(A, copy=False)
+        A = numpy.asarray(A)
         if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
             super(Image, self).set_data(A)
         else:
@@ -834,7 +834,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         for parameter in (x, y, triangles, color, alpha):
             assert parameter is not None
 
-        color = numpy.array(color, copy=False)
+        color = numpy.asarray(color)
         assert color.ndim == 2 and len(color) == len(x)
 
         if color.dtype not in [numpy.float32, numpy.float64]:
@@ -859,8 +859,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             _logger.warning(
                 "gapcolor not implemented for %s with matplotlib backend", shape
             )
-        xView = numpy.array(x, copy=False)
-        yView = numpy.array(y, copy=False)
+        xView = numpy.asarray(x)
+        yView = numpy.asarray(y)
 
         linestyle = normalize_linestyle(linestyle)
 

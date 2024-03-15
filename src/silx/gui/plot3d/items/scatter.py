@@ -41,6 +41,7 @@ from ...plot.items import ScatterVisualizationMixIn
 from .core import DataItem3D, Item3DChangedType, ItemChangedType
 from .mixins import ColormapMixIn, SymbolMixIn
 from ._pick import PickingResult
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -345,13 +346,13 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
             True (default) to make a copy of the data,
             False to avoid copy if possible (do not modify the arrays).
         """
-        x = numpy.array(x, copy=copy, dtype=numpy.float32, order="C").reshape(-1)
-        y = numpy.array(y, copy=copy, dtype=numpy.float32, order="C").reshape(-1)
+        x = numpy.array(x, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C").reshape(-1)
+        y = numpy.array(y, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C").reshape(-1)
         assert len(x) == len(y)
 
         if isinstance(value, abc.Iterable):
             value = numpy.array(
-                value, copy=copy, dtype=numpy.float32, order="C"
+                value, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
             ).reshape(-1)
             assert len(value) == len(x)
         else:  # Single scalar
@@ -392,7 +393,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         :return: X coordinates
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._x, copy=copy)
+        return numpy.array(self._x, copy=copy or NP_OPTIONAL_COPY)
 
     def getYData(self, copy=True):
         """Returns Y data coordinates.
@@ -402,7 +403,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         :return: Y coordinates
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._y, copy=copy)
+        return numpy.array(self._y, copy=copy or NP_OPTIONAL_COPY)
 
     def getValueData(self, copy=True):
         """Returns data values.
@@ -412,7 +413,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         :return: data values
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._value, copy=copy)
+        return numpy.array(self._value, copy=copy or NP_OPTIONAL_COPY)
 
     def _pickPoints(self, context, points, threshold=1.0, sort="depth"):
         """Perform picking while in 'points' visualization mode

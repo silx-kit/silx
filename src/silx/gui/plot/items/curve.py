@@ -50,6 +50,7 @@ from .core import (
     HighlightedMixIn,
     _Style,
 )
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -83,7 +84,7 @@ class CurveStyle(_Style):
             if isinstance(color, str):
                 color = colors.rgba(color)
             else:  # array-like expected
-                color = numpy.array(color, copy=False)
+                color = numpy.asarray(color)
                 if color.ndim == 1:  # Array is 1D, this is a single color
                     color = colors.rgba(color)
             self._color = color
@@ -111,7 +112,7 @@ class CurveStyle(_Style):
         :rtype: Union[List[float],None]
         """
         if isinstance(self._color, numpy.ndarray):
-            return numpy.array(self._color, copy=copy)
+            return numpy.array(self._color, copy=copy or NP_OPTIONAL_COPY)
         else:
             return self._color
 

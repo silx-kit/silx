@@ -65,6 +65,7 @@ from ..utils import blockSignals
 from . import _utils
 from .tools.profile import rois
 from .actions import PlotAction
+from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
 
@@ -962,7 +963,7 @@ class ImageView(PlotWindow):
             self.remove(self._imageLegend, kind="image")
             return
 
-        data = numpy.array(image, order="C", copy=copy)
+        data = numpy.array(image, order="C", copy=copy or NP_OPTIONAL_COPY)
         if data.size == 0:
             self.remove(self._imageLegend, kind="image")
             return

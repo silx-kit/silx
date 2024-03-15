@@ -32,6 +32,7 @@ import logging
 import time
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
 from silx.math.interpolate import interp3d
@@ -86,7 +87,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         :param Union[List[float],None] range_:
             (min, min positive, max) values
         """
-        self._data = None if data is None else numpy.array(data, copy=False)
+        self._data = None if data is None else numpy.asarray(data)
         self._getPlane().setData(self._data, copy=False)
 
         # Store data range info as 3-tuple of values
@@ -171,7 +172,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         if self._data is None:
             return None
         else:
-            return numpy.array(self._data, copy=copy)
+            return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
@@ -262,7 +263,7 @@ class Isosurface(Item3D):
         if self._data is None:
             return None
         else:
-            return numpy.array(self._data, copy=copy)
+            return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def getLevel(self):
         """Return the level of this iso-surface (float)"""
@@ -536,7 +537,7 @@ class ScalarField3D(BaseNodeItem):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.float32, order="C")
+            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 
@@ -557,7 +558,7 @@ class ScalarField3D(BaseNodeItem):
         if self._data is None:
             return None
         else:
-            return numpy.array(self._data, copy=copy)
+            return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def getDataRange(self):
         """Return the range of the data as a 3-tuple of values.
@@ -839,7 +840,7 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.complex64, order="C")
+            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.complex64, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 

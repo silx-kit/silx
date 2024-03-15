@@ -34,6 +34,7 @@ import weakref
 
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui import qt, icons
 from silx.gui.widgets.FloatEdit import FloatEdit
 from silx.gui.colors import Colormap
@@ -123,7 +124,7 @@ class BaseMask(qt.QObject):
         :return: The array of the mask with dimension of the data to be masked.
         :rtype: numpy.ndarray of uint8
         """
-        return numpy.array(self._mask, copy=copy)
+        return numpy.array(self._mask, copy=copy or NP_OPTIONAL_COPY)
 
     def setMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -134,7 +135,7 @@ class BaseMask(qt.QObject):
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         """
-        self._mask = numpy.array(mask, copy=copy, order="C", dtype=numpy.uint8)
+        self._mask = numpy.array(mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8)
         self._notify()
 
     # History control
