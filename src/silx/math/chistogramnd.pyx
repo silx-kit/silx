@@ -227,7 +227,7 @@ def chistogramnd(sample,
     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
         raise ValueError('<n_bins> : only positive values allowed.')
 
-    output_shape = tuple(n_bins)
+    output_shape = tuple(int(bin) for bin in n_bins)
 
     # checking the histo array, if provided
     if histo is None:
