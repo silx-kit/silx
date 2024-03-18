@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+2.0.1: 2024/03/18
+-----------------
+
+This is a bug fix version:
+
+* `silx.io.open`: Reverted behavior: `open` locks HDF5 files (PR #4074, #4084)
+* Dependencies: Updated to advertise that `numpy` v2 is not supported (PR #4084)
+
+
 2.0.0: 2024/01/30
 -----------------
 
