@@ -37,8 +37,7 @@ __date__ = "15/05/2017"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
-from numpy.linalg import inv
-from numpy.linalg.linalg import LinAlgError
+from numpy.linalg import inv, LinAlgError
 import time
 import logging
 import copy
