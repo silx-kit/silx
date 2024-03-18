@@ -41,7 +41,7 @@ This module deals with:
 """
 import logging
 import numpy
-from numpy.linalg.linalg import LinAlgError
+from numpy.linalg import LinAlgError
 import os
 import sys
 
