@@ -57,7 +57,7 @@ def createData():
     positionY = positionY + numpy.random.rand(len(positionY)) - 0.5
 
     # Diodes position
-    lut = scipy.signal.gaussian(max(nbX, nbY), std=8) * 10
+    lut = scipy.signal.windows.gaussian(max(nbX, nbY), std=8) * 10
     yy, xx = numpy.ogrid[:nbY, :nbX]
     signal = lut[yy] * lut[xx]
     diode1 = numpy.random.poisson(signal * 10)
