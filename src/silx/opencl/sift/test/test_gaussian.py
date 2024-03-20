@@ -65,7 +65,7 @@ if ocl:
 def gaussian_cpu(sigma, size=None, PROFILE=False):
     """
     Calculate a 1D gaussian using numpy.
-    This is the same as scipy.signal.gaussian
+    This is the same as scipy.signal.windows.gaussian
 
     :param sigma: width of the gaussian
     :param size: can be calculated as 1 + 2 * 4sigma
@@ -127,7 +127,7 @@ class TestGaussian(unittest.TestCase):
     def gaussian_gpu_v1(cls, sigma, size=None):
         """
         Calculate a 1D gaussian using pyopencl.
-        This is the same as scipy.signal.gaussian
+        This is the same as scipy.signal.windows.gaussian
 
         :param sigma: width of the gaussian
         :param size: can be calculated as 1 + 2 * 4sigma

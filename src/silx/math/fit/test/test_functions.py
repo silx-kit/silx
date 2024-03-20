@@ -53,7 +53,7 @@ class Test_functions(unittest.TestCase):
             "fwhm2": 2 * math.sqrt(2 * math.log(2)) * s2,
             "area1": h * s1 * math.sqrt(2 * math.pi),
         }
-        # result of `7 * scipy.signal.gaussian(11, 3)`
+        # result of `7 * scipy.signal.windows.gaussian(11, 3)`
         self.scipy_gaussian = numpy.array(
             [
                 1.74546546,
@@ -71,8 +71,8 @@ class Test_functions(unittest.TestCase):
         )
 
         # result of:
-        # numpy.concatenate((7 * scipy.signal.gaussian(11, 3)[0:5],
-        #                    7 * scipy.signal.gaussian(11, 2.1)[5:11]))
+        # numpy.concatenate((7 * scipy.signal.windows.gaussian(11, 3)[0:5],
+        #                    7 * scipy.signal.windows.gaussian(11, 2.1)[5:11]))
         self.scipy_asym_gaussian = numpy.array(
             [
                 1.74546546,
@@ -93,7 +93,7 @@ class Test_functions(unittest.TestCase):
         pass
 
     def testGauss(self):
-        """Compare sum_gauss with scipy.signals.gaussian"""
+        """Compare sum_gauss with scipy.signal.windows.gaussian"""
         y = functions.sum_gauss(
             self.x,
             self.g_params["height"],
@@ -105,7 +105,7 @@ class Test_functions(unittest.TestCase):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
 
     def testAGauss(self):
-        """Compare sum_agauss with scipy.signals.gaussian"""
+        """Compare sum_agauss with scipy.signal.windows.gaussian"""
         y = functions.sum_agauss(
             self.x,
             self.g_params["area1"],
@@ -116,7 +116,7 @@ class Test_functions(unittest.TestCase):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
 
     def testFastAGauss(self):
-        """Compare sum_fastagauss with scipy.signals.gaussian
+        """Compare sum_fastagauss with scipy.signal.windows.gaussian
         Limit precision to 3 decimal places."""
         y = functions.sum_fastagauss(
             self.x,
@@ -128,7 +128,7 @@ class Test_functions(unittest.TestCase):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i], 3)
 
     def testSplitGauss(self):
-        """Compare sum_splitgauss with scipy.signals.gaussian"""
+        """Compare sum_splitgauss with scipy.signal.windows.gaussian"""
         y = functions.sum_splitgauss(
             self.x,
             self.g_params["height"],
