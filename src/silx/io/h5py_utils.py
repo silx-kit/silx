@@ -64,6 +64,33 @@ HAS_LOCKING_ARGUMENT = HDF5_HAS_LOCKING_ARGUMENT & H5PY_HAS_LOCKING_ARGUMENT
 
 LATEST_LIBVER_IS_V108 = HDF5_HEX_VERSION < calc_hexversion(1, 10, 0)
 
+LOCKING_ARG_CHANGED_H5PY_VS_HDF5_WARMED = False
+
+
+def only_once(func):
+    """
+    simple decorator to make sure the warning is call at most one time.
+    """
+
+    def wrapper(*args, **kwargs):
+        global LOCKING_ARG_CHANGED_H5PY_VS_HDF5_WARMED
+        if not LOCKING_ARG_CHANGED_H5PY_VS_HDF5_WARMED:
+            LOCKING_ARG_CHANGED_H5PY_VS_HDF5_WARMED = True
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+@only_once
+def warm_incoherent_locking_argument():
+    """warm the user that file locking behavior has changed in recent versions of libhdf5"""
+    _logger.critical(
+        "The version of libhdf5 ({}) used by h5py ({}) is not supported: "
+        "Do not expect file locking to work.".format(
+            h5py.version.hdf5_version, h5py.version.version
+        )
+    )
+
 
 def _libver_low_bound_is_v108(libver) -> bool:
     if libver is None:
@@ -363,12 +390,7 @@ class File(h5py.File):
         """
         # File locking behavior has changed in recent versions of libhdf5
         if HDF5_HAS_LOCKING_ARGUMENT != H5PY_HAS_LOCKING_ARGUMENT:
-            _logger.critical(
-                "The version of libhdf5 ({}) used by h5py ({}) is not supported: "
-                "Do not expect file locking to work.".format(
-                    h5py.version.hdf5_version, h5py.version.version
-                )
-            )
+            warm_incoherent_locking_argument()
 
         if mode is None:
             mode = "r"
