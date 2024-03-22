@@ -34,6 +34,7 @@ from collections import abc
 from copy import deepcopy
 import logging
 import enum
+import numbers
 from typing import Optional, Tuple, Union
 import weakref
 
@@ -839,7 +840,12 @@ LineStyleType = Union[
     str,
     Tuple[Union[float, int], None],
     Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int]]],
-    Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int], Union[float, int], Union[float, int]]],
+    Tuple[
+        Union[float, int],
+        Tuple[
+            Union[float, int], Union[float, int], Union[float, int], Union[float, int]
+        ],
+    ],
 ]
 """Type for :class:`LineMixIn`'s line style"""
 
@@ -1422,7 +1428,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
 
-    # note: _logFilterData must be overloaded if you overload
+    # note: _filterData must be overloaded if you overload
     #       getData to change its signature
 
     _DEFAULT_Z_LAYER = 1
@@ -1447,48 +1453,66 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         self._boundsCache = {}
 
     @staticmethod
-    def _logFilterError(value, error):
+    def _errorAs2DArray(
+        error: numpy.ndarray | numbers.Number,
+        length: int,
+    ) -> numpy.ndarray:
+        """Convert error to a 2D array
+
+        :param error: The error argument to convert to an array
+        :param length: Expected size of error array
+        :returns: 2D array of errors
+        """
+        # Convert scalar to array
+        if not isinstance(error, numpy.ndarray):
+            error = numpy.full((length,), error, dtype=numpy.float64)
+
+        # Convert Nx1 to N array
+        if error.ndim == 2 and error.shape[1] == 1 and length != 1:
+            error = numpy.ravel(error)
+
+        # Return 2D array
+        return numpy.atleast_2d(error)
+
+    @classmethod
+    def _logFilterError(
+        cls,
+        value: numpy.ndarray,
+        error: numpy.ndarray | float | int | None,
+    ) -> numpy.ndarray | None:
         """Filter/convert error values if they go <= 0.
 
         Replace error leading to negative values by nan
 
-        :param numpy.ndarray value: 1D array of values
-        :param numpy.ndarray error:
+        :param value: 1D array of values
+        :param error:
             Array of errors: scalar, N, Nx1 or 2xN or None.
         :return: Filtered error so error bars are never negative
         """
-        if error is not None:
-            # Convert Nx1 to N
-            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
-                error = numpy.ravel(error)
+        if error is None:
+            return None
 
-            # Supports error being scalar, N or 2xN array
-            valueMinusError = value - numpy.atleast_2d(error)[0]
-            errorClipped = numpy.isnan(valueMinusError)
-            mask = numpy.logical_not(errorClipped)
-            errorClipped[mask] = valueMinusError[mask] <= 0
+        errorArray = cls._errorAs2DArray(error, len(value))
 
-            if numpy.any(errorClipped):  # Need filtering
-                # expand errorbars to 2xN
-                if error.size == 1:  # Scalar
-                    error = numpy.full((2, len(value)), error, dtype=numpy.float64)
+        # Supports error being scalar, N or 2xN array
+        valueMinusError = value - errorArray[0]
+        errorClipped = numpy.isnan(valueMinusError)
+        mask = numpy.logical_not(errorClipped)
+        errorClipped[mask] = valueMinusError[mask] <= 0
 
-                elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)), dtype=numpy.float64)
-                    newError[0, :] = error
-                    newError[1, :] = error
-                    error = newError
+        if not numpy.any(errorClipped):  # No filtering
+            return error
 
-                elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(error, copy=True, dtype=numpy.float64)
+        # expand errorbars to 2xN
+        if len(errorArray) == 1:
+            filteredError = numpy.empty((2, len(value)), dtype=numpy.float64)
+            filteredError[0, :] = errorArray[0]
+            filteredError[1, :] = errorArray[0]
+        else:  # 2xN array
+            filteredError = numpy.array(errorArray, copy=True, dtype=numpy.float64)
 
-                else:
-                    _logger.error("Unhandled error array")
-                    return error
-
-                error[0, errorClipped] = numpy.nan
-
-        return error
+        filteredError[0, errorClipped] = numpy.nan
+        return filteredError
 
     def _getClippingBoolArray(self, xPositive, yPositive):
         """Compute a boolean array to filter out points with negative
@@ -1517,8 +1541,22 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             )
         return self._clippedCache[(xPositive, yPositive)]
 
-    def _logFilterData(self, xPositive, yPositive):
-        """Filter out values with x or y <= 0 on log axes
+    @staticmethod
+    def _filterNegativeValues(
+        data: numpy.ndarray | numbers.Number | None,
+    ) -> numpy.ndarray | numbers.Number | None:
+        """Returns data with negative values to 0"""
+        if data is None:
+            return None
+
+        # Convert data to array to avoid specific case for complex scalar
+        if numpy.all(numpy.array(data, copy=False) >= 0):
+            return data
+
+        return numpy.clip(data, 0, None)  # Also works for scalars
+
+    def _filterData(self, xPositive, yPositive):
+        """Filter out errors<0 and values with x or y <= 0 on log axes
 
         :param bool xPositive: True to filter arrays according to X coords.
         :param bool yPositive: True to filter arrays according to Y coords.
@@ -1527,8 +1565,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         """
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
-        xerror = self.getXErrorData(copy=False)
-        yerror = self.getYErrorData(copy=False)
+        xerror = self._filterNegativeValues(self.getXErrorData(copy=False))
+        yerror = self._filterNegativeValues(self.getYErrorData(copy=False))
 
         if xPositive or yPositive:
             clipped = self._getClippingBoolArray(xPositive, yPositive)
@@ -1540,16 +1578,17 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 y = numpy.array(y, copy=True, dtype=numpy.float64)
                 y[clipped] = numpy.nan
 
-                if xPositive and xerror is not None:
-                    xerror = self._logFilterError(x, xerror)
+            if xPositive and xerror is not None:
+                xerror = self._logFilterError(x, xerror)
 
-                if yPositive and yerror is not None:
-                    yerror = self._logFilterError(y, yerror)
+            if yPositive and yerror is not None:
+                yerror = self._logFilterError(y, yerror)
 
         return x, y, xerror, yerror
 
-    @staticmethod
+    @classmethod
     def __minMaxDataWithError(
+        cls,
         data: numpy.ndarray,
         error: Optional[Union[float, numpy.ndarray]],
         positiveOnly: bool,
@@ -1558,14 +1597,18 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             min_, max_ = min_max(data, finite=True)
             return min_, max_
 
-        # float, 1D or 2D array
-        dataMinusError = data - numpy.atleast_2d(error)[0]
+        errorArray = cls._errorAs2DArray(error, len(data))
+        isNanError = numpy.isnan(errorArray)
+
+        dataMinusError = data - errorArray[0]
+        dataMinusError[isNanError[0]] = data[isNanError[0]]
         dataMinusError = dataMinusError[numpy.isfinite(dataMinusError)]
         if positiveOnly:
             dataMinusError = dataMinusError[dataMinusError > 0]
         min_ = numpy.nan if dataMinusError.size == 0 else numpy.min(dataMinusError)
 
-        dataPlusError = data + numpy.atleast_2d(error)[-1]
+        dataPlusError = data + errorArray[-1]
+        dataPlusError[isNanError[-1]] = data[isNanError[-1]]
         dataPlusError = dataPlusError[numpy.isfinite(dataPlusError)]
         if positiveOnly:
             dataPlusError = dataPlusError[dataPlusError > 0]
@@ -1592,7 +1635,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             if len(data) == 5:
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
-                # Scatter._logFilterData)
+                # Scatter._filterData)
                 x, y, xerror, yerror = data[0], data[1], data[3], data[4]
             else:
                 x, y, xerror, yerror = data
@@ -1609,31 +1652,30 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
-        """Return cached filtered data if applicable,
-        i.e. if any axis is in log scale.
+        """Return cached filtered data if applicable.
+
         Return None if caching is not applicable."""
         plot = self.getPlot()
-        if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
-            if xPositive or yPositive:
-                # At least one axis has log scale, filter data
-                if (xPositive, yPositive) not in self._filteredCache:
-                    self._filteredCache[(xPositive, yPositive)] = self._logFilterData(
-                        xPositive, yPositive
-                    )
-                return self._filteredCache[(xPositive, yPositive)]
-        return None
+        if plot is None:
+            return None
+
+        xPositive = plot.getXAxis()._isLogarithmic()
+        yPositive = plot.getYAxis()._isLogarithmic()
+        if (xPositive, yPositive) not in self._filteredCache:
+            self._filteredCache[(xPositive, yPositive)] = self._filterData(
+                xPositive, yPositive
+            )
+        return self._filteredCache[(xPositive, yPositive)]
 
     def getData(self, copy=True, displayed=False):
         """Returns the x, y values of the curve points and xerror, yerror
 
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
-        :param bool displayed: True to only get curve points that are displayed
-                               in the plot. Default: False
-                               Note: If plot has log scale, negative points
-                               are not displayed.
+        :param bool displayed:
+            True to only get curve points that are displayed in the plot.
+            Note: If plot has log scale, negative points are not displayed.
+            Negative errors are set to 0.
         :returns: (x, y, xerror, yerror)
         :rtype: 4-tuple of numpy.ndarray
         """
