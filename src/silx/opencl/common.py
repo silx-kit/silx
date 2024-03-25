@@ -36,21 +36,10 @@ __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "22/03/2024"
 __status__ = "stable"
-# __all__ = [
-#     # "ocl",
-#     "pyopencl",
-#     "mf",
-#     "release_cl_buffers",
-#     "allocate_cl_buffers",
-#     "measure_workgroup_size",
-#     "kernel_workgroup_size",
-# ]
 
 import os
 import logging
-
 import numpy
-
 from .utils import get_opencl_code
 
 logger = logging.getLogger(__name__)
