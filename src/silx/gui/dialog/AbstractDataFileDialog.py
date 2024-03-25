@@ -27,7 +27,8 @@ This module contains an :class:`AbstractDataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2024"
+__date__ = "05/03/2019"
+
 
 import sys
 import os
@@ -44,9 +45,9 @@ from .FileTypeComboBox import FileTypeComboBox
 
 import fabio
 
-import weakref
 
 _logger = logging.getLogger(__name__)
+
 
 DEFAULT_SIDEBAR_URL = True
 """Set it to false to disable initilializing of the sidebar urls with the
@@ -131,9 +132,6 @@ class _SideBar(qt.QListView):
         self.__iconProvider = qt.QFileIconProvider()
         self.setUniformItemSizes(True)
         model = qt.QStandardItemModel(self)
-
-        weakref.finalize(model, print, "kill _SideBar.model")
-
         self.setModel(model)
         self._initModel()
         self.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
@@ -233,8 +231,6 @@ class _SideBar(qt.QListView):
             item.setIcon(icon)
             item.setData(url, role=qt.Qt.UserRole)
             model.appendRow(item)
-            weakref.finalize(item, print, f"kill _SideBar.model.item {name}")
-        print("loaded those URL in model ...", urls)
 
     def urls(self):
         result = []
@@ -470,7 +466,6 @@ class _Browser(qt.QStackedWidget):
 
 
 class _FabioData(object):
-
     def __init__(self, fabioFile):
         self.__fabioFile = fabioFile
 
@@ -616,14 +611,11 @@ class AbstractDataFileDialog(qt.QDialog):
         # release. The callback do not use any ref to self.
         onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
         self.destroyed.connect(onDestroy)
-        weakref.finalize(iconProvider, print, "kill iconProvider from AbstractDataFileDialog._init")
-        weakref.finalize(self.__fileModel, print, "kill self.__fileModel from AbstractDataFileDialog._init")
-        weakref.finalize(self.__dataModel, print, "kill self.__dataModel from AbstractDataFileDialog._init")
 
     @staticmethod
     def _closeFileList(fileList):
         """Static method to close explicit references to internal objects."""
-        _logger.warning("Clear AbstractDataFileDialog")
+        _logger.debug("Clear AbstractDataFileDialog")
         for obj in fileList:
             _logger.debug("Close file %s", obj.filename)
             obj.close()
@@ -664,7 +656,6 @@ class AbstractDataFileDialog(qt.QDialog):
             sideBarModel = self.__sidebar.selectionModel()
             sideBarModel.selectionChanged.connect(self.__shortcutSelected)
             self.__sidebar.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-            weakref.finalize(sideBarModel, print, "kill sideBarModel from AbstractDataFileDialog.__createWidgets")
 
         listView = qt.QListView(self)
         listView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -674,7 +665,6 @@ class AbstractDataFileDialog(qt.QDialog):
         listView.setEditTriggers(qt.QAbstractItemView.NoEditTriggers)
         listView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         utils.patchToConsumeReturnKey(listView)
-        weakref.finalize(listView, print, "kill listView from AbstractDataFileDialog.__createWidgets")
 
         treeView = qt.QTreeView(self)
         treeView.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
@@ -689,17 +679,15 @@ class AbstractDataFileDialog(qt.QDialog):
         treeView.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         treeView.setDragDropMode(qt.QAbstractItemView.InternalMove)
         utils.patchToConsumeReturnKey(treeView)
-        weakref.finalize(treeView, print, "kill treeView from AbstractDataFileDialog.__createWidgets")
 
         self.__browser = _Browser(self, listView, treeView)
         self.__browser.activated.connect(self.__browsedItemActivated)
         self.__browser.selected.connect(self.__browsedItemSelected)
         self.__browser.rootIndexChanged.connect(self.__rootIndexChanged)
         self.__browser.setObjectName("browser")
-        weakref.finalize(self.__browser, print, "kill self.__browser from AbstractDataFileDialog.__createWidgets")
 
         self.__previewWidget = self._createPreviewWidget(self)
-        weakref.finalize(self.__previewWidget, print, "kill self.__previewWidget from AbstractDataFileDialog.__createWidgets")
+
         self.__fileTypeCombo = FileTypeComboBox(self)
         self.__fileTypeCombo.setObjectName("fileTypeCombo")
         self.__fileTypeCombo.setDuplicatesEnabled(False)
@@ -719,7 +707,6 @@ class AbstractDataFileDialog(qt.QDialog):
         utils.patchToConsumeReturnKey(self.__pathEdit)
 
         self.__buttons = qt.QDialogButtonBox(self)
-        weakref.finalize(self.__buttons, print, "kill self.__buttons  from AbstractDataFileDialog.__createWidgets")
         self.__buttons.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         types = qt.QDialogButtonBox.Open | qt.QDialogButtonBox.Cancel
         self.__buttons.setStandardButtons(types)
@@ -742,7 +729,6 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__previewToolBar = self._createPreviewToolbar(
             self, self.__previewWidget, self.__selectorWidget
         )
-        weakref.finalize(self.__previewToolBar, print, "kill self.__previewToolBar  from AbstractDataFileDialog.__createWidgets")
 
         self.__dataIcon = qt.QLabel(self)
         self.__dataIcon.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
@@ -752,13 +738,10 @@ class AbstractDataFileDialog(qt.QDialog):
 
         self.__dataInfo = qt.QLabel(self)
         self.__dataInfo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
-        weakref.finalize(self.__dataIcon, print, "kill self.__dataIcon from AbstractDataFileDialog.__createWidgets")
-        weakref.finalize(self.__dataInfo, print, "kill self.__dataInfo  from AbstractDataFileDialog.__createWidgets")
 
     def _createSideBar(self):
         sidebar = _SideBar(self)
         sidebar.setObjectName("sidebar")
-        weakref.finalize(sidebar, print, "kill sidebar from AbstractDataFileDialog._createSideBar")
         return sidebar
 
     def iconProvider(self):
@@ -1428,7 +1411,7 @@ class AbstractDataFileDialog(qt.QDialog):
         if currentUrl is None or currentUrl != url.path():
             # clean up the forward history
             self.__currentHistory = self.__currentHistory[
-                0: self.__currentHistoryLocation + 1
+                0 : self.__currentHistoryLocation + 1
             ]
             self.__currentHistory.append(url.path())
             self.__currentHistoryLocation += 1
@@ -1683,7 +1666,7 @@ class AbstractDataFileDialog(qt.QDialog):
         """
         if len(self.__currentHistory) <= 1:
             return []
-        history = self.__currentHistory[0: self.__currentHistoryLocation]
+        history = self.__currentHistory[0 : self.__currentHistoryLocation]
         return list(history)
 
     def setHistory(self, history):

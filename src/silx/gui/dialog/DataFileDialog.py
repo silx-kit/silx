@@ -27,15 +27,15 @@ This module contains an :class:`DataFileDialog`.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2024"
+__date__ = "14/02/2018"
 
-import weakref
 import enum
 import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
+
 
 _logger = logging.getLogger(__name__)
 
@@ -57,11 +57,6 @@ class _DataPreview(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.__info)
         self.setLayout(layout)
-        weakref.finalize(layout, print, "kill layout from _DataPreview.__init__")
-        weakref.finalize(self.__info, print, "kill QTableView from _DataPreview.__init__")
-        weakref.finalize(self.__model, print, "kill QStandardItemModel from _DataPreview.__init__")
-        weakref.finalize(self.__data, print, "kill data from _DataPreview.__init__")
-        weakref.finalize(self.__formatter, print, "kill __formatter from _DataPreview.__init__")
 
     def colormap(self):
         return None
@@ -231,8 +226,6 @@ class DataFileDialog(AbstractDataFileDialog):
         AbstractDataFileDialog.__init__(self, parent=parent)
         self.__filter = DataFileDialog.FilterMode.AnyNode
         self.__filterCallback = None
-        weakref.finalize(self.__filter, print, "kill DataFileDialog.__init__ -> self.__filter")
-        weakref.finalize(self.__filterCallback, print, "kill DataFileDialog.__init__ -> self.__filterCallback")
 
     def selectedData(self):
         """Returns the selected data by using the :meth:`silx.io.get_data`
@@ -250,7 +243,6 @@ class DataFileDialog(AbstractDataFileDialog):
     def _createPreviewWidget(self, parent):
         previewWidget = _DataPreview(parent)
         previewWidget.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-        weakref.finalize(previewWidget, print, "kill previewWidget(_DataPreview) from DataFileDialog._createPreviewWidget")
         return previewWidget
 
     def _createSelectorWidget(self, parent):
@@ -343,6 +335,3 @@ class DataFileDialog(AbstractDataFileDialog):
         :rtype: bool
         """
         return ""
-
-
-weakref.finalize(DataFileDialog.FilterMode, print, "kill DataFileDialog.FilterMode")
