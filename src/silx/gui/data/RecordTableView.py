@@ -79,7 +79,7 @@ class _MultiLineItem(qt.QItemDelegate):
             brush = index.data(qt.Qt.BackgroundRole)
             if brush is None:
                 # default background color for a cell
-                brush = qt.Qt.white
+                brush = option.palette.base()
             painter.setBrush(brush)
         painter.drawRect(option.rect)
 
