@@ -78,6 +78,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
         self._x = None
         self._y = None
+        self._symbol_size = 10.0
         self._bgColor: colors.RGBAColorType | None = None
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
@@ -90,6 +91,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             text=self.getText(),
             color=self.getColor(),
             symbol=symbol,
+            symbolsize=self.getSymbolSize(),
             linestyle=linestyle,
             linewidth=linewidth,
             constraint=self.getConstraint(),
