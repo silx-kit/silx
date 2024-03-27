@@ -32,7 +32,7 @@ The current version features:
 * a set of applications:
 
   * a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
-  
+
     |silxView|
 
   * a unified converter to HDF5 format (*silx convert filename*)
@@ -66,7 +66,7 @@ Unofficial packages for different distributions are available:
 - Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
 - Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
-`Detailed installation instructions <http://www.silx.org/doc/silx/dev/install.html>`_
+`Detailed installation instructions <http://www.silx.org/doc/silx/latest/install.html>`_
 are available in the documentation.
 
 Documentation
@@ -85,14 +85,14 @@ all major operating systems:
 - Github Actions CI status: |Github Actions Status|
 - Appveyor CI status: |Appveyor Status|
 
-Please refer to the `documentation on testing <http://www.silx.org/doc/silx/dev/install.html#testing>`_
+Please refer to the `documentation on testing <http://www.silx.org/doc/silx/latest/install.html#testing>`_
 for details.
 
 Examples
 --------
 
 Some examples of sample code using silx are provided with the
-`silx documentation <http://www.silx.org/doc/silx/dev/sample_code/index.html>`_.
+`silx documentation <http://www.silx.org/doc/silx/latest/sample_code/index.html>`_.
 
 
 License
