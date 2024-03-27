@@ -235,11 +235,8 @@ class TestSpecificCommonH5(unittest.TestCase):
         node.attrs["b"] = 8
         f.add_node(node)
         self.assertEqual(node.attrs["b"], 8)
-        try:
+        with self.assertRaises(TypeError):
             node.attrs["b"] = 1
-            self.fail()
-        except RuntimeError:
-            pass
 
     def test_create_dataset(self):
         f = commonh5.File(name="Foo", mode="w")
