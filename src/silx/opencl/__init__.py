@@ -39,13 +39,30 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/03/2017"
+__date__ = "22/03/2024"
 __status__ = "stable"
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
+from . import common
 
-from .common import *
+
+def __getattr__(name):
+    """lasy submodule import, replace `from .common import *`
+
+    :param name: str
+    :return: instanciated object.
+    """
+    if name in [
+        "ocl",
+        "pyopencl",
+        "mf",
+        "release_cl_buffers",
+        "allocate_cl_buffers",
+        "measure_workgroup_size",
+        "kernel_workgroup_size",
+    ]:
+        return getattr(common, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
