@@ -34,6 +34,7 @@ import string
 
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui.colors import rgba
 
 from ... import _glutils
@@ -144,7 +145,7 @@ class Geometry(core.Elem):
             array = (array,)
 
         # Makes sure it is an array
-        array = numpy.array(array, copy=False)
+        array = numpy.asarray(array)
 
         dtype = None
         if array.dtype.kind == "f" and array.dtype.itemsize != 4:
@@ -160,7 +161,7 @@ class Geometry(core.Elem):
                 _logger.info("Cast array to uint32")
                 dtype = numpy.uint32
 
-        return numpy.array(array, dtype=dtype, order="C", copy=copy)
+        return numpy.array(array, dtype=dtype, order="C", copy=copy or NP_OPTIONAL_COPY)
 
     @property
     def nbVertices(self):
@@ -235,7 +236,7 @@ class Geometry(core.Elem):
         :rtype: numpy.ndarray
         """
         attr = self._attributes.get(name, None)
-        return None if attr is None else numpy.array(attr, copy=copy)
+        return None if attr is None else numpy.array(attr, copy=copy or NP_OPTIONAL_COPY)
 
     def useAttribute(self, program, name=None):
         """Enable and bind attribute(s) for a specific program.
@@ -317,7 +318,7 @@ class Geometry(core.Elem):
         if self._indices is None:
             return None
         else:
-            return numpy.array(self._indices, copy=copy)
+            return numpy.array(self._indices, copy=copy or NP_OPTIONAL_COPY)
 
     @property
     def boundsAttributeNames(self):
@@ -750,7 +751,7 @@ class Box(core.PrivateGroup):
                      False to get internal array (Do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(cls._lineIndices, copy=copy)
+        return numpy.array(cls._lineIndices, copy=copy or NP_OPTIONAL_COPY)
 
     @classmethod
     def getVertices(cls, copy=True):
@@ -760,7 +761,7 @@ class Box(core.PrivateGroup):
                      False to get internal array (Do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(cls._vertices, copy=copy)
+        return numpy.array(cls._vertices, copy=copy or NP_OPTIONAL_COPY)
 
     @property
     def size(self):
@@ -1597,7 +1598,7 @@ class GridPoints(Geometry):
         maxValue=None,
     ):
         if isinstance(values, abc.Iterable):
-            values = numpy.array(values, copy=False)
+            values = numpy.asarray(values)
 
             # Test if gl_VertexID will overflow
             assert values.size < numpy.iinfo(numpy.int32).max
@@ -2185,7 +2186,7 @@ class _Image(Geometry):
         self.notify()
 
     def getData(self, copy=True):
-        return numpy.array(self._data, copy=copy)
+        return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     @property
     def interpolation(self):
@@ -2327,7 +2328,7 @@ class ImageData(_Image):
         self._colormap.addListener(self._cmapChanged)
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order="C", dtype=numpy.float32)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.float32)
         # TODO support (u)int8|16
         assert data.ndim == 2
 
@@ -2374,13 +2375,13 @@ class ImageRgba(_Image):
         super(ImageRgba, self).__init__(data, copy=copy)
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order="C")
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
         assert data.ndim == 3
         assert data.shape[2] in (3, 4)
         if data.dtype.kind == "f":
             if data.dtype != numpy.dtype(numpy.float32):
                 _logger.warning("Converting image data to float32")
-                data = numpy.array(data, dtype=numpy.float32, copy=False)
+                data = numpy.asarray(data, dtype=numpy.float32)
         else:
             assert data.dtype == numpy.dtype(numpy.uint8)
 

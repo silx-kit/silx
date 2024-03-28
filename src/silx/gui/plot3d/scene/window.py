@@ -359,7 +359,7 @@ class Window(event.Notifier):
         # while images are stored as top to bottom
         image = numpy.flipud(image)
 
-        return numpy.array(image, copy=False, order="C")
+        return numpy.asarray(image, order="C")
 
     def render(self, glcontext, dotsPerInch: float, devicePixelRatio: float):
         """Perform the rendering of attached viewports

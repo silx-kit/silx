@@ -116,8 +116,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
 
     if anchors is not None and len(anchors):
         # numpy.int_ is the same as C long (http://docs.scipy.org/doc/numpy/user/basics.types.html)
-        anchors_c = numpy.array(anchors,
-                                copy=False,
+        anchors_c = numpy.asarray(anchors,
                                 dtype=numpy.int_,
                                 order='C')
         len_anchors = anchors_c.size

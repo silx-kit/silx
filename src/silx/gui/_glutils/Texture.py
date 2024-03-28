@@ -34,6 +34,7 @@ import logging
 
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from . import gl, utils
 
 
@@ -77,7 +78,7 @@ class Texture(object):
             assert shape is not None
         else:
             assert shape is None
-            data = numpy.array(data, copy=False, order="C")
+            data = numpy.asarray(data, order="C")
             if format_ != gl.GL_RED:
                 shape = data.shape[:-1]  # Last dimension is channels
             else:
@@ -356,7 +357,7 @@ class Texture(object):
         :param bool copy:
             True (default) to copy data, False to use as is (do not modify)
         """
-        data = numpy.array(data, copy=copy, order="C")
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
         offset = tuple(offset)
 
         assert data.ndim == self.ndim

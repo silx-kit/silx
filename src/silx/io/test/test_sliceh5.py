@@ -49,7 +49,7 @@ def temp_h5file(request):
 @pytest.mark.parametrize("indices", [1, slice(None), (1, slice(1, 4))])
 def test_datasetslice(temp_h5file, indices):
     data = numpy.arange(50).reshape(10, 5)
-    ref_data = numpy.array(data[indices], copy=False)
+    ref_data = numpy.asarray(data[indices])
 
     h5dataset = temp_h5file.create_group("group").create_dataset("dataset", data=data)
 

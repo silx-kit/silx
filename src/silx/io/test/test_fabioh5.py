@@ -169,8 +169,8 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_string(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.string_("hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.string_)
+        self.assertEqual(dataset[()], numpy.bytes_("hi!"))
+        self.assertEqual(dataset.dtype.type, numpy.bytes_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_list_integer(self):
@@ -194,8 +194,8 @@ class TestFabioH5(unittest.TestCase):
             "/scan_0/instrument/detector_0/others/string_looks_like_list"
         ]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.string_("2000 hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.string_)
+        self.assertEqual(dataset[()], numpy.bytes_("2000 hi!"))
+        self.assertEqual(dataset.dtype.type, numpy.bytes_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_float_32(self):

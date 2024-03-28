@@ -38,6 +38,7 @@ from collections import deque
 
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui import qt, icons
 from silx.gui.colors import rgba
 from silx.gui.colors import Colormap
@@ -91,7 +92,7 @@ class Isosurface(qt.QObject):
         if data is None:
             self._data = None
         else:
-            self._data = numpy.array(data, copy=copy, order="C")
+            self._data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
 
         self._update()
 
@@ -800,7 +801,7 @@ class _CutPlaneImage(object):
         :return: The 2D image data corresponding to the cut plane
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._data, copy=copy)
+        return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def getXLabel(self):
         """Returns the label associated to the X axis of the image (str)"""
@@ -1151,7 +1152,7 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.float32, order="C")
+            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 
@@ -1198,7 +1199,7 @@ class ScalarFieldView(Plot3DWindow):
         if self._data is None:
             return None
         else:
-            return numpy.array(self._data, copy=copy)
+            return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def getDataRange(self):
         """Return the range of the data as a 3-tuple of values.

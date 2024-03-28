@@ -51,7 +51,7 @@ class TestMinMax(ParametricTestCase):
         :param bool min_positive: True to test with positive min
         :param bool finite: True to only test finite values
         """
-        data = numpy.array(data, copy=False)
+        data = numpy.asarray(data)
         if data.size == 0:
             raise ValueError("Zero-sized array")
 

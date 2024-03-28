@@ -25,8 +25,8 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "02/10/2017"
 
-cimport numpy as cnumpy  # noqa
 cimport cython
+from libc.stdint cimport int32_t, uint32_t
 import numpy as np
 
 cimport silx.math.histogramnd_c as histogramnd_c
@@ -227,7 +227,7 @@ def chistogramnd(sample,
     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
         raise ValueError('<n_bins> : only positive values allowed.')
 
-    output_shape = tuple(n_bins)
+    output_shape = tuple(int(bin) for bin in n_bins)
 
     # checking the histo array, if provided
     if histo is None:
@@ -677,7 +677,7 @@ cdef int _histogramnd_double_double_double(double[:] sample,
                                            size_t n_elem,
                                            double[:] histo_range,
                                            int[:] n_bins,
-                                           cnumpy.uint32_t[:] histo,
+                                           uint32_t[:] histo,
                                            double[:] cumul,
                                            double[:] bin_edges,
                                            int option_flags,
@@ -708,7 +708,7 @@ cdef int _histogramnd_double_float_double(double[:] sample,
                                           size_t n_elem,
                                           double[:] histo_range,
                                           int[:] n_bins,
-                                          cnumpy.uint32_t[:] histo,
+                                          uint32_t[:] histo,
                                           double[:] cumul,
                                           double[:] bin_edges,
                                           int option_flags,
@@ -734,17 +734,17 @@ cdef int _histogramnd_double_float_double(double[:] sample,
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
 cdef int _histogramnd_double_int32_t_double(double[:] sample,
-                                            cnumpy.int32_t[:] weights,
+                                            int32_t[:] weights,
                                             int n_dims,
                                             size_t n_elem,
                                             double[:] histo_range,
                                             int[:] n_bins,
-                                            cnumpy.uint32_t[:] histo,
+                                            uint32_t[:] histo,
                                             double[:] cumul,
                                             double[:] bin_edges,
                                             int option_flags,
-                                            cnumpy.int32_t weight_min,
-                                            cnumpy.int32_t weight_max) nogil:
+                                            int32_t weight_min,
+                                            int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_double_int32_t_double(&sample[0],
                                                            &weights[0],
@@ -775,7 +775,7 @@ cdef int _histogramnd_float_double_double(float[:] sample,
                                           size_t n_elem,
                                           double[:] histo_range,
                                           int[:] n_bins,
-                                          cnumpy.uint32_t[:] histo,
+                                          uint32_t[:] histo,
                                           double[:] cumul,
                                           double[:] bin_edges,
                                           int option_flags,
@@ -806,7 +806,7 @@ cdef int _histogramnd_float_float_double(float[:] sample,
                                          size_t n_elem,
                                          double[:] histo_range,
                                          int[:] n_bins,
-                                         cnumpy.uint32_t[:] histo,
+                                         uint32_t[:] histo,
                                          double[:] cumul,
                                          double[:] bin_edges,
                                          int option_flags,
@@ -832,17 +832,17 @@ cdef int _histogramnd_float_float_double(float[:] sample,
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
 cdef int _histogramnd_float_int32_t_double(float[:] sample,
-                                           cnumpy.int32_t[:] weights,
+                                           int32_t[:] weights,
                                            int n_dims,
                                            size_t n_elem,
                                            double[:] histo_range,
                                            int[:] n_bins,
-                                           cnumpy.uint32_t[:] histo,
+                                           uint32_t[:] histo,
                                            double[:] cumul,
                                            double[:] bin_edges,
                                            int option_flags,
-                                           cnumpy.int32_t weight_min,
-                                           cnumpy.int32_t weight_max) nogil:
+                                           int32_t weight_min,
+                                           int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_float_int32_t_double(&sample[0],
                                                           &weights[0],
@@ -867,13 +867,13 @@ cdef int _histogramnd_float_int32_t_double(float[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_double_double(cnumpy.int32_t[:] sample,
+cdef int _histogramnd_int32_t_double_double(int32_t[:] sample,
                                             double[:] weights,
                                             int n_dims,
                                             size_t n_elem,
                                             double[:] histo_range,
                                             int[:] n_bins,
-                                            cnumpy.uint32_t[:] histo,
+                                            uint32_t[:] histo,
                                             double[:] cumul,
                                             double[:] bin_edges,
                                             int option_flags,
@@ -898,13 +898,13 @@ cdef int _histogramnd_int32_t_double_double(cnumpy.int32_t[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_float_double(cnumpy.int32_t[:] sample,
+cdef int _histogramnd_int32_t_float_double(int32_t[:] sample,
                                            float[:] weights,
                                            int n_dims,
                                            size_t n_elem,
                                            double[:] histo_range,
                                            int[:] n_bins,
-                                           cnumpy.uint32_t[:] histo,
+                                           uint32_t[:] histo,
                                            double[:] cumul,
                                            double[:] bin_edges,
                                            int option_flags,
@@ -929,18 +929,18 @@ cdef int _histogramnd_int32_t_float_double(cnumpy.int32_t[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_int32_t_double(cnumpy.int32_t[:] sample,
-                                             cnumpy.int32_t[:] weights,
+cdef int _histogramnd_int32_t_int32_t_double(int32_t[:] sample,
+                                             int32_t[:] weights,
                                              int n_dims,
                                              size_t n_elem,
                                              double[:] histo_range,
                                              int[:] n_bins,
-                                             cnumpy.uint32_t[:] histo,
+                                             uint32_t[:] histo,
                                              double[:] cumul,
                                              double[:] bin_edges,
                                              int option_flags,
-                                             cnumpy.int32_t weight_min,
-                                             cnumpy.int32_t weight_max) nogil:
+                                             int32_t weight_min,
+                                             int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_int32_t_int32_t_double(&sample[0],
                                                             &weights[0],
@@ -971,7 +971,7 @@ cdef int _histogramnd_double_double_float(double[:] sample,
                                           size_t n_elem,
                                           double[:] histo_range,
                                           int[:] n_bins,
-                                          cnumpy.uint32_t[:] histo,
+                                          uint32_t[:] histo,
                                           float[:] cumul,
                                           double[:] bin_edges,
                                           int option_flags,
@@ -1002,7 +1002,7 @@ cdef int _histogramnd_double_float_float(double[:] sample,
                                          size_t n_elem,
                                          double[:] histo_range,
                                          int[:] n_bins,
-                                         cnumpy.uint32_t[:] histo,
+                                         uint32_t[:] histo,
                                          float[:] cumul,
                                          double[:] bin_edges,
                                          int option_flags,
@@ -1028,17 +1028,17 @@ cdef int _histogramnd_double_float_float(double[:] sample,
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
 cdef int _histogramnd_double_int32_t_float(double[:] sample,
-                                           cnumpy.int32_t[:] weights,
+                                           int32_t[:] weights,
                                            int n_dims,
                                            size_t n_elem,
                                            double[:] histo_range,
                                            int[:] n_bins,
-                                           cnumpy.uint32_t[:] histo,
+                                           uint32_t[:] histo,
                                            float[:] cumul,
                                            double[:] bin_edges,
                                            int option_flags,
-                                           cnumpy.int32_t weight_min,
-                                           cnumpy.int32_t weight_max) nogil:
+                                           int32_t weight_min,
+                                           int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_double_int32_t_float(&sample[0],
                                                           &weights[0],
@@ -1069,7 +1069,7 @@ cdef int _histogramnd_float_double_float(float[:] sample,
                                          size_t n_elem,
                                          double[:] histo_range,
                                          int[:] n_bins,
-                                         cnumpy.uint32_t[:] histo,
+                                         uint32_t[:] histo,
                                          float[:] cumul,
                                          double[:] bin_edges,
                                          int option_flags,
@@ -1100,7 +1100,7 @@ cdef int _histogramnd_float_float_float(float[:] sample,
                                         size_t n_elem,
                                         double[:] histo_range,
                                         int[:] n_bins,
-                                        cnumpy.uint32_t[:] histo,
+                                        uint32_t[:] histo,
                                         float[:] cumul,
                                         double[:] bin_edges,
                                         int option_flags,
@@ -1126,17 +1126,17 @@ cdef int _histogramnd_float_float_float(float[:] sample,
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
 cdef int _histogramnd_float_int32_t_float(float[:] sample,
-                                          cnumpy.int32_t[:] weights,
+                                          int32_t[:] weights,
                                           int n_dims,
                                           size_t n_elem,
                                           double[:] histo_range,
                                           int[:] n_bins,
-                                          cnumpy.uint32_t[:] histo,
+                                          uint32_t[:] histo,
                                           float[:] cumul,
                                           double[:] bin_edges,
                                           int option_flags,
-                                          cnumpy.int32_t weight_min,
-                                          cnumpy.int32_t weight_max) nogil:
+                                          int32_t weight_min,
+                                          int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_float_int32_t_float(&sample[0],
                                                          &weights[0],
@@ -1161,13 +1161,13 @@ cdef int _histogramnd_float_int32_t_float(float[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_double_float(cnumpy.int32_t[:] sample,
+cdef int _histogramnd_int32_t_double_float(int32_t[:] sample,
                                            double[:] weights,
                                            int n_dims,
                                            size_t n_elem,
                                            double[:] histo_range,
                                            int[:] n_bins,
-                                           cnumpy.uint32_t[:] histo,
+                                           uint32_t[:] histo,
                                            float[:] cumul,
                                            double[:] bin_edges,
                                            int option_flags,
@@ -1192,13 +1192,13 @@ cdef int _histogramnd_int32_t_double_float(cnumpy.int32_t[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_float_float(cnumpy.int32_t[:] sample,
+cdef int _histogramnd_int32_t_float_float(int32_t[:] sample,
                                           float[:] weights,
                                           int n_dims,
                                           size_t n_elem,
                                           double[:] histo_range,
                                           int[:] n_bins,
-                                          cnumpy.uint32_t[:] histo,
+                                          uint32_t[:] histo,
                                           float[:] cumul,
                                           double[:] bin_edges,
                                           int option_flags,
@@ -1223,18 +1223,18 @@ cdef int _histogramnd_int32_t_float_float(cnumpy.int32_t[:] sample,
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
-cdef int _histogramnd_int32_t_int32_t_float(cnumpy.int32_t[:] sample,
-                                            cnumpy.int32_t[:] weights,
+cdef int _histogramnd_int32_t_int32_t_float(int32_t[:] sample,
+                                            int32_t[:] weights,
                                             int n_dims,
                                             size_t n_elem,
                                             double[:] histo_range,
                                             int[:] n_bins,
-                                            cnumpy.uint32_t[:] histo,
+                                            uint32_t[:] histo,
                                             float[:] cumul,
                                             double[:] bin_edges,
                                             int option_flags,
-                                            cnumpy.int32_t weight_min,
-                                            cnumpy.int32_t weight_max) nogil:
+                                            int32_t weight_min,
+                                            int32_t weight_max) nogil:
 
     return histogramnd_c.histogramnd_int32_t_int32_t_float(&sample[0],
                                                            &weights[0],

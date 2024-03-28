@@ -243,7 +243,7 @@ class _NormalizationMixIn:
         :returns: Range as (min, max)
         :rtype: Tuple[float,float]
         """
-        data = None if data is None else numpy.array(data, copy=False)
+        data = None if data is None else numpy.asarray(data)
         if data is None or data.size == 0:
             return self.DEFAULT_RANGE
 

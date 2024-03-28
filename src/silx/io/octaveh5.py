@@ -113,10 +113,10 @@ class Octaveh5(object):
         for key, val in iter(dict(gr_level2).items()):
             data_dict[str(key)] = list(val.items())[1][1][()]
 
-            if list(val.items())[0][1][()] != np.string_("sq_string"):
+            if list(val.items())[0][1][()] != np.bytes_("sq_string"):
                 data_dict[str(key)] = float(data_dict[str(key)])
             else:
-                if list(val.items())[0][1][()] == np.string_("sq_string"):
+                if list(val.items())[0][1][()] == np.bytes_("sq_string"):
                     # in the case the string has been stored as an nd-array of char
                     if type(data_dict[str(key)]) is np.ndarray:
                         data_dict[str(key)] = "".join(
@@ -145,26 +145,26 @@ class Octaveh5(object):
         group_l1 = self.file.create_group(struct_name)
         group_l1.attrs["OCTAVE_GLOBAL"] = np.uint8(1)
         group_l1.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
-        group_l1.create_dataset("type", data=np.string_("scalar struct"), dtype="|S14")
+        group_l1.create_dataset("type", data=np.bytes_("scalar struct"), dtype="|S14")
         group_l2 = group_l1.create_group("value")
         for ftparams in data_dict:
             group_l3 = group_l2.create_group(ftparams)
             group_l3.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
             if type(data_dict[ftparams]) == str:
                 group_l3.create_dataset(
-                    "type", (), data=np.string_("sq_string"), dtype="|S10"
+                    "type", (), data=np.bytes_("sq_string"), dtype="|S10"
                 )
                 if self.octave_targetted_version < 3.8:
                     group_l3.create_dataset(
-                        "value", data=np.string_(data_dict[ftparams] + "0")
+                        "value", data=np.bytes_(data_dict[ftparams] + "0")
                     )
                 else:
                     group_l3.create_dataset(
-                        "value", data=np.string_(data_dict[ftparams])
+                        "value", data=np.bytes_(data_dict[ftparams])
                     )
             else:
                 group_l3.create_dataset(
-                    "type", (), data=np.string_("scalar"), dtype="|S7"
+                    "type", (), data=np.bytes_("scalar"), dtype="|S7"
                 )
                 group_l3.create_dataset("value", data=data_dict[ftparams])
 

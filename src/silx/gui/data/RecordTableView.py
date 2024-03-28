@@ -433,7 +433,7 @@ class RecordTableView(qt.QTableView):
         sourceModel.setArrayData(data)
 
         if data is not None:
-            if issubclass(data.dtype.type, (numpy.string_, numpy.unicode_)):
+            if issubclass(data.dtype.type, (numpy.bytes_, numpy.str_)):
                 # TODO it would be nice to also fix fields
                 # but using it only for string array is already very useful
                 self.setItemDelegateForColumn(0, self.__multilineView)

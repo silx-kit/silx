@@ -136,7 +136,7 @@ def unindexArrays(mode, indices, *arrays):
     :return: Converted arrays
     :rtype: tuple of numpy.ndarray
     """
-    indices = numpy.array(indices, copy=False)
+    indices = numpy.asarray(indices)
 
     assert mode in (
         "points",
@@ -225,7 +225,7 @@ def trianglesNormal(positions):
     assert positions.ndim == 2
     assert positions.shape[1] == 3
 
-    positions = numpy.array(positions, copy=False).reshape(-1, 3, 3)
+    positions = numpy.asarray(positions).reshape(-1, 3, 3)
 
     normals = numpy.cross(
         positions[:, 1] - positions[:, 0], positions[:, 2] - positions[:, 0]
@@ -252,7 +252,7 @@ def gridVertices(dim0Array, dim1Array, dtype):
     """
     grid = numpy.empty((len(dim0Array), len(dim1Array), 2), dtype=dtype)
     grid.T[0, :, :] = dim0Array
-    grid.T[1, :, :] = numpy.array(dim1Array, copy=False)[:, None]
+    grid.T[1, :, :] = numpy.asarray(dim1Array)[:, None]
     return grid
 
 
@@ -448,8 +448,8 @@ def clipSegmentToBounds(segment, bounds):
     :return: Either clipped (p0, p1) or None if outside volume
     :rtype: Union[None,List[numpy.ndarray]]
     """
-    segment = numpy.array(segment, copy=False)
-    bounds = numpy.array(bounds, copy=False)
+    segment = numpy.asarray(segment)
+    bounds = numpy.asarray(bounds)
 
     p0, p1 = segment
     # Get intersection points of ray with volume boundary planes
