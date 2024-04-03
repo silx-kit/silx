@@ -31,6 +31,8 @@
 Contains the default parameters for the SIFT algorithm
 """
 
+import os
+
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
@@ -75,7 +77,7 @@ par = Enum(
     MagFactor=3,
     IndexSigma=1.0,
     IgnoreGradSign=0,
-    MatchRatio=0.73,
+    MatchRatio=os.environ.get("SILX_SIFT_MATCH_RATIO", 0.73),
     MatchXradius=1000000.0,
     MatchYradius=1000000.0,
     noncorrectlylocalized=0,
