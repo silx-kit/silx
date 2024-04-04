@@ -118,7 +118,7 @@ jobs:
           then
             pip install -r ci/requirements-pinned.txt;
           fi
-          pip install --pre --upgrade -r requirements.txt
+          pip install --pre -r requirements.txt
           pip uninstall -y PyQt5 PyQt6 PySide6
           if [ "${{ matrix.QT_BINDING }}" == "PyQt5" ]; then
             pip install --pre pyqt5;
@@ -137,7 +137,7 @@ jobs:
           pip install pytest-mock
 
       - name: Install silx package
-        run: pip install --pre --find-links dist/ silx
+        run: pip install --pre --find-links dist/ --no-cache-dir --no-index --no-build-isolation silx
 
       - name: Print python info used for tests
         run: |
@@ -152,7 +152,7 @@ jobs:
           if [ ${{ runner.os }} == 'Linux' ]; then
               export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
               export DISPLAY=:99.0
-              Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/travis-xorg.conf :99 &
+              Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/xorg.conf :99 &
               sleep 3
           fi
           echo "RUN_TESTS_OPTIONS="${{ matrix.RUN_TESTS_OPTIONS }}

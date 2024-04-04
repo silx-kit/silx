@@ -89,7 +89,7 @@ before_test:
     - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # First install any temporary pinned/additional requirements
-    - pip install %PIP_OPTIONS% -r "ci\requirements-pinned.txt
+    - pip install %PIP_OPTIONS% -r ci\requirements-pinned.txt
 
     # Install dependencies
     - pip install %PIP_OPTIONS% -r requirements.txt
