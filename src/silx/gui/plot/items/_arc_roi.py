@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -632,7 +632,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 center, start, end, radius, weight, startAngle, endAngle
             )
 
-        elif numpy.linalg.norm(numpy.cross(mid - start, end - start)) < 1e-5:
+        elif (
+            numpy.linalg.norm(
+                numpy.cross(numpy.append(mid - start, 0), numpy.append(end - start, 0))
+            )
+            < 1e-5
+        ):
             # Degenerated arc, it's a rectangle
             return _ArcGeometry.createRect(start, end, weight)
         else:
