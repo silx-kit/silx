@@ -67,7 +67,7 @@ build_script:
     - "pip install %PIP_OPTIONS% --upgrade build"
     - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "pip install %PIP_OPTIONS% --upgrade wheel"
-    - "pip install %PIP_OPTIONS% --upgrade oldest-supported-numpy"
+    - "pip install %PIP_OPTIONS% --upgrade numpy"
     - "pip install %PIP_OPTIONS% --upgrade cython"
 
     # Print Python info
