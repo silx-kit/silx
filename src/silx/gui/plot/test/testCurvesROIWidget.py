@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,11 @@ __date__ = "16/11/2017"
 import logging
 import os.path
 import numpy
+
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy v1 compatibility
+    from numpy import trapz as trapezoid
 
 from silx.gui import qt
 from silx.gui.plot import items
@@ -171,7 +176,7 @@ class TestCurvesROIWidget(TestCaseQt):
 
         self.assertEqual(
             roi_pos.computeRawAndNetArea(posCurve),
-            (numpy.trapz(y=[10, 20], x=[10, 20]), 0.0),
+            (trapezoid(y=[10, 20], x=[10, 20]), 0.0),
         )
         self.assertEqual(roi_pos.computeRawAndNetArea(negCurve), (0.0, 0.0))
         self.assertEqual(roi_neg.computeRawAndNetArea(posCurve), ((0.0), 0.0))

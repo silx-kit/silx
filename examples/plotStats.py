@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,11 @@ import argparse
 import numpy
 import time
 
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy v1 compatibility
+    from numpy import trapz as trapezoid
+
 
 class UpdateThread(threading.Thread):
     """Thread updating the curve of a :class:`~silx.gui.plot.Plot1D`
@@ -96,7 +101,7 @@ class Integral(StatBase):
 
     def calculate(self, context):
         xData, yData = context.data
-        return numpy.trapz(x=xData, y=yData)
+        return trapezoid(x=xData, y=yData)
 
 
 class COM(StatBase):

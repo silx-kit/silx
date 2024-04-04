@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,12 @@ import os
 import sys
 import functools
 import numpy
+
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy v1 compatibility
+    from numpy import trapz as trapezoid
+
 from silx.io import dictdump
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
@@ -1240,13 +1246,13 @@ class ROI(_RegionOfInterestBase):
         if x.size == 0:
             return 0.0, 0.0
 
-        rawArea = numpy.trapz(y, x=x)
+        rawArea = trapezoid(y, x=x)
         # to speed up and avoid an intersection calculation we are taking the
         # closest index to the ROI
         closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
         closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
         yBackground = y[closestXLeftIndex], y[closestXRightIndex]
-        background = numpy.trapz(yBackground, x=x)
+        background = trapezoid(yBackground, x=x)
         netArea = rawArea - background
         return rawArea, netArea
 
