@@ -118,7 +118,7 @@ jobs:
           then
             pip install -r ci/requirements-pinned.txt;
           fi
-          pip install --pre --upgrade -r requirements.txt
+          pip install --pre -r requirements.txt
           pip uninstall -y PyQt5 PyQt6 PySide6
           if [ "${{ matrix.QT_BINDING }}" == "PyQt5" ]; then
             pip install --pre pyqt5;
@@ -137,7 +137,7 @@ jobs:
           pip install pytest-mock
 
       - name: Install silx package
-        run: pip install --pre --find-links dist/ silx
+        run: pip install --pre --find-links dist/ --no-cache-dir --no-index --no-build-isolation silx
 
       - name: Print python info used for tests
         run: |
