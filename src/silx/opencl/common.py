@@ -3,7 +3,7 @@
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2023 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2024 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -33,23 +33,12 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2023"
+__date__ = "22/03/2024"
 __status__ = "stable"
-__all__ = [
-    "ocl",
-    "pyopencl",
-    "mf",
-    "release_cl_buffers",
-    "allocate_cl_buffers",
-    "measure_workgroup_size",
-    "kernel_workgroup_size",
-]
 
 import os
 import logging
-
 import numpy
-
 from .utils import get_opencl_code
 
 logger = logging.getLogger(__name__)
@@ -80,7 +69,6 @@ if pyopencl is not None:
     import pyopencl.array as array
 
     mf = pyopencl.mem_flags
-    from .atomic import check_atomic32, check_atomic64
 else:
     # Define default mem flags
     class mf(object):
@@ -141,9 +129,8 @@ class Device(object):
         flop_core=None,
         idx=0,
         workgroup=1,
-        atomic32=None,
-        atomic64=None,
         platform=None,
+        device=None,
     ):
         """
         Simple container with some important data for the OpenCL device description.
@@ -161,6 +148,7 @@ class Device(object):
         :param idx: index of the device within the platform
         :param workgroup: max workgroup size
         :param platform: the platform to which this device is attached
+        :param device: the pyopencl device used to validate atomic operations
         """
         self.name = name.strip()
         self.type = dtype
@@ -173,8 +161,8 @@ class Device(object):
         self.frequency = frequency
         self.id = idx
         self.max_work_group_size = workgroup
-        self.atomic32 = atomic32
-        self.atomic64 = atomic64
+        self._atomic32 = None  # lasy evaluated
+        self._atomic64 = None  # lasy evaluated
         if not flop_core:
             flop_core = FLOP_PER_CORE.get(dtype, 1)
         if cores and frequency:
@@ -182,6 +170,7 @@ class Device(object):
         else:
             self.flops = flop_core
         self.platform = platform
+        self._device = device
 
     def __repr__(self):
         return "%s" % self.name
@@ -207,6 +196,24 @@ class Device(object):
     def set_unavailable(self):
         """Use this method to flag a faulty device"""
         self.available = False
+
+    @property
+    def atomic32(self):
+        """Lasy validation of atomic operations, here 32bits"""
+        if self._atomic32 is None:
+            from .atomic import check_atomic32
+
+            self._atomic32 = check_atomic32(self._device)[0] if self._device else False
+        return self._atomic32
+
+    @property
+    def atomic64(self):
+        """Lasy validation of atomic operations, here 64bits"""
+        if self._atomic64 is None:
+            from .atomic import check_atomic64
+
+            self._atomic64 = check_atomic64(self._device)[0] if self._device else False
+        return self._atomic64
 
 
 class Platform(object):
@@ -275,6 +282,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
     :param fast: ask the kernel the valid value, don't probe it
     :return: maximum size for the workgroup
     """
+    ocl = OpenCL()
     if isinstance(device_or_context, pyopencl.Device):
         try:
             ctx = pyopencl.Context(devices=[device_or_context])
@@ -363,100 +371,124 @@ class OpenCL(object):
     """
     Simple class that wraps the structure ocl_tools_extended.h
 
-    This is a static class.
-    ocl should be the only instance and shared among all python modules.
+    This is a Borg class (~ a singleton).
     """
 
-    platforms = []
-    nb_devices = 0
-    context_cache = {}  # key: 2-tuple of int, value: context
-    if pyopencl:
-        platform = device = pypl = devtype = extensions = pydev = None
-        for idx, platform in enumerate(pyopencl.get_platforms()):
-            pypl = Platform(
-                platform.name,
-                platform.vendor,
-                platform.version,
-                platform.extensions,
-                idx,
-            )
-            for idd, device in enumerate(platform.get_devices()):
-                ####################################################
-                # Nvidia does not report int64 atomics (we are using) ...
-                # this is a hack around as any nvidia GPU with double-precision supports int64 atomics
-                ####################################################
-                extensions = device.extensions
-                if (pypl.vendor == "NVIDIA Corporation") and (
-                    "cl_khr_fp64" in extensions
-                ):
-                    extensions += (
-                        " cl_khr_int64_base_atomics cl_khr_int64_extended_atomics"
-                    )
-                try:
-                    devtype = pyopencl.device_type.to_string(device.type).upper()
-                except ValueError:
-                    # pocl does not describe itself as a CPU !
-                    devtype = "CPU"
-                if len(devtype) > 3:
-                    if "GPU" in devtype:
-                        devtype = "GPU"
-                    elif "ACC" in devtype:
-                        devtype = "ACC"
-                    elif "CPU" in devtype:
-                        devtype = "CPU"
-                    else:
-                        devtype = devtype[:3]
-                if _is_nvidia_gpu(device.vendor, devtype) and (
-                    "compute_capability_major_nv" in dir(device)
-                ):
-                    try:
-                        comput_cap = (
-                            device.compute_capability_major_nv,
-                            device.compute_capability_minor_nv,
-                        )
-                    except pyopencl.LogicError:
-                        flop_core = FLOP_PER_CORE["GPU"]
-                    else:
-                        flop_core = NVIDIA_FLOP_PER_CORE.get(
-                            comput_cap, FLOP_PER_CORE["GPU"]
-                        )
-                elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (
-                    devtype == "GPU"
-                ):
-                    flop_core = AMD_FLOP_PER_CORE
-                elif devtype == "CPU":
-                    flop_core = FLOP_PER_CORE.get(devtype, 1)
-                else:
-                    flop_core = 1
-                workgroup = device.max_work_group_size
-                if (devtype == "CPU") and (pypl.vendor == "Apple"):
-                    logger.info(
-                        "For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size."
-                    )
-                    workgroup = _measure_workgroup_size(device, fast=True)
-                if (devtype == "GPU") and os.environ.get("GPU") == "False":
-                    # Environment variable to disable GPU devices
-                    continue
-                pydev = Device(
-                    device.name,
-                    devtype,
-                    device.version,
-                    device.driver_version,
-                    extensions,
-                    device.global_mem_size,
-                    bool(device.available),
-                    device.max_compute_units,
-                    device.max_clock_frequency,
-                    flop_core,
-                    idd,
-                    workgroup,
-                    check_atomic32(device)[0],
-                    check_atomic64(device)[0],
+    __shared_state = {}
+
+    def __init__(self):
+        """Borg patter constructor"""
+        self.__dict__ = self.__shared_state
+        if not self.__shared_state:
+            # This is the first initialization: declare some instance attributes
+            self.platforms = []
+            self.context_cache = {}  # key: 2-tuple of int, value: context
+            self._initialized = False
+
+    def disable_opencl(self):
+        self.platforms = []
+        self.context_cache = {}
+        self._initialized = True
+
+    def enable_opencl(self):
+        self.platforms = []
+        self.context_cache = {}
+        self._initialized = False
+
+    @property
+    def nb_devices(self):
+        if not self._initialized:
+            self._lasy_init()
+        return sum(len(p.devices) for p in self.platforms)
+
+    def _lasy_init(self):
+        """Lasy constructor"""
+        self._initialized = True
+        if pyopencl:
+            platform = device = pypl = devtype = extensions = pydev = None
+            for idx, platform in enumerate(pyopencl.get_platforms()):
+                pypl = Platform(
+                    platform.name,
+                    platform.vendor,
+                    platform.version,
+                    platform.extensions,
+                    idx,
                 )
-                pypl.add_device(pydev)
-                nb_devices += 1
-            platforms.append(pypl)
-        del platform, device, pypl, devtype, extensions, pydev
+                for idd, device in enumerate(platform.get_devices()):
+                    ####################################################
+                    # Nvidia does not report int64 atomics (we are using) ...
+                    # this is a hack around as any nvidia GPU with double-precision supports int64 atomics
+                    ####################################################
+                    extensions = device.extensions
+                    if (pypl.vendor == "NVIDIA Corporation") and (
+                        "cl_khr_fp64" in extensions
+                    ):
+                        extensions += (
+                            " cl_khr_int64_base_atomics cl_khr_int64_extended_atomics"
+                        )
+                    try:
+                        devtype = pyopencl.device_type.to_string(device.type).upper()
+                    except ValueError:
+                        # pocl does not describe itself as a CPU !
+                        devtype = "CPU"
+                    if len(devtype) > 3:
+                        if "GPU" in devtype:
+                            devtype = "GPU"
+                        elif "ACC" in devtype:
+                            devtype = "ACC"
+                        elif "CPU" in devtype:
+                            devtype = "CPU"
+                        else:
+                            devtype = devtype[:3]
+                    if _is_nvidia_gpu(device.vendor, devtype) and (
+                        "compute_capability_major_nv" in dir(device)
+                    ):
+                        try:
+                            comput_cap = (
+                                device.compute_capability_major_nv,
+                                device.compute_capability_minor_nv,
+                            )
+                        except pyopencl.LogicError:
+                            flop_core = FLOP_PER_CORE["GPU"]
+                        else:
+                            flop_core = NVIDIA_FLOP_PER_CORE.get(
+                                comput_cap, FLOP_PER_CORE["GPU"]
+                            )
+                    elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (
+                        devtype == "GPU"
+                    ):
+                        flop_core = AMD_FLOP_PER_CORE
+                    elif devtype == "CPU":
+                        flop_core = FLOP_PER_CORE.get(devtype, 1)
+                    else:
+                        flop_core = 1
+                    workgroup = device.max_work_group_size
+                    if (devtype == "CPU") and (pypl.vendor == "Apple"):
+                        logger.info(
+                            "For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size."
+                        )
+                        workgroup = _measure_workgroup_size(device, fast=True)
+                    if (devtype == "GPU") and os.environ.get("GPU") == "False":
+                        # Environment variable to disable GPU devices
+                        continue
+                    pydev = Device(
+                        device.name,
+                        devtype,
+                        device.version,
+                        device.driver_version,
+                        extensions,
+                        device.global_mem_size,
+                        bool(device.available),
+                        device.max_compute_units,
+                        device.max_clock_frequency,
+                        flop_core,
+                        idd,
+                        workgroup,
+                        pypl,
+                        device,
+                    )
+                    pypl.add_device(pydev)
+                self.platforms.append(pypl)
 
     def __repr__(self):
         out = ["OpenCL devices:"]
@@ -570,13 +602,15 @@ class OpenCL(object):
             # try:
             device = ctx.devices[0]
             platforms = [
-                i for i, p in enumerate(ocl.platforms) if device.platform.name == p.name
+                i
+                for i, p in enumerate(self.platforms)
+                if device.platform.name == p.name
             ]
             if platforms:
                 platformid = platforms[0]
                 devices = [
                     i
-                    for i, d in enumerate(ocl.platforms[platformid].devices)
+                    for i, d in enumerate(self.platforms[platformid].devices)
                     if device.name == d.name
                 ]
                 if devices:
@@ -584,7 +618,7 @@ class OpenCL(object):
                     if cached:
                         self.context_cache[(platformid, deviceid)] = ctx
         else:
-            ids = ocl.select_device(type=devicetype, extensions=extensions)
+            ids = self.select_device(type=devicetype, extensions=extensions)
             if ids:
                 platformid, deviceid = ids
 
@@ -631,12 +665,21 @@ class OpenCL(object):
         return self.platforms[platform_id].devices[device_id]
 
 
-if pyopencl:
-    ocl = OpenCL()
-    if ocl.nb_devices == 0:
-        ocl = None
-else:
-    ocl = None
+def __getattr__(name):
+    """lasy instanciate the `OpenCL` class in `ocl`
+    :param name: str
+    :return: instanciated object.
+    """
+    if name == "ocl":
+        if pyopencl:
+            ocl = OpenCL()
+            if ocl.nb_devices == 0:
+                ocl = None
+        else:
+            ocl = None
+        return ocl
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def release_cl_buffers(cl_buffers):
@@ -676,7 +719,7 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     """
     mem = {}
     if device is None:
-        device = ocl.device_from_context(context)
+        device = OpenCL().device_from_context(context)
 
     # check if enough memory is available on the device
     ualloc = 0
