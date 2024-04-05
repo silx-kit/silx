@@ -32,6 +32,8 @@ import unittest
 import numpy
 import pytest
 
+from packaging.version import Version
+
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
@@ -1687,23 +1689,26 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
 
                 self.qapp.processEvents()
 
-                if xError is None:
-                    dataMin, dataMax = numpy.min(self.xData), numpy.max(self.xData)
-                else:
+                dataMin, dataMax = numpy.min(self.xData), numpy.max(self.xData)
+                if xError is not None:
+                    if isinstance(xError, numpy.ndarray) and xError.shape[-1] == 1:
+                        xError = numpy.ravel(xError)
                     xMinusError = self.xData - numpy.atleast_2d(xError)[0]
-                    dataMin = numpy.min(xMinusError[xMinusError > 0])
+                    dataMin = min(dataMin, numpy.min(xMinusError[xMinusError > 0]))
                     xPlusError = self.xData + numpy.atleast_2d(xError)[-1]
-                    dataMax = numpy.max(xPlusError[xPlusError > 0])
+                    dataMax = max(dataMax, numpy.max(xPlusError[xPlusError > 0]))
                 plotMin, plotMax = self.plot.getXAxis().getLimits()
                 assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
 
-                if yError is None:
-                    dataMin, dataMax = numpy.min(self.yData), numpy.max(self.yData)
-                else:
+                dataMin, dataMax = numpy.min(self.yData), numpy.max(self.yData)
+                if yError is not None:
+                    if isinstance(yError, numpy.ndarray) and yError.shape[-1] == 1:
+                        yError = numpy.ravel(yError)
+
                     yMinusError = self.yData - numpy.atleast_2d(yError)[0]
-                    dataMin = numpy.min(yMinusError[yMinusError > 0])
+                    dataMin = min(dataMin, numpy.min(yMinusError[yMinusError > 0]))
                     yPlusError = self.yData + numpy.atleast_2d(yError)[-1]
-                    dataMax = numpy.max(yPlusError[yPlusError > 0])
+                    dataMax = max(dataMax, numpy.max(yPlusError[yPlusError > 0]))
                 plotMin, plotMax = self.plot.getYAxis().getLimits()
                 assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
 
@@ -2047,3 +2052,32 @@ class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
 
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
+
+
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize(
+    "xerror,yerror",
+    [
+        (2, 2),  # Single value
+        ((1, 2, 3), (3, 2, 1)),  # Flat array
+        (([1], [2], [3]), ([3], [2], [1])),  # Nx1 array
+        ([(1, 2, 3), (3, 2, 1)], [(3, 2, 1), (1, 2, 3)]),  # 2xN array
+        (-1, -1),  # Negative values
+        ((-1, 0, 1), (1, 0, -1)),  # Flat array with negative values
+        (-numpy.inf, numpy.inf),  # Infinity error
+        (numpy.nan, numpy.nan),  # All NaN
+        ((1, numpy.nan, 2), (numpy.nan, 3, 2)),  # Some NaN
+    ],
+)
+def testCurveErrors(qapp, plotWidget, xerror, yerror):
+    """Test display of curves with different errors"""
+    item = plotWidget.addCurve(x=(1, 2, 3), y=(3, 2, 1), xerror=xerror, yerror=yerror)
+
+    if Version(numpy.version.version) >= Version("1.19.0"):  # Use equal_nan argument
+        assert numpy.array_equal(xerror, item.getXErrorData(), equal_nan=True)
+        assert numpy.array_equal(yerror, item.getYErrorData(), equal_nan=True)
+
+    plotWidget.resetZoom()
+    qapp.processEvents()
+    plotWidget.getXAxis().setScale("log")
+    plotWidget.getYAxis().setScale("log")

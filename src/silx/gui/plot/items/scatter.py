@@ -930,8 +930,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             )
         return self.__interpolatorFuture
 
-    def _logFilterData(self, xPositive, yPositive):
-        """Filter out values with x or y <= 0 on log axes
+    def _filterData(self, xPositive: bool, yPositive: bool):
+        """Filter out errors<0 and values with x or y <= 0 on log axes
 
         :param bool xPositive: True to filter arrays according to X coords.
         :param bool yPositive: True to filter arrays according to Y coords.
@@ -949,7 +949,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 value = numpy.array(value, copy=True, dtype=numpy.float64)
                 value[clipped] = numpy.nan
 
-        x, y, xerror, yerror = PointsBase._logFilterData(self, xPositive, yPositive)
+        x, y, xerror, yerror = PointsBase._filterData(self, xPositive, yPositive)
 
         return x, y, value, xerror, yerror
 
