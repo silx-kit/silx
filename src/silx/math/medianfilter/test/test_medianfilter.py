@@ -1,5 +1,5 @@
 # ##########################################################################
-# Copyright (C) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,7 @@ try:
 except:
     scipy = None
 else:
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
     import scipy.ndimage
 
 import logging

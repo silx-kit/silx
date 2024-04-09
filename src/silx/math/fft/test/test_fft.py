@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,7 @@ import pytest
 from tempfile import TemporaryDirectory
 
 try:
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
     __have_scipy = True
 except ImportError:
     __have_scipy = False
