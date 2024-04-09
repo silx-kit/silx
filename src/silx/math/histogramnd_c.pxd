@@ -25,7 +25,7 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/02/2016"
 
-cimport numpy as cnumpy
+from libc.stdint cimport int32_t, uint32_t
 
 cdef extern from "histogramnd_c.h":
 
@@ -49,7 +49,7 @@ cdef extern from "histogramnd_c.h":
                                          size_t i_n_elem,
                                          double *i_bin_ranges,
                                          int *i_n_bin,
-                                         cnumpy.uint32_t *o_histo,
+                                         uint32_t *o_histo,
                                          double *o_cumul,
                                          double * bin_edges,
                                          int i_opt_flags,
@@ -62,7 +62,7 @@ cdef extern from "histogramnd_c.h":
                                         size_t i_n_elem,
                                         double *i_bin_ranges,
                                         int *i_n_bin,
-                                        cnumpy.uint32_t *o_histo,
+                                        uint32_t *o_histo,
                                         double *o_cumul,
                                         double * bin_edges,
                                         int i_opt_flags,
@@ -70,17 +70,17 @@ cdef extern from "histogramnd_c.h":
                                         float i_weight_max) nogil
 
     int histogramnd_double_int32_t_double(double *i_sample,
-                                          cnumpy.int32_t *i_weigths,
+                                          int32_t *i_weigths,
                                           int i_n_dim,
                                           size_t i_n_elem,
                                           double *i_bin_ranges,
                                           int *i_n_bin,
-                                          cnumpy.uint32_t *o_histo,
+                                          uint32_t *o_histo,
                                           double *o_cumul,
                                           double * bin_edges,
                                           int i_opt_flags,
-                                          cnumpy.int32_t i_weight_min,
-                                          cnumpy.int32_t i_weight_max) nogil
+                                          int32_t i_weight_min,
+                                          int32_t i_weight_max) nogil
 
     # =====================
     # float sample, double cumul
@@ -92,7 +92,7 @@ cdef extern from "histogramnd_c.h":
                                         size_t i_n_elem,
                                         double *i_bin_ranges,
                                         int *i_n_bin,
-                                        cnumpy.uint32_t *o_histo,
+                                        uint32_t *o_histo,
                                         double *o_cumul,
                                         double * bin_edges,
                                         int i_opt_flags,
@@ -105,7 +105,7 @@ cdef extern from "histogramnd_c.h":
                                        size_t i_n_elem,
                                        double *i_bin_ranges,
                                        int *i_n_bin,
-                                       cnumpy.uint32_t *o_histo,
+                                       uint32_t *o_histo,
                                        double *o_cumul,
                                        double * bin_edges,
                                        int i_opt_flags,
@@ -113,60 +113,60 @@ cdef extern from "histogramnd_c.h":
                                        float i_weight_max) nogil
 
     int histogramnd_float_int32_t_double(float *i_sample,
-                                         cnumpy.int32_t *i_weigths,
+                                         int32_t *i_weigths,
                                          int i_n_dim,
                                          size_t i_n_elem,
                                          double *i_bin_ranges,
                                          int *i_n_bin,
-                                         cnumpy.uint32_t *o_histo,
+                                         uint32_t *o_histo,
                                          double *o_cumul,
                                          double * bin_edges,
                                          int i_opt_flags,
-                                         cnumpy.int32_t i_weight_min,
-                                         cnumpy.int32_t i_weight_max) nogil
+                                         int32_t i_weight_min,
+                                         int32_t i_weight_max) nogil
 
     # =====================
     # numpy.int32_t sample, double cumul
     # =====================
 
-    int histogramnd_int32_t_double_double(cnumpy.int32_t *i_sample,
+    int histogramnd_int32_t_double_double(int32_t *i_sample,
                                           double *i_weigths,
                                           int i_n_dim,
                                           size_t i_n_elem,
                                           double *i_bin_ranges,
                                           int *i_n_bin,
-                                          cnumpy.uint32_t *o_histo,
+                                          uint32_t *o_histo,
                                           double *o_cumul,
                                           double * bin_edges,
                                           int i_opt_flags,
                                           double i_weight_min,
                                           double i_weight_max) nogil
 
-    int histogramnd_int32_t_float_double(cnumpy.int32_t *i_sample,
+    int histogramnd_int32_t_float_double(int32_t *i_sample,
                                          float *i_weigths,
                                          int i_n_dim,
                                          size_t i_n_elem,
                                          double *i_bin_ranges,
                                          int *i_n_bin,
-                                         cnumpy.uint32_t *o_histo,
+                                         uint32_t *o_histo,
                                          double *o_cumul,
                                          double * bin_edges,
                                          int i_opt_flags,
                                          float i_weight_min,
                                          float i_weight_max) nogil
 
-    int histogramnd_int32_t_int32_t_double(cnumpy.int32_t *i_sample,
-                                           cnumpy.int32_t *i_weigths,
+    int histogramnd_int32_t_int32_t_double(int32_t *i_sample,
+                                           int32_t *i_weigths,
                                            int i_n_dim,
                                            size_t i_n_elem,
                                            double *i_bin_ranges,
                                            int *i_n_bin,
-                                           cnumpy.uint32_t *o_histo,
+                                           uint32_t *o_histo,
                                            double *o_cumul,
                                            double * bin_edges,
                                            int i_opt_flags,
-                                           cnumpy.int32_t i_weight_min,
-                                           cnumpy.int32_t i_weight_max) nogil
+                                           int32_t i_weight_min,
+                                           int32_t i_weight_max) nogil
 
     # =====================
     # double sample, float cumul
@@ -178,7 +178,7 @@ cdef extern from "histogramnd_c.h":
                                         size_t i_n_elem,
                                         double *i_bin_ranges,
                                         int *i_n_bin,
-                                        cnumpy.uint32_t *o_histo,
+                                        uint32_t *o_histo,
                                         float *o_cumul,
                                         double * bin_edges,
                                         int i_opt_flags,
@@ -191,7 +191,7 @@ cdef extern from "histogramnd_c.h":
                                        size_t i_n_elem,
                                        double *i_bin_ranges,
                                        int *i_n_bin,
-                                       cnumpy.uint32_t *o_histo,
+                                       uint32_t *o_histo,
                                        float *o_cumul,
                                        double * bin_edges,
                                        int i_opt_flags,
@@ -199,17 +199,17 @@ cdef extern from "histogramnd_c.h":
                                        float i_weight_max) nogil
 
     int histogramnd_double_int32_t_float(double *i_sample,
-                                         cnumpy.int32_t *i_weigths,
+                                         int32_t *i_weigths,
                                          int i_n_dim,
                                          size_t i_n_elem,
                                          double *i_bin_ranges,
                                          int *i_n_bin,
-                                         cnumpy.uint32_t *o_histo,
+                                         uint32_t *o_histo,
                                          float *o_cumul,
                                          double * bin_edges,
                                          int i_opt_flags,
-                                         cnumpy.int32_t i_weight_min,
-                                         cnumpy.int32_t i_weight_max) nogil
+                                         int32_t i_weight_min,
+                                         int32_t i_weight_max) nogil
 
     # =====================
     # float sample, float cumul
@@ -221,7 +221,7 @@ cdef extern from "histogramnd_c.h":
                                        size_t i_n_elem,
                                        double *i_bin_ranges,
                                        int *i_n_bin,
-                                       cnumpy.uint32_t *o_histo,
+                                       uint32_t *o_histo,
                                        float *o_cumul,
                                        double * bin_edges,
                                        int i_opt_flags,
@@ -234,7 +234,7 @@ cdef extern from "histogramnd_c.h":
                                       size_t i_n_elem,
                                       double *i_bin_ranges,
                                       int *i_n_bin,
-                                      cnumpy.uint32_t *o_histo,
+                                      uint32_t *o_histo,
                                       float *o_cumul,
                                       double * bin_edges,
                                       int i_opt_flags,
@@ -242,57 +242,57 @@ cdef extern from "histogramnd_c.h":
                                       float i_weight_max) nogil
 
     int histogramnd_float_int32_t_float(float *i_sample,
-                                        cnumpy.int32_t *i_weigths,
+                                        int32_t *i_weigths,
                                         int i_n_dim,
                                         size_t i_n_elem,
                                         double *i_bin_ranges,
                                         int *i_n_bin,
-                                        cnumpy.uint32_t *o_histo,
+                                        uint32_t *o_histo,
                                         float *o_cumul,
                                         double * bin_edges,
                                         int i_opt_flags,
-                                        cnumpy.int32_t i_weight_min,
-                                        cnumpy.int32_t i_weight_max) nogil
+                                        int32_t i_weight_min,
+                                        int32_t i_weight_max) nogil
 
     # =====================
     # numpy.int32_t sample, float cumul
     # =====================
 
-    int histogramnd_int32_t_double_float(cnumpy.int32_t *i_sample,
+    int histogramnd_int32_t_double_float(int32_t *i_sample,
                                          double *i_weigths,
                                          int i_n_dim,
                                          size_t i_n_elem,
                                          double *i_bin_ranges,
                                          int *i_n_bin,
-                                         cnumpy.uint32_t *o_histo,
+                                         uint32_t *o_histo,
                                          float *o_cumul,
                                          double * bin_edges,
                                          int i_opt_flags,
                                          double i_weight_min,
                                          double i_weight_max) nogil
 
-    int histogramnd_int32_t_float_float(cnumpy.int32_t *i_sample,
+    int histogramnd_int32_t_float_float(int32_t *i_sample,
                                         float *i_weigths,
                                         int i_n_dim,
                                         size_t i_n_elem,
                                         double *i_bin_ranges,
                                         int *i_n_bin,
-                                        cnumpy.uint32_t *o_histo,
+                                        uint32_t *o_histo,
                                         float *o_cumul,
                                         double * bin_edges,
                                         int i_opt_flags,
                                         float i_weight_min,
                                         float i_weight_max) nogil
 
-    int histogramnd_int32_t_int32_t_float(cnumpy.int32_t *i_sample,
-                                          cnumpy.int32_t *i_weigths,
+    int histogramnd_int32_t_int32_t_float(int32_t *i_sample,
+                                          int32_t *i_weigths,
                                           int i_n_dim,
                                           size_t i_n_elem,
                                           double *i_bin_ranges,
                                           int *i_n_bin,
-                                          cnumpy.uint32_t *o_histo,
+                                          uint32_t *o_histo,
                                           float *o_cumul,
                                           double * bin_edges,
                                           int i_opt_flags,
-                                          cnumpy.int32_t i_weight_min,
-                                          cnumpy.int32_t i_weight_max) nogil
+                                          int32_t i_weight_min,
+                                          int32_t i_weight_max) nogil

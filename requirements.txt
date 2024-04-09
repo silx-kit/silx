@@ -9,7 +9,7 @@
 # From pyproject.toml
 wheel
 setuptools
-numpy >= 1.12, <2
+numpy >= 1.14.5
 Cython >= 0.21.1
 # From setup.py install_requires
 packaging

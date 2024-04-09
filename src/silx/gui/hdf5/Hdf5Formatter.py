@@ -122,12 +122,12 @@ class Hdf5Formatter(qt.QObject):
         return self.humanReadableDType(dtype, full)
 
     def humanReadableDType(self, dtype, full=False):
-        if dtype == bytes or numpy.issubdtype(dtype, numpy.string_):
+        if dtype == bytes or numpy.issubdtype(dtype, numpy.bytes_):
             text = "string"
             if full:
                 text = "ASCII " + text
             return text
-        elif dtype == str or numpy.issubdtype(dtype, numpy.unicode_):
+        elif dtype == str or numpy.issubdtype(dtype, numpy.str_):
             text = "string"
             if full:
                 text = "UTF-8 " + text

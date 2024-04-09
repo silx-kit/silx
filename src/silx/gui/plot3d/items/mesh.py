@@ -38,6 +38,7 @@ from ..scene.transform import Rotate
 from .core import DataItem3D, ItemChangedType
 from .mixins import ColormapMixIn
 from ._pick import PickingResult
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -298,7 +299,7 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         else:
             mesh = primitives.ColormapMesh3D(
                 position=position,
-                value=numpy.array(value, copy=False).reshape(
+                value=numpy.asarray(value).reshape(
                     -1, 1
                 ),  # Make it a 2D array
                 colormap=self._getSceneColormap(),
@@ -616,7 +617,7 @@ class Box(_CylindricalVolume):
         :return: Position of the box(es) as a (N, 3) array.
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.position, copy=copy)
+        return numpy.array(self.position, copy=copy or NP_OPTIONAL_COPY)
 
     def getSize(self):
         """Get box(es) size.
@@ -635,7 +636,7 @@ class Box(_CylindricalVolume):
         :return: RGB color of the box(es).
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.color, copy=copy)
+        return numpy.array(self.color, copy=copy or NP_OPTIONAL_COPY)
 
 
 class Cylinder(_CylindricalVolume):
@@ -711,7 +712,7 @@ class Cylinder(_CylindricalVolume):
         :return: Position(s) of the cylinder(s) as a (N, 3) array.
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.position, copy=copy)
+        return numpy.array(self.position, copy=copy or NP_OPTIONAL_COPY)
 
     def getRadius(self):
         """Get cylinder(s) radius.
@@ -738,7 +739,7 @@ class Cylinder(_CylindricalVolume):
         :return: RGB color of the cylinder(s).
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.color, copy=copy)
+        return numpy.array(self.color, copy=copy or NP_OPTIONAL_COPY)
 
 
 class Hexagon(_CylindricalVolume):
@@ -810,7 +811,7 @@ class Hexagon(_CylindricalVolume):
          :return: Position(s) of hexagonal prism(s) as a (N, 3) array.
          :rtype: numpy.ndarray
         """
-        return numpy.array(self.position, copy=copy)
+        return numpy.array(self.position, copy=copy or NP_OPTIONAL_COPY)
 
     def getRadius(self):
         """Get hexagonal prism(s) radius.
@@ -837,4 +838,4 @@ class Hexagon(_CylindricalVolume):
         :return: RGB color of the hexagonal prism(s).
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.color, copy=copy)
+        return numpy.array(self.color, copy=copy or NP_OPTIONAL_COPY)

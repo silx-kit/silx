@@ -159,14 +159,9 @@ class BuildExt(build_ext):
 
 def get_project_configuration():
     """Returns project arguments for setup"""
-    # Use installed numpy version as minimal required version
-    # This is useful for wheels to advertise the numpy version they were built with
-    numpy_requested_version = ">=%s" % numpy.version.version
-    logger.info("Install requires: numpy %s", numpy_requested_version)
-
     install_requires = [
         # for most of the computation
-        "numpy%s" % numpy_requested_version,
+        "numpy",
         # for version parsing
         "packaging",
         # for io support
@@ -250,10 +245,9 @@ def get_project_configuration():
             name="silx.image.marchingsquares._mergeimpl",
             sources=["src/silx/image/marchingsquares/_mergeimpl.pyx"],
             include_dirs=[
-                numpy.get_include(),
                 os.path.join(
                     os.path.dirname(__file__), "src", "silx", "utils", "include"
-                ),
+                )
             ],
             language="c++",
             extra_link_args=["-fopenmp"],
@@ -288,10 +282,7 @@ def get_project_configuration():
             name="silx.math._colormap",
             sources=["src/silx/math/_colormap.pyx"],
             language="c",
-            include_dirs=[
-                "src/silx/math/include",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/include"],
             extra_link_args=["-fopenmp"],
             extra_compile_args=["-fopenmp"],
         ),
@@ -301,19 +292,13 @@ def get_project_configuration():
                 "src/silx/math/histogramnd/src/histogramnd_c.c",
                 "src/silx/math/chistogramnd.pyx",
             ],
-            include_dirs=[
-                "src/silx/math/histogramnd/include",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/histogramnd/include"],
             language="c",
         ),
         Extension(
             name="silx.math.chistogramnd_lut",
             sources=["src/silx/math/chistogramnd_lut.pyx"],
-            include_dirs=[
-                "src/silx/math/histogramnd/include",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/histogramnd/include"],
             language="c",
         ),
         Extension(
@@ -326,10 +311,7 @@ def get_project_configuration():
             name="silx.math.interpolate",
             sources=["src/silx/math/interpolate.pyx"],
             language="c",
-            include_dirs=[
-                "src/silx/math/include",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/include"],
             extra_link_args=["-fopenmp"],
             extra_compile_args=["-fopenmp"],
         ),
@@ -339,19 +321,13 @@ def get_project_configuration():
                 "src/silx/math/marchingcubes/mc_lut.cpp",
                 "src/silx/math/marchingcubes.pyx",
             ],
-            include_dirs=[
-                "src/silx/math/marchingcubes",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/marchingcubes"],
             language="c++",
         ),
         Extension(
             name="silx.math.medianfilter.medianfilter",
             sources=["src/silx/math/medianfilter/medianfilter.pyx"],
-            include_dirs=[
-                "src/silx/math/medianfilter/include",
-                numpy.get_include(),
-            ],
+            include_dirs=["src/silx/math/medianfilter/include"],
             language="c++",
             extra_link_args=["-fopenmp"],
             extra_compile_args=["-fopenmp"],

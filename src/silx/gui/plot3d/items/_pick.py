@@ -33,6 +33,7 @@ import numpy
 
 from ...plot.items._pick import PickingResult as _PickingResult
 from ..scene import Viewport, Base
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -190,7 +191,7 @@ class PickingResult(_PickingResult):
         """
         super(PickingResult, self).__init__(item, indices)
 
-        self._objectPositions = numpy.array(positions, copy=False, dtype=numpy.float64)
+        self._objectPositions = numpy.asarray(positions, dtype=numpy.float64)
 
         # Store matrices to generate positions on demand
         primitive = item._getScenePrimitive()
@@ -222,7 +223,7 @@ class PickingResult(_PickingResult):
         else:
             data = self._fetchdata(copy=False)
 
-        return numpy.array(data[indices], copy=copy)
+        return numpy.array(data[indices], copy=copy or NP_OPTIONAL_COPY)
 
     def getPositions(self, frame="scene", copy=True):
         """Returns picking positions in item coordinates.
@@ -257,4 +258,4 @@ class PickingResult(_PickingResult):
         else:
             raise ValueError("Unsupported frame argument: %s" % str(frame))
 
-        return numpy.array(positions, copy=copy)
+        return numpy.array(positions, copy=copy or NP_OPTIONAL_COPY)

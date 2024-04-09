@@ -258,7 +258,7 @@ class FitTheories(object):
         :return: Scaling factor
         """
         # ensure y is an array
-        yy = numpy.array(y, copy=False)
+        yy = numpy.asarray(y)
 
         # smooth
         convolution_kernel = numpy.ones(shape=(3,)) / 3.0

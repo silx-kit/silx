@@ -33,6 +33,7 @@ import logging
 
 import numpy
 
+from silx._utils import NP_OPTIONAL_COPY
 from ....utils.proxy import docstring
 from ...colors import Colormap
 from .core import ColormapMixIn, ComplexMixIn, ItemChangedType
@@ -255,7 +256,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
         if not numpy.issubdtype(data.dtype, numpy.complexfloating):
             _logger.warning(
@@ -349,7 +350,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
                 self.getComplexData(copy=False), mode
             )
 
-        return numpy.array(self._dataByModesCache[mode], copy=copy)
+        return numpy.array(self._dataByModesCache[mode], copy=copy or NP_OPTIONAL_COPY)
 
     def getRgbaImageData(self, copy=True, mode=None):
         """Get the displayed RGB(A) image for (current) mode

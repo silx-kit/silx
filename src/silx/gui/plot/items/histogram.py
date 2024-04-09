@@ -47,6 +47,8 @@ from .core import (
     ItemChangedType,
 )
 from ._pick import PickingResult
+from silx._utils import NP_OPTIONAL_COPY
+
 
 _logger = logging.getLogger(__name__)
 
@@ -300,7 +302,7 @@ class Histogram(
         :returns: The values of the histogram
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._histogram, copy=copy)
+        return numpy.array(self._histogram, copy=copy or NP_OPTIONAL_COPY)
 
     def getBinEdgesData(self, copy=True):
         """The bin edges of the histogram (number of histogram values + 1)
@@ -310,7 +312,7 @@ class Histogram(
         :returns: The bin edges of the histogram
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._edges, copy=copy)
+        return numpy.array(self._edges, copy=copy or NP_OPTIONAL_COPY)
 
     def getData(self, copy=True):
         """Return the histogram values, bin edges and baseline
@@ -343,8 +345,8 @@ class Histogram(
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
-        histogram = numpy.array(histogram, copy=copy)
-        edges = numpy.array(edges, copy=copy)
+        histogram = numpy.array(histogram, copy=copy or NP_OPTIONAL_COPY)
+        edges = numpy.array(edges, copy=copy or NP_OPTIONAL_COPY)
 
         assert histogram.ndim == 1
         assert edges.ndim == 1

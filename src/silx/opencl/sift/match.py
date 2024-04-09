@@ -142,7 +142,7 @@ class MatchPlan(OpenclProcessing):
         """
         assert len(nkp1.shape) == 1  # Nota: nkp1.ndim is not valid for gpu_arrays
         assert len(nkp2.shape) == 1
-        valid_types = (numpy.ndarray, numpy.core.records.recarray, pyopencl.array.Array)
+        valid_types = (numpy.ndarray, numpy.recarray, pyopencl.array.Array)
         assert isinstance(nkp1, valid_types)
         assert isinstance(nkp2, valid_types)
         result = None
@@ -308,7 +308,7 @@ def match_py(nkp1, nkp2, raw_results=False):
     """
     assert len(nkp1.shape) == 1
     assert len(nkp2.shape) == 1
-    valid_types = (numpy.ndarray, numpy.core.records.recarray)
+    valid_types = (numpy.ndarray, numpy.recarray)
     assert isinstance(nkp1, valid_types)
     assert isinstance(nkp2, valid_types)
     result = None

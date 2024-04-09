@@ -75,7 +75,7 @@ class VertexBuffer(object):
             self._size = size
             gl.glBufferData(self._target, self._size, c_void_p(0), self._usage)
         else:
-            data = numpy.array(data, copy=False, order="C")
+            data = numpy.asarray(data, order="C")
             if size is not None:
                 assert size <= data.nbytes
 
@@ -127,7 +127,7 @@ class VertexBuffer(object):
         :param int offset: Offset in bytes in the buffer where to put the data
         :param int size: If provided, size of data to copy
         """
-        data = numpy.array(data, copy=False, order="C")
+        data = numpy.asarray(data, order="C")
         if size is None:
             size = data.nbytes
         assert offset + size <= self.size
@@ -235,7 +235,7 @@ def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
         suffix = (0,) * len(arrays)
 
     for data, pre, post in zip(arrays, prefix, suffix):
-        data = numpy.array(data, copy=False, order="C")
+        data = numpy.asarray(data, order="C")
         shape = data.shape
         assert len(shape) <= 2
         type_ = numpyToGLType(data.dtype)

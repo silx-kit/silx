@@ -440,7 +440,7 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__data is None:
             return None
         else:
-            return numpy.array(self.__data, copy=False)
+            return numpy.asarray(self.__data)
 
     def selectedData(self):
         """Returns the output data.
@@ -454,7 +454,7 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__selectedData is None:
             return None
         else:
-            return numpy.array(self.__selectedData, copy=False)
+            return numpy.asarray(self.__selectedData)
 
     def permutation(self):
         """Returns the axes permutation to convert data subset to selected data.

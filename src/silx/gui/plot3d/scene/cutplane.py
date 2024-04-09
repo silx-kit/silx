@@ -37,6 +37,7 @@ from ..._glutils import gl
 from .function import Colormap
 from .primitives import Box, Geometry, PlaneInGroup
 from . import transform, utils
+from silx._utils import NP_OPTIONAL_COPY
 
 
 class ColormapMesh3D(Geometry):
@@ -108,7 +109,7 @@ class ColormapMesh3D(Geometry):
         colormap=None,
     ):
         assert mode in self._TRIANGLE_MODES
-        data = numpy.array(data, copy=copy, order="C")
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
         assert data.ndim == 3
         self._data = data
         self._texture = None
@@ -127,13 +128,13 @@ class ColormapMesh3D(Geometry):
         """Offset to add to texture coordinates"""
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order="C")
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
         assert data.ndim == 3
         self._data = data
         self._update_texture = True
 
     def getData(self, copy=True):
-        return numpy.array(self._data, copy=copy)
+        return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     @property
     def interpolation(self):
@@ -255,7 +256,7 @@ class CutPlane(PlaneInGroup):
             self._mesh = None
 
         else:
-            data = numpy.array(data, copy=copy, order="C")
+            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C")
             assert data.ndim == 3
             self._data = data
             if self._mesh is not None:

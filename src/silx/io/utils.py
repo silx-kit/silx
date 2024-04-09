@@ -318,7 +318,7 @@ def save1D(
 
                 # .transpose is needed here because recarray labels
                 # apply to columns
-                X = numpy.core.records.fromrecords(X.transpose(), names=labels)
+                X = numpy.rec.fromrecords(X.transpose(), names=labels)
             numpy.save(fname, X)
 
 
