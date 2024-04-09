@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -188,7 +188,14 @@ def get_project_configuration():
         "Pillow",
     ]
 
-    test_requires = ["pytest", "pytest-xvfb", "pytest-mock", "bitshuffle"]
+    test_requires = [
+        "pytest",
+        "pytest-xvfb",
+        "pytest-mock",
+        "bitshuffle",
+        "scipy>=1.10",
+        "pooch",
+    ]
 
     doc_requires = {
         "nbsphinx",
