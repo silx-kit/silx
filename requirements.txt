@@ -25,6 +25,7 @@ matplotlib >= 3.1.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
 python-dateutil           # For silx.gui.plot
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
+pooch                     # For scipy.datasets.ascent
 Pillow                    # For silx.opencl.image.test
 pint                      # For silx.io.dictdump
 PyQt5  # PySide6, PyQt6>=6.3 # For silx.gui
