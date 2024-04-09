@@ -1378,7 +1378,7 @@ class GLPlotFrame2D(GLPlotFrame):
         if not self.isY2Axis:
             extraVertices += self._y2Axis.displayCoords
 
-        extraVertices = numpy.array(extraVertices, copy=False, dtype=numpy.float32)
+        extraVertices = numpy.asarray(extraVertices, dtype=numpy.float32)
         vertices = numpy.append(vertices, extraVertices, axis=0)
 
         self._renderResources = (vertices, gridVertices, labels)

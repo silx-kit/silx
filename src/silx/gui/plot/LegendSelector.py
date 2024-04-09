@@ -102,7 +102,7 @@ class LegendIcon(LegendIconWidget):
         self.setLineStyle(style.getLineStyle())
 
         color = style.getColor()
-        if numpy.array(color, copy=False).ndim != 1:
+        if numpy.asarray(color).ndim != 1:
             # array of colors, use transparent black
             color = 0.0, 0.0, 0.0, 0.0
         color = colors.rgba(color)  # Make sure it is float in [0, 1]
@@ -1011,7 +1011,7 @@ class LegendsDockWidget(qt.QDockWidget):
             isActive = legend == self.plot.getActiveCurve(just_legend=True)
             style = curve.getCurrentStyle()
             color = style.getColor()
-            if numpy.array(color, copy=False).ndim != 1:
+            if numpy.asarray(color).ndim != 1:
                 # array of colors, use transparent black
                 color = 0.0, 0.0, 0.0, 0.0
 

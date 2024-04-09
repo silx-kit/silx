@@ -44,6 +44,8 @@ from .core import (
     AlphaMixIn,
     ItemChangedType,
 )
+from silx._utils import NP_OPTIONAL_COPY
+
 
 _logger = logging.getLogger(__name__)
 
@@ -84,7 +86,7 @@ def _convertImageToRgba32(image, copy=True):
         new_image[:, :, 3] = 255
         return new_image  # This is a copy anyway
     else:
-        return numpy.array(image, copy=copy)
+        return numpy.array(image, copy=copy or NP_OPTIONAL_COPY)
 
 
 class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
@@ -185,7 +187,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                           False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._data, copy=copy)
+        return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
     def setData(self, data):
         """Set the image data
@@ -226,7 +228,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             ]
             self._mask = newMask
 
-        return numpy.array(self._mask, copy=copy)
+        return numpy.array(self._mask, copy=copy or NP_OPTIONAL_COPY)
 
     def setMaskData(self, mask, copy=True):
         """Set the image data
@@ -236,7 +238,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                           False to use as is (do not modify!)
         """
         if mask is not None:
-            mask = numpy.array(mask, copy=copy)
+            mask = numpy.array(mask, copy=copy or NP_OPTIONAL_COPY)
 
             shape = self.getData(copy=False).shape[:2]
             if mask.shape != shape:
@@ -281,9 +283,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                 else:
                     dtype = numpy.float64
                 data = numpy.array(data, dtype=dtype, copy=True)
-                data[mask != 0] = numpy.NaN
+                data[mask != 0] = numpy.nan
             self.__valueDataCache = data
-        return numpy.array(self.__valueDataCache, copy=copy)
+        return numpy.array(self.__valueDataCache, copy=copy or NP_OPTIONAL_COPY)
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
@@ -372,11 +374,11 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
         if data.dtype.kind == "b":
             _logger.warning("Converting boolean image to int8 to plot it.")
-            data = numpy.array(data, copy=False, dtype=numpy.int8)
+            data = numpy.asarray(data, dtype=numpy.int8)
         elif numpy.iscomplexobj(data):
             _logger.warning("Converting complex image to absolute value to plot it.")
             data = numpy.absolute(data)
@@ -468,7 +470,7 @@ class ImageData(ImageDataBase):
         if self._alternativeImage is None:
             return None
         else:
-            return numpy.array(self._alternativeImage, copy=copy)
+            return numpy.array(self._alternativeImage, copy=copy or NP_OPTIONAL_COPY)
 
     def getAlphaData(self, copy=True):
         """Get the optional transparency image applied on the data
@@ -480,7 +482,7 @@ class ImageData(ImageDataBase):
         if self.__alpha is None:
             return None
         else:
-            return numpy.array(self.__alpha, copy=copy)
+            return numpy.array(self.__alpha, copy=copy or NP_OPTIONAL_COPY)
 
     def setData(self, data, alternative=None, alpha=None, copy=True):
         """Set the image data and optionally an alternative RGB(A) representation
@@ -495,18 +497,18 @@ class ImageData(ImageDataBase):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
 
         if alternative is not None:
-            alternative = numpy.array(alternative, copy=copy)
+            alternative = numpy.array(alternative, copy=copy or NP_OPTIONAL_COPY)
             assert alternative.ndim == 3
             assert alternative.shape[2] in (3, 4)
             assert alternative.shape[:2] == data.shape[:2]
         self._alternativeImage = alternative
 
         if alpha is not None:
-            alpha = numpy.array(alpha, copy=copy)
+            alpha = numpy.array(alpha, copy=copy or NP_OPTIONAL_COPY)
             assert alpha.shape == data.shape
             if alpha.dtype.kind != "f":
                 alpha = alpha.astype(numpy.float32)
@@ -558,7 +560,7 @@ class ImageRgba(ImageBase):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         if data.ndim != 3:
             raise ValueError(
                 f"RGB(A) image is expected to be a 3D dataset. Got {data.ndim} dimensions"

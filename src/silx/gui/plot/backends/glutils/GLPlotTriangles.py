@@ -86,17 +86,17 @@ class GLPlotTriangles(GLPlotItem):
         # Check and convert input data
         x = numpy.ravel(numpy.array(x, dtype=numpy.float32))
         y = numpy.ravel(numpy.array(y, dtype=numpy.float32))
-        color = numpy.array(color, copy=False)
+        color = numpy.asarray(color)
         # Cast to uint32
-        triangles = numpy.array(triangles, copy=False, dtype=numpy.uint32)
+        triangles = numpy.asarray(triangles, dtype=numpy.uint32)
 
         assert x.size == y.size
         assert x.size == len(color)
         assert color.ndim == 2 and color.shape[1] in (3, 4)
         if numpy.issubdtype(color.dtype, numpy.floating):
-            color = numpy.array(color, dtype=numpy.float32, copy=False)
+            color = numpy.asarray(color, dtype=numpy.float32)
         elif numpy.issubdtype(color.dtype, numpy.integer):
-            color = numpy.array(color, dtype=numpy.uint8, copy=False)
+            color = numpy.asarray(color, dtype=numpy.uint8)
         else:
             raise ValueError("Unsupported color type")
         assert triangles.ndim == 2 and triangles.shape[1] == 3

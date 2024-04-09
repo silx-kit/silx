@@ -207,7 +207,7 @@ class CameraExtrinsic(transform.Transform):
         self.direction = numpy.dot(rotmatrix[:3, :3], self.direction)
 
         # Rotate position around center
-        center = numpy.array(center, copy=False, dtype=numpy.float32)
+        center = numpy.asarray(center, dtype=numpy.float32)
         matrix = numpy.dot(transform.mat4Translate(*center), rotmatrix)
         matrix = numpy.dot(matrix, transform.mat4Translate(*(-center)))
         position = numpy.append(self.position, 1.0)

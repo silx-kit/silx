@@ -37,9 +37,9 @@ __date__ = "21/12/2023"
 import os
 cimport cython
 from cython.parallel import prange
-cimport numpy as cnumpy
 from libc.math cimport frexp, sinh, sqrt
 from libc.math cimport pow as c_pow
+from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
 from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
@@ -66,14 +66,14 @@ cdef int USE_OPENMP_THRESHOLD = 1000
 
 # Supported data types
 ctypedef fused data_types:
-    cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
-    cnumpy.uint32_t
-    cnumpy.int32_t
-    cnumpy.uint64_t
-    cnumpy.int64_t
+    uint8_t
+    int8_t
+    uint16_t
+    int16_t
+    uint32_t
+    int32_t
+    uint64_t
+    int64_t
     float
     double
     long double
@@ -81,18 +81,18 @@ ctypedef fused data_types:
 
 # Data types using a LUT to apply the colormap
 ctypedef fused lut_types:
-    cnumpy.uint8_t
-    cnumpy.int8_t
-    cnumpy.uint16_t
-    cnumpy.int16_t
+    uint8_t
+    int8_t
+    uint16_t
+    int16_t
 
 
 # Data types using default colormap implementation
 ctypedef fused default_types:
-    cnumpy.uint32_t
-    cnumpy.int32_t
-    cnumpy.uint64_t
-    cnumpy.int64_t
+    uint32_t
+    int32_t
+    uint64_t
+    int64_t
     float
     double
     long double
@@ -100,7 +100,7 @@ ctypedef fused default_types:
 
 # Supported colors/output types
 ctypedef fused image_types:
-    cnumpy.uint8_t
+    uint8_t
     float
 
 
@@ -126,7 +126,7 @@ cdef class Normalization:
         if isinstance(data, numbers.Real):
             return self.apply_double(<double> data, vmin, vmax)
         else:
-            data = numpy.array(data, copy=False)
+            data = numpy.asarray(data)
             length = <int> data.size
             result = numpy.empty(length, dtype=numpy.float64)
             data1d = numpy.ravel(data)
@@ -149,7 +149,7 @@ cdef class Normalization:
         if isinstance(data, numbers.Real):
             return self.revert_double(<double> data, vmin, vmax)
         else:
-            data = numpy.array(data, copy=False)
+            data = numpy.asarray(data)
             length = <int> data.size
             result = numpy.empty(length, dtype=numpy.float64)
             data1d = numpy.ravel(data)
@@ -328,7 +328,7 @@ cdef image_types[:, ::1] compute_cmap(
     length = <int> data.size
 
     output = numpy.empty((length, nb_channels),
-                         dtype=numpy.array(colors, copy=False).dtype)
+                         dtype=numpy.asarray(colors).dtype)
 
     normalized_vmin = normalization.apply_double(vmin, vmin, vmax)
     normalized_vmax = normalization.apply_double(vmax, vmin, vmax)
@@ -407,13 +407,13 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
     length = <int> data.size
     nb_channels = <int> colors.shape[1]
 
-    if lut_types is cnumpy.int8_t:
+    if lut_types is int8_t:
         type_min = -128
         type_max = 127
-    elif lut_types is cnumpy.uint8_t:
+    elif lut_types is uint8_t:
         type_min = 0
         type_max = 255
-    elif lut_types is cnumpy.int16_t:
+    elif lut_types is int16_t:
         type_min = -32768
         type_max = 32767
     else:  # uint16_t
@@ -527,16 +527,16 @@ def cmap(data not None,
     cdef Normalization norm
 
     # Make data a numpy array of native endian type (no need for contiguity)
-    data = numpy.array(data, copy=False)
+    data = numpy.asarray(data)
     if data.dtype.kind not in ('b', 'i', 'u', 'f'):
         raise ValueError("Unsupported data dtype: %s" % data.dtype)
     native_endian_dtype = data.dtype.newbyteorder('N')
     if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
         native_endian_dtype = "=f4"  # Use native float32 instead of float16
-    data = numpy.array(data, copy=False, dtype=native_endian_dtype)
+    data = numpy.asarray(data, dtype=native_endian_dtype)
 
     # Make colors a contiguous array of native endian type
-    colors = numpy.array(colors, copy=False)
+    colors = numpy.asarray(colors)
     if colors.dtype.kind == 'f':
         colors_dtype = numpy.dtype('float32')
     elif colors.dtype.kind in ('b', 'i', 'u'):

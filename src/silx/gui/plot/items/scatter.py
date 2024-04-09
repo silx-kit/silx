@@ -45,6 +45,7 @@ from ....utils.weakref import WeakList
 from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
 from .axis import Axis
 from ._pick import PickingResult
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -960,7 +961,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                      False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._value, copy=copy)
+        return numpy.array(self._value, copy=copy or NP_OPTIONAL_COPY)
 
     def getAlphaData(self, copy=True):
         """Returns the alpha (transparency) assigned to the scatter data points.
@@ -969,7 +970,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                      False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self.__alpha, copy=copy)
+        return numpy.array(self.__alpha, copy=copy or NP_OPTIONAL_COPY)
 
     def getData(self, copy=True, displayed=False):
         """Returns the x, y coordinates and the value of the data points
@@ -1018,7 +1019,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
-        value = numpy.array(value, copy=copy)
+        value = numpy.array(value, copy=copy or NP_OPTIONAL_COPY)
         assert value.ndim == 1
         assert len(x) == len(value)
 
@@ -1043,7 +1044,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]
-            alpha = numpy.array(alpha, copy=copy)
+            alpha = numpy.array(alpha, copy=copy or NP_OPTIONAL_COPY)
             assert alpha.ndim == 1
             assert len(x) == len(alpha)
             if alpha.dtype.kind != "f":

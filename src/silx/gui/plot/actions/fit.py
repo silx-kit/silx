@@ -42,6 +42,7 @@ import numpy
 
 from .PlotToolAction import PlotToolAction
 from .. import items
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
 
@@ -325,7 +326,7 @@ class FitAction(PlotToolAction):
             True to get a copy of the data, False to get the internal data.
         :rtype: Union[numpy.ndarray,None]
         """
-        return None if self.__x is None else numpy.array(self.__x, copy=copy)
+        return None if self.__x is None else numpy.array(self.__x, copy=copy or NP_OPTIONAL_COPY)
 
     def getYData(self, copy=True):
         """Returns the Y data used for the fit or None if undefined.
@@ -334,7 +335,7 @@ class FitAction(PlotToolAction):
             True to get a copy of the data, False to get the internal data.
         :rtype: Union[numpy.ndarray,None]
         """
-        return None if self.__y is None else numpy.array(self.__y, copy=copy)
+        return None if self.__y is None else numpy.array(self.__y, copy=copy or NP_OPTIONAL_COPY)
 
     def _getFittedItem(self):
         """Returns the current item used for the fit

@@ -669,7 +669,7 @@ def h5todict(
                     )
                 else:
                     if asarray:  # Convert HDF5 dataset to numpy array
-                        data = numpy.array(data, copy=False)
+                        data = numpy.asarray(data)
                     ddict[key] = data
                     # Read the attributes of the child
                     if include_attributes:

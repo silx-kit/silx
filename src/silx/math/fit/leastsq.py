@@ -37,8 +37,7 @@ __date__ = "15/05/2017"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
-from numpy.linalg import inv
-from numpy.linalg.linalg import LinAlgError
+from numpy.linalg import inv, LinAlgError
 import time
 import logging
 import copy
@@ -203,7 +202,7 @@ def leastsq(
     function_call_counter = 0
     if numpy.isscalar(p0):
         p0 = [p0]
-    parameters = numpy.array(p0, dtype=numpy.float64, copy=False)
+    parameters = numpy.asarray(p0, dtype=numpy.float64)
     if deltachi is None:
         deltachi = 0.001
 

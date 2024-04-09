@@ -49,6 +49,8 @@ from ...colors import Colormap, _Colormappable
 from ._pick import PickingResult
 
 from silx import config
+from silx._utils import NP_OPTIONAL_COPY
+
 
 _logger = logging.getLogger(__name__)
 
@@ -649,7 +651,7 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
             Minimum of strictly positive values of the data
         :param Union[None,float] max_: Maximum value of the data
         """
-        self.__data = None if data is None else numpy.array(data, copy=copy)
+        self.__data = None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         self.__cacheColormapRange = {}  # Reset cache
 
         # Fill-up colormap range cache if values are provided
@@ -676,7 +678,7 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         if self.__data is None:
             return None
         else:
-            return numpy.array(self.__data, copy=copy)
+            return numpy.array(self.__data, copy=copy or NP_OPTIONAL_COPY)
 
     def _getColormapAutoscaleRange(self, colormap=None):
         """Returns the autoscale range for current data and colormap.
@@ -968,7 +970,7 @@ class ColorMixIn(ItemMixInBase):
         elif isinstance(color, qt.QColor):
             color = colors.rgba(color)
         else:
-            color = numpy.array(color, copy=copy)
+            color = numpy.array(color, copy=copy or NP_OPTIONAL_COPY)
             # TODO more checks + improve color array support
             if color.ndim == 1:  # Single RGBA color
                 color = colors.rgba(color)
@@ -1698,7 +1700,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                      False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._x, copy=copy)
+        return numpy.array(self._x, copy=copy or NP_OPTIONAL_COPY)
 
     def getYData(self, copy=True):
         """Returns the y coordinates of the data points
@@ -1707,7 +1709,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                      False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._y, copy=copy)
+        return numpy.array(self._y, copy=copy or NP_OPTIONAL_COPY)
 
     def getXErrorData(self, copy=True):
         """Returns the x error of the points
@@ -1717,7 +1719,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         :rtype: numpy.ndarray, float or None
         """
         if isinstance(self._xerror, numpy.ndarray):
-            return numpy.array(self._xerror, copy=copy)
+            return numpy.array(self._xerror, copy=copy or NP_OPTIONAL_COPY)
         else:
             return self._xerror  # float or None
 
@@ -1729,7 +1731,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         :rtype: numpy.ndarray, float or None
         """
         if isinstance(self._yerror, numpy.ndarray):
-            return numpy.array(self._yerror, copy=copy)
+            return numpy.array(self._yerror, copy=copy or NP_OPTIONAL_COPY)
         else:
             return self._yerror  # float or None
 
@@ -1749,8 +1751,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
-        x = numpy.array(x, copy=copy)
-        y = numpy.array(y, copy=copy)
+        x = numpy.array(x, copy=copy or NP_OPTIONAL_COPY)
+        y = numpy.array(y, copy=copy or NP_OPTIONAL_COPY)
         assert len(x) == len(y)
         assert x.ndim == y.ndim == 1
 
@@ -1764,7 +1766,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
         if xerror is not None:
             if isinstance(xerror, abc.Iterable):
-                xerror = numpy.array(xerror, copy=copy)
+                xerror = numpy.array(xerror, copy=copy or NP_OPTIONAL_COPY)
                 if numpy.iscomplexobj(xerror):
                     _logger.warning(
                         "Converting xerror data to absolute value to plot it."
@@ -1774,7 +1776,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 xerror = float(xerror)
         if yerror is not None:
             if isinstance(yerror, abc.Iterable):
-                yerror = numpy.array(yerror, copy=copy)
+                yerror = numpy.array(yerror, copy=copy or NP_OPTIONAL_COPY)
                 if numpy.iscomplexobj(yerror):
                     _logger.warning(
                         "Converting yerror data to absolute value to plot it."

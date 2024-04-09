@@ -26,33 +26,33 @@ __license__ = "MIT"
 __date__ = "15/05/2016"
 
 
-cimport numpy as cnumpy  # noqa
 cimport cython
+from libc.stdint cimport int16_t, uint16_t, int32_t, uint32_t, int64_t
 import numpy as np
 
 ctypedef fused sample_t:
-    cnumpy.float64_t
-    cnumpy.float32_t
-    cnumpy.int32_t
-    cnumpy.int64_t
+    double
+    float
+    int32_t
+    int64_t
 
 ctypedef fused cumul_t:
-    cnumpy.float64_t
-    cnumpy.float32_t
-    cnumpy.int32_t
-    cnumpy.int64_t
+    double
+    float
+    int32_t
+    int64_t
 
 ctypedef fused weights_t:
-    cnumpy.uint16_t
-    cnumpy.float64_t
-    cnumpy.float32_t
-    cnumpy.int32_t
-    cnumpy.int64_t
+    uint16_t
+    double
+    float
+    int32_t
+    int64_t
 
 ctypedef fused lut_t:
-    cnumpy.int64_t
-    cnumpy.int32_t
-    cnumpy.int16_t
+    int64_t
+    int32_t
+    int16_t
 
 
 def histogramnd_get_lut(sample,
@@ -331,7 +331,7 @@ def histogramnd_from_lut(weights,
 @cython.cdivision(True)
 def _histogramnd_from_lut_fused(weights_t[:] i_weights,
                                 lut_t[:] i_lut,
-                                cnumpy.uint32_t[:] o_histo,
+                                uint32_t[:] o_histo,
                                 cumul_t[:] o_weighted_histo,
                                 size_t i_n_elems,
                                 bint i_filt_min_weights,
@@ -364,7 +364,7 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                                double[:] i_histo_range,
                                int[:] i_n_bins,
                                lut_t[:] o_lut,
-                               cnumpy.uint32_t[:] o_histo,
+                               uint32_t[:] o_histo,
                                bint last_bin_closed):
 
     cdef:

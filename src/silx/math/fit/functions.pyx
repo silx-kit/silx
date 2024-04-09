@@ -86,7 +86,7 @@ def erf(x):
         if len_dim == 0:
             raise IndexError("Cannot compute erf for an empty array")
 
-    x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    x_c = numpy.asarray(x, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
 
     status = functions_wrapper.erf_array(&x_c[0], x_c.size, &y_c[0])
@@ -116,7 +116,7 @@ def erfc(x):
         if len_dim == 0:
             raise IndexError("Cannot compute erfc for an empty array")
 
-    x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    x_c = numpy.asarray(x, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
 
     status = functions_wrapper.erfc_array(&x_c[0], x_c.size, &y_c[0])
@@ -147,12 +147,10 @@ def sum_gauss(x, *params):
     _validate_parameters(params, 3)
 
     # ensure float64 (double) type and 1D contiguous data layout in memory
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -192,12 +190,10 @@ def sum_agauss(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -240,12 +236,10 @@ def sum_fastagauss(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -287,12 +281,10 @@ def sum_splitgauss(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -336,12 +328,10 @@ def sum_apvoigt(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -385,12 +375,10 @@ def sum_pvoigt(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -438,12 +426,10 @@ def sum_splitpvoigt(x, *params):
 
     _validate_parameters(params, 5)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -492,12 +478,10 @@ def sum_splitpvoigt2(x, *params):
 
     _validate_parameters(params, 6)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -537,12 +521,10 @@ def sum_lorentz(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -582,12 +564,10 @@ def sum_alorentz(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -628,12 +608,10 @@ def sum_splitlorentz(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -674,12 +652,10 @@ def sum_stepdown(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -721,12 +697,10 @@ def sum_stepup(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -770,12 +744,10 @@ def sum_slit(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -849,12 +821,10 @@ def sum_ahypermet(x, *params,
     if step_term:
         tail_flags += 8
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),
@@ -940,12 +910,10 @@ def sum_fastahypermet(x, *params,
     # (params[8*i + 4]) is 0, to prevent division by 0. Same thing for
     # lt_slope_r (params[8*i + 6]) and lt_term.
 
-    x_c = numpy.array(x,
-                      copy=False,
+    x_c = numpy.asarray(x,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-    params_c = numpy.array(params,
-                           copy=False,
+    params_c = numpy.asarray(params,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
     y_c = numpy.empty(shape=(x.size,),

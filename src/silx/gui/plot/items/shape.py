@@ -45,6 +45,7 @@ from .core import (
     YAxisMixIn,
 )
 from ....utils.deprecation import deprecated
+from silx._utils import NP_OPTIONAL_COPY
 
 
 _logger = logging.getLogger(__name__)
@@ -141,7 +142,7 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
         :return: Array of point coordinates
         :rtype: numpy.ndarray with 2 dimensions
         """
-        return numpy.array(self._points, copy=copy)
+        return numpy.array(self._points, copy=copy or NP_OPTIONAL_COPY)
 
     def setPoints(self, points, copy=True):
         """Set the point coordinates
@@ -151,7 +152,7 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
                          False to use internal representation (do not modify!)
         :return:
         """
-        self._points = numpy.array(points, copy=copy)
+        self._points = numpy.array(points, copy=copy or NP_OPTIONAL_COPY)
         self._updated(ItemChangedType.DATA)
 
 

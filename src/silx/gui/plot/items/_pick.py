@@ -28,6 +28,7 @@ __license__ = "MIT"
 __date__ = "04/06/2019"
 
 import numpy
+from silx._utils import NP_OPTIONAL_COPY
 
 
 class PickingResult(object):
@@ -47,7 +48,7 @@ class PickingResult(object):
             self._indices = None
         else:
             # Indices is set to None if indices array is empty
-            indices = numpy.array(indices, copy=False, dtype=numpy.int64)
+            indices = numpy.asarray(indices, dtype=numpy.int64)
             self._indices = None if indices.size == 0 else indices
 
     def getItem(self):
@@ -67,5 +68,5 @@ class PickingResult(object):
         """
         if self._indices is None:
             return None
-        indices = numpy.array(self._indices, copy=copy)
+        indices = numpy.array(self._indices, copy=copy or NP_OPTIONAL_COPY)
         return indices if indices.ndim == 1 else tuple(indices)

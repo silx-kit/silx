@@ -34,6 +34,7 @@ from ..scene import primitives, utils
 from .core import DataItem3D, ItemChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn
 from ._pick import PickingResult
+from silx._utils import NP_OPTIONAL_COPY
 
 
 class _Image(DataItem3D, InterpolationMixIn):
@@ -260,7 +261,7 @@ class _HeightMap(DataItem3D):
         :param copy: True (default) to copy the data,
             False to use as is (do not modify!).
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
 
         self.__data = data
@@ -273,7 +274,7 @@ class _HeightMap(DataItem3D):
             True (default) to get a copy,
             False to get internal representation (do not modify!).
         """
-        return numpy.array(self.__data, copy=copy)
+        return numpy.array(self.__data, copy=copy or NP_OPTIONAL_COPY)
 
 
 class HeightMapData(_HeightMap, ColormapMixIn):
@@ -336,7 +337,7 @@ class HeightMapData(_HeightMap, ColormapMixIn):
         :param copy: True (default) to copy the data,
             False to use as is (do not modify!).
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
 
         self.__data = data
@@ -349,7 +350,7 @@ class HeightMapData(_HeightMap, ColormapMixIn):
             True (default) to get a copy,
             False to get internal representation (do not modify!).
         """
-        return numpy.array(self.__data, copy=copy)
+        return numpy.array(self.__data, copy=copy or NP_OPTIONAL_COPY)
 
 
 class HeightMapRGBA(_HeightMap):
@@ -415,7 +416,7 @@ class HeightMapRGBA(_HeightMap):
         :param copy: True (default) to copy the data,
             False to use as is (do not modify!).
         """
-        data = numpy.array(data, copy=copy)
+        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 3
         assert data.shape[-1] in (3, 4)
         # TODO check type
@@ -429,4 +430,4 @@ class HeightMapRGBA(_HeightMap):
         :param copy: True (default) to get a copy,
             False to get internal representation (do not modify!).
         """
-        return numpy.array(self.__rgba, copy=copy)
+        return numpy.array(self.__rgba, copy=copy or NP_OPTIONAL_COPY)

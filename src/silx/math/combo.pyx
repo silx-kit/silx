@@ -34,7 +34,6 @@ __date__ = "24/04/2018"
 cimport cython
 from .math_compatibility cimport isnan, isfinite, INFINITY
 
-
 import numpy
 
 
@@ -316,7 +315,7 @@ def min_max(data not None, bint min_positive=False, bint finite=False):
               min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
-    data = numpy.array(data, copy=False)
+    data = numpy.asarray(data)
     native_endian_dtype = data.dtype.newbyteorder('N')
     if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
         # Use native float32 instead of float16

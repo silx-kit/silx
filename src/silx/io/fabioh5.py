@@ -156,11 +156,11 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
             data = "\n".join(data)
             try:
                 line = data.encode("ascii")
-                types.add(numpy.string_)
+                types.add(numpy.bytes_)
             except UnicodeEncodeError:
                 try:
                     line = data.encode("utf-8")
-                    types.add(numpy.unicode_)
+                    types.add(numpy.str_)
                 except UnicodeEncodeError:
                     # Fallback in void
                     line = numpy.void(data)
@@ -170,12 +170,12 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
 
         if numpy.void in types:
             dtype = numpy.void
-        elif numpy.unicode_ in types:
-            dtype = numpy.unicode_
+        elif numpy.str_ in types:
+            dtype = numpy.str_
         else:
-            dtype = numpy.string_
+            dtype = numpy.bytes_
 
-        if dtype == numpy.unicode_:
+        if dtype == numpy.str_:
             # h5py only support vlen unicode
             dtype = h5py.special_dtype(vlen=str)
 
@@ -622,10 +622,10 @@ class FabioReader(object):
 
         result_type = numpy.result_type(*types)
 
-        if issubclass(result_type.type, numpy.string_):
+        if issubclass(result_type.type, numpy.bytes_):
             # use the raw data to create the array
             result = values
-        elif issubclass(result_type.type, numpy.unicode_):
+        elif issubclass(result_type.type, numpy.str_):
             # use the raw data to create the array
             result = values
         else:
@@ -707,7 +707,7 @@ class FabioReader(object):
             numpy_type = silx.utils.number.min_numerical_convertible_type(value)
             converted = numpy_type(value)
         except ValueError:
-            converted = numpy.string_(value)
+            converted = numpy.bytes_(value)
         return converted
 
     def _convert_list(self, value):
@@ -726,19 +726,19 @@ class FabioReader(object):
 
             result_type = numpy.result_type(*types)
 
-            if issubclass(result_type.type, (numpy.string_, bytes)):
+            if issubclass(result_type.type, (numpy.bytes_, bytes)):
                 # use the raw data to create the result
-                return numpy.string_(value)
-            elif issubclass(result_type.type, (numpy.unicode_, str)):
+                return numpy.bytes_(value)
+            elif issubclass(result_type.type, (numpy.str_, str)):
                 # use the raw data to create the result
-                return numpy.unicode_(value)
+                return numpy.str_(value)
             else:
                 if len(types) == 1:
                     return numpy.array(numpy_values, dtype=result_type)
                 else:
                     return numpy.array(values, dtype=result_type)
         except ValueError:
-            return numpy.string_(value)
+            return numpy.bytes_(value)
 
     def has_sample_information(self):
         """Returns true if there is information about the sample in the

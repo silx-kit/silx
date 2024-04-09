@@ -37,6 +37,7 @@ from typing import NamedTuple
 from silx.gui.plot.items.image import ImageBase
 from silx.gui.plot.items.core import ItemChangedType, ColormapMixIn
 
+from silx._utils import NP_OPTIONAL_COPY
 from silx.opencl import ocl
 
 if ocl is not None:
@@ -167,9 +168,9 @@ class _CompareImageItem(ImageBase, ColormapMixIn):
         if self.__image1 is None and self.__image2 is None:
             return None
         if self.__image1 is None:
-            return numpy.array(self.__image2, copy=copy)
+            return numpy.array(self.__image2, copy=copy or NP_OPTIONAL_COPY)
         if self.__image2 is None:
-            return numpy.array(self.__image1, copy=copy)
+            return numpy.array(self.__image1, copy=copy or NP_OPTIONAL_COPY)
 
         if self.__vizualisationMode == VisualizationMode.COMPOSITE_A_MINUS_B:
             # In this case the histogram have to be special

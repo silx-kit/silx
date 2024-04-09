@@ -501,7 +501,7 @@ class SceneWidget(Plot3DWidget):
 
         """
         if data is not None:
-            data = numpy.array(data, copy=False)
+            data = numpy.asarray(data)
 
         if numpy.iscomplexobj(data):
             volume = items.ComplexField3D()
@@ -571,7 +571,7 @@ class SceneWidget(Plot3DWidget):
         :rtype: ~silx.gui.plot3d.items.image.ImageData or ~silx.gui.plot3d.items.image.ImageRgba
         :raise ValueError: For arrays of unsupported dimensions
         """
-        data = numpy.array(data, copy=False)
+        data = numpy.asarray(data)
         if data.ndim == 2:
             image = items.ImageData()
         elif data.ndim == 3:

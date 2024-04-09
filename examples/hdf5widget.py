@@ -95,7 +95,7 @@ def get_hdf5_with_all_types():
     g.create_dataset("int64", data=numpy.int64(10))
     g.create_dataset("float32", data=numpy.float32(10))
     g.create_dataset("float64", data=numpy.float64(10))
-    g.create_dataset("string_", data=numpy.string_("Hi!"))
+    g.create_dataset("string_", data=numpy.bytes_("Hi!"))
     # g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
 
     g.create_dataset("bool", data=True)

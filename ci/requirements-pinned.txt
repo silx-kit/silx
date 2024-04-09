@@ -2,6 +2,7 @@
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
 
+numpy<2  # Until all dependencies supports numpy v2
 
 # Pinpoint pyopencl on Windows to latest wheel available in www.silx.org
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl

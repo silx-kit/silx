@@ -39,6 +39,7 @@ from collections.abc import Iterable
 from typing import Any, Sequence, Tuple, Union
 
 import silx
+from silx._utils import NP_OPTIONAL_COPY
 from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
@@ -461,7 +462,7 @@ class Colormap(qt.QObject):
         :return: the list of colors for the colormap or None if not set
         """
         if self._name is None:
-            return numpy.array(self._colors, copy=copy)
+            return numpy.array(self._colors, copy=copy or NP_OPTIONAL_COPY)
         return None
 
     def setColormapLUT(self, colors: numpy.ndarray):
@@ -477,7 +478,7 @@ class Colormap(qt.QObject):
             raise NotEditableError("Colormap is not editable")
         assert colors is not None
 
-        colors = numpy.array(colors, copy=False)
+        colors = numpy.asarray(colors)
         if colors.shape == ():
             raise TypeError(
                 "An array is expected for 'colors' argument. '%s' was found."

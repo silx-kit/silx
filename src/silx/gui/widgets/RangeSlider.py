@@ -32,7 +32,7 @@ __license__ = "MIT"
 __date__ = "14/12/2023"
 
 
-import numpy as numpy
+import numpy
 
 from silx.gui import qt, icons, colors
 from silx.gui.utils.image import convertArrayToQImage
@@ -490,7 +490,7 @@ class RangeSlider(qt.QWidget):
             self.setSliderPixmap(None)
             return
 
-        profile = numpy.array(profile, copy=False)
+        profile = numpy.asarray(profile)
 
         if profile.size == 0:
             self.setSliderPixmap(None)
