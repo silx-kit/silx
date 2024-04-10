@@ -1,4 +1,4 @@
-jGeneral introduction to sift.
+General introduction to sift.
 =============================
 
 silx.opencl.sift, a parallel version of SIFT algorithm
