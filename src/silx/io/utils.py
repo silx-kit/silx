@@ -695,7 +695,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     if filename.startswith("tiled:"):
         from .tiledh5 import TiledH5
 
-        return TiledH5(filename[6:])
+        return TiledH5(filename)
 
     url = DataUrl(filename)
 

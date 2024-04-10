@@ -34,7 +34,9 @@ class TiledH5(commonh5.File):
     def __init__(self, name=None, mode=None, attrs=None):
         assert mode in ("r", None)
         super().__init__(name, mode, attrs)
-        self.__container = tiled.client.from_uri(name)
+        self.__container = tiled.client.from_uri(
+            name[6:] if name.startswith("tiled:") else name
+        )
         assert isinstance(self.__container, tiled.client.container.Container)
 
     def close(self):
