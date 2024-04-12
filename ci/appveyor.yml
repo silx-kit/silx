@@ -96,7 +96,7 @@ before_test:
 
     # Install selected Qt binding
     - "pip uninstall -y PyQt5 PySide6 PyQt6"
-    - "pip install %PIP_OPTIONS% %QT_BINDING%"
+    - pip install %PIP_OPTIONS% "%QT_BINDING%"
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
