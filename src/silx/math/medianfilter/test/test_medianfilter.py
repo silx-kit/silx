@@ -714,7 +714,7 @@ class TestVsScipy(ParametricTestCase):
 
     def testAscent(self):
         """Test vs scipy with"""
-        img = ascent()
+        img = ascent().astype(numpy.int64)
 
         kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
         modesToTest = _getScipyAndSilxCommonModes()
