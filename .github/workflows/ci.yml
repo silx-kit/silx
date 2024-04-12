@@ -44,7 +44,7 @@ jobs:
             os: macos-latest
             python-version: "3.9"
             BUILD_OPTION: --wheel
-            QT_BINDING: PySide6
+            QT_BINDING: "PySide6<6.7"
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl --low-mem
 
           - name-suffix: "PyQt6 wheel"
@@ -120,15 +120,7 @@ jobs:
           fi
           pip install --pre -r requirements.txt
           pip uninstall -y PyQt5 PyQt6 PySide6
-          if [ "${{ matrix.QT_BINDING }}" == "PyQt5" ]; then
-            pip install --pre pyqt5;
-          fi
-          if [ "${{ matrix.QT_BINDING }}" == "PySide6" ]; then
-            pip install --pre pyside6;
-          fi
-          if [ "${{ matrix.QT_BINDING }}" == "PyQt6" ]; then
-            pip install --pre pyqt6;
-          fi
+          pip install --pre "${{ matrix.QT_BINDING }}"
 
       - name: Install pytest
         run: |
