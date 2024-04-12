@@ -2,6 +2,9 @@
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
 
+numpy<2; python_version <= '3.10'
+git+https://github.com/hgrecco/pint@f2e4081; python_version >= '3.10'
+
 # Pinpoint pyopencl on Windows to latest wheel available in www.silx.org
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
