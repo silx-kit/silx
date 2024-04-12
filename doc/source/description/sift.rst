@@ -315,7 +315,16 @@ The file ``param.py`` in the source folder contains SIFT default parameters,
 recommended by David Lowe in his paper_ or by the authors of the C++ version in ASIFT_.
 The user should not modify these values unless one is an advanced SIFT-user.
 Some parameters require the understanding of several aspects of the algorithm,
-explained in Lowe's original paper.
+explained in Lowe's original paper. For advanced users who wish to override these
+parameters, you can do it by overwriting the values of the parameter dictionary
+as follows:
+
+.. code-block:: python
+
+   import silx.opencl.sift.param
+
+   silx.opencl.sift.param.par["MatchRatio"] = 0.5
+
 
 .. _ASIFT: http://www.ipol.im/pub/art/2011/my-asift
 
