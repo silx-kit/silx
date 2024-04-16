@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     cdef:
         double[::1] input_c
         double[::1] output
-        long[::1] anchors_c
+        int[::1] anchors_c
 
     if not isinstance(data, numpy.ndarray):
         if not hasattr(data, "__len__"):
@@ -115,16 +115,15 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
                          dtype=numpy.float64)
 
     if anchors is not None and len(anchors):
-        # numpy.int_ is the same as C long (http://docs.scipy.org/doc/numpy/user/basics.types.html)
         anchors_c = numpy.asarray(anchors,
-                                dtype=numpy.int_,
+                                dtype=numpy.intc,
                                 order='C')
         len_anchors = anchors_c.size
     else:
         # Make a dummy length-1 array, because if I use shape=(0,) I get the error
         # IndexError: Out of bounds on buffer access (axis 0)
         anchors_c = numpy.empty(shape=(1,),
-                                dtype=numpy.int_)
+                                dtype=numpy.intc)
         len_anchors = 0
 
 

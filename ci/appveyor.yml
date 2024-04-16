@@ -32,7 +32,7 @@ environment:
 
         # Python 3.12
         - PYTHON_DIR: "C:\\Python312-x64"
-          QT_BINDING: "PySide6"
+          QT_BINDING: "PySide6<6.7"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
 
@@ -96,7 +96,7 @@ before_test:
 
     # Install selected Qt binding
     - "pip uninstall -y PyQt5 PySide6 PyQt6"
-    - "pip install %PIP_OPTIONS% %QT_BINDING%"
+    - pip install %PIP_OPTIONS% "%QT_BINDING%"
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
@@ -120,7 +120,7 @@ before_test:
 test_script:
     # Run tests with selected Qt binding and without OpenCL
     - echo "WITH_GL_TEST=%WITH_GL_TEST%"
-    - "python run_tests.py --installed -v --no-opencl --low-mem --qt-binding=%QT_BINDING%"
+    - "python run_tests.py --installed -v --no-opencl --low-mem"
 
 after_test:
     # Leave test virtualenv

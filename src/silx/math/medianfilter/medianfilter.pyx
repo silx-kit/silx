@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,6 @@ from libcpp cimport bool
 import numbers
 
 from libc.stdint cimport int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
-
-ctypedef unsigned long uint64
-ctypedef unsigned int uint32
-ctypedef unsigned short uint16
 
 
 MODES = {'nearest': 0, 'reflect': 1, 'mirror': 2, 'shrink': 3, 'constant': 4}
@@ -329,16 +325,16 @@ def _median_filter_int64(int64_t[:, ::1] input_buffer not None,
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[long](<long*> & input_buffer[0,0], 
-                                              <long*>  & output_buffer[0, 0], 
-                                              <int*>&kernel_size[0],
-                                              <int*>buffer_shape,
-                                              y,
-                                              0,
-                                              image_dim,
-                                              conditional,
-                                              mode,
-                                              cval)
+            median_filter.median_filter[int64_t](& input_buffer[0,0],
+                                                 & output_buffer[0, 0],
+                                                 <int*>&kernel_size[0],
+                                                 <int*>buffer_shape,
+                                                 y,
+                                                 0,
+                                                 image_dim,
+                                                 conditional,
+                                                 mode,
+                                                 cval)
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -359,16 +355,16 @@ def _median_filter_uint64(uint64_t[:, ::1] input_buffer not None,
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[uint64](<uint64*> & input_buffer[0,0], 
-                                                <uint64*> & output_buffer[0, 0],
-                                                <int*>&kernel_size[0],
-                                                <int*>buffer_shape,
-                                                y,
-                                                0,
-                                                image_dim,
-                                                conditional,
-                                                mode,
-                                                cval)
+            median_filter.median_filter[uint64_t](& input_buffer[0,0],
+                                                  & output_buffer[0, 0],
+                                                  <int*>&kernel_size[0],
+                                                  <int*>buffer_shape,
+                                                  y,
+                                                  0,
+                                                  image_dim,
+                                                  conditional,
+                                                  mode,
+                                                  cval)
 
 
 @cython.cdivision(True)
@@ -390,16 +386,16 @@ def _median_filter_int32(int32_t[:, ::1] input_buffer not None,
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[int](<int*> & input_buffer[0,0], 
-                                             <int*>  & output_buffer[0, 0],
-                                             <int*>&kernel_size[0],
-                                             <int*>buffer_shape,
-                                             y,
-                                             0,
-                                             image_dim,
-                                             conditional,
-                                             mode,
-                                             cval)
+            median_filter.median_filter[int32_t](& input_buffer[0,0],
+                                                 & output_buffer[0, 0],
+                                                 <int*>&kernel_size[0],
+                                                 <int*>buffer_shape,
+                                                 y,
+                                                 0,
+                                                 image_dim,
+                                                 conditional,
+                                                 mode,
+                                                 cval)
 
 
 @cython.cdivision(True)
@@ -421,16 +417,16 @@ def _median_filter_uint32(uint32_t[:, ::1] input_buffer not None,
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[uint32](<uint32*> & input_buffer[0,0], 
-                                                <uint32*>  & output_buffer[0, 0],
-                                                <int*>&kernel_size[0],
-                                                <int*>buffer_shape,
-                                                y,
-                                                0,
-                                                image_dim,
-                                                conditional,
-                                                mode,
-                                                cval)
+            median_filter.median_filter[uint32_t](& input_buffer[0,0],
+                                                  & output_buffer[0, 0],
+                                                  <int*>&kernel_size[0],
+                                                  <int*>buffer_shape,
+                                                  y,
+                                                  0,
+                                                  image_dim,
+                                                  conditional,
+                                                  mode,
+                                                  cval)
 
 
 @cython.cdivision(True)
@@ -452,16 +448,16 @@ def _median_filter_int16(int16_t[:, ::1] input_buffer not None,
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[short](<short*> & input_buffer[0,0], 
-                                               <short*>  & output_buffer[0, 0],
-                                               <int*>&kernel_size[0],
-                                               <int*>buffer_shape,
-                                               y,
-                                               0,
-                                               image_dim,
-                                               conditional,
-                                               mode,
-                                               cval)
+            median_filter.median_filter[int16_t](& input_buffer[0,0],
+                                                 & output_buffer[0, 0],
+                                                 <int*>&kernel_size[0],
+                                                 <int*>buffer_shape,
+                                                 y,
+                                                 0,
+                                                 image_dim,
+                                                 conditional,
+                                                 mode,
+                                                 cval)
 
 
 @cython.cdivision(True)
@@ -484,13 +480,13 @@ def _median_filter_uint16(
     buffer_shape[1] = input_buffer.shape[1]
 
     for y in prange(input_buffer.shape[0], nogil=True):
-            median_filter.median_filter[uint16](<uint16*> & input_buffer[0, 0],
-                                                <uint16*> & output_buffer[0, 0],
-                                                <int*>&kernel_size[0],
-                                                <int*>buffer_shape,
-                                                y,
-                                                0,
-                                                image_dim,
-                                                conditional,
-                                                mode,
-                                                cval)
+            median_filter.median_filter[uint16_t](& input_buffer[0, 0],
+                                                  & output_buffer[0, 0],
+                                                  <int*>&kernel_size[0],
+                                                  <int*>buffer_shape,
+                                                  y,
+                                                  0,
+                                                  image_dim,
+                                                  conditional,
+                                                  mode,
+                                                  cval)

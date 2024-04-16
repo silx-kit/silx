@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1552,7 +1552,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             return None
 
         # Convert data to array to avoid specific case for complex scalar
-        if numpy.all(numpy.array(data, copy=False) >= 0):
+        if numpy.all(numpy.asarray(data) >= 0):
             return data
 
         return numpy.clip(data, 0, None)  # Also works for scalars
