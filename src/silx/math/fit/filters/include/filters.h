@@ -1,5 +1,5 @@
 /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ void snip1d(double *data, int size, int width);
 void snip2d(double *data, int nrows, int ncolumns, int width);
 void snip3d(double *data, int nx, int ny, int nz, int width);
 
-int strip(double* input, long len_input, double c, long niter, int deltai,
-          long* anchors, long len_anchors, double* output);
+int strip(double* input, int len_input, double c, int niter, int deltai,
+          int* anchors, int len_anchors, double* output);
 
 /* Smoothing functions */
 
