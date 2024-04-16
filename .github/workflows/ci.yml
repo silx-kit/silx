@@ -55,7 +55,7 @@ jobs:
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opengl --low-mem
           - name-suffix: "PyQt6 wheel"
             os: macos-latest
-            python-version: "3.10"
+            python-version: "3.11"
             BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opencl --low-mem
