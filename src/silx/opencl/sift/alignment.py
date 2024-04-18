@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -324,8 +324,8 @@ class LinearAlign(OpenclProcessing):
                     [transform_matrix[5], transform_matrix[2]], dtype=numpy.float32
                 )
                 matrix = numpy.empty((2, 2), dtype=numpy.float32)
-                matrix[0, 0], matrix[0, 1] = transform_matrix[4], transform_matrix[3]
-                matrix[1, 0], matrix[1, 1] = transform_matrix[1], transform_matrix[0]
+                matrix[0, 0], matrix[0, 1] = transform_matrix[4, 0], transform_matrix[3, 0]
+                matrix[1, 0], matrix[1, 1] = transform_matrix[1, 0], transform_matrix[0, 0]
             if double_check and (
                 len_match >= 3 * 6
             ):  # and abs(matrix - numpy.identity(2)).max() > 0.1:
@@ -348,12 +348,12 @@ class LinearAlign(OpenclProcessing):
                     )
                     matrix = numpy.empty((2, 2), dtype=numpy.float32)
                     matrix[0, 0], matrix[0, 1] = (
-                        transform_matrix[4],
-                        transform_matrix[3],
+                        transform_matrix[4, 0],
+                        transform_matrix[3, 0],
                     )
                     matrix[1, 0], matrix[1, 1] = (
-                        transform_matrix[1],
-                        transform_matrix[0],
+                        transform_matrix[1, 0],
+                        transform_matrix[0, 0],
                     )
             if relative:  # update stable part to perform a relative alignment
                 self.ref_kp = kp

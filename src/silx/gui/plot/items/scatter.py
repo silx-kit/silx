@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -713,7 +713,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
 
                 if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
-                    points = numpy.ones((2, nbpoints, 2), dtype=numpy.float64)
+                    points = numpy.zeros((2, nbpoints, 3), dtype=numpy.float64)
                     # Use row/column major depending on shape, not on info value
                     gridOrder = "row" if shape[0] == 1 else "column"
 
@@ -727,19 +727,14 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     # Add a second line that will be clipped in the end
                     points[1, :-1] = (
                         points[0, :-1]
-                        + numpy.cross(points[0, 1:] - points[0, :-1], (0.0, 0.0, 1.0))[
-                            :, :2
-                        ]
+                        + numpy.cross(points[0, 1:] - points[0, :-1], (0.0, 0.0, 1.0))
                     )
                     points[1, -1] = (
                         points[0, -1]
-                        + numpy.cross(points[0, -1] - points[0, -2], (0.0, 0.0, 1.0))[
-                            :2
-                        ]
+                        + numpy.cross(points[0, -1] - points[0, -2], (0.0, 0.0, 1.0))
                     )
 
-                    points.shape = 2, nbpoints, 2  # Use same shape for both orders
-                    coords, indices = _quadrilateral_grid_as_triangles(points)
+                    points = points[:, :, :2]
 
                 elif gridOrder == "row":  # row-major order
                     if nbpoints != numpy.prod(shape):
