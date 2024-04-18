@@ -5,7 +5,7 @@
 ##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
 
 # /*##########################################################################
-# Copyright (C) 2018-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,7 @@ cdef cppclass PolygonDescription:
     point_index_t end
     clist[point_t] points
 
-    PolygonDescription() noexcept nogil:
+    PolygonDescription() nogil:
         pass
 
 """Description of a tile context.
@@ -108,7 +108,7 @@ cdef cppclass TileContext:
     clist[coord_t] final_pixels
     cset[coord_t] pixels
 
-    TileContext() noexcept nogil:
+    TileContext() nogil:
         pass
 
 
