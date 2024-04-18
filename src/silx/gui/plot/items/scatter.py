@@ -237,7 +237,7 @@ def _quadrilateral_grid_coords(points):
 
 
 def _quadrilateral_grid_as_triangles(points):
-    """Returns the points and indices to make a grid of quadirlaterals
+    """Returns the points and indices to make a grid of quadrilaterals
 
     :param numpy.ndarray points:
         3D array of points (height, width, 2)
