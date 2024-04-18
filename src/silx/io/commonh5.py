@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 This module contains generic objects, emulating *h5py* groups, datasets and
 files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 """
-from collections import abc
+from types import MappingProxyType
 import weakref
 
 import h5py
@@ -35,47 +35,6 @@ from . import utils
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "02/07/2018"
-
-
-class _MappingProxyType(abc.MutableMapping):
-    """Read-only dictionary
-
-    This class is available since Python 3.3, but not on earlyer Python
-    versions.
-    """
-
-    def __init__(self, data):
-        self._data = data
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __len__(self):
-        return len(self._data)
-
-    def __iter__(self):
-        return iter(self._data)
-
-    def get(self, key, default=None):
-        return self._data.get(key, default)
-
-    def __setitem__(self, key, value):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def __delitem__(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def pop(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def clear(self):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def update(self, key, value):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def setdefault(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
 
 
 class Node(object):
@@ -173,7 +132,7 @@ class Node(object):
         if self._is_editable():
             return self.__attrs
         else:
-            return _MappingProxyType(self.__attrs)
+            return MappingProxyType(self.__attrs)
 
     @property
     def name(self):
