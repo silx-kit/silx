@@ -1,6 +1,60 @@
 Release Notes
 =============
 
+2.1.0: 2024/04/19
+-----------------
+
+This version of `silx` supports Python 3.8 to 3.12.
+This is the first version of `silx` supporting `numpy` v2.
+
+* `silx.image.marchingsquare``: Fixed cython code generation warning (PR #4110)
+* `silx.io`:
+
+  * `silx.io.specfile`: Fixed compilation warnings (PR #4065)
+  * `silx.io.commonh5`: Improved code to use built-in types (PR #4090)
+
+* `silx.gui`:
+
+  * `silx.gui.data.RecordTableView`: Fixed cell background color in dark mode (PR #4094)
+  * `silx.gui.plot.PlotWidget`: Fixed support of negative error values for curves and scatter plot (PR #4079)
+  * `silx.gui.widgets.LegendIconWidget`: Fixed logging: removing `print` (PR #4064)
+  * `silx.gui.widgets.ElidedLabel`: Fixed deprecation warning with Qt5>=5.11 (PR #4091)
+
+* `silx.math.marchingcubes`: Fixed compilation warnings (PR #4065)
+* `silx.opencl.common`: Changed `ocl` object for lazy initialization of OpenCL devices (PR #4093)
+* `silx.resources`: Changed dependency from deprecated `pkg_resources` to `importlib_resources` for Python<3.9 (PR #4078)
+
+* Dependencies
+
+  * Removed support of Python 3.7 (PR #4057)
+  * Added support of `numpy` v2 (PR #4082, #4100, #4108)
+  * Added requirement `scipy>=1.10` for the tests (PR #4104)
+  * Fixed `scipy.signal.gaussian` deprecation warning (PR #4087)
+
+* Documentation:
+
+  * Added how to override `silx.opencl.sift` parameters (PR #4107)
+  * Updated to use `sphinx-design` instead of `sphinx-panels` (PR #4063)
+  * Updated the guidelines to provide changelog in PR (PR #4058)
+  * Updated changelog (PR #4111)
+  * Fixed some links to documentation in the README (PR #4096)
+
+* Continuous integration:
+
+  * Added release workflow (PR #4059)
+  * Added tests with numpy v2 (PR #4102, #4108)
+  * Fixed test by using PySide<6.7 (PR #4108)
+
+* Build: Fixed Debian12 packaging by removing build of documentation (PR #4068)
+
+2.0.1: 2024/03/18
+-----------------
+
+This is a bug fix version:
+
+* `silx.io.open`: Reverted behavior: `open` locks HDF5 files (PR #4074, #4084)
+* Dependencies: Updated to advertise that `numpy` v2 is not supported (PR #4084)
+
 2.0.0: 2024/01/30
 -----------------
 
