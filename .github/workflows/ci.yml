@@ -70,10 +70,7 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
         # Install X server packages
         # libegl1-mesa: Required by Qt xcb platform plugin
@@ -89,9 +86,10 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: "pip"
 
       - name: Upgrade distribution modules
         run: |
