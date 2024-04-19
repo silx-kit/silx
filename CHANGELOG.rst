@@ -7,7 +7,7 @@ Release Notes
 This version of `silx` supports Python 3.8 to 3.12.
 This is the first version of `silx` supporting `numpy` v2.
 
-* `silx.image.marchingsquare``: Fixed cython code generation warning (PR #4110)
+* `silx.image.marchingsquare`: Fixed cython code generation warning (PR #4110)
 * `silx.io`:
 
   * `silx.io.specfile`: Fixed compilation warnings (PR #4065)
