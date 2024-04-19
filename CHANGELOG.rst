@@ -17,11 +17,11 @@ This is the first version of `silx` supporting `numpy` v2.
 
   * `silx.gui.data.RecordTableView`: Fixed cell background color in dark mode (PR #4094)
   * `silx.gui.plot.PlotWidget`: Fixed support of negative error values for curves and scatter plot (PR #4079)
-  * `silx.gui.widget.LegendIconWidget`: Fixed logging: removing `print` (PR #4064)
+  * `silx.gui.widgets.LegendIconWidget`: Fixed logging: removing `print` (PR #4064)
   * `silx.gui.widgets.ElidedLabel`: Fixed deprecation warning with Qt5>=5.11 (PR #4091)
 
 * `silx.math.marchingcubes`: Fixed compilation warnings (PR #4065)
-* `silx.opencl.common`: Changed `ocl` object for lasy initialization of OpenCL devices (PR #4093)
+* `silx.opencl.common`: Changed `ocl` object for lazy initialization of OpenCL devices (PR #4093)
 * `silx.resources`: Changed dependency from deprecated `pkg_resources` to `importlib_resources` for Python<3.9 (PR #4078)
 
 * Dependencies
