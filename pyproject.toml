@@ -11,3 +11,18 @@ build-backend = "setuptools.build_meta"
 required-version = 23
 target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
 safe = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+python_files = [
+    "test/test*.py",
+    "test/Test*.py",
+]
+python_classes = "Test"
+python_functions = "test"
+filterwarnings = [
+    "error",
+    # note the use of single quote below to denote "raw" strings in TOML
+    'ignore:tostring\(\) is deprecated. Use tobytes\(\) instead\.:DeprecationWarning:OpenGL',
+    'ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning',
+]
