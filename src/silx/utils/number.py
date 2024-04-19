@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __date__ = "05/06/2018"
 import numpy
 import re
 import logging
+import warnings
 
 
 _logger = logging.getLogger(__name__)
@@ -70,7 +71,7 @@ def is_longdouble_64bits():
 def min_numerical_convertible_type(string, check_accuracy=True):
     """
     Parse the string and try to return the smallest numerical type to use for
-    a safe conversion. It has some known issues: precission loss.
+    a safe conversion. It has some known issues: precision loss.
 
     :param str string: Representation of a float/integer with text
     :param bool check_accuracy: If true, a warning is pushed on the logger
@@ -105,13 +106,17 @@ def min_numerical_convertible_type(string, check_accuracy=True):
         exponent = "0"
 
     nb_precision_digits = int(exponent) - len(decimal) - 1
-    precision = _biggest_float(10) ** nb_precision_digits * 1.2
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "overflow encountered in scalar power", RuntimeWarning)
+        precision = _biggest_float(10) ** nb_precision_digits * 1.2
     previous_type = _biggest_float
     for numpy_type in _float_types:
         if numpy_type == _biggest_float:
             # value was already casted using the bigger type
             continue
-        reduced_value = numpy_type(value)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", "overflow encountered in cast", RuntimeWarning)
+            reduced_value = numpy_type(value)
         if not numpy.isfinite(reduced_value):
             break
         # numpy isclose(atol=is not accurate enough)
