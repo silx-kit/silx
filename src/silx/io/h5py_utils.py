@@ -202,6 +202,7 @@ def open_item(filename, name, retry_invalid=False, validate=None, **open_options
     r"""Yield an HDF5 dataset or group (retry until it can be instantiated).
 
     :param str filename:
+    :param str name: HDF5 path of the item
     :param bool retry_invalid: retry when item is missing or not valid
     :param callable or None validate:
     :param \**open_options: see `File.__init__`
