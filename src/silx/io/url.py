@@ -376,7 +376,10 @@ class DataUrl(object):
                 else:
                     path = self.__scheme + ":///" + path
             else:
-                path = self.__scheme + ":" + path
+                if self.__scheme.startswith("http"):
+                    path = self.__scheme + "://" + path
+                else:
+                    path = self.__scheme + ":" + path
 
         return path
 
@@ -396,9 +399,6 @@ class DataUrl(object):
             # Windows
             if file_path[1] == ":":
                 return True
-        if self.__scheme is not None and self.__scheme.startswith("http"):
-            # hsds server
-            return True
         return False
 
     def file_path(self) -> str:
