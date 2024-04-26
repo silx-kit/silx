@@ -682,7 +682,7 @@ def open(filename):  # pylint:disable=redefined-builtin
             raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
         path = uri.path
         endpoint = "%s://%s" % (uri.scheme, uri.netloc)
-        if path.startswith("/"):
+        if not uri.scheme.startswith("http") and path.startswith("/"):
             path = path[1:]
         return h5pyd.File(path, "r", endpoint=endpoint)
 
