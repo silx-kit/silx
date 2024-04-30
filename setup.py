@@ -189,7 +189,7 @@ def get_project_configuration():
     ]
 
     test_requires = [
-        "pytest",
+        "pytest>=6.0",
         "pytest-xvfb",
         "pytest-mock",
         "bitshuffle",
