@@ -28,7 +28,7 @@ __date__ = "03/12/2020"
 
 import enum
 import fnmatch
-import os.path
+import os
 import sys
 import time
 import logging
@@ -598,6 +598,32 @@ def _open_local_file(filename):
     raise IOError("File '%s' can't be read as HDF5" % filename)
 
 
+def _open_url_with_h5pyd(url: str):
+    """Open the given url with h5pyd, raises an exception on failures
+
+    :param url: URL of a "file" served by HSDS
+    :returns: h5pyd.File instance
+    """
+    if h5pyd is None:
+        raise IOError(f"URL '{url}' unsupported. Try to install h5pyd.")
+
+    # Retrieve configured HSDS endpoint if any
+    default_endpoint = os.environ.get("H5SERV_ENDPOINT", None)
+    if default_endpoint is None:
+        cfg = h5pyd.Config()
+        if "hs_endpoint" in cfg:
+            default_endpoint = cfg["hs_endpoint"].rstrip("/")
+    else:
+        default_endpoint = default_endpoint.rstrip("/") 
+
+    # Remove endpoint prefix from the URL:
+    # Needed for HSDS servers not exposed as the url netloc, e.g., example.com/hsds/
+    if default_endpoint and url.startswith(default_endpoint):
+        return h5pyd.File(url[len(default_endpoint):], "r")
+
+    return h5pyd.File(url, "r")
+
+
 class _MainNode(Proxy):
     """A main node is a sub node of the HDF5 tree which is responsible of the
     closure of the file.
@@ -673,18 +699,10 @@ def open(filename):  # pylint:disable=redefined-builtin
         if not url.is_valid():
             raise IOError("URL '%s' is not valid" % filename)
         h5_file = _open_local_file(url.file_path())
-    elif url.scheme() in ["fabio"]:
-        raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
+    elif url.scheme() in ("http", "https"):
+        return _open_url_with_h5pyd(filename)
     else:
-        # That's maybe an URL supported by h5pyd
-        uri = urllib.parse.urlparse(filename)
-        if h5pyd is None:
-            raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
-        path = uri.path
-        endpoint = "%s://%s" % (uri.scheme, uri.netloc)
-        if path.startswith("/"):
-            path = path[1:]
-        return h5pyd.File(path, "r", endpoint=endpoint)
+        raise IOError(f"Unsupported URL scheme {url.scheme}: {filename}")
 
     if url.data_path() in [None, "/", ""]:  # The full file is requested
         if url.data_slice():

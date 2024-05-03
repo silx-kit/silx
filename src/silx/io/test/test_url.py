@@ -298,3 +298,21 @@ def test_scheme_none():
     assert url.file_path() == "my_file.hdf5"
     assert url.scheme() is None
     assert url.data_path() == "/path/to/data"
+
+
+def test_http_scheme():
+    url = DataUrl("http://hsds-server.tld/home/file")
+    expected = [True, False, "http", "hsds-server.tld/home/file", None, None]
+    assert_url(url, expected)
+    assert url.path() == "http://hsds-server.tld/home/file"
+
+def test_http_scheme_with_port():
+    url = DataUrl("http://hsds-server.tld:8080/home/file")
+    expected = [True, False, "http", "hsds-server.tld:8080/home/file", None, None]
+    assert_url(url, expected)
+    assert url.path() == "http://hsds-server.tld:8080/home/file"
+
+def test_http_with_path():
+    url = DataUrl("http://hsds-server.tld/home/file?/foo/bar")
+    expected = [True, False, "http", "hsds-server.tld/home/file", "/foo/bar", None]
+    assert_url(url, expected)
