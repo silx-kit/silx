@@ -44,21 +44,22 @@ def _get_children(
     container: tiled.client.container.Container,
     max_children: int | None = None,
 ):
-    """Return first max_children items of given container as commonh5 wrappers.
+    """Return first max_children entries of given container as commonh5 wrappers.
 
     :param parent: The commonh5 wrapper for which to retrieve children.
-    :param container: The corresponding tiled container.
-    :param max_children: The maximum number of childre to retrieve.
+    :param container: The tiled container from which to retrieve the entries.
+    :param max_children: The maximum number of children to retrieve.
     """
     items = container.items()
 
     if max_children is not None and len(items) > max_children:
+        items = items.head(max_children)
         _logger.warning(
             f"{container.uri} contains too many entries: Only loading first {max_children}."
         )
 
     children = {}
-    for key, client in items.head(max_children):
+    for key, client in items:
         if isinstance(client, tiled.client.container.Container):
             children[key] = TiledGroup(client, name=key, parent=parent)
         elif isinstance(client, tiled.client.array.ArrayClient):
@@ -77,7 +78,7 @@ class TiledH5(commonh5.File):
     """tiled client wrapper"""
 
     MAX_CHILDREN: int | None = None
-    """Maximum number of group children to instantiate for each group.
+    """Maximum number of children to instantiate for each group.
 
     Set to None for allowing an unbound number of children per group.
     """
