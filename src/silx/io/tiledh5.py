@@ -44,7 +44,7 @@ def _get_children(
     container: tiled.client.container.Container,
     max_children: int | None = None,
 ):
-    """Return first max_children entries of given container as commonh5 wrappers.
+    """Return first max_children entries of given container as a dict of commonh5 wrappers.
 
     :param parent: The commonh5 wrapper for which to retrieve children.
     :param container: The tiled container from which to retrieve the entries.
@@ -77,7 +77,7 @@ def _get_children(
 class TiledH5(commonh5.File):
     """tiled client wrapper"""
 
-    MAX_CHILDREN: int | None = None
+    MAX_CHILDREN_PER_GROUP: int | None = None
     """Maximum number of children to instantiate for each group.
 
     Set to None for allowing an unbound number of children per group.
@@ -102,7 +102,7 @@ class TiledH5(commonh5.File):
 
     @lru_cache
     def _get_items(self):
-        return _get_children(self, self.__container, self.MAX_CHILDREN)
+        return _get_children(self, self.__container, self.MAX_CHILDREN_PER_GROUP)
 
 
 class TiledGroup(commonh5.Group):
@@ -120,7 +120,7 @@ class TiledGroup(commonh5.Group):
 
     @lru_cache
     def _get_items(self):
-        return _get_children(self, self.__container, self.file.MAX_CHILDREN)
+        return _get_children(self, self.__container, self.file.MAX_CHILDREN_PER_GROUP)
 
 
 class TiledDataset(commonh5.LazyLoadableDataset):
