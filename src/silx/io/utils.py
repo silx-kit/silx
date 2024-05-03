@@ -692,9 +692,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     :raises: IOError if the file can't be loaded or path can't be found
     :rtype: h5py-like node
     """
-    if filename.startswith("tiled:"):
-        from .tiledh5 import TiledH5
-
+    if filename.startswith("tiled-http") and TiledH5 is not None:
         return TiledH5(filename)
 
     url = DataUrl(filename)
