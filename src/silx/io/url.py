@@ -373,10 +373,7 @@ class DataUrl(object):
                 else:
                     path = self.__scheme + ":///" + path
             else:
-                if self.__scheme.startswith("http"):
-                    path = self.__scheme + "://" + path
-                else:
-                    path = self.__scheme + ":" + path
+                path = self.__scheme + "://" + path
 
         return path
 
