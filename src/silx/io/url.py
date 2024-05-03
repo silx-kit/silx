@@ -111,7 +111,7 @@ class DataUrl(object):
     >>> DataUrl("./foo/bar/image.edf")
     >>> DataUrl("C:/data/")
 
-    >>> # HSDS urls are supported with a http schema
+    >>> # HSDS urls are supported with a http or https schema
     >>> DataUrl("http://hsds-server.tld:8080/home/file")
 
 
@@ -215,7 +215,7 @@ class DataUrl(object):
                 self.__data_path is None and self.__data_slice is None
             ) or self.__data_path is not None
             self.__is_valid = slice_implies_data
-        elif self.__scheme.startswith("http"):
+        elif self.__scheme in ("http", "https"):
             # is an HSDS url for h5pyd
             self.__is_valid = True
         else:
@@ -283,10 +283,7 @@ class DataUrl(object):
             file_path = self.__path[0:pos] + url.path
         else:
             scheme = url.scheme if url.scheme != "" else None
-            if url.netloc != "":
-                file_path = f"{url.netloc}{url.path}"
-            else:
-                file_path = url.path
+            file_path = f"{url.netloc}{url.path}"
 
             # Check absolute windows path
             if len(file_path) > 2 and file_path[0] == "/":
