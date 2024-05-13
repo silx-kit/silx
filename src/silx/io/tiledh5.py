@@ -121,7 +121,7 @@ class TiledGroup(commonh5.Group):
         return _get_children(self, self.__container, self.file.MAX_CHILDREN_PER_GROUP)
 
 
-class TiledDataset(commonh5.LazyLoadableDataset):
+class TiledDataset(commonh5.Dataset):
     """tiled ArrayClient wrapper"""
 
     def __init__(
@@ -131,36 +131,22 @@ class TiledDataset(commonh5.LazyLoadableDataset):
         parent: TiledH5 | TiledGroup | None = None,
         attrs: dict | None = None,
     ):
-        super().__init__(name, parent, attrs)
-        self.__client = client
-
-    def _create_data(self) -> numpy.ndarray:
-        return self.__client[()]
-
-    @property
-    def dtype(self):
-        return self.__client.dtype
+        super().__init__(name, client, parent, attrs)
 
     @property
     def shape(self):
-        return self.__client.shape
+        return self._get_data().shape
 
     @property
     def size(self):
-        return self.__client.size
+        return self._get_data().size
 
     def __len__(self):
         return len(self.__client)
 
     def __getitem__(self, item):
-        return self.__client[item]
+        return self._get_data()[item]
 
     @property
     def value(self):
-        return self.__client[()]
-
-    def __iter__(self):
-        return self.__client.__iter__()
-
-    def __getattr__(self, item):
-        return getattr(self.__client, item)
+        return self._get_data()[()]
