@@ -34,6 +34,7 @@ import numpy
 from . import commonh5
 import h5py
 import tiled.client
+from tiled.client.cache import Cache
 
 
 _logger = logging.getLogger(__name__)
@@ -83,6 +84,9 @@ class TiledH5(commonh5.File):
     Set to None for allowing an unbound number of children per group.
     """
 
+    _cache = None
+    """Shared tiled cache with lazy initialization"""
+
     def __init__(
         self,
         name: str,
@@ -91,7 +95,9 @@ class TiledH5(commonh5.File):
     ):
         assert mode in ("r", None)
         super().__init__(name, mode, attrs)
-        self.__container = tiled.client.from_uri(name)
+        if self._cache is None:
+            TiledH5._cache = Cache()  # Use tiled cache default
+        self.__container = tiled.client.from_uri(name, cache=self._cache)
         assert isinstance(self.__container, tiled.client.container.Container)
 
     def close(self):
