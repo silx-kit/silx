@@ -91,8 +91,6 @@ class TiledH5(commonh5.File):
     ):
         assert mode in ("r", None)
         super().__init__(name, mode, attrs)
-        if name.startswith("tiled-http"):
-            name = name[6:]
         self.__container = tiled.client.from_uri(name)
         assert isinstance(self.__container, tiled.client.container.Container)
 
