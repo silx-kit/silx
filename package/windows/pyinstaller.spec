@@ -1,7 +1,6 @@
 # -*- mode: python -*-
 import importlib.metadata
 import os.path
-from pathlib import Path
 import shutil
 import subprocess
 import sys
@@ -152,4 +151,19 @@ def innosetup():
     os.remove(config_name)
 
 
+
+def make_zip():
+    """Create a zip archive of the fat binary files"""
+    from silx import strictversion
+
+    base_name = os.path.join(SPECPATH, "artifacts", f"silx-{strictversion}-windows-application")
+    shutil.make_archive(
+        base_name,
+        format="zip",
+        root_dir=os.path.join(SPECPATH, "dist"),
+        base_dir="silx",
+    )
+
+
 innosetup()
+make_zip()
