@@ -106,6 +106,22 @@ jobs:
             ./package/windows/artifacts/silx-*.exe
             ./package/windows/artifacts/silx-*.zip
 
+  test_windows_installer:
+    needs: [build_windows_installer]
+    name: Test Windows "fat binary"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Unzip "fat binary"
+        run: 7z x silx-*.zip
+      - name: Test
+        run: |
+          cd silx
+          ./silx-view.exe --help
+          ./silx.exe --help
+
   build_wheels:
     name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
     runs-on: ${{ matrix.os }}
@@ -168,7 +184,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   pypi-publish:
-    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer]
+    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer, test_windows_installer]
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
@@ -187,7 +203,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   windows-installer-publish:
-    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer]
+    needs: [build_windows_installer, test_windows_installer]
     name: Upload Windows installer
     runs-on: ubuntu-latest
     permissions:
