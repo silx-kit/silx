@@ -185,3 +185,23 @@ jobs:
           path: dist
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  windows-installer-publish:
+    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer]
+    name: Upload Windows installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export ASSETS=$(ls silx-*.exe silx-*.zip)
+          echo "ASSETS=${ASSETS}"
+          gh release upload ${{ github.event.release.tag_name }} ${ASSETS}
