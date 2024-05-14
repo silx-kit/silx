@@ -65,10 +65,7 @@ jobs:
       - name: Install pandoc&graphviz
         run: sudo apt-get install pandoc graphviz
       - name: Install silx
-        # Post-install: Upgrade sphinx-panels to workaround dependency to old sphinx
-        run: |
-          pip install .[full,test,doc]
-          pip install --upgrade sphinx-panels --no-deps
+        run: pip install .[full,test,doc]
       - name: Build doc
         env:
           QT_QPA_PLATFORM: "offscreen"
