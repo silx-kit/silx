@@ -78,6 +78,34 @@ jobs:
           name: documentation
           path: silx-*_documentation.zip
 
+  build_windows_installer:
+    name: Build Windows "fat binary"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install silx
+        run: pip install .[full,test]
+      - name: Install pyinstaller
+        # Install pyinstaller from source and compile bootloader
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
+        run: pip install pyinstaller --no-binary pyinstaller
+      - name: Build fat binary
+        run: |
+          cd package/windows
+          pyinstaller pyinstaller.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            ./package/windows/artifacts/silx-*.exe
+            ./package/windows/artifacts/silx-*.zip
+
   build_wheels:
     name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
     runs-on: ${{ matrix.os }}
@@ -140,7 +168,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   pypi-publish:
-    needs: [build_doc, build_sdist, build_wheels, test_sdist]
+    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer]
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
