@@ -206,6 +206,8 @@ jobs:
     needs: [build_windows_installer, test_windows_installer]
     name: Upload Windows installer
     runs-on: ubuntu-latest
+    environment:
+      name: assets
     permissions:
       contents: write
     if: github.event_name == 'release' && github.event.action == 'published'
