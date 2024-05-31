@@ -658,8 +658,8 @@ cdef class SpecFile(object):
         else:
             self.filename = filename
 
-    def __dealloc__(self):
-        """Destructor: Calls SfClose(self.handle)"""
+    def __del__(self):
+        """Finalizer: Calls SfClose(self.handle)"""
         self.close()
 
     def close(self):
