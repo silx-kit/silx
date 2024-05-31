@@ -341,6 +341,9 @@ class _DropTreeView(qt.QTreeView):
 
 
 class PlotSelectionWindow(qt.QMainWindow):
+
+    sigVisibilityChanged = qt.Signal(bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Drag And Drop Project")
@@ -359,6 +362,12 @@ class PlotSelectionWindow(qt.QMainWindow):
         centralWidget.setStretchFactor(1, 1)
 
         self.setCentralWidget(centralWidget)
+
+    def showEvent(self):
+        self.sigVisibilityChanged.emit(True)
+
+    def hideEvent(self):
+        self.sigVisibilityChanged.emit(False)
 
 
 if __name__ == "__main__":
