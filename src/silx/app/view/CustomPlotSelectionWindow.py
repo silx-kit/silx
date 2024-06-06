@@ -32,35 +32,24 @@ from silx.gui.plot.LegendSelector import LegendIcon
 
 
 class _HashDropZones(qt.QStyledItemDelegate):
-    """Delegate item displaying a drop zone when the item do not contains
-    dataset."""
+    """Delegate item displaying a drop zone when the item does not contain a dataset."""
 
     def __init__(self, parent=None):
         """Constructor"""
         super(_HashDropZones, self).__init__(parent)
-        pen = qt.QPen()
-        pen.setColor(qt.QColor("#D0D0D0"))
-        pen.setStyle(qt.Qt.DotLine)
-        pen.setWidth(2)
-        self.__dropPen = pen
+        self.__dropPen = qt.QPen(qt.QColor("#D0D0D0"), 2, qt.Qt.DotLine)
+        self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.SolidLine)
+        self.__dropTargetIndex = None 
 
     def paint(self, painter, option, index):
-        """
-        Paint the item
-
-        :param qt.QPainter painter: A painter
-        :param qt.QStyleOptionViewItem option: Options of the item to paint
-        :param qt.QModelIndex index: Index of the item to paint
-        """
+        """Paint the item"""
         displayDropZone = False
         if index.isValid():
             model = index.model()
             rowIndex = model.index(index.row(), 1, index.parent())
             rowItem = model.itemFromIndex(rowIndex)
             if not rowItem.data(qt.Qt.DisplayRole):
-                parentIndex = model.index(
-                    index.parent().row(), 1, index.parent().parent()
-                )
+                parentIndex = model.index(index.parent().row(), 1, index.parent().parent())
                 parentItem = model.itemFromIndex(parentIndex)
                 if parentItem and parentItem.text() not in ["Y"] or index.row() == 0:
                     displayDropZone = True
@@ -77,13 +66,22 @@ class _HashDropZones(qt.QStyledItemDelegate):
                 brush = option.palette.brush(colorGroup, qt.QPalette.Highlight)
                 painter.fillRect(option.rect, brush)
 
-            painter.setPen(self.__dropPen)
+            isDropTarget = self.__dropTargetIndex == index 
+            painter.setPen(self.__highlightDropPen if isDropTarget else self.__dropPen)
             painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
             painter.restore()
         else:
             qt.QStyledItemDelegate.paint(self, painter, option, index)
 
+    def setDropTarget(self, index):
+        """Set the current drop target index"""
+        self.__dropTargetIndex = index
 
+    def clearDropTarget(self):
+        """Clear the current drop target index"""
+        self.__dropTargetIndex = None
+
+        
 class _FileListModel(qt.QStandardItemModel):
     def __init__(self, plot, parent=None):
         """Constructor"""
@@ -234,7 +232,8 @@ class _DropTreeView(qt.QTreeView):
         self._model = model
         self.setModel(self._model)
 
-        self.setItemDelegateForColumn(1, _HashDropZones(self))
+        self._delegate = _HashDropZones(self)
+        self.setItemDelegateForColumn(1, self._delegate)
 
         header = self.header()
         header.setStretchLastSection(False)
@@ -316,8 +315,21 @@ class _DropTreeView(qt.QTreeView):
                     and not self.model().fileExists(url.data_path())
                 ):
                     event.acceptProposedAction()
+                    self._delegate.setDropTarget(None)
+                    self.viewport().update()
         else:
             event.ignore()
+
+    def dragMoveEvent(self, event):
+        dropPosition = self.indexAt(event.pos())
+        if dropPosition.isValid():
+            self._delegate.setDropTarget(dropPosition)
+            self.viewport().update()
+        event.acceptProposedAction()
+    
+    def dragLeaveEvent(self, event):
+        self._delegate.clearDropTarget()
+        self.viewport().update()        
 
     def dropEvent(self, event):
         byteString = event.mimeData().data("application/x-silx-uri")
@@ -325,26 +337,30 @@ class _DropTreeView(qt.QTreeView):
 
         dropPosition = self.indexAt(event.pos())
         if not dropPosition.isValid():
-            return
+            self._model.addUrl(url, node="Y")
+            parentNode = self._model.getYParent()
+            self._createIconWidget(parentNode.rowCount() - 2, parentNode)
+            self._createRemoveButton(parentNode.rowCount() - 2, parentNode)
+        else:
+            dropItem = self.model().itemFromIndex(dropPosition)
+            parentItem = dropItem.parent()
 
-        dropItem = self.model().itemFromIndex(dropPosition)
-        parentItem = dropItem.parent()
+            if parentItem is None:
+                targetNode = "X"
+                node = self.model().getXParent()
+                self.model().addUrl(url, node=targetNode)
+                self._createRemoveButton(node, None)
+                self.model()._plot1D.resetZoom()
+            else:
+                targetNode = "Y"
+                parentNode = self.model().getYParent()
+                self._model.addUrl(url, node=targetNode)
+                self._createIconWidget(parentNode.rowCount() - 2, parentItem)
+                self._createRemoveButton(parentNode.rowCount() - 2, parentItem)
+                self._model._plot1D.resetZoom()
 
-        # X condition
-        if parentItem is None:
-            targetNode = "X"
-            node = self.model().getXParent()
-            self.model().addUrl(url, node=targetNode)
-            self._createRemoveButton(node, parentItem)
-            self.model()._plot1D.resetZoom()
-            return
-
-        targetNode = "Y"
-        parentNode = self.model().getYParent()
-        self.model().addUrl(url, node=targetNode)
-        self._createIconWidget(parentNode.rowCount() - 2, parentItem)
-        self._createRemoveButton(parentNode.rowCount() - 2, parentItem)
-        self.model()._plot1D.resetZoom()
+        self._delegate.clearDropTarget()
+        self.viewport().update()
         event.acceptProposedAction()
 
 
