@@ -39,7 +39,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
         super(_HashDropZones, self).__init__(parent)
         self.__dropPen = qt.QPen(qt.QColor("#D0D0D0"), 2, qt.Qt.DotLine)
         self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.SolidLine)
-        self.__dropTargetIndex = None 
+        self.__dropTargetIndex = None
 
     def paint(self, painter, option, index):
         """Paint the item"""
@@ -49,7 +49,9 @@ class _HashDropZones(qt.QStyledItemDelegate):
             rowIndex = model.index(index.row(), 1, index.parent())
             rowItem = model.itemFromIndex(rowIndex)
             if not rowItem.data(qt.Qt.DisplayRole):
-                parentIndex = model.index(index.parent().row(), 1, index.parent().parent())
+                parentIndex = model.index(
+                    index.parent().row(), 1, index.parent().parent()
+                )
                 parentItem = model.itemFromIndex(parentIndex)
                 if parentItem and parentItem.text() not in ["Y"] or index.row() == 0:
                     displayDropZone = True
@@ -66,7 +68,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
                 brush = option.palette.brush(colorGroup, qt.QPalette.Highlight)
                 painter.fillRect(option.rect, brush)
 
-            isDropTarget = self.__dropTargetIndex == index 
+            isDropTarget = self.__dropTargetIndex == index
             painter.setPen(self.__highlightDropPen if isDropTarget else self.__dropPen)
             painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
             painter.restore()
@@ -81,13 +83,12 @@ class _HashDropZones(qt.QStyledItemDelegate):
         """Clear the current drop target index"""
         self.__dropTargetIndex = None
 
-        
+
 class _FileListModel(qt.QStandardItemModel):
     def __init__(self, plot, parent=None):
         """Constructor"""
         super().__init__(parent)
         root = self.invisibleRootItem()
-        root.setDropEnabled(True)
         root.setDragEnabled(False)
 
         self.setColumnCount(3)
@@ -112,14 +113,6 @@ class _FileListModel(qt.QStandardItemModel):
         self.addUrl(silx.io.url.DataUrl())
 
         self.rowsAboutToBeRemoved.connect(self._rowAboutToBeRemoved)
-
-    def supportedDropActions(self):
-        """Inherited method to redefine supported drop actions."""
-        return qt.Qt.CopyAction | qt.Qt.MoveAction
-
-    def mimeTypes(self):
-        """Inherited method to redefine draggable mime types."""
-        return [Hdf5DatasetMimeData.MIME_TYPE]
 
     def getXParent(self):
         return self._xParent
@@ -157,6 +150,7 @@ class _FileListModel(qt.QStandardItemModel):
         fileItem = qt.QStandardItem(filename)
         fileItem.setData(curve, qt.Qt.UserRole)
         fileItem.setEditable(False)
+        fileItem.setDropEnabled(True)
 
         iconItem = qt.QStandardItem()
         removeItem = qt.QStandardItem()
@@ -220,6 +214,18 @@ class _FileListModel(qt.QStandardItemModel):
             x = numpy.arange(len(y))
             item.setData(x, y)
             self._plot1D.resetZoom()
+
+    def clearAll(self):
+        self._xDataset = None
+
+        self._yParent.removeRows(0, self._yParent.rowCount())
+        
+        self._addXFile("")
+        self._addYFile("")
+
+        self._plot1D.clear()
+
+        self._updateYCurvesWithDefaultX()
 
 
 class _DropTreeView(qt.QTreeView):
@@ -304,6 +310,40 @@ class _DropTreeView(qt.QTreeView):
                 self.model()._updateYCurvesWithDefaultX()
 
     def dragEnterEvent(self, event):
+        super().dragEnterEvent(event)
+        self.acceptDrop(event)
+
+    def dragMoveEvent(self, event):
+        dropPosition = self.indexAt(event.pos())
+        if dropPosition.isValid():
+            self._delegate.setDropTarget(dropPosition)
+            self.viewport().update()
+        event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event):
+        self._delegate.clearDropTarget()
+        self.viewport().update()
+
+    def dropEvent(self, event):
+        super().dropEvent(event)
+        byteString = event.mimeData().data("application/x-silx-uri")
+        url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
+
+        dropPosition = self.indexAt(event.pos())
+        if not dropPosition.isValid():
+            self.addY(url)
+        else:
+            dropItem = self.model().itemFromIndex(dropPosition)
+            parentItem = dropItem.parent()
+
+            if parentItem is None:
+                self.setX(url)
+            else:
+                self.addY(url)
+
+        event.acceptProposedAction()
+
+    def acceptDrop(self, event):
         if event.mimeData().hasFormat("application/x-silx-uri"):
             byteString = event.mimeData().data("application/x-silx-uri")
             url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
@@ -315,123 +355,81 @@ class _DropTreeView(qt.QTreeView):
                     and not self.model().fileExists(url.data_path())
                 ):
                     event.acceptProposedAction()
-                    self._delegate.setDropTarget(None)
-                    self.viewport().update()
         else:
             event.ignore()
 
-    def dragMoveEvent(self, event):
-        dropPosition = self.indexAt(event.pos())
-        if dropPosition.isValid():
-            self._delegate.setDropTarget(dropPosition)
-            self.viewport().update()
-        event.acceptProposedAction()
-    
-    def dragLeaveEvent(self, event):
-        self._delegate.clearDropTarget()
-        self.viewport().update()        
+    def setX(self, url):
+        targetNode = "X"
+        node = self.model().getXParent()
+        self.model().addUrl(url, targetNode)
+        self._createRemoveButton(node, None)
+        self.model()._plot1D.resetZoom()
 
-    def dropEvent(self, event):
-        byteString = event.mimeData().data("application/x-silx-uri")
-        url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
+    def addY(self, url):
+        targetNode = "Y"
+        node = self.model().getYParent()
+        self.model().addUrl(url, targetNode)
+        self._createIconWidget(node.rowCount() - 2, node)
+        self._createRemoveButton(node.rowCount() - 2, node)
+        self.model()._plot1D.resetZoom()
 
-        dropPosition = self.indexAt(event.pos())
-        if not dropPosition.isValid():
-            self._model.addUrl(url, node="Y")
-            parentNode = self._model.getYParent()
-            self._createIconWidget(parentNode.rowCount() - 2, parentNode)
-            self._createRemoveButton(parentNode.rowCount() - 2, parentNode)
-        else:
-            dropItem = self.model().itemFromIndex(dropPosition)
-            parentItem = dropItem.parent()
+    def clear(self):
+        self.model().clearAll()
+        index = self.model().index(0, 2)
+        self.setIndexWidget(index, None)
 
-            if parentItem is None:
-                targetNode = "X"
-                node = self.model().getXParent()
-                self.model().addUrl(url, node=targetNode)
-                self._createRemoveButton(node, None)
-                self.model()._plot1D.resetZoom()
-            else:
-                targetNode = "Y"
-                parentNode = self.model().getYParent()
-                self._model.addUrl(url, node=targetNode)
-                self._createIconWidget(parentNode.rowCount() - 2, parentItem)
-                self._createRemoveButton(parentNode.rowCount() - 2, parentItem)
-                self._model._plot1D.resetZoom()
-
-        self._delegate.clearDropTarget()
-        self.viewport().update()
-        event.acceptProposedAction()
 
 
 class DropPlot1D(plot.Plot1D):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
-
-        self._model = None
         self._treeView = None
-
-    def setModel(self, model):
-        self._model = model
 
     def setTreeView(self, treeView):
         self._treeView = treeView
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasFormat("application/x-silx-uri"):
-            byteString = event.mimeData().data("application/x-silx-uri")
-            url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
-            with silx.io.open(url.file_path()) as file:
-                data = file[url.data_path()]
-                if (
-                    silx.io.is_dataset(data)
-                    and data.ndim == 1
-                    and not self._model.fileExists(url.data_path())
-                ):
-                    event.acceptProposedAction()
-        else:
-            event.ignore()
+        super().dragEnterEvent(event)
+        self._treeView.acceptDrop(event)
 
     def dropEvent(self, event):
+        super().dropEvent(event)
         byteString = event.mimeData().data("application/x-silx-uri")
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
-        dropPosition = event.pos()
+        plotArea = self.getWidgetHandle()
+        dropPosition = plotArea.mapFrom(self, event.pos())
 
         plotBounds = self.getPlotBoundsInPixels()
         left, top, width, height = plotBounds
-
-        xAreaHeight = int(height * 0.1)
-        yAreaTop = top + height - xAreaHeight
+        yAreaTop = top + height
 
         if dropPosition.y() > yAreaTop:
             targetNode = "X"
-            parentItem = self._model.getXParent()
         else:
             targetNode = "Y"
-            parentItem = self._model.getYParent()
 
         with silx.io.open(url.file_path()) as file:
             data = file[url.data_path()]
             if silx.io.is_dataset(data) and data.ndim == 1:
-                if targetNode == "X" and self._model._xDataset is None:
-                    node = self._model.getXParent()
-                    self._model.addUrl(url, node=targetNode)
-                    self._treeView._createRemoveButton(node, None)
-                    self._model._updateYCurvesWithDefaultX()
+                if targetNode == "X":
+                    self._treeView.setX(url)
                 else:
-                    parentNode = self._model.getYParent()
-                    self._model.addUrl(url, node=targetNode)
-                    self._treeView._createIconWidget(
-                        parentNode.rowCount() - 2, parentItem
-                    )
-                    self._treeView._createRemoveButton(
-                        parentNode.rowCount() - 2, parentItem
-                    )
+                    self._treeView.addY(url)
 
         self.resetZoom()
         event.acceptProposedAction()
+
+
+class _PlotToolBar(qt.QToolBar):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def addClearAction(self, treeView):
+        clearAction = qt.QAction(icons.getQIcon("remove"), "Clear All", self)
+        clearAction.triggered.connect(treeView.clear)
+        self.addAction(clearAction)
 
 
 class CustomPlotSelectionWindow(qt.QMainWindow):
@@ -443,7 +441,6 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
 
         self.plot1D = DropPlot1D()
         model = _FileListModel(self.plot1D)
-        self.plot1D.setModel(model)
 
         self.treeView = _DropTreeView(model, self)
         self.plot1D.setTreeView(self.treeView)
@@ -458,6 +455,10 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         centralWidget.setStretchFactor(1, 1)
 
         self.setCentralWidget(centralWidget)
+
+        self.toolbar = _PlotToolBar(self)
+        self.toolbar.addClearAction(self.treeView)
+        self.addToolBar(qt.Qt.TopToolBarArea, self.toolbar)
 
     def showEvent(self, event):
         super().showEvent(event)

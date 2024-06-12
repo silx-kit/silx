@@ -46,7 +46,7 @@ from .CustomNxdataWidget import CustomNxDataToolBar
 from ..utils import parseutils
 from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
-from .CustomPlotSelection import PlotSelectionWindow
+from .CustomPlotSelectionWindow import CustomPlotSelectionWindow
 
 _logger = logging.getLogger(__name__)
 
@@ -117,10 +117,8 @@ class Viewer(qt.QMainWindow):
         rightPanel.setCollapsible(0, False)
         rightPanel.setCollapsible(1, False)
 
-        # Modification Alexis
-        self._CustomPlotSelectionWindow = PlotSelectionWindow()
-        self._CustomPlotSelectionWindow.setVisible(False)
-        #
+        self._customPlotSelectionWindow = CustomPlotSelectionWindow(self)
+        self._customPlotSelectionWindow.setVisible(False)
 
         self.__dataPanel = DataPanel(self, self.__context)
 
@@ -675,23 +673,22 @@ class Viewer(qt.QMainWindow):
         action.toggled.connect(self.__toggleCustomNxdataWindow)
         self._displayCustomNxdataWindow = action
 
-        # Modification Alexis
         action = qt.QAction("Open plot selection window", self)
         action.setStatusTip(
             "Open a new window which allow to create plot by selecting data"
         )
         action.setCheckable(True)
-        action.toggled.connect(self.__clickedPlotSelectionWindow)
+        action.toggled.connect(self.__togglePlotSelectionWindow)
         self._displayCustomPlotSelectionWindow = action
-        #
+        self._customPlotSelectionWindow.sigVisibilityChanged.connect(self._displayCustomPlotSelectionWindow.setChecked)
 
     def __toggleCustomNxdataWindow(self):
         isVisible = self._displayCustomNxdataWindow.isChecked()
         self.__customNxdataWindow.setVisible(isVisible)
 
-    def __clickedPlotSelectionWindow(self):
+    def __togglePlotSelectionWindow(self):
         isVisible = self._displayCustomPlotSelectionWindow.isChecked()
-        self._CustomPlotSelectionWindow.setVisible(isVisible)
+        self._customPlotSelectionWindow.setVisible(isVisible)
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
@@ -791,9 +788,7 @@ class Viewer(qt.QMainWindow):
 
         viewMenu = self.menuBar().addMenu("&Views")
         viewMenu.addAction(self._displayCustomNxdataWindow)
-        # Modification Alexis
         viewMenu.addAction(self._displayCustomPlotSelectionWindow)
-        #
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
