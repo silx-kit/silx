@@ -673,7 +673,7 @@ class Viewer(qt.QMainWindow):
         action.toggled.connect(self.__toggleCustomNxdataWindow)
         self._displayCustomNxdataWindow = action
 
-        action = qt.QAction("Open plot selection window", self)
+        action = qt.QAction("Plot selection", self)
         action.setStatusTip(
             "Open a new window which allow to create plot by selecting data"
         )
