@@ -195,7 +195,9 @@ class DataViewer(qt.QFrame):
         """
         if view not in self.__index:
             widget = view.getWidget()
-            index = self.__stack.addWidget(widget)
+            index = self.__stack.indexOf(widget)
+            if index == -1:
+                index = self.__stack.addWidget(widget)
             self.__index[view] = index
         else:
             index = self.__index[view]
