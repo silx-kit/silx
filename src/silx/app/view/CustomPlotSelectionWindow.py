@@ -27,8 +27,10 @@ from silx.gui import qt, plot, icons
 import silx.io
 import numpy
 import functools
-from silx.gui.hdf5._utils import Hdf5DatasetMimeData
 from silx.gui.plot.LegendSelector import LegendIcon
+
+
+_DROP_HIGHLIGHT_ROLE = qt.Qt.UserRole + 1
 
 
 class _HashDropZones(qt.QStyledItemDelegate):
@@ -44,8 +46,12 @@ class _HashDropZones(qt.QStyledItemDelegate):
     def paint(self, painter, option, index):
         """Paint the item"""
         displayDropZone = False
+        isDropHighlighted = False
         if index.isValid():
             model = index.model()
+            item = model.itemFromIndex(index)
+            isDropHighlighted = item.data(_DROP_HIGHLIGHT_ROLE)
+
             rowIndex = model.index(index.row(), 1, index.parent())
             rowItem = model.itemFromIndex(rowIndex)
             if not rowItem.data(qt.Qt.DisplayRole):
@@ -55,6 +61,13 @@ class _HashDropZones(qt.QStyledItemDelegate):
                 parentItem = model.itemFromIndex(parentIndex)
                 if parentItem and parentItem.text() not in ["Y"] or index.row() == 0:
                     displayDropZone = True
+
+        if isDropHighlighted:
+            painter.save()
+            painter.setPen(self.__highlightDropPen)
+            painter.drawRect(option.rect.adjusted(1, 1, -1, -1))
+            painter.restore()
+
         if displayDropZone:
             painter.save()
 
@@ -71,17 +84,11 @@ class _HashDropZones(qt.QStyledItemDelegate):
             isDropTarget = self.__dropTargetIndex == index
             painter.setPen(self.__highlightDropPen if isDropTarget else self.__dropPen)
             painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
+
+            painter.drawText(option.rect.adjusted(3, 3, -3, -3), qt.Qt.AlignLeft | qt.Qt.AlignVCenter, "Drop a 1D dataset")
             painter.restore()
         else:
             qt.QStyledItemDelegate.paint(self, painter, option, index)
-
-    def setDropTarget(self, index):
-        """Set the current drop target index"""
-        self.__dropTargetIndex = index
-
-    def clearDropTarget(self):
-        """Clear the current drop target index"""
-        self.__dropTargetIndex = None
 
 
 class _FileListModel(qt.QStandardItemModel):
@@ -122,6 +129,7 @@ class _FileListModel(qt.QStandardItemModel):
 
     def _addXFile(self, filename, curve=None):
         fileItem, iconItem, removeItem = self._createRowItems(filename, curve)
+        fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
         xIndex = self._findRowContainingText("X")
         if xIndex is not None:
@@ -130,6 +138,8 @@ class _FileListModel(qt.QStandardItemModel):
 
     def _addYFile(self, filename, curve=None, node="X"):
         fileItem, iconItem, removeItem = self._createRowItems(filename, curve)
+        if not filename:
+            fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
         if self.getYParent().rowCount() == 0:
             self.getYParent().appendRow([None, fileItem])
@@ -149,6 +159,7 @@ class _FileListModel(qt.QStandardItemModel):
     def _createRowItems(self, filename, curve):
         fileItem = qt.QStandardItem(filename)
         fileItem.setData(curve, qt.Qt.UserRole)
+        fileItem.setData(False, _DROP_HIGHLIGHT_ROLE)
         fileItem.setEditable(False)
         fileItem.setDropEnabled(True)
 
@@ -174,8 +185,11 @@ class _FileListModel(qt.QStandardItemModel):
                     self._xDataset = data
 
                     for item in self._plot1D.getItems():
-                        y = item.getData()[1]
-                        item.setData(self._xDataset, y)
+                        y = item.getInfo()
+                        if y is None:
+                            continue
+                        length = min(len(self._xDataset), len(y))
+                        item.setData(self._xDataset[:length], y[:length])
 
                     self._addXFile(url.data_path())
                 else:
@@ -188,15 +202,12 @@ class _FileListModel(qt.QStandardItemModel):
         if x is None:
             x = numpy.arange(len(y))
 
-        if len(x) != len(y):
-            length = min(len(x), len(y))
-            x = x[:length]
-            y = y[:length]
-
         legend_name = f"Curve {self._index}"
         self._index += 1
 
-        curve = self._plot1D.addCurve(x=x, y=y, legend=legend_name)
+        length = min(len(x), len(y))
+        curve = self._plot1D.addCurve(x=x[:length], y=y[:length], legend=legend_name)
+        curve.setInfo(y[()])
         return curve
 
     def _rowAboutToBeRemoved(self, parentIndex, first, last):
@@ -210,7 +221,7 @@ class _FileListModel(qt.QStandardItemModel):
 
     def _updateYCurvesWithDefaultX(self):
         for item in self._plot1D.getItems():
-            y = item.getData()[1]
+            y = item.getInfo()
             x = numpy.arange(len(y))
             item.setData(x, y)
             self._plot1D.resetZoom()
@@ -235,11 +246,9 @@ class _DropTreeView(qt.QTreeView):
 
     def __init__(self, model, parent=None):
         super().__init__(parent)
-        self._model = model
-        self.setModel(self._model)
+        self.setModel(model)
 
-        self._delegate = _HashDropZones(self)
-        self.setItemDelegateForColumn(1, self._delegate)
+        self.setItemDelegateForColumn(1, _HashDropZones(self))
 
         header = self.header()
         header.setStretchLastSection(False)
@@ -249,6 +258,9 @@ class _DropTreeView(qt.QTreeView):
         self.expandAll()
 
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        self.setItemsExpandable(False)
+        self.setSelectionMode(qt.QAbstractItemView.NoSelection)
+        self.setFocusPolicy(qt.Qt.NoFocus)
         self.setDropIndicatorShown(True)
         self.setDragDropOverwriteMode(True)
         self.setDragEnabled(False)
@@ -314,33 +326,29 @@ class _DropTreeView(qt.QTreeView):
         self.acceptDrop(event)
 
     def dragMoveEvent(self, event):
-        dropPosition = self.indexAt(event.pos())
-        if dropPosition.isValid():
-            self._delegate.setDropTarget(dropPosition)
-            self.viewport().update()
+        dropIndex = self.indexAt(event.pos())
+        if dropIndex.isValid() and self.model().itemFromIndex(dropIndex).parent() is None:
+            self.setDropHighlight("X")
+        else:
+            self.setDropHighlight("Y")
         event.acceptProposedAction()
 
     def dragLeaveEvent(self, event):
-        self._delegate.clearDropTarget()
-        self.viewport().update()
+        super().dragLeaveEvent(event)
+        self.setDropHighlight(None)
 
     def dropEvent(self, event):
         super().dropEvent(event)
         byteString = event.mimeData().data("application/x-silx-uri")
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
-        dropPosition = self.indexAt(event.pos())
-        if not dropPosition.isValid():
-            self.addY(url)
+        dropIndex = self.indexAt(event.pos())
+        if dropIndex.isValid() and self.model().itemFromIndex(dropIndex).parent() is None:
+            self.setX(url)
         else:
-            dropItem = self.model().itemFromIndex(dropPosition)
-            parentItem = dropItem.parent()
+            self.addY(url)
 
-            if parentItem is None:
-                self.setX(url)
-            else:
-                self.addY(url)
-
+        self.setDropHighlight(None)
         event.acceptProposedAction()
 
     def acceptDrop(self, event):
@@ -378,6 +386,13 @@ class _DropTreeView(qt.QTreeView):
         index = self.model().index(0, 2)
         self.setIndexWidget(index, None)
 
+    def setDropHighlight(self, value):
+        xDropFileItem = self.model().itemFromIndex(
+            self.model().sibling(0, 1, self.model().indexFromItem(self.model().getXParent()))
+        )
+        xDropFileItem.setData(value == "X", _DROP_HIGHLIGHT_ROLE)
+        yDropFileItem = self.model().getYParent().child(self.model().getYParent().rowCount() -1, 1)
+        yDropFileItem.setData(value == "Y", _DROP_HIGHLIGHT_ROLE)
 
 
 class DropPlot1D(plot.Plot1D):
@@ -427,7 +442,9 @@ class _PlotToolBar(qt.QToolBar):
         super().__init__(parent)
 
     def addClearAction(self, treeView):
-        clearAction = qt.QAction(icons.getQIcon("remove"), "Clear All", self)
+        
+        icon = self.style().standardIcon(qt.QStyle.SP_TrashIcon)
+        clearAction = qt.QAction(icon, "Clear All", self)
         clearAction.triggered.connect(treeView.clear)
         self.addAction(clearAction)
 
@@ -437,7 +454,7 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Plot selection Window")
+        self.setWindowTitle("Plot selection")
 
         self.plot1D = DropPlot1D()
         model = _FileListModel(self.plot1D)
