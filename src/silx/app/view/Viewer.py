@@ -675,7 +675,7 @@ class Viewer(qt.QMainWindow):
 
         action = qt.QAction("Plot selection", self)
         action.setStatusTip(
-            "Open a new window which allow to create plot by selecting data"
+            "Open a new window which allows to create plot by selecting data"
         )
         action.setCheckable(True)
         action.toggled.connect(self.__togglePlotSelectionWindow)
