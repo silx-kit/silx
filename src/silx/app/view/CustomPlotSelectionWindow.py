@@ -99,7 +99,7 @@ class _FileListModel(qt.QStandardItemModel):
         root.setDragEnabled(False)
 
         self.setColumnCount(3)
-        self.setHorizontalHeaderLabels(["", "File Name", ""])
+        self.setHorizontalHeaderLabels(["", "Dataset", ""])
 
         self._xParent = qt.QStandardItem("X")
         self._xParent.setEditable(False)
@@ -395,7 +395,7 @@ class _DropTreeView(qt.QTreeView):
         yDropFileItem.setData(value == "Y", _DROP_HIGHLIGHT_ROLE)
 
 
-class DropPlot1D(plot.Plot1D):
+class _DropPlot1D(plot.Plot1D):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
@@ -421,17 +421,9 @@ class DropPlot1D(plot.Plot1D):
         yAreaTop = top + height
 
         if dropPosition.y() > yAreaTop:
-            targetNode = "X"
+            self._treeView.setX(url)
         else:
-            targetNode = "Y"
-
-        with silx.io.open(url.file_path()) as file:
-            data = file[url.data_path()]
-            if silx.io.is_dataset(data) and data.ndim == 1:
-                if targetNode == "X":
-                    self._treeView.setX(url)
-                else:
-                    self._treeView.addY(url)
+            self._treeView.addY(url)
 
         self.resetZoom()
         event.acceptProposedAction()
@@ -456,7 +448,7 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Plot selection")
 
-        self.plot1D = DropPlot1D()
+        self.plot1D = _DropPlot1D()
         model = _FileListModel(self.plot1D)
 
         self.treeView = _DropTreeView(model, self)
@@ -485,11 +477,3 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         super().hideEvent(event)
         self.sigVisibilityChanged.emit(False)
 
-
-if __name__ == "__main__":
-    app = qt.QApplication([])
-
-    window = CustomPlotSelectionWindow()
-    window.show()
-
-    app.exec_()
