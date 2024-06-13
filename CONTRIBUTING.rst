@@ -85,7 +85,7 @@ With:
 How-to make a release
 ---------------------
 
-Special cases
+Use cases
 +++++++++++++
 
 Release candidates
@@ -93,6 +93,10 @@ Release candidates
 
 Use this release process and make sure only bug fix pull requests are merged on the ``main`` branch until the final release is published.
 
+Major/minor releases
+....................
+
+Follow this release process.
 Bug fix releases
 ................
 
