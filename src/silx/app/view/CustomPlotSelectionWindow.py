@@ -142,7 +142,7 @@ class _FileListModel(qt.QStandardItemModel):
             fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
         if self.getYParent().rowCount() == 0:
-            self.getYParent().appendRow([None, fileItem])
+            self.getYParent().appendRow([qt.QStandardItem(), fileItem])
             return
 
         self.getYParent().insertRow(
