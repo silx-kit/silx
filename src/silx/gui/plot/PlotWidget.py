@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -828,10 +828,10 @@ class PlotWidget(qt.QMainWindow):
     def hideEvent(self, event):
         super(PlotWidget, self).hideEvent(event)
         if qt.BINDING == "PySide6":
-            # Workaround RuntimeError: The SignalInstance object was already deleted
+            # Workaround RuntimeError/AttributeError: The SignalInstance object was already deleted
             try:
                 self.sigVisibilityChanged.emit(False)
-            except RuntimeError as e:
+            except (RuntimeError, AttributeError) as e:
                 _logger.error(f"Exception occured: {e}")
         else:
             self.sigVisibilityChanged.emit(False)
