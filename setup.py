@@ -40,14 +40,6 @@ logger = logging.getLogger("silx.setup")
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 
-try:
-    import numpy
-except ImportError:
-    raise ImportError(
-        "To install this package, you must install numpy first\n"
-        "(See https://pypi.org/project/numpy)"
-    )
-
 
 PROJECT = "silx"
 if sys.version_info.major < 3:

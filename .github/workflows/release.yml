@@ -65,10 +65,7 @@ jobs:
       - name: Install pandoc&graphviz
         run: sudo apt-get install pandoc graphviz
       - name: Install silx
-        # Post-install: Upgrade sphinx-panels to workaround dependency to old sphinx
-        run: |
-          pip install .[full,test,doc]
-          pip install --upgrade sphinx-panels --no-deps
+        run: pip install .[full,test,doc]
       - name: Build doc
         env:
           QT_QPA_PLATFORM: "offscreen"
@@ -80,6 +77,50 @@ jobs:
         with:
           name: documentation
           path: silx-*_documentation.zip
+
+  build_windows_installer:
+    name: Build Windows "fat binary"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install silx
+        run: pip install .[full,test]
+      - name: Install pyinstaller
+        # Install pyinstaller from source and compile bootloader
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
+        run: pip install pyinstaller --no-binary pyinstaller
+      - name: Build fat binary
+        run: |
+          cd package/windows
+          pyinstaller pyinstaller.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            ./package/windows/artifacts/silx-*.exe
+            ./package/windows/artifacts/silx-*.zip
+
+  test_windows_installer:
+    needs: [build_windows_installer]
+    name: Test Windows "fat binary"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Unzip "fat binary"
+        run: 7z x silx-*.zip
+      - name: Test
+        run: |
+          cd silx
+          ./silx-view.exe --help
+          ./silx.exe --help
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }}-${{ matrix.cibw_archs }}
@@ -124,9 +165,7 @@ jobs:
 
           CIBW_ENVIRONMENT_PASS_LINUX: SILX_FORCE_CYTHON SILX_WITH_OPENMP WITH_QT_TEST WITH_GL_TEST SILX_OPENCL SILX_TEST_LOW_MEM
 
-          # Use silx wheelhouse: needed for ppc64le
-          CIBW_ENVIRONMENT_LINUX: "PIP_FIND_LINKS=https://www.silx.org/pub/wheelhouse/ PIP_TRUSTED_HOST=www.silx.org"
-
+          CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
           # Do not build for pypy and muslinux
           CIBW_SKIP: pp* *-musllinux_*
@@ -146,7 +185,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   pypi-publish:
-    needs: [build_doc, build_sdist, build_wheels, test_sdist]
+    needs: [build_doc, build_sdist, build_wheels, test_sdist, build_windows_installer, test_windows_installer]
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
@@ -163,3 +202,25 @@ jobs:
           path: dist
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  windows-installer-publish:
+    needs: [build_windows_installer, test_windows_installer]
+    name: Upload Windows installer
+    runs-on: ubuntu-latest
+    environment:
+      name: assets
+    permissions:
+      contents: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export ASSETS=$(ls silx-*.exe silx-*.zip)
+          echo "ASSETS=${ASSETS}"
+          gh release upload ${{ github.event.release.tag_name }} ${ASSETS}
