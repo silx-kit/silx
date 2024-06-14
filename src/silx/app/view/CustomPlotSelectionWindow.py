@@ -37,7 +37,6 @@ class _HashDropZones(qt.QStyledItemDelegate):
     """Delegate item displaying a drop zone when the item does not contain a dataset."""
 
     def __init__(self, parent=None):
-        """Constructor"""
         super(_HashDropZones, self).__init__(parent)
         self.__dropPen = qt.QPen(qt.QColor("#D0D0D0"), 2, qt.Qt.DotLine)
         self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.SolidLine)
@@ -93,7 +92,6 @@ class _HashDropZones(qt.QStyledItemDelegate):
 
 class _FileListModel(qt.QStandardItemModel):
     def __init__(self, plot, parent=None):
-        """Constructor"""
         super().__init__(parent)
         root = self.invisibleRootItem()
         root.setDragEnabled(False)
@@ -114,8 +112,7 @@ class _FileListModel(qt.QStandardItemModel):
 
         self._xDataset = None
 
-        self._addXFile("")
-        self._addYFile("")
+        self._reset()
 
         self.addUrl(silx.io.url.DataUrl())
 
@@ -169,8 +166,8 @@ class _FileListModel(qt.QStandardItemModel):
 
         return fileItem, iconItem, removeItem
 
-    def fileExists(self, filename):
-        for row in range(self.getXParent().rowCount()):
+    def fileItemExists(self, filename):
+        for row in range(self.getYParent().rowCount()):
             item = self.item(row, 1)
             if item and item.text() == filename:
                 return True
@@ -202,11 +199,11 @@ class _FileListModel(qt.QStandardItemModel):
         if x is None:
             x = numpy.arange(len(y))
 
-        legend_name = f"Curve {self._index}"
+        legend = f"Curve {self._index}"
         self._index += 1
 
         length = min(len(x), len(y))
-        curve = self._plot1D.addCurve(x=x[:length], y=y[:length], legend=legend_name)
+        curve = self._plot1D.addCurve(x=x[:length], y=y[:length], legend=legend)
         curve.setInfo(y[()])
         return curve
 
@@ -215,9 +212,8 @@ class _FileListModel(qt.QStandardItemModel):
         for row in range(first, last + 1):
             fileItem = parentItem.child(row, 1)
             curve = fileItem.data(qt.Qt.UserRole)
-            if curve is None:
-                return
-            self._plot1D.removeItem(curve)
+            if curve is not None:
+                self._plot1D.removeItem(curve)
 
     def _updateYCurvesWithDefaultX(self):
         for item in self._plot1D.getItems():
@@ -231,12 +227,21 @@ class _FileListModel(qt.QStandardItemModel):
 
         self._yParent.removeRows(0, self._yParent.rowCount())
         
-        self._addXFile("")
-        self._addYFile("")
+        self._reset()
 
         self._plot1D.clear()
 
         self._updateYCurvesWithDefaultX()
+
+    def _reset(self):
+        self._xDataset = None
+
+        self._addXFile("")
+        self._addYFile("")
+
+        self._plot1D.clear()
+        self._updateYCurvesWithDefaultX()
+
 
 
 class _DropTreeView(qt.QTreeView):
@@ -323,7 +328,7 @@ class _DropTreeView(qt.QTreeView):
 
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
-        self.acceptDrop(event)
+        self.acceptDragEvent(event)
 
     def dragMoveEvent(self, event):
         dropIndex = self.indexAt(event.pos())
@@ -351,7 +356,7 @@ class _DropTreeView(qt.QTreeView):
         self.setDropHighlight(None)
         event.acceptProposedAction()
 
-    def acceptDrop(self, event):
+    def acceptDragEvent(self, event):
         if event.mimeData().hasFormat("application/x-silx-uri"):
             byteString = event.mimeData().data("application/x-silx-uri")
             url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
@@ -360,7 +365,7 @@ class _DropTreeView(qt.QTreeView):
                 if (
                     silx.io.is_dataset(data)
                     and data.ndim == 1
-                    and not self.model().fileExists(url.data_path())
+                    and not self.model().fileItemExists(url.data_path())
                 ):
                     event.acceptProposedAction()
         else:
