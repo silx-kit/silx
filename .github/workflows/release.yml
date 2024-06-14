@@ -165,6 +165,7 @@ jobs:
 
           CIBW_ENVIRONMENT_PASS_LINUX: SILX_FORCE_CYTHON SILX_WITH_OPENMP WITH_QT_TEST WITH_GL_TEST SILX_OPENCL SILX_TEST_LOW_MEM
 
+          CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
           # Do not build for pypy and muslinux
           CIBW_SKIP: pp* *-musllinux_*
