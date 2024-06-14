@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ###########################################################################*/
+from __future__ import annotations
 
 """"""
 
@@ -38,10 +39,10 @@ _DROP_HIGHLIGHT_ROLE = qt.Qt.UserRole + 1
 class _HashDropZones(qt.QStyledItemDelegate):
     """Delegate item displaying a drop zone when the item does not contain a dataset."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super(_HashDropZones, self).__init__(parent)
         self.__dropPen = qt.QPen(qt.QColor("#D0D0D0"), 2, qt.Qt.DotLine)
-        self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.SolidLine)
+        self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.DotLine)
         self.__dropTargetIndex = None
 
     def paint(self, painter, option, index):
@@ -66,7 +67,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
         if isDropHighlighted:
             painter.save()
             painter.setPen(self.__highlightDropPen)
-            painter.drawRect(option.rect.adjusted(1, 1, -1, -1))
+            painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
             painter.restore()
 
         if displayDropZone:
@@ -97,6 +98,12 @@ class _HashDropZones(qt.QStyledItemDelegate):
 
 
 class _FileListModel(qt.QStandardItemModel):
+    """
+    A model class for managing and displaying file data in a tree view structure
+
+    :param plot : Plot 1D
+    """
+
     def __init__(self, plot, parent=None):
         super().__init__(parent)
         root = self.invisibleRootItem()
@@ -124,13 +131,23 @@ class _FileListModel(qt.QStandardItemModel):
 
         self.rowsAboutToBeRemoved.connect(self._rowAboutToBeRemoved)
 
-    def getXParent(self):
+    def getXParent(self) -> qt.QStandardItem:
+        """Returns the X parent item."""
         return self._xParent
 
     def getYParent(self):
+        """Returns the Y parent item.
+
+        :rtype: qt.QStandardItem
+        """
         return self._yParent
 
     def _setXFile(self, url=None, curve=None):
+        """Set X file informations to the model
+
+        :param str filename: The file name.
+        :param curve: The curve data. Defaults to None.
+        """
         if url is None:
             dataName = ""
         else:
@@ -148,6 +165,10 @@ class _FileListModel(qt.QStandardItemModel):
             self.setItem(xIndex, 2, removeItem)
 
     def _addYFile(self, url=None, curve=None, node="X"):
+        """Add Y file to the model
+
+        :param curve : The curve data. Defaults to None.
+        """
         if url is None:
             dataName = ""
         else:
@@ -167,6 +188,11 @@ class _FileListModel(qt.QStandardItemModel):
         )
 
     def _findRowContainingText(self, text):
+        """Find the row containing the specified text.
+
+        :param str text: The text to search for.
+        """
+
         for row in range(self.rowCount()):
             item = self.item(row, 0)
             if item and item.text() == text:
@@ -174,6 +200,11 @@ class _FileListModel(qt.QStandardItemModel):
         return None
 
     def _createRowItems(self, filename, curve):
+        """Create row items for the file.
+
+        :param str filename : The file name.
+        :param Curve curve : The curve data
+        """
         fileItem = qt.QStandardItem(filename)
         fileItem.setData(curve, qt.Qt.UserRole)
         fileItem.setData(False, _DROP_HIGHLIGHT_ROLE)
@@ -187,6 +218,10 @@ class _FileListModel(qt.QStandardItemModel):
         return fileItem, iconItem, removeItem
 
     def fileItemExists(self, filename):
+        """Check if the file already exists in the model.
+
+        :param str filename : The file name.
+        """
         for row in range(self.getYParent().rowCount()):
             item = self.item(row, 1)
             if item and item.text() == filename:
@@ -194,6 +229,12 @@ class _FileListModel(qt.QStandardItemModel):
         return False
 
     def addUrl(self, url, node="X"):
+        """Add a URL to the model.
+
+        :param url : The data URL.
+        :param node : The node name. Defaults to "X".
+        """
+
         if url.file_path() is not None:
             file = silx.io.open(url.file_path())
             data = file[url.data_path()]
@@ -215,7 +256,12 @@ class _FileListModel(qt.QStandardItemModel):
                     curve = self._addPlot(self._xDataset, data)
                     self._addYFile(url, curve)
 
-    def _addPlot(self, x, y):
+    def _addPlot(self, x: numpy.ndarray, y):
+        """Add a curve to the plot
+
+        :param x:
+        :param y:
+        """
         if x is None:
             x = numpy.arange(len(y))
 
@@ -228,6 +274,12 @@ class _FileListModel(qt.QStandardItemModel):
         return curve
 
     def _rowAboutToBeRemoved(self, parentIndex, first, last):
+        """Handle the event when rows are about to be removed.
+
+        :param parentIndex : the parent index.
+        :param int first : the first row to be removed.
+        :param int last : the last row to be removed.
+        """
         parentItem = self.itemFromIndex(parentIndex)
         for row in range(first, last + 1):
             fileItem = parentItem.child(row, 1)
@@ -236,6 +288,7 @@ class _FileListModel(qt.QStandardItemModel):
                 self._plot1D.removeItem(curve)
 
     def _updateYCurvesWithDefaultX(self):
+        """Update Y curves with default X values"""
         for item in self._plot1D.getItems():
             y = item.getInfo()
             x = numpy.arange(len(y))
@@ -243,6 +296,7 @@ class _FileListModel(qt.QStandardItemModel):
             self._plot1D.resetZoom()
 
     def clearAll(self):
+        """Clear all data from the model"""
         self._xDataset = None
 
         self._yParent.removeRows(0, self._yParent.rowCount())
@@ -280,11 +334,15 @@ class _FileListModel(qt.QStandardItemModel):
 
 
 class _DropTreeView(qt.QTreeView):
-    """TreeView widget for displaying dropped file names"""
+    """TreeView widget for displaying dropped file names
+
+    :param model : _FileListModel
+    """
 
     (_DESCRIPTION_COLUMN, _FILE_COLUMN, _REMOVE_COLUMN) = range(3)
 
     def __init__(self, model, parent=None):
+        """Constructor"""
         super().__init__(parent)
         self.setModel(model)
 
@@ -292,9 +350,13 @@ class _DropTreeView(qt.QTreeView):
 
         header = self.header()
         header.setStretchLastSection(False)
-        header.setSectionResizeMode(0, qt.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, qt.QHeaderView.Stretch)
-        header.setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(
+            _DropTreeView._DESCRIPTION_COLUMN, qt.QHeaderView.ResizeToContents
+        )
+        header.setSectionResizeMode(_DropTreeView._FILE_COLUMN, qt.QHeaderView.Stretch)
+        header.setSectionResizeMode(
+            _DropTreeView._REMOVE_COLUMN, qt.QHeaderView.ResizeToContents
+        )
         self.expandAll()
 
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
@@ -307,6 +369,11 @@ class _DropTreeView(qt.QTreeView):
         self.viewport().setAcceptDrops(True)
 
     def _createIconWidget(self, row, parentItem):
+        """Create an icon widget for the specified row.
+
+        :param row : The row index.
+        :param parentItem : The parent item.
+        """
         fileItem = parentItem.child(row, 1)
         iconItem = parentItem.child(row, 0)
         curve = fileItem.data(qt.Qt.UserRole)
@@ -321,6 +388,11 @@ class _DropTreeView(qt.QTreeView):
         self.setIndexWidget(iconItem.index(), widget)
 
     def _createRemoveButton(self, row, parentItem):
+        """Create an remove button for the specified row.
+
+        :param row : The row index.
+        :param parentItem : The parent item
+        """
         if parentItem is None:
             parentItem = self.model().getXParent()
             index = self.model().index(0, 2)
@@ -342,6 +414,11 @@ class _DropTreeView(qt.QTreeView):
             self.setIndexWidget(removeItem.index(), button)
 
     def _removeFile(self, removeItem, parentItem):
+        """Remove the specified file from the model.
+
+        :param removeItem : The item to be removed.
+        :param parentItem : The parent item.
+        """
         if removeItem is None:
             row = 0
             removeItem = self.model().getXParent()
@@ -399,6 +476,7 @@ class _DropTreeView(qt.QTreeView):
         event.acceptProposedAction()
 
     def acceptDragEvent(self, event):
+        """Accept the drop event if the data is valid."""
         if event.mimeData().hasFormat("application/x-silx-uri"):
             byteString = event.mimeData().data("application/x-silx-uri")
             url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
@@ -414,6 +492,10 @@ class _DropTreeView(qt.QTreeView):
             event.ignore()
 
     def setX(self, url):
+        """Set the X data from the URL.
+
+        :param url : The data URL.
+        """
         targetNode = "X"
         node = self.model().getXParent()
         self.model().addUrl(url, targetNode)
@@ -421,6 +503,10 @@ class _DropTreeView(qt.QTreeView):
         self.model()._plot1D.resetZoom()
 
     def addY(self, url):
+        """Add the Y data from the URL.
+
+        :param url : The data URL.
+        """
         targetNode = "Y"
         node = self.model().getYParent()
         self.model().addUrl(url, targetNode)
@@ -429,11 +515,15 @@ class _DropTreeView(qt.QTreeView):
         self.model()._plot1D.resetZoom()
 
     def clear(self):
+        """Clear all data from the tree view."""
         self.model().clearAll()
         index = self.model().index(0, 2)
         self.setIndexWidget(index, None)
 
     def setDropHighlight(self, value):
+        """Set the drop highlight for the specified value.
+
+        :param value : The value to highlight ("X" or "Y")"""
         xDropFileItem = self.model().itemFromIndex(
             self.model().sibling(
                 0, 1, self.model().indexFromItem(self.model().getXParent())
@@ -447,12 +537,19 @@ class _DropTreeView(qt.QTreeView):
 
 
 class _DropPlot1D(plot.Plot1D):
+    """A plot widget with drag-and-drop functionality for adding data."""
+
     def __init__(self, parent=None):
+        """Constructor"""
         super().__init__(parent)
         self.setAcceptDrops(True)
         self._treeView = None
 
     def setTreeView(self, treeView):
+        """Set the tree view for the plot.
+
+        :param treeview :
+        """
         self._treeView = treeView
 
     def dragEnterEvent(self, event):
@@ -485,10 +582,16 @@ class _DropPlot1D(plot.Plot1D):
 
 
 class _PlotToolBar(qt.QToolBar):
+    """"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def addClearAction(self, treeView):
+        """Add a clear action to the ToolBar
+
+        :param treeview :
+        """
         icon = self.style().standardIcon(qt.QStyle.SP_TrashIcon)
         clearAction = qt.QAction(icon, "Clear All", self)
         clearAction.triggered.connect(treeView.clear)
