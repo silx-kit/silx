@@ -28,6 +28,8 @@ import silx.io
 import numpy
 import functools
 from silx.gui.plot.LegendSelector import LegendIcon
+import silx.io.utils
+from silx.gui.hdf5 import _utils
 
 
 _DROP_HIGHLIGHT_ROLE = qt.Qt.UserRole + 1
@@ -124,19 +126,33 @@ class _FileListModel(qt.QStandardItemModel):
     def getYParent(self):
         return self._yParent
 
-    def _addXFile(self, filename, curve=None):
-        fileItem, iconItem, removeItem = self._createRowItems(filename, curve)
+    def _setXFile(self, url=None, curve=None):
+        if url is None:
+            dataName = ""
+        else:
+            dataName = self._getTextSplit(url.data_path())
+            self._plot1D.setXAxisLabel(dataName)
+
+        fileItem, iconItem, removeItem = self._createRowItems(dataName, curve)
         fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
+
+        fileItem.setData(self._getDefautToolTip(url), qt.Qt.ToolTipRole)
 
         xIndex = self._findRowContainingText("X")
         if xIndex is not None:
             self.setItem(xIndex, 1, fileItem)
             self.setItem(xIndex, 2, removeItem)
 
-    def _addYFile(self, filename, curve=None, node="X"):
-        fileItem, iconItem, removeItem = self._createRowItems(filename, curve)
-        if not filename:
+    def _addYFile(self, url=None, curve=None, node="X"):
+        if url is None:
+            dataName = ""
+        else:
+            dataName = self._getTextSplit(url.data_path())
+        fileItem, iconItem, removeItem = self._createRowItems(dataName, curve)
+        if not dataName:
             fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
+
+        fileItem.setData(self._getDefautToolTip(url), qt.Qt.ToolTipRole)
 
         if self.getYParent().rowCount() == 0:
             self.getYParent().appendRow([qt.QStandardItem(), fileItem])
@@ -188,12 +204,13 @@ class _FileListModel(qt.QStandardItemModel):
                         length = min(len(self._xDataset), len(y))
                         item.setData(self._xDataset[:length], y[:length])
 
-                    self._addXFile(url.data_path())
+                    self._setXFile(url)
                 else:
                     if data is None:
                         return
                     curve = self._addPlot(self._xDataset, data)
-                    self._addYFile(url.data_path(), curve)
+                    self._addYFile(url, curve)
+
 
     def _addPlot(self, x, y):
         if x is None:
@@ -226,21 +243,50 @@ class _FileListModel(qt.QStandardItemModel):
         self._xDataset = None
 
         self._yParent.removeRows(0, self._yParent.rowCount())
-        
-        self._reset()
+
+        self._setXFile()
+        self._addYFile()
 
         self._plot1D.clear()
+        self._plot1D.setXAxisLabel("X")
+        self._plot1D.resetZoom()
 
         self._updateYCurvesWithDefaultX()
 
     def _reset(self):
         self._xDataset = None
 
-        self._addXFile("")
-        self._addYFile("")
+        self._setXFile()
+        self._addYFile()
 
         self._plot1D.clear()
         self._updateYCurvesWithDefaultX()
+
+    def _createTooltipAttributes(self, url):
+        attributeDict = {}
+
+        if url is not None:
+            attributeDict["#Title"] = "HDF5 Dataset"
+            attributeDict["Name"] = self._getTextSplit(url.data_path())
+            attributeDict["Path"] = url.data_path()
+            attributeDict["File name"] = self._getTextSplit(url.file_path())
+        else:
+            pass
+        return attributeDict
+    
+    def _getDefautToolTip(self, url):
+        attrs = self._createTooltipAttributes(url)
+        title = attrs.pop("#Title", None)
+        if len(attrs) > 0:
+            tooltip = _utils.htmlFromDict(attrs, title=title)
+        else:
+            tooltip = ""
+
+        return tooltip
+
+    def _getTextSplit(self, text):
+        textSplit = text.split("/")
+        return textSplit[len(textSplit) - 1]
 
 
 
@@ -321,11 +367,12 @@ class _DropTreeView(qt.QTreeView):
 
             if parentItem == self.model().getXParent():
                 self.model()._xDataset = None
-                self.model()._addXFile("")
+                self.model()._setXFile()
                 index = self.model().index(0, 2)
                 self.setIndexWidget(index, None)
+                self.model()._plot1D.setXAxisLabel("X")
                 self.model()._updateYCurvesWithDefaultX()
-
+                
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
         self.acceptDragEvent(event)
@@ -432,6 +479,10 @@ class _DropPlot1D(plot.Plot1D):
 
         self.resetZoom()
         event.acceptProposedAction()
+
+    def setXAxisLabel(self, label):
+        xAxis = self.getXAxis()
+        xAxis.setLabel(label)
 
 
 class _PlotToolBar(qt.QToolBar):
