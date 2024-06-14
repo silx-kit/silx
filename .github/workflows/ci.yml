@@ -60,13 +60,12 @@ jobs:
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opencl --low-mem
 
-          - name-suffix: "No GUI wheel"
+          - name-suffix: "PyQt5 wheel"
             os: windows-latest
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             QT_BINDING: PyQt5
-            RUN_TESTS_OPTIONS: --no-gui --low-mem
-            # No GUI tests on Windows
+            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --low-mem
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -90,6 +89,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
+
+      - name: Install mesa OpenGL
+        if: runner.os == 'Windows'
+        run: |
+          curl -fsS -o opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
 
       - name: Upgrade distribution modules
         run: |
