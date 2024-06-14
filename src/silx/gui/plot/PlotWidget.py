@@ -1192,7 +1192,9 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             self._resetColorAndStyle()
 
-        if color is not None:
+        if color is not None and linestyle is not None:
+            default_color, default_linestyle = color, linestyle
+        elif color is not None:
             default_color, default_linestyle = color, self._getStyle()
         else:
             default_color, default_linestyle = self._getColorAndStyle()
