@@ -54,9 +54,6 @@ def run_tests(module: str = "silx", verbosity: int = 0, args=()):
             module,
             "--verbosity",
             str(verbosity),
-            '-o python_files=["test/test*.py","test/Test*.py"]',
-            '-o python_classes=["Test"]',
-            '-o python_functions=["test"]',
         ]
         + list(args),
         check=False,
