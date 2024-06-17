@@ -13,10 +13,3 @@ safe = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-filterwarnings = [
-    "error",
-    # note the use of single quote below to denote "raw" strings in TOML
-    'ignore:tostring\(\) is deprecated. Use tobytes\(\) instead\.:DeprecationWarning:OpenGL',
-    'ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning',
-    'ignore:Unable to import recommended hash:UserWarning:pytools',
-]
