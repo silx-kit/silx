@@ -54,6 +54,10 @@ def run_tests(module: str = "silx", verbosity: int = 0, args=()):
             module,
             "--verbosity",
             str(verbosity),
+            # Handle warning as errors unless explicitly skipped
+            "-Werror",
+            "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL",
+            "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
         ]
         + list(args),
         check=False,
