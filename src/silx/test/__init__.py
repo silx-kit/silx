@@ -24,6 +24,7 @@
 """This package provides test of the root modules
 """
 
+import importlib
 import logging
 import subprocess
 import sys
@@ -38,6 +39,9 @@ except ImportError:
     raise
 
 
+import silx
+
+
 def run_tests(module: str = "silx", verbosity: int = 0, args=()):
     """Run tests in a subprocess
 
@@ -45,20 +49,25 @@ def run_tests(module: str = "silx", verbosity: int = 0, args=()):
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    return subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "--pyargs",
-            module,
-            "--verbosity",
-            str(verbosity),
-            # Handle warning as errors unless explicitly skipped
-            "-Werror",
-            "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL",
-            "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
-        ]
-        + list(args),
-        check=False,
-    ).returncode
+    # Retrieve folder for packages and file for modules
+    imported_module = importlib.import_module(module)
+    if hasattr(imported_module, "__path__"):
+        tested_path = imported_module.__path__[0]
+    else:
+        tested_path = imported_module.__file__
+
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        tested_path,
+        f"--rootdir={silx.__path__[0]}",
+        "--verbosity",
+        str(verbosity),
+        # Handle warning as errors unless explicitly skipped
+        "-Werror",
+        "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning",
+        "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+    ] + list(args)
+
+    return subprocess.run(cmd, check=False).returncode
