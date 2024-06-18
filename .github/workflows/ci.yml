@@ -109,12 +109,8 @@ jobs:
 
       - name: Pre-install dependencies
         run: |
-          if [ -s "ci/requirements-pinned.txt" ];
-          then
-            pip install -r ci/requirements-pinned.txt;
-          fi
+          pip install -r ci/requirements-pinned.txt
           pip install --pre -r requirements.txt
-          pip uninstall -y PyQt5 PyQt6 PySide6
           pip install --pre "${{ matrix.QT_BINDING }}"
 
       - name: Install pytest
