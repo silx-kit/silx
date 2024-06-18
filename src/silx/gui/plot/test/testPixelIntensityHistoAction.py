@@ -31,32 +31,30 @@ __date__ = "02/03/2018"
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
+from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui import qt
 from silx.gui.plot import Plot2D
+from .utils import PlotWidgetTestCase
 
 
-class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
+class TestPixelIntensitiesHisto(PlotWidgetTestCase, ParametricTestCase):
     """Tests for PixelIntensitiesHistoAction widget."""
+
+    def _createPlot(self):
+        return Plot2D()
 
     def setUp(self):
         super(TestPixelIntensitiesHisto, self).setUp()
         self.image = numpy.random.rand(10, 10)
-        self.plotImage = Plot2D()
-        self.plotImage.getIntensityHistogramAction().setVisible(True)
-
-    def tearDown(self):
-        del self.plotImage
-        self.qapp.processEvents()
-        super(TestPixelIntensitiesHisto, self).tearDown()
+        self.plot.getIntensityHistogramAction().setVisible(True)
 
     def testShowAndHide(self):
         """Simple test that the plot is showing and hiding when activating the
         action"""
-        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
-        self.plotImage.show()
+        self.plot.addImage(self.image, origin=(0, 0), legend="sino")
+        self.plot.show()
 
-        histoAction = self.plotImage.getIntensityHistogramAction()
+        histoAction = self.plot.getIntensityHistogramAction()
 
         # test the pixel intensity diagram is showing
         button = getQToolButtonFromAction(histoAction)
@@ -67,7 +65,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.assertTrue(histoAction.getHistogramWidget().isVisible())
 
         # test the pixel intensity diagram is hiding
-        self.plotImage.activateWindow()
+        self.plot.activateWindow()
         self.qapp.processEvents()
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
@@ -84,15 +82,15 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
             numpy.float32,
             numpy.float64,
         ]
-        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
-        self.plotImage.show()
-        button = getQToolButtonFromAction(self.plotImage.getIntensityHistogramAction())
+        self.plot.addImage(self.image, origin=(0, 0), legend="sino")
+        self.plot.show()
+        button = getQToolButtonFromAction(self.plot.getIntensityHistogramAction())
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
         for typeToTest in typesToTest:
             with self.subTest(typeToTest=typeToTest):
-                self.plotImage.addImage(
+                self.plot.addImage(
                     self.image.astype(typeToTest), origin=(0, 0), legend="sino"
                 )
 
@@ -101,10 +99,10 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         xx = numpy.arange(10)
         yy = numpy.arange(10)
         value = numpy.sin(xx)
-        self.plotImage.addScatter(xx, yy, value)
-        self.plotImage.show()
+        self.plot.addScatter(xx, yy, value)
+        self.plot.show()
 
-        histoAction = self.plotImage.getIntensityHistogramAction()
+        histoAction = self.plot.getIntensityHistogramAction()
 
         # test the pixel intensity diagram is showing
         button = getQToolButtonFromAction(histoAction)
@@ -123,10 +121,10 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         xx = numpy.arange(10)
         yy = numpy.arange(10)
         value = numpy.sin(xx)
-        self.plotImage.addScatter(xx, yy, value)
-        self.plotImage.show()
+        self.plot.addScatter(xx, yy, value)
+        self.plot.show()
 
-        histoAction = self.plotImage.getIntensityHistogramAction()
+        histoAction = self.plot.getIntensityHistogramAction()
 
         # test the pixel intensity diagram is showing
         button = getQToolButtonFromAction(histoAction)
@@ -142,7 +140,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         data1 = items[0].getValueData(copy=False)
 
         # Set another item to the plot
-        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
+        self.plot.addImage(self.image, origin=(0, 0), legend="sino")
         self.qapp.processEvents()
         data2 = items[0].getValueData(copy=False)
 
