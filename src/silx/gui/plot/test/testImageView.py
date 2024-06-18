@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,30 +30,18 @@ __date__ = "24/04/2018"
 
 import numpy
 
-from silx.gui import qt
-from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import items
 
 from silx.gui.plot.ImageView import ImageView
 from silx.gui.colors import Colormap
+from .utils import PlotWidgetTestCase
 
 
-class TestImageView(TestCaseQt):
+class TestImageView(PlotWidgetTestCase):
     """Tests of ImageView widget."""
 
-    def setUp(self):
-        super(TestImageView, self).setUp()
-        self.plot = ImageView()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-        self.qapp.processEvents()
-        super(TestImageView, self).tearDown()
+    def _createPlot(self):
+        return ImageView()
 
     def testSetImage(self):
         """Test setImage"""
