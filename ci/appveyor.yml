@@ -31,7 +31,7 @@ environment:
 
         # Python 3.12
         - PYTHON_DIR: "C:\\Python312-x64"
-          QT_BINDING: "PySide6<6.7"
+          QT_BINDING: "PySide6"
           PIP_OPTIONS: "-q --pre"
 
         # Python 3.11
