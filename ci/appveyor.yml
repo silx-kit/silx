@@ -91,7 +91,6 @@ before_test:
     - pip install %PIP_OPTIONS% -r requirements.txt
 
     # Install selected Qt binding
-    - "pip uninstall -y PyQt5 PySide6 PyQt6"
     - pip install %PIP_OPTIONS% "%QT_BINDING%"
 
     # Install pytest
