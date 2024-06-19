@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 # ###########################################################################*/
 
-from __future__ import annotations
 """Custom plot selection window for selecting 1D datasets to plot."""
 
 from silx.gui import qt, plot, icons
@@ -139,7 +138,7 @@ class _FileListModel(qt.QStandardItemModel):
         """Return the parent item for the Y datasets"""
         return self._yParent
 
-    def _setXFile(self, url: silx.io.url.DataUrl | None = None, curve: None = None):
+    def _setXFile(self, url: silx.io.url.DataUrl | None = None):
         """Set the X dataset file in the model"""
         if url is None:
             dataName = ""
@@ -147,7 +146,7 @@ class _FileListModel(qt.QStandardItemModel):
             dataName = self._getBasename(url.data_path())
             self._plot1D.setXAxisLabel(dataName)
 
-        fileItem, iconItem, removeItem = self._createRowItems(dataName, curve)
+        fileItem, iconItem, removeItem = self._createRowItems(dataName, None)
         fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
         fileItem.setData(self._createToolTip(url), qt.Qt.ToolTipRole)
@@ -191,7 +190,7 @@ class _FileListModel(qt.QStandardItemModel):
         return None
 
     def _createRowItems(
-        self, filename: str, curve: silx.gui.plot.items.Curve
+        self, filename: str, curve: silx.gui.plot.items.Curve | None
     ) -> tuple[qt.QStandardItem, qt.QStandardItem, qt.QStandardItem]:
         """Create the items for a row in the model"""
         fileItem = qt.QStandardItem(filename)
