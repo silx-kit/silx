@@ -3112,7 +3112,7 @@ class PlotWidget(qt.QMainWindow):
 
         return color, style
 
-     # Misc.
+    # Misc.
 
     def getWidgetHandle(self):
         """Return the widget the plot is displayed in.
