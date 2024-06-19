@@ -22,6 +22,7 @@
 # ###########################################################################*/
 
 """Custom plot selection window for selecting 1D datasets to plot."""
+from __future__ import annotations
 
 from silx.gui import qt, plot, icons
 import silx.gui
