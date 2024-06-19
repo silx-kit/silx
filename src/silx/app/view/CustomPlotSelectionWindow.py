@@ -293,7 +293,8 @@ class _FileListModel(qt.QStandardItemModel):
         self._plot1D.clear()
         self._updateYCurvesWithDefaultX()
 
-    def _createToolTip(self, url):
+    def _createToolTip(self, url: silx.io.url.DataUrl) -> str:
+        """Create the tooltip for a dataset."""
         if url is None:
             return ""
         attrs = {
@@ -303,7 +304,8 @@ class _FileListModel(qt.QStandardItemModel):
         }
         return _utils.htmlFromDict(attrs, title="HDF5 Dataset")
 
-    def _getBasename(self, text):
+    def _getBasename(self, text: str) -> str:
+        """Return the basename of a file path."""
         return text.split("/")[-1]
 
 
