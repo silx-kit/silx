@@ -1192,10 +1192,12 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             self._resetColorAndStyle()
 
-        if color is None:
+        if color is None and linestyle is None:
             default_color, default_linestyle = self._getColorAndStyle()
         elif linestyle is None:
             default_color, default_linestyle = color, self._getStyle()
+        elif color is None:
+            default_color, default_linestyle = self._getColor(), linestyle
         else:
             default_color, default_linestyle = color, linestyle
 
@@ -3111,6 +3113,25 @@ class PlotWidget(qt.QMainWindow):
             style = " "
 
         return color, style
+    
+    def _getColor(self) -> str:
+        defaultColors = self.getDefaultColors()
+        if self._colorIndex >= len(defaultColors):  # Handle list length updated
+            self._colorIndex = 0
+
+        color = defaultColors[self._colorIndex]
+
+        # Loop over color and then styles
+        self._colorIndex += 1
+        if self._colorIndex >= len(defaultColors):
+            self._colorIndex = 0
+            #self._styleIndex = (self._styleIndex + 1) % len(self._styleList)
+
+        # If color is the one of active curve, take the next one
+        if colors.rgba(color) == self.getActiveCurveStyle().getColor():
+            color = self._getColor()
+
+        return color
     
     def _getStyle(self) -> str:
         style = self._styleList[self._styleIndex]
