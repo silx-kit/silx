@@ -24,6 +24,8 @@
 """Custom plot selection window for selecting 1D datasets to plot."""
 
 from silx.gui import qt, plot, icons
+import silx.gui
+import silx.gui.plot
 import silx.gui.plot.items
 import silx.io
 import numpy
@@ -204,7 +206,7 @@ class _FileListModel(qt.QStandardItemModel):
         return fileItem, iconItem, removeItem
 
     def fileItemExists(self, filename: str) -> bool:
-        """Return True if a file item with the given filename exists in the Y datasets of the model."""
+        """Return if a file item with the given filename exists in the model for the Y datasets."""
         for row in range(self.getYParent().rowCount()):
             item = self.item(row, 1)
             if item and item.text() == filename:
