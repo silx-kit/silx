@@ -25,8 +25,6 @@ from __future__ import annotations
 """Custom plot selection window for selecting 1D datasets to plot."""
 
 from silx.gui import qt, plot, icons
-import silx.gui
-import silx.gui.plot
 import silx.gui.plot.items
 import silx.io
 import numpy
