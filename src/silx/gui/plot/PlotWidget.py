@@ -1192,12 +1192,10 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             self._resetColorAndStyle()
 
-        if color is None:
-            default_color, default_linestyle = self._getColorAndStyle()
-        elif linestyle is None:
+        if color is not None:
             default_color, default_linestyle = color, self._styleList[self._styleIndex]
         else:
-            default_color, default_linestyle = color, linestyle
+            default_color, default_linestyle = self._getColorAndStyle()
 
         # Create/Update curve object
         curve = self.getCurve(legend)
