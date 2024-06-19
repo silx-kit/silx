@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 # ###########################################################################*/
 
+from __future__ import annotations
 """Custom plot selection window for selecting 1D datasets to plot."""
 
 from silx.gui import qt, plot, icons
