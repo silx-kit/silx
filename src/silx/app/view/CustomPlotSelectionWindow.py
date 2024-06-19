@@ -86,7 +86,11 @@ class _HashDropZones(qt.QStyledItemDelegate):
             painter.setPen(self.__highlightDropPen if isDropTarget else self.__dropPen)
             painter.drawRect(option.rect.adjusted(3, 3, -3, -3))
 
-            painter.drawText(option.rect.adjusted(3, 3, -3, -3), qt.Qt.AlignLeft | qt.Qt.AlignVCenter, "Drop a 1D dataset")
+            painter.drawText(
+                option.rect.adjusted(3, 3, -3, -3),
+                qt.Qt.AlignLeft | qt.Qt.AlignVCenter,
+                "Drop a 1D dataset",
+            )
             painter.restore()
         else:
             qt.QStyledItemDelegate.paint(self, painter, option, index)
@@ -130,13 +134,13 @@ class _FileListModel(qt.QStandardItemModel):
         if url is None:
             dataName = ""
         else:
-            dataName = self._getTextSplit(url.data_path())
+            dataName = self._getBasename(url.data_path())
             self._plot1D.setXAxisLabel(dataName)
 
         fileItem, iconItem, removeItem = self._createRowItems(dataName, curve)
         fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
-        fileItem.setData(self._getDefautToolTip(url), qt.Qt.ToolTipRole)
+        fileItem.setData(self._createToolTip(url), qt.Qt.ToolTipRole)
 
         xIndex = self._findRowContainingText("X")
         if xIndex is not None:
@@ -147,12 +151,12 @@ class _FileListModel(qt.QStandardItemModel):
         if url is None:
             dataName = ""
         else:
-            dataName = self._getTextSplit(url.data_path())
+            dataName = self._getBasename(url.data_path())
         fileItem, iconItem, removeItem = self._createRowItems(dataName, curve)
         if not dataName:
             fileItem.setData(qt.QSize(0, 30), qt.Qt.SizeHintRole)
 
-        fileItem.setData(self._getDefautToolTip(url), qt.Qt.ToolTipRole)
+        fileItem.setData(self._createToolTip(url), qt.Qt.ToolTipRole)
 
         if self.getYParent().rowCount() == 0:
             self.getYParent().appendRow([qt.QStandardItem(), fileItem])
@@ -211,7 +215,6 @@ class _FileListModel(qt.QStandardItemModel):
                     curve = self._addPlot(self._xDataset, data)
                     self._addYFile(url, curve)
 
-
     def _addPlot(self, x, y):
         if x is None:
             x = numpy.arange(len(y))
@@ -262,32 +265,18 @@ class _FileListModel(qt.QStandardItemModel):
         self._plot1D.clear()
         self._updateYCurvesWithDefaultX()
 
-    def _createTooltipAttributes(self, url):
-        attributeDict = {}
+    def _createToolTip(self, url):
+        if url is None:
+            return ""
+        attrs = {
+            "Name": self._getBasename(url.data_path()),
+            "Path": url.data_path(),
+            "File name": self._getBasename(url.file_path()),
+        }
+        return _utils.htmlFromDict(attrs, title="HDF5 Dataset")
 
-        if url is not None:
-            attributeDict["#Title"] = "HDF5 Dataset"
-            attributeDict["Name"] = self._getTextSplit(url.data_path())
-            attributeDict["Path"] = url.data_path()
-            attributeDict["File name"] = self._getTextSplit(url.file_path())
-        else:
-            pass
-        return attributeDict
-    
-    def _getDefautToolTip(self, url):
-        attrs = self._createTooltipAttributes(url)
-        title = attrs.pop("#Title", None)
-        if len(attrs) > 0:
-            tooltip = _utils.htmlFromDict(attrs, title=title)
-        else:
-            tooltip = ""
-
-        return tooltip
-
-    def _getTextSplit(self, text):
-        textSplit = text.split("/")
-        return textSplit[len(textSplit) - 1]
-
+    def _getBasename(self, text):
+        return text.split("/")[-1]
 
 
 class _DropTreeView(qt.QTreeView):
@@ -372,14 +361,17 @@ class _DropTreeView(qt.QTreeView):
                 self.setIndexWidget(index, None)
                 self.model()._plot1D.setXAxisLabel("X")
                 self.model()._updateYCurvesWithDefaultX()
-                
+
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
         self.acceptDragEvent(event)
 
     def dragMoveEvent(self, event):
         dropIndex = self.indexAt(event.pos())
-        if dropIndex.isValid() and self.model().itemFromIndex(dropIndex).parent() is None:
+        if (
+            dropIndex.isValid()
+            and self.model().itemFromIndex(dropIndex).parent() is None
+        ):
             self.setDropHighlight("X")
         else:
             self.setDropHighlight("Y")
@@ -395,7 +387,10 @@ class _DropTreeView(qt.QTreeView):
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
         dropIndex = self.indexAt(event.pos())
-        if dropIndex.isValid() and self.model().itemFromIndex(dropIndex).parent() is None:
+        if (
+            dropIndex.isValid()
+            and self.model().itemFromIndex(dropIndex).parent() is None
+        ):
             self.setX(url)
         else:
             self.addY(url)
@@ -440,10 +435,14 @@ class _DropTreeView(qt.QTreeView):
 
     def setDropHighlight(self, value):
         xDropFileItem = self.model().itemFromIndex(
-            self.model().sibling(0, 1, self.model().indexFromItem(self.model().getXParent()))
+            self.model().sibling(
+                0, 1, self.model().indexFromItem(self.model().getXParent())
+            )
         )
         xDropFileItem.setData(value == "X", _DROP_HIGHLIGHT_ROLE)
-        yDropFileItem = self.model().getYParent().child(self.model().getYParent().rowCount() -1, 1)
+        yDropFileItem = (
+            self.model().getYParent().child(self.model().getYParent().rowCount() - 1, 1)
+        )
         yDropFileItem.setData(value == "Y", _DROP_HIGHLIGHT_ROLE)
 
 
@@ -458,7 +457,7 @@ class _DropPlot1D(plot.Plot1D):
 
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
-        self._treeView.acceptDrop(event)
+        self._treeView.acceptDragEvent(event)
 
     def dropEvent(self, event):
         super().dropEvent(event)
@@ -490,7 +489,6 @@ class _PlotToolBar(qt.QToolBar):
         super().__init__(parent)
 
     def addClearAction(self, treeView):
-        
         icon = self.style().standardIcon(qt.QStyle.SP_TrashIcon)
         clearAction = qt.QAction(icon, "Clear All", self)
         clearAction.triggered.connect(treeView.clear)
@@ -532,4 +530,3 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
     def hideEvent(self, event):
         super().hideEvent(event)
         self.sigVisibilityChanged.emit(False)
-
