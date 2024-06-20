@@ -1341,6 +1341,8 @@ class PlotWidget(qt.QMainWindow):
             # add it to the plot
             histo = items.Histogram()
             histo.setName(legend)
+            if color is None:  # Rotate default color only if used
+                histo.setColor(self._getColorAndStyle()[0])
 
         # Override previous/default values with provided ones
         if color is not None:
@@ -1349,8 +1351,6 @@ class PlotWidget(qt.QMainWindow):
                 if isinstance(color, str)
                 else color
             )
-        else:
-            histo.setColor(self._getColorAndStyle()[0])
         if fill is not None:
             histo.setFill(fill)
         if z is not None:
