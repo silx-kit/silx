@@ -1192,6 +1192,11 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             self._resetColorAndStyle()
 
+        if color is not None:
+            default_color, default_linestyle = color, self._styleList[self._styleIndex]
+        else:
+            default_color, default_linestyle = self._getColorAndStyle()
+
         # Create/Update curve object
         curve = self.getCurve(legend)
         mustBeAdded = curve is None
@@ -1200,7 +1205,6 @@ class PlotWidget(qt.QMainWindow):
             curve = items.Curve() if histogram is None else items.Histogram()
             curve.setName(legend)
             # Set default color, linestyle and symbol
-            default_color, default_linestyle = self._getColorAndStyle()
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
@@ -1337,7 +1341,8 @@ class PlotWidget(qt.QMainWindow):
             # add it to the plot
             histo = items.Histogram()
             histo.setName(legend)
-            histo.setColor(self._getColorAndStyle()[0])
+            if color is None:  # Rotate default color only if used
+                histo.setColor(self._getColorAndStyle()[0])
 
         # Override previous/default values with provided ones
         if color is not None:
