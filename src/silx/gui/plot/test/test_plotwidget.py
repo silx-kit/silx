@@ -2057,6 +2057,7 @@ class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered:RuntimeWarning")
+@pytest.mark.filterwarnings("ignore:.* converting a masked element to nan.:UserWarning")
 @pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
 @pytest.mark.parametrize(
     "xerror,yerror",
