@@ -130,18 +130,18 @@ class _UtilsMixin(object):
         raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
-        path1_ = os.path.normcase(os.path.realpath(path1))
-        path2_ = os.path.normcase(os.path.realpath(path2))
-        if path1_ != path2_:
-            # Use the unittest API to log and display error
-            self.assertEqual(path1, path2)
+        self.assertEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths differs: {path1} != {path2}",
+        )
 
     def assertNotSamePath(self, path1, path2):
-        path1_ = os.path.normcase(os.path.realpath(path1))
-        path2_ = os.path.normcase(os.path.realpath(path2))
-        if path1_ == path2_:
-            # Use the unittest API to log and display error
-            self.assertNotEqual(path1, path2)
+        self.assertNotEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths are equals: {path1} == {path2}",
+        )
 
 
 class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
