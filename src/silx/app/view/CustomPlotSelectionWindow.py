@@ -501,6 +501,7 @@ class _DropPlot1D(plot.Plot1D):
         super().__init__(parent)
         self.setAcceptDrops(True)
         self._treeView = None
+        self.dropOverlay = DropOverlay(self)
 
     def setTreeView(self, treeView: qt.QTreeView):
         """Set the TreeView widget for the plot."""
@@ -509,9 +510,19 @@ class _DropPlot1D(plot.Plot1D):
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
         self._treeView.acceptDragEvent(event)
+        self._showDropOverlay(event)
+
+    def dragMoveEvent(self, event):
+        super().dragMoveEvent(event)
+        self._showDropOverlay(event)
+
+    def dragLeaveEvent(self, event):
+        super().dragLeaveEvent(event)
+        self.dropOverlay.hideOverlay()
 
     def dropEvent(self, event):
         super().dropEvent(event)
+        self.dropOverlay.hideOverlay()
         byteString = event.mimeData().data("application/x-silx-uri")
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
@@ -535,8 +546,26 @@ class _DropPlot1D(plot.Plot1D):
         xAxis = self.getXAxis()
         xAxis.setLabel(label)
 
+    def _showDropOverlay(self, event):
+        """Show the drop overlay at the drop position."""
+        plotArea = self.getWidgetHandle()
+        dropPosition = plotArea.mapFrom(self, event.pos())
+        offset = plotArea.mapTo(self, qt.QPoint(0, 0))
+
+        plotBounds = self.getPlotBoundsInPixels()
+        left, top, width, height = plotBounds
+        yAreaTop = top + height
+
+        if dropPosition.y() > yAreaTop:
+            rect = qt.QRect(left + offset.x(), yAreaTop + offset.y(), width, 20)
+        else:
+            rect = qt.QRect(left + offset.x(), top + offset.y(), width, height)
+
+        self.dropOverlay.showOverlay(rect)
+
 
 class _PlotToolBar(qt.QToolBar):
+    """Toolbar widget for the plot."""
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -546,6 +575,31 @@ class _PlotToolBar(qt.QToolBar):
         clearAction = qt.QAction(icon, "Clear All", self)
         clearAction.triggered.connect(treeView.clear)
         self.addAction(clearAction)
+
+class DropOverlay(qt.QWidget):
+    """Overlay widget for displaying drop zones on the plot."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(qt.Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(qt.Qt.WA_NoSystemBackground)
+        self.hide()
+
+    def showOverlay(self, rect):
+        """Show the overlay at the given rectangle."""
+        self.setGeometry(rect)
+        self.show()
+
+    def hideOverlay(self):
+        """Hide the overlay."""
+        self.hide()
+
+    def paintEvent(self, event):
+        """Paint the overlay."""
+        painter = qt.QPainter(self)
+        painter.setRenderHint(qt.QPainter.Antialiasing)
+        painter.setPen(qt.QPen(qt.Qt.red, 3, qt.Qt.DashLine))
+        painter.setBrush(qt.QBrush(qt.Qt.transparent))
+        painter.drawRect(self.rect())
 
 
 class CustomPlotSelectionWindow(qt.QMainWindow):
