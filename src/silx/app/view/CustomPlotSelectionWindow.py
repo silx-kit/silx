@@ -549,6 +549,8 @@ class _PlotToolBar(qt.QToolBar):
 
 
 class CustomPlotSelectionWindow(qt.QMainWindow):
+    """A customized plot selection window allowing the user to select and display 1D data sets."""
+
     sigVisibilityChanged = qt.Signal(bool)
 
     def __init__(self, parent=None):
