@@ -26,17 +26,17 @@ environment:
     matrix:
         # Python 3.9
         - PYTHON_DIR: "C:\\Python39-x64"
-          QT_BINDING: "PyQt5"
+          QT_API: "PyQt5"
           PIP_OPTIONS: "-q --pre"
 
         # Python 3.12
         - PYTHON_DIR: "C:\\Python312-x64"
-          QT_BINDING: "PySide6"
+          QT_API: "PySide6"
           PIP_OPTIONS: "-q --pre"
 
         # Python 3.11
         - PYTHON_DIR: "C:\\Python311-x64"
-          QT_BINDING: "PyQt6"
+          QT_API: "PyQt6"
           PIP_OPTIONS: "-q"
 
 
@@ -91,7 +91,7 @@ before_test:
     - pip install %PIP_OPTIONS% -r requirements.txt
 
     # Install selected Qt binding
-    - pip install %PIP_OPTIONS% "%QT_BINDING%"
+    - pip install %PIP_OPTIONS% "%QT_API%"
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
@@ -114,7 +114,7 @@ before_test:
 
 test_script:
     # Run tests with selected Qt binding and without OpenCL
-    - python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=('--no-opencl', '--low-mem', '--qt-binding=%QT_BINDING%')));"
+    - python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=('--no-opencl', '--low-mem', '--qt-binding=%QT_API%')));"
 
 after_test:
     # Leave test virtualenv
