@@ -94,7 +94,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
             painter.drawText(
                 option.rect.adjusted(3, 3, -3, -3),
                 qt.Qt.AlignLeft | qt.Qt.AlignVCenter,
-                "Drop a 1D dataset",
+                " Drop a 1D dataset",
             )
             painter.restore()
         else:
@@ -514,7 +514,8 @@ class _DropPlot1D(plot.Plot1D):
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
         self._treeView.acceptDragEvent(event)
-        self._showDropOverlay(event)
+        if event.isAccepted():
+            self._showDropOverlay(event)
 
     def dragMoveEvent(self, event):
         super().dragMoveEvent(event)
@@ -561,7 +562,7 @@ class _DropPlot1D(plot.Plot1D):
         yAreaTop = top + height
 
         if dropPosition.y() > yAreaTop:
-            rect = qt.QRect(left + offset.x(), yAreaTop + offset.y(), width, 20)
+            rect = qt.QRect(left + offset.x(), yAreaTop + offset.y(), width, 50)
         else:
             rect = qt.QRect(left + offset.x(), top + offset.y(), width, height)
 
@@ -604,7 +605,6 @@ class DropOverlay(qt.QWidget):
         """Paint the overlay."""
         painter = qt.QPainter(self)
         painter.setRenderHint(qt.QPainter.Antialiasing)
-        painter.setPen(qt.QPen(qt.Qt.black, 3, qt.Qt.DashLine))
         brush_color = qt.QColor(0, 0, 0, 50)
         painter.setBrush(qt.QBrush(brush_color))
         painter.drawRect(self.rect())

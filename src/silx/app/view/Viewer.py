@@ -1016,11 +1016,11 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
                 if h5.ndim == 1:
-                    action = qt.QAction("Set to plot selection (X)", event.source())
+                    action = qt.QAction("Set abscissa to plot selection", event.source())
                     action.triggered.connect(lambda: self.setToPlotSelection(obj.data_url))
                     menu.addAction(action)
 
-                    action = qt.QAction("Add to plot selection (Y)", event.source())
+                    action = qt.QAction("Add ordinate to plot selection (Y)", event.source())
                     action.triggered.connect(lambda: self.addToPlotSelection(obj.data_url))
                     menu.addAction(action)
 
