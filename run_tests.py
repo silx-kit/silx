@@ -170,22 +170,10 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
             return os.path.join(PROJECT_PATH, *option_parts[2:])
         return option
 
-    args = [normalize_option(p) for p in sys.argv[1:] if p != "--installed"]
-
-    # Run test on PROJECT_PATH if nothing is specified
-    without_options = [a for a in args if not a.startswith("-")]
-    if len(without_options) == 0:
-        args += [PROJECT_PATH]
-
-    argv = ["--rootdir", PROJECT_PATH] + args
+    test_module = importlib.import_module(f"{PROJECT_NAME}.test")
     sys.exit(
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-            ]
-            + argv,
-            check=False,
-        ).returncode
+        test_module.run_tests(
+            module=None,
+            args=[normalize_option(p) for p in sys.argv[1:] if p != "--installed"],
+        )
     )
