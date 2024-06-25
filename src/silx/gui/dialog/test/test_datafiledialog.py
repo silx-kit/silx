@@ -47,7 +47,7 @@ _tmpDirectory = None
 
 def setUpModule():
     global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
+    _tmpDirectory = os.path.realpath(tempfile.mkdtemp(prefix=__name__))
 
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
