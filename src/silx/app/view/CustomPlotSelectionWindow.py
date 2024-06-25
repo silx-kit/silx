@@ -359,23 +359,27 @@ class _DropTreeView(qt.QTreeView):
         if parentItem is None:
             parentItem = self.model().getXParent()
             index = self.model().index(0, 2)
-            button = qt.QToolButton(self)
-            button.setIcon(icons.getQIcon("remove"))
-            button.clicked.connect(
-                functools.partial(self._removeFile, None, parentItem)
-            )
+            button = self._getRemoveButton(None, parentItem)
             self.setIndexWidget(index, button)
             return
 
         # If the parentItem is not None, the remove button is for a Y dataset
         removeItem = parentItem.child(row, 2)
         if removeItem:
-            button = qt.QToolButton(self)
-            button.setIcon(icons.getQIcon("remove"))
-            button.clicked.connect(
-                functools.partial(self._removeFile, removeItem, parentItem)
-            )
+            button = self._getRemoveButton(removeItem, parentItem)
             self.setIndexWidget(removeItem.index(), button)
+
+    def _getRemoveButton(
+        self, removeItem: qt.QStandardItem | None, parentItem: qt.QStandardItem
+    ) -> qt.QToolButton:
+        """Return a remove button widget."""
+        button = qt.QToolButton(self)
+        button.setIcon(icons.getQIcon("remove"))
+        button.setStyleSheet("QToolButton { border-radius: 0px; }")
+        button.clicked.connect(
+            functools.partial(self._removeFile, removeItem, parentItem)
+        )
+        return button
 
     def _removeFile(
         self, removeItem: qt.QStandardItem | None, parentItem: qt.QStandardItem
@@ -566,6 +570,7 @@ class _DropPlot1D(plot.Plot1D):
 
 class _PlotToolBar(qt.QToolBar):
     """Toolbar widget for the plot."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -576,8 +581,10 @@ class _PlotToolBar(qt.QToolBar):
         clearAction.triggered.connect(treeView.clear)
         self.addAction(clearAction)
 
+
 class DropOverlay(qt.QWidget):
     """Overlay widget for displaying drop zones on the plot."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(qt.Qt.WA_TransparentForMouseEvents)
@@ -597,8 +604,9 @@ class DropOverlay(qt.QWidget):
         """Paint the overlay."""
         painter = qt.QPainter(self)
         painter.setRenderHint(qt.QPainter.Antialiasing)
-        painter.setPen(qt.QPen(qt.Qt.red, 3, qt.Qt.DashLine))
-        painter.setBrush(qt.QBrush(qt.Qt.transparent))
+        painter.setPen(qt.QPen(qt.Qt.black, 3, qt.Qt.DashLine))
+        brush_color = qt.QColor(0, 0, 0, 50)
+        painter.setBrush(qt.QBrush(brush_color))
         painter.drawRect(self.rect())
 
 
