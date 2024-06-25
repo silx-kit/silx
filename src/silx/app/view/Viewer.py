@@ -1020,7 +1020,7 @@ class Viewer(qt.QMainWindow):
                     action.triggered.connect(lambda: self.setToPlotSelection(obj.data_url))
                     menu.addAction(action)
 
-                    action = qt.QAction("Add ordinate to plot selection (Y)", event.source())
+                    action = qt.QAction("Add ordinate to plot selection", event.source())
                     action.triggered.connect(lambda: self.addToPlotSelection(obj.data_url))
                     menu.addAction(action)
 
