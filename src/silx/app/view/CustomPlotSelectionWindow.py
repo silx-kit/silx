@@ -584,11 +584,6 @@ class DropOverlay(qt.QWidget):
         self.setAttribute(qt.Qt.WA_NoSystemBackground)
         self.hide()
 
-    def showOverlay(self, rect):
-        """Show the overlay at the given rectangle."""
-        self.setGeometry(rect)
-        self.show()
-
     def paintEvent(self, event):
         """Paint the overlay."""
         painter = qt.QPainter(self)
