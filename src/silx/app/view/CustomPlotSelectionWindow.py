@@ -444,10 +444,7 @@ class _DropTreeView(qt.QTreeView):
             url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
             with silx.io.open(url.file_path()) as file:
                 data = file[url.data_path()]
-                if (
-                    silx.io.is_dataset(data)
-                    and data.ndim == 1
-                ):
+                if silx.io.is_dataset(data) and data.ndim == 1:
                     event.acceptProposedAction()
         else:
             event.ignore()
@@ -600,16 +597,16 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Plot selection")
 
-        self.plot1D = _DropPlot1D()
-        model = _FileListModel(self.plot1D)
+        plot1D = _DropPlot1D()
+        model = _FileListModel(plot1D)
 
-        self.treeView = _DropTreeView(model, self)
-        self.plot1D.setTreeView(self.treeView)
+        self._treeView = _DropTreeView(model, self)
+        plot1D.setTreeView(self._treeView)
 
         centralWidget = qt.QSplitter()
 
-        centralWidget.addWidget(self.treeView)
-        centralWidget.addWidget(self.plot1D)
+        centralWidget.addWidget(self._treeView)
+        centralWidget.addWidget(plot1D)
 
         centralWidget.setCollapsible(0, False)
         centralWidget.setCollapsible(1, False)
@@ -617,9 +614,9 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
 
         self.setCentralWidget(centralWidget)
 
-        self.toolbar = _PlotToolBar(self)
-        self.toolbar.addClearAction(self.treeView)
-        self.addToolBar(qt.Qt.TopToolBarArea, self.toolbar)
+        toolbar = _PlotToolBar(self)
+        toolbar.addClearAction(self._treeView)
+        self.addToolBar(qt.Qt.TopToolBarArea, toolbar)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -628,3 +625,11 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
     def hideEvent(self, event):
         super().hideEvent(event)
         self.sigVisibilityChanged.emit(False)
+
+    def setX(self, dataUrl: silx.io.url.DataUrl):
+        """Set the X dataset in the model and the plot."""
+        self._treeView.setX(dataUrl)
+
+    def addY(self, dataUrl: silx.io.url.DataUrl):
+        """Add a Y dataset to the model and the plot."""
+        self._treeView.addY(dataUrl)

@@ -973,11 +973,11 @@ class Viewer(qt.QMainWindow):
 
     def setToPlotSelectionAbscissaValues(self, h5dataset):
         self.__makeSureCustomPlotSelectionWindowIsVisible()
-        self._customPlotSelectionWindow.treeView.setX(h5dataset)
+        self._customPlotSelectionWindow.setX(h5dataset)
 
     def addAsPlotSelectionOrdinateValues(self, h5dataset):
         self.__makeSureCustomPlotSelectionWindowIsVisible()
-        self._customPlotSelectionWindow.treeView.addY(h5dataset)
+        self._customPlotSelectionWindow.addY(h5dataset)
 
     def useAsNewCustomNxdata(self, h5nxdata):
         self.__makeSureCustomNxDataWindowIsVisible()
