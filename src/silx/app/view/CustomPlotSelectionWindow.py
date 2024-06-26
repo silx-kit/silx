@@ -206,14 +206,6 @@ class _FileListModel(qt.QStandardItemModel):
 
         return fileItem, iconItem, removeItem
 
-    def fileItemExists(self, filename: str) -> bool:
-        """Return if a file item with the given filename exists in the model for the Y datasets."""
-        for row in range(self.getYParent().rowCount()):
-            item = self.item(row, 1)
-            if item and item.text() == filename:
-                return True
-        return False
-
     def addUrl(self, url: silx.io.url.DataUrl, node: str = "X"):
         """Add a dataset to the model"""
         if url.file_path() is not None:
@@ -455,7 +447,6 @@ class _DropTreeView(qt.QTreeView):
                 if (
                     silx.io.is_dataset(data)
                     and data.ndim == 1
-                    and not self.model().fileItemExists(url.data_path())
                 ):
                     event.acceptProposedAction()
         else:
@@ -516,6 +507,7 @@ class _DropPlot1D(plot.Plot1D):
         self._treeView.acceptDragEvent(event)
         if event.isAccepted():
             self._showDropOverlay(event)
+            self.dropOverlay.show()
 
     def dragMoveEvent(self, event):
         super().dragMoveEvent(event)
@@ -523,11 +515,11 @@ class _DropPlot1D(plot.Plot1D):
 
     def dragLeaveEvent(self, event):
         super().dragLeaveEvent(event)
-        self.dropOverlay.hideOverlay()
+        self.dropOverlay.hide()
 
     def dropEvent(self, event):
         super().dropEvent(event)
-        self.dropOverlay.hideOverlay()
+        self.dropOverlay.hide()
         byteString = event.mimeData().data("application/x-silx-uri")
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
@@ -566,7 +558,7 @@ class _DropPlot1D(plot.Plot1D):
         else:
             rect = qt.QRect(left + offset.x(), top + offset.y(), width, height)
 
-        self.dropOverlay.showOverlay(rect)
+        self.dropOverlay.setGeometry(rect)
 
 
 class _PlotToolBar(qt.QToolBar):
@@ -596,10 +588,6 @@ class DropOverlay(qt.QWidget):
         """Show the overlay at the given rectangle."""
         self.setGeometry(rect)
         self.show()
-
-    def hideOverlay(self):
-        """Hide the overlay."""
-        self.hide()
 
     def paintEvent(self, event):
         """Paint the overlay."""

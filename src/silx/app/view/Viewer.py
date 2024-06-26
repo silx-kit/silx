@@ -965,18 +965,17 @@ class Viewer(qt.QMainWindow):
     def __makeSureCustomPlotSelectionWindowIsVisible(self):
         if not self._customPlotSelectionWindow.isVisible():
             self._customPlotSelectionWindow.setVisible(True)
-            self._displayCustomPlotSelectionWindow.setChecked(True)
 
     def useAsNewCustomSignal(self, h5dataset):
         self.__makeSureCustomNxDataWindowIsVisible()
         model = self.__customNxdata.model()
         model.createFromSignal(h5dataset)
 
-    def setToPlotSelection(self, h5dataset):
+    def setToPlotSelectionAbscissaValues(self, h5dataset):
         self.__makeSureCustomPlotSelectionWindowIsVisible()
         self._customPlotSelectionWindow.treeView.setX(h5dataset)
 
-    def addToPlotSelection(self, h5dataset):
+    def addAsPlotSelectionOrdinateValues(self, h5dataset):
         self.__makeSureCustomPlotSelectionWindowIsVisible()
         self._customPlotSelectionWindow.treeView.addY(h5dataset)
 
@@ -1016,12 +1015,12 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
                 if h5.ndim == 1:
-                    action = qt.QAction("Set abscissa to plot selection", event.source())
-                    action.triggered.connect(lambda: self.setToPlotSelection(obj.data_url))
+                    action = qt.QAction("Set X value to plot selection", event.source())
+                    action.triggered.connect(lambda: self.setToPlotSelectionAbscissaValues(obj.data_url))
                     menu.addAction(action)
 
-                    action = qt.QAction("Add ordinate to plot selection", event.source())
-                    action.triggered.connect(lambda: self.addToPlotSelection(obj.data_url))
+                    action = qt.QAction("Add Y values to plot selection", event.source())
+                    action.triggered.connect(lambda: self.addAsPlotSelectionOrdinateValues(obj.data_url))
                     menu.addAction(action)
 
             if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):
