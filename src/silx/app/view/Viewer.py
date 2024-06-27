@@ -1014,7 +1014,7 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
                 if h5.ndim == 1:
-                    action = qt.QAction("Set X value to plot selection", event.source())
+                    action = qt.QAction("Set X values of plot selection", event.source())
                     action.triggered.connect(lambda: self.setToPlotSelectionAbscissaValues(obj.data_url))
                     menu.addAction(action)
 
