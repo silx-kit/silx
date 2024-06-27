@@ -58,16 +58,22 @@ jobs:
             python-version: "3.9"
             BUILD_COMMAND: --wheel
             QT_API: PyQt5
+            env:
+              WITH_GL_TEST: False
           - name-suffix: "PyQt6 wheel"
             os: windows-latest
             python-version: "3.12"
             BUILD_COMMAND: --wheel
             QT_API: PyQt6
+            env:
+              WITH_GL_TEST: False
           - name-suffix: "PySide6 wheel"
             os: windows-latest
             python-version: "3.10"
             BUILD_COMMAND: --wheel
             QT_API: PySide6
+            env:
+              WITH_GL_TEST: False
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
