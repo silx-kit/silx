@@ -58,7 +58,7 @@ from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
 from ...utils.deprecation import deprecated
-from ...utils.enum import Enum
+from ...utils._enum import Enum
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals

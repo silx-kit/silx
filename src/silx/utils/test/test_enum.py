@@ -29,7 +29,7 @@ __date__ = "29/04/2019"
 
 
 import pytest
-from silx.utils.enum import Enum
+from silx.utils._enum import Enum
 
 
 def test_enum_methods():

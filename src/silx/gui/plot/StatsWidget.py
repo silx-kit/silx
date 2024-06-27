@@ -37,7 +37,7 @@ import functools
 import numpy
 import enum
 from silx.utils.proxy import docstring
-from silx.utils.enum import Enum as _Enum
+from silx.utils._enum import Enum as _Enum
 from silx.gui import qt
 from silx.gui import icons
 from silx.gui.plot import stats as statsmdl
