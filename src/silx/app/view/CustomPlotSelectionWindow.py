@@ -94,7 +94,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
             painter.drawText(
                 option.rect.adjusted(3, 3, -3, -3),
                 qt.Qt.AlignLeft | qt.Qt.AlignVCenter,
-                "Drop a 1D dataset",
+                " Drop a 1D dataset",
             )
             painter.restore()
         else:
@@ -205,14 +205,6 @@ class _FileListModel(qt.QStandardItemModel):
         iconItem.setEditable(False)
 
         return fileItem, iconItem, removeItem
-
-    def fileItemExists(self, filename: str) -> bool:
-        """Return if a file item with the given filename exists in the model for the Y datasets."""
-        for row in range(self.getYParent().rowCount()):
-            item = self.item(row, 1)
-            if item and item.text() == filename:
-                return True
-        return False
 
     def addUrl(self, url: silx.io.url.DataUrl, node: str = "X"):
         """Add a dataset to the model"""
@@ -359,23 +351,27 @@ class _DropTreeView(qt.QTreeView):
         if parentItem is None:
             parentItem = self.model().getXParent()
             index = self.model().index(0, 2)
-            button = qt.QToolButton(self)
-            button.setIcon(icons.getQIcon("remove"))
-            button.clicked.connect(
-                functools.partial(self._removeFile, None, parentItem)
-            )
+            button = self._getRemoveButton(None, parentItem)
             self.setIndexWidget(index, button)
             return
 
         # If the parentItem is not None, the remove button is for a Y dataset
         removeItem = parentItem.child(row, 2)
         if removeItem:
-            button = qt.QToolButton(self)
-            button.setIcon(icons.getQIcon("remove"))
-            button.clicked.connect(
-                functools.partial(self._removeFile, removeItem, parentItem)
-            )
+            button = self._getRemoveButton(removeItem, parentItem)
             self.setIndexWidget(removeItem.index(), button)
+
+    def _getRemoveButton(
+        self, removeItem: qt.QStandardItem | None, parentItem: qt.QStandardItem
+    ) -> qt.QToolButton:
+        """Return a remove button widget."""
+        button = qt.QToolButton(self)
+        button.setIcon(icons.getQIcon("remove"))
+        button.setStyleSheet("QToolButton { border-radius: 0px; }")
+        button.clicked.connect(
+            functools.partial(self._removeFile, removeItem, parentItem)
+        )
+        return button
 
     def _removeFile(
         self, removeItem: qt.QStandardItem | None, parentItem: qt.QStandardItem
@@ -448,11 +444,7 @@ class _DropTreeView(qt.QTreeView):
             url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
             with silx.io.open(url.file_path()) as file:
                 data = file[url.data_path()]
-                if (
-                    silx.io.is_dataset(data)
-                    and data.ndim == 1
-                    and not self.model().fileItemExists(url.data_path())
-                ):
+                if silx.io.is_dataset(data) and data.ndim == 1:
                     event.acceptProposedAction()
         else:
             event.ignore()
@@ -501,6 +493,7 @@ class _DropPlot1D(plot.Plot1D):
         super().__init__(parent)
         self.setAcceptDrops(True)
         self._treeView = None
+        self.dropOverlay = DropOverlay(self)
 
     def setTreeView(self, treeView: qt.QTreeView):
         """Set the TreeView widget for the plot."""
@@ -509,9 +502,21 @@ class _DropPlot1D(plot.Plot1D):
     def dragEnterEvent(self, event):
         super().dragEnterEvent(event)
         self._treeView.acceptDragEvent(event)
+        if event.isAccepted():
+            self._showDropOverlay(event)
+            self.dropOverlay.show()
+
+    def dragMoveEvent(self, event):
+        super().dragMoveEvent(event)
+        self._showDropOverlay(event)
+
+    def dragLeaveEvent(self, event):
+        super().dragLeaveEvent(event)
+        self.dropOverlay.hide()
 
     def dropEvent(self, event):
         super().dropEvent(event)
+        self.dropOverlay.hide()
         byteString = event.mimeData().data("application/x-silx-uri")
         url = silx.io.url.DataUrl(byteString.data().decode("utf-8"))
 
@@ -535,8 +540,27 @@ class _DropPlot1D(plot.Plot1D):
         xAxis = self.getXAxis()
         xAxis.setLabel(label)
 
+    def _showDropOverlay(self, event):
+        """Show the drop overlay at the drop position."""
+        plotArea = self.getWidgetHandle()
+        dropPosition = plotArea.mapFrom(self, event.pos())
+        offset = plotArea.mapTo(self, qt.QPoint(0, 0))
+
+        plotBounds = self.getPlotBoundsInPixels()
+        left, top, width, height = plotBounds
+        yAreaTop = top + height
+
+        if dropPosition.y() > yAreaTop:
+            rect = qt.QRect(left + offset.x(), yAreaTop + offset.y(), width, 50)
+        else:
+            rect = qt.QRect(left + offset.x(), top + offset.y(), width, height)
+
+        self.dropOverlay.setGeometry(rect)
+
 
 class _PlotToolBar(qt.QToolBar):
+    """Toolbar widget for the plot."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -548,6 +572,24 @@ class _PlotToolBar(qt.QToolBar):
         self.addAction(clearAction)
 
 
+class DropOverlay(qt.QWidget):
+    """Overlay widget for displaying drop zones on the plot."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(qt.Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(qt.Qt.WA_NoSystemBackground)
+        self.hide()
+
+    def paintEvent(self, event):
+        """Paint the overlay."""
+        painter = qt.QPainter(self)
+        painter.setRenderHint(qt.QPainter.Antialiasing)
+        brush_color = qt.QColor(0, 0, 0, 50)
+        painter.setBrush(qt.QBrush(brush_color))
+        painter.drawRect(self.rect())
+
+
 class CustomPlotSelectionWindow(qt.QMainWindow):
     """A customized plot selection window allowing the user to select and display 1D data sets."""
 
@@ -557,16 +599,16 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Plot selection")
 
-        self.plot1D = _DropPlot1D()
-        model = _FileListModel(self.plot1D)
+        plot1D = _DropPlot1D()
+        model = _FileListModel(plot1D)
 
-        self.treeView = _DropTreeView(model, self)
-        self.plot1D.setTreeView(self.treeView)
+        self._treeView = _DropTreeView(model, self)
+        plot1D.setTreeView(self._treeView)
 
         centralWidget = qt.QSplitter()
 
-        centralWidget.addWidget(self.treeView)
-        centralWidget.addWidget(self.plot1D)
+        centralWidget.addWidget(self._treeView)
+        centralWidget.addWidget(plot1D)
 
         centralWidget.setCollapsible(0, False)
         centralWidget.setCollapsible(1, False)
@@ -574,9 +616,9 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
 
         self.setCentralWidget(centralWidget)
 
-        self.toolbar = _PlotToolBar(self)
-        self.toolbar.addClearAction(self.treeView)
-        self.addToolBar(qt.Qt.TopToolBarArea, self.toolbar)
+        toolbar = _PlotToolBar(self)
+        toolbar.addClearAction(self._treeView)
+        self.addToolBar(qt.Qt.TopToolBarArea, toolbar)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -585,3 +627,11 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
     def hideEvent(self, event):
         super().hideEvent(event)
         self.sigVisibilityChanged.emit(False)
+
+    def setX(self, dataUrl: silx.io.url.DataUrl):
+        """Set the X dataset in the model and the plot."""
+        self._treeView.setX(dataUrl)
+
+    def addY(self, dataUrl: silx.io.url.DataUrl):
+        """Add a Y dataset to the model and the plot."""
+        self._treeView.addY(dataUrl)

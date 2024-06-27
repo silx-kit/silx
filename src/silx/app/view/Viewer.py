@@ -962,10 +962,22 @@ class Viewer(qt.QMainWindow):
             self.__customNxdataWindow.setVisible(True)
             self._displayCustomNxdataWindow.setChecked(True)
 
+    def __makeSureCustomPlotSelectionWindowIsVisible(self):
+        if not self._customPlotSelectionWindow.isVisible():
+            self._customPlotSelectionWindow.setVisible(True)
+
     def useAsNewCustomSignal(self, h5dataset):
         self.__makeSureCustomNxDataWindowIsVisible()
         model = self.__customNxdata.model()
         model.createFromSignal(h5dataset)
+
+    def setToPlotSelectionAbscissaValues(self, h5dataset):
+        self.__makeSureCustomPlotSelectionWindowIsVisible()
+        self._customPlotSelectionWindow.setX(h5dataset)
+
+    def addAsPlotSelectionOrdinateValues(self, h5dataset):
+        self.__makeSureCustomPlotSelectionWindowIsVisible()
+        self._customPlotSelectionWindow.addY(h5dataset)
 
     def useAsNewCustomNxdata(self, h5nxdata):
         self.__makeSureCustomNxDataWindowIsVisible()
@@ -986,7 +998,6 @@ class Viewer(qt.QMainWindow):
 
         for obj in selectedObjects:
             h5 = obj.h5py_object
-
             name = obj.name
             if name.startswith("/"):
                 name = name[1:]
@@ -1001,6 +1012,15 @@ class Viewer(qt.QMainWindow):
                 action = qt.QAction("Use as a new custom signal", event.source())
                 action.triggered.connect(lambda: self.useAsNewCustomSignal(h5))
                 menu.addAction(action)
+
+                if h5.ndim == 1:
+                    action = qt.QAction("Set X values of plot selection", event.source())
+                    action.triggered.connect(lambda: self.setToPlotSelectionAbscissaValues(obj.data_url))
+                    menu.addAction(action)
+
+                    action = qt.QAction("Add Y values to plot selection", event.source())
+                    action.triggered.connect(lambda: self.addAsPlotSelectionOrdinateValues(obj.data_url))
+                    menu.addAction(action)
 
             if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):
                 action = qt.QAction("Use as a new custom NXdata", event.source())
