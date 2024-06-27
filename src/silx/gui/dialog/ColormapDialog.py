@@ -778,8 +778,11 @@ class _ColormapHistogram(qt.QWidget):
         self._displayMode = mode
         self._updateDisplayMode()
 
-    def getDsiplayMode(self) -> DisplayMode:
+    def getDisplayMode(self) -> DisplayMode:
         return self._displayMode
+
+    getDsiplayMode = getDisplayMode
+    """Compatibility with silx <= 2.1.0"""
 
     def _displayModeChanged(self, action):
         mode = action.data()
