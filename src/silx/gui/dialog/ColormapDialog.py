@@ -86,6 +86,7 @@ from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.utils.deprecation import deprecated
 from silx.utils.enum import Enum as _Enum
 
 _logger = logging.getLogger(__name__)
@@ -778,8 +779,12 @@ class _ColormapHistogram(qt.QWidget):
         self._displayMode = mode
         self._updateDisplayMode()
 
-    def getDsiplayMode(self) -> DisplayMode:
+    def getDisplayMode(self) -> DisplayMode:
         return self._displayMode
+
+    @deprecated(since_version="2.1.0", replacement="getDisplayMode")
+    def getDsiplayMode(self):
+        return self.getDisplayMode()
 
     def _displayModeChanged(self, action):
         mode = action.data()
