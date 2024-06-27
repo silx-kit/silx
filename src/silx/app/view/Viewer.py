@@ -998,7 +998,6 @@ class Viewer(qt.QMainWindow):
 
         for obj in selectedObjects:
             h5 = obj.h5py_object
-        
             name = obj.name
             if name.startswith("/"):
                 name = name[1:]
