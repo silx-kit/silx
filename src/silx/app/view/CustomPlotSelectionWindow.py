@@ -35,6 +35,8 @@ from silx.gui.plot.LegendSelector import LegendIcon
 import silx.io.url
 import silx.io.utils
 from silx.gui.hdf5 import _utils
+import weakref
+
 
 # Custom role for highlighting the drop zones
 _DROP_HIGHLIGHT_ROLE = qt.Qt.UserRole + 1
@@ -120,7 +122,7 @@ class _FileListModel(qt.QStandardItemModel):
         self._yParent.setEditable(False)
         root.appendRow(self._yParent)
 
-        self._plot1D = plot
+        self._plot1D = weakref.proxy(plot)
         self._index = 0
 
         self._xDataset = None
@@ -332,6 +334,8 @@ class _DropTreeView(qt.QTreeView):
     def _createIconWidget(self, row: int, parentItem: qt.QStandardItem):
         """Create the icon widget for a row in the model"""
         fileItem = parentItem.child(row, 1)
+        if fileItem is None:
+            return
         iconItem = parentItem.child(row, 0)
         curve = fileItem.data(qt.Qt.UserRole)
         if curve is None:
@@ -599,16 +603,16 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Plot selection")
 
-        plot1D = _DropPlot1D()
-        model = _FileListModel(plot1D)
+        self._plot1D = _DropPlot1D()
+        model = _FileListModel(self._plot1D)
 
         self._treeView = _DropTreeView(model, self)
-        plot1D.setTreeView(self._treeView)
+        self._plot1D.setTreeView(self._treeView)
 
         centralWidget = qt.QSplitter()
 
         centralWidget.addWidget(self._treeView)
-        centralWidget.addWidget(plot1D)
+        centralWidget.addWidget(self._plot1D)
 
         centralWidget.setCollapsible(0, False)
         centralWidget.setCollapsible(1, False)
@@ -619,6 +623,14 @@ class CustomPlotSelectionWindow(qt.QMainWindow):
         toolbar = _PlotToolBar(self)
         toolbar.addClearAction(self._treeView)
         self.addToolBar(qt.Qt.TopToolBarArea, toolbar)
+
+    def getPlot1D(self) -> _DropPlot1D:
+        """Return the plot widget."""
+        return self._plot1D
+
+    def getTreeView(self) -> _DropTreeView:
+        """Return the tree view widget."""
+        return self._treeView
 
     def showEvent(self, event):
         super().showEvent(event)
