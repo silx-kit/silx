@@ -6,7 +6,7 @@ from silx.app.view.CustomPlotSelectionWindow import CustomPlotSelectionWindow
 
 
 @pytest.fixture
-def setupMimeData(tmpdir):
+def silxMimeData(tmpdir):
     # Create HDF5 file with 1D dataset in tmpdir
     filename = str(tmpdir.join("test.h5"))
     dicttoh5({"x": [1, 2, 3], "y1": [1, 2], "y2": [4, 3, 2, 1], "y3": []}, filename)
@@ -20,7 +20,7 @@ def setupMimeData(tmpdir):
 
 
 @pytest.fixture
-def setupInvalidMimeData(tmpdir):
+def invalidSilxMimeData(tmpdir):
     # Create HDF5 file with 2D dataset in tmpdir
     filename = str(tmpdir.join("test.h5"))
     dicttoh5({"x": [[1, 2], [3, 4]], "y": [[1, 2], [3, 4]]}, filename)
@@ -33,10 +33,10 @@ def setupInvalidMimeData(tmpdir):
     return mime_data
 
 
-def testDrop(qapp, setupMimeData, qWidgetFactory):
+def testDrop(qapp, silxMimeData, qWidgetFactory):
     window = qWidgetFactory(CustomPlotSelectionWindow)
 
-    mime_data = setupMimeData
+    mime_data = silxMimeData
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
@@ -58,7 +58,7 @@ def testDrop(qapp, setupMimeData, qWidgetFactory):
 
     # Create drop event
     dropEvent = qt.QDropEvent(
-        qt.QPoint(50, 50),
+        qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -78,10 +78,10 @@ def testDrop(qapp, setupMimeData, qWidgetFactory):
     assert y_item is not None
 
 
-def testRemoveDataset(setupMimeData, qapp, qWidgetFactory):
+def testRemoveDataset(silxMimeData, qapp, qWidgetFactory):
     window = qWidgetFactory(CustomPlotSelectionWindow)
 
-    mime_data = setupMimeData
+    mime_data = silxMimeData
 
     # Create drop event for X dataset
     dragEnterEvent = qt.QDragEnterEvent(
@@ -92,7 +92,7 @@ def testRemoveDataset(setupMimeData, qapp, qWidgetFactory):
 
     # Create drop event for Y1 dataset
     dropEvent = qt.QDropEvent(
-        qt.QPoint(50, 50),
+        qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -111,10 +111,10 @@ def testRemoveDataset(setupMimeData, qapp, qWidgetFactory):
     assert model.getYParent().rowCount() == 1
 
 
-def testResetModel(setupMimeData, qapp, qWidgetFactory):
+def testResetModel(silxMimeData, qapp, qWidgetFactory):
     window = qWidgetFactory(CustomPlotSelectionWindow)
 
-    mime_data = setupMimeData
+    mime_data = silxMimeData
 
     # Create drop event for X dataset
     dragEnterEvent = qt.QDragEnterEvent(
@@ -125,7 +125,7 @@ def testResetModel(setupMimeData, qapp, qWidgetFactory):
 
     # Create drop event for dataset
     dropEvent = qt.QDropEvent(
-        qt.QPoint(50, 50),
+        qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -145,10 +145,10 @@ def testResetModel(setupMimeData, qapp, qWidgetFactory):
     assert model.getYParent().rowCount() == 1
 
 
-def testMultipleDrop(qapp, setupMimeData, qWidgetFactory, qapp_utils):
+def testMultipleDrop(qapp, silxMimeData, qWidgetFactory, qapp_utils):
     window = qWidgetFactory(CustomPlotSelectionWindow)
 
-    mime_data = setupMimeData
+    mime_data = silxMimeData
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
@@ -166,7 +166,7 @@ def testMultipleDrop(qapp, setupMimeData, qWidgetFactory, qapp_utils):
 
     # Create drop event
     dropEvent = qt.QDropEvent(
-        qt.QPoint(50, 50),
+        qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -195,10 +195,10 @@ def testMultipleDrop(qapp, setupMimeData, qWidgetFactory, qapp_utils):
     assert y_item2 is not None
 
 
-def testDropInvalid(qapp, setupInvalidMimeData, qWidgetFactory, qapp_utils):
+def testDropInvalid(qapp, invalidSilxMimeData, qWidgetFactory, qapp_utils):
     window = qWidgetFactory(CustomPlotSelectionWindow)
 
-    mime_data = setupInvalidMimeData
+    mime_data = invalidSilxMimeData
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
@@ -220,7 +220,7 @@ def testDropInvalid(qapp, setupInvalidMimeData, qWidgetFactory, qapp_utils):
 
     # Create drop event
     dropEvent = qt.QDropEvent(
-        qt.QPoint(50, 50),
+        qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
