@@ -41,7 +41,7 @@ import weakref
 import numpy
 
 from ....utils.proxy import docstring
-from ....utils.enum import Enum as _Enum
+from ....utils._enum import Enum as _Enum
 from ....math.combo import min_max
 from ... import qt
 from ... import colors

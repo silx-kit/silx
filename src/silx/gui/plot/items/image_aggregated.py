@@ -35,7 +35,7 @@ import warnings
 
 import numpy
 
-from ....utils.enum import Enum as _Enum
+from ....utils._enum import Enum as _Enum
 from ....utils.proxy import docstring
 from .axis import Axis
 from .core import ItemChangedType

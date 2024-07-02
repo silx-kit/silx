@@ -87,7 +87,7 @@ from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.utils.deprecation import deprecated
-from silx.utils.enum import Enum as _Enum
+from silx.utils._enum import Enum as _Enum
 
 _logger = logging.getLogger(__name__)
 

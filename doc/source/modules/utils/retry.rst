@@ -1,6 +1,6 @@
 .. currentmodule:: silx.utils
 
-:mod:`weakref`
+:mod:`retry`
 ---------------
 
 .. automodule:: silx.utils.retry
