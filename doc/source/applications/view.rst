@@ -37,9 +37,41 @@ and to view this data in plot widgets or in simple table views.
    * - |imgViewHdf5|
      - Viewing metadata and HDF5 attributes
 
+Custom plot selection
+---------------------
 
-Usage
------
+.. grid :: 1 2 2 2
+
+   .. grid-item-card::
+      :columns: 12
+      :text-align: center
+
+      .. figure:: img/silx-view-plotSelection.png
+         :align: center
+
+      Functionality enabling you to choose the dataset you want for the x-axis and y-axis and display several curves at once.
+
+How to access :
+............
+
+.. grid :: 1 2 2 2
+
+   .. grid-item-card::
+      :columns: 12
+      :text-align: center
+
+      .. figure:: img/silx-view-plotMenu.png
+         :align: center
+
+      Open the 'plot selection' window (View -> plot selection)
+
+      .. figure:: img/silx-view-dropPlot.png
+         :align: center
+
+      The new window opens and you can drag and drop the dataset you want to plot or to x-axis and y-axis.
+
+Command line
+------------
 
 .. code-block:: none
 
@@ -60,7 +92,7 @@ Options
   --hdf5-file-locking   Start the application with HDF5 file locking enabled (it is disabled by
                         default)
 
-Examples of usage
+Examples
 -----------------
 
 Open file(s)
