@@ -49,7 +49,7 @@ Custom plot selection
       .. figure:: img/silx-view-plotSelection.png
          :align: center
 
-      Functionality enabling you to choose the dataset you want for the x-axis and y-axis and display several curves at once.
+      Plot custom curves from selected 1D datasets.
 
 How to access :
 ............
