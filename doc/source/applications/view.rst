@@ -63,7 +63,7 @@ How to access :
       .. figure:: img/silx-view-plotMenu.png
          :align: center
 
-      Open the 'plot selection' window (View -> plot selection)
+      Open the 'Plot selection' window (View menu -> Plot selection)
 
       .. figure:: img/silx-view-dropPlot.png
          :align: center
