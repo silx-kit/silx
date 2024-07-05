@@ -37,9 +37,41 @@ and to view this data in plot widgets or in simple table views.
    * - |imgViewHdf5|
      - Viewing metadata and HDF5 attributes
 
+Custom plot selection
+---------------------
 
-Usage
------
+.. grid :: 1 2 2 2
+
+   .. grid-item-card::
+      :columns: 12
+      :text-align: center
+
+      .. figure:: img/silx-view-plotSelection.png
+         :align: center
+
+      Plot custom curves from selected 1D datasets.
+
+How to access :
+............
+
+.. grid :: 1 2 2 2
+
+   .. grid-item-card::
+      :columns: 12
+      :text-align: center
+
+      .. figure:: img/silx-view-plotMenu.png
+         :align: center
+
+      Open the 'Plot selection' window (View menu -> Plot selection)
+
+      .. figure:: img/silx-view-dropPlot.png
+         :align: center
+
+      The "Plot selection" window opens: You can plot custom curves by dragging and dropping 1D datasets from "silx view" to "Plot selection" window's "X" and "Y" fields.
+
+Command line
+------------
 
 .. code-block:: none
 
@@ -60,8 +92,8 @@ Options
   --hdf5-file-locking   Start the application with HDF5 file locking enabled (it is disabled by
                         default)
 
-Examples of usage
------------------
+Examples
+--------
 
 Open file(s)
 ............
