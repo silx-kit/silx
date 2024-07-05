@@ -93,7 +93,7 @@ Options
                         default)
 
 Examples
------------------
+--------
 
 Open file(s)
 ............
