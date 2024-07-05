@@ -68,7 +68,7 @@ How to access :
       .. figure:: img/silx-view-dropPlot.png
          :align: center
 
-      The new window opens and you can drag and drop the dataset you want to plot or to x-axis and y-axis.
+      The "Plot selection" window opens: You can plot custom curves by dragging and dropping 1D datasets from "silx view" to "Plot selection" window's "X" and "Y" fields.
 
 Command line
 ------------
