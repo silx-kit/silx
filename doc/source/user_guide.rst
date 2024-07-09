@@ -46,7 +46,6 @@ The current version (v\ |version|) caters for:
    install.rst
    description/index.rst
    license.rst
-   virtualenv.rst
    troubleshooting.rst
 
 :doc:`overview`
