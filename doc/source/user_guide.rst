@@ -47,6 +47,7 @@ The current version (v\ |version|) caters for:
    description/index.rst
    license.rst
    troubleshooting.rst
+   contributing.rst
 
 :doc:`overview`
     Releases, repository, issue tracker, mailing list, ...
@@ -77,6 +78,9 @@ The current version (v\ |version|) caters for:
 
 :doc:`troubleshooting`
     When things do not work as expected
+
+:doc:`contributing`
+    How to contribute to the *silx* project
 
 
 Indices

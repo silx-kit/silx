@@ -1,23 +1,23 @@
-How to contribute to *silx*
-===========================
-
-This document describes how to contribute to the *silx* project.
-The process is similar to many other open-source projects like *numpy*, just lighter as the project is smaller, so you won't be surprised with the pipeline.
-
-*scikit-image* provides a nice tutorial in `their own CONTRIBUTING guide`_.
+How to contribute
+=================
 
 
-1. Create your GitHub account `https://help.github.com/categories/setup/`
-   and upload your SSH keys.
+Development process
+-------------------
 
-2. Fork the silx project from `https://github.com/silx-kit/silx/`.
-   The button is on the top right of the page.
+This project follows the standard open-source project github workflow,
+which is described in other projects like `scikit-image <https://scikit-image.org/docs/stable/development/contribute.html>`_.
 
-3. Clone your GitHub version locally on the computer you intend to work on.
+1. Create your `GitHub <https://github.com/>`_ account and upload your SSH keys.
+
+2. Fork the silx project from https://github.com/silx-kit/silx/.
+
+3. Clone your GitHub repository on yout local computer.
 
 .. code-block:: bash
 
    git clone git@github.com/<your_user_name>/silx
+   cd silx
 
 4. Install the dependencies defined in *requirements-dev.txt*.
 
@@ -42,16 +42,17 @@ The process is similar to many other open-source projects like *numpy*, just lig
 
 10. Create a pull request (PR) from your feature branch on GitHub to trigger
     the review process. Indicate this PR is related to the issue you opened in 6.
+    Make sure to follow the `Pull Request title format`_.
 
 11. Discuss with the maintainer who is reviewing your code using the GitHub interface.
 
-If you encounter any problems or have any questions you can always ask on the `Issues page`_.
+If you encounter any problems or have any questions you can always ask on the `Issues page <https://github.com/silx-kit/silx/issues>`_.
 
 
 Pull Request title format
 -------------------------
 
-To ease release notes authoring, please use the following syntax for the title of your Pull Requests (PR)::
+To ease release notes authoring, when creating a Pull Request (PR), please use the following syntax for the title::
 
   <Subpackage/Module/Topic>: <Action> <summary of the main change affecting silx's users>
 
@@ -79,8 +80,46 @@ With:
 
 - **Summary**: A short description of the main change as you would like to read it from release notes.
 
-.. _their own CONTRIBUTING guide: https://github.com/scikit-image/scikit-image/blob/3736339272b9d129f98fc723b508ac5490c171fa/CONTRIBUTING.rst
-.. _Issues page: https://github.com/silx-kit/silx/issues
+
+Code formatting
+---------------
+
+To format the code, use `black <https://black.readthedocs.io>`_.
+
+
+How-to build the documentation
+------------------------------
+
+To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_, run:
+
+.. code-block:: bash
+
+    pip install .  # Make sure to install the same version as the source
+    sphinx-build doc/source/ build/html
+
+.. note::
+
+    To re-generate the example script screenshots, build the documentation with the
+    environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
+
+
+How-to run the tests
+--------------------
+
+To run the tests of an installed version of *silx*, run the following on the python interpreter:
+
+.. code-block:: python
+
+     import silx.test
+     silx.test.run_tests()
+
+To run the test suite of a development version, use the *run_tests.py* script at
+the root of the source project.
+
+.. code-block:: bash
+
+     python ./run_tests.py
+
 
 How-to make a release
 ---------------------
