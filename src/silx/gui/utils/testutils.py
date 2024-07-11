@@ -323,17 +323,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
-
-        if qt.BINDING == "PySide6":
-            # PySide has no qWait, provide a replacement
-            timeout = int(ms)
-            endTimeMS = int(time.time() * 1000) + timeout
-            qapp = qt.QApplication.instance()
-            while timeout > 0:
-                qapp.processEvents(qt.QEventLoop.AllEvents, timeout)
-                timeout = endTimeMS - int(time.time() * 1000)
-        else:
-            QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
+        QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.
