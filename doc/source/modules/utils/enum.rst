@@ -1,7 +1,7 @@
 .. currentmodule:: silx.utils
 
-:mod:`retry`
+:mod:`enum`
 ---------------
 
-.. automodule:: silx.utils.retry
+.. automodule:: silx.utils.enum
    :members:

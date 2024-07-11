@@ -279,7 +279,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         :param Union[str,FogMode] mode: The mode to use
         :raise ValueError: If mode is not supported
         """
-        mode = self.FogMode.from_value(mode)
+        mode = self.FogMode(mode)
         if mode != self.getFogMode():
             self.viewport.fog.isOn = mode is self.FogMode.LINEAR
             self.sigStyleChanged.emit("fogMode")

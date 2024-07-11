@@ -533,7 +533,7 @@ class _StatsWidgetBase(object):
         :param mode: mode requested for update
         :type mode: Union[str,UpdateMode]
         """
-        mode = UpdateMode.from_value(mode)
+        mode = UpdateMode(mode)
         if mode != self._updateMode:
             self._updateMode = mode
             self._updateModeHasChanged()
@@ -1011,7 +1011,7 @@ class UpdateModeWidget(qt.QWidget):
         :param mode: mode requested for update
         :type mode: Union[str,UpdateMode]
         """
-        mode = UpdateMode.from_value(mode)
+        mode = UpdateMode(mode)
 
         if mode is UpdateMode.AUTO:
             if not self._autoRB.isChecked():

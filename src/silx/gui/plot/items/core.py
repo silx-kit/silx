@@ -1155,7 +1155,7 @@ class ComplexMixIn(ItemMixInBase):
         :return: True if value was set, False if is was already set
         :rtype: bool
         """
-        mode = self.ComplexMode.from_value(mode)
+        mode = self.ComplexMode(mode)
         assert mode in self.supportedComplexModes()
 
         if mode != self.__complex_mode:
@@ -1355,7 +1355,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :return: True if value was set, False if is was already set
         :rtype: bool
         """
-        mode = self.Visualization.from_value(mode)
+        mode = self.Visualization(mode)
         assert mode in self.supportedVisualizations()
 
         if mode != self.__visualization:
@@ -1385,7 +1385,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :rtype: bool
         :raise ValueError: If value is not supported
         """
-        parameter = self.VisualizationParameter.from_value(parameter)
+        parameter = self.VisualizationParameter(parameter)
 
         if self.__parameters[parameter] != value:
             validValues = self.supportedVisualizationParameterValues(parameter)
