@@ -53,7 +53,7 @@ install:
     - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # Download Mesa OpenGL in Python directory when testing OpenGL
-    - curl -fsS -o %PYTHON_DIR%\\opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
+    - curl -fsS -o %PYTHON_DIR%\\opengl32.dll https://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
 
 build_script:
     # Create build virtualenv

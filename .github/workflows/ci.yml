@@ -1,12 +1,9 @@
 name: CI
 
 on:
-  # Triggers the workflow on push only for the master branch or pull request events
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 defaults:
@@ -16,143 +13,89 @@ defaults:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name-suffix: "PyQt5 sdist"
-            os: ubuntu-20.04
+          - os: ubuntu-20.04
             python-version: "3.8"
-            BUILD_OPTION: --sdist
             QT_API: PyQt5
-          - name-suffix: "PyQt6 wheel"
-            os: ubuntu-latest
+          - os: ubuntu-latest
             python-version: "3.11"
-            BUILD_OPTION: --wheel
             QT_API: PyQt6
-          - name-suffix: "PySide6 sdist"
-            os: ubuntu-latest
+          - os: ubuntu-latest
             python-version: "3.12"
-            BUILD_OPTION: --sdist
             QT_API: PySide6
 
-          - name-suffix: "PyQt5 wheel"
-            os: macos-13
+          - os: macos-13
             python-version: "3.10"
-            BUILD_OPTION: --wheel
             QT_API: PyQt5
-          - name-suffix: "PyQt6 wheel"
-            os: macos-13
+          - os: macos-13
             python-version: "3.12"
-            BUILD_OPTION: --wheel
             QT_API: PyQt6
-          - name-suffix: "PySide6 wheel"
-            os: macos-13
+          - os: macos-13
             python-version: "3.9"
-            BUILD_OPTION: --wheel
             QT_API: PySide6
 
-          - name-suffix: "PyQt5 wheel"
-            os: windows-latest
+          - os: windows-latest
             python-version: "3.9"
-            BUILD_COMMAND: --wheel
             QT_API: PyQt5
-            env:
-              WITH_GL_TEST: False
-          - name-suffix: "PyQt6 wheel"
-            os: windows-latest
+          - os: windows-latest
             python-version: "3.12"
-            BUILD_COMMAND: --wheel
             QT_API: PyQt6
-            env:
-              WITH_GL_TEST: False
-          - name-suffix: "PySide6 wheel"
-            os: windows-latest
+          - os: windows-latest
             python-version: "3.10"
-            BUILD_COMMAND: --wheel
             QT_API: PySide6
-            env:
-              WITH_GL_TEST: False
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
 
-        # Install X server packages
+        # Install packages:
+        # OpenCL lib and icd
+        # xvfb to run the GUI test headless
         # libegl1-mesa: Required by Qt xcb platform plugin
-        # ocl-icd-opencl-dev: OpenCL headers, lib and icd loader
         # libgl1-mesa-glx: For OpenGL
         # xserver-xorg-video-dummy: For OpenGL
-        # libxkbcommon-x11-0: needed for Qt plugins
-      - name: Install X server
+        # libxkbcommon-x11-0, ..: needed for Qt plugins
+      - name: Install system packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install libegl1-mesa ocl-icd-opencl-dev intel-opencl-icd libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
+          sudo apt-get install ocl-icd-opencl-dev intel-opencl-icd xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
 
-      # Runs a single command using the runners shell
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      - name: Install mesa OpenGL
-        if: runner.os == 'Windows'
+      - name: Install build dependencies
         run: |
-          curl -fsS -o opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
-
-      - name: Upgrade distribution modules
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade build setuptools wheel
-          pip install --upgrade --pre cython
-
-      - name: Print python info used for build
-        run: |
-          python ./ci/info_platform.py
+          pip install --upgrade --pre build cython setuptools wheel
           pip list
 
-      - name: Generate source package or wheel
+      - name: Build
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
-          if [ ${{ runner.os }} == 'macOS' ]; then
-              export MACOSX_DEPLOYMENT_TARGET=10.9;
-          fi
-          python -m build --no-isolation ${{ matrix.BUILD_OPTION }}
+          python -m build --no-isolation
           ls dist
 
-      - name: Pre-install dependencies
+      - name: Install
         run: |
           pip install -r ci/requirements-pinned.txt
-          pip install --pre -r requirements.txt
           pip install --pre "${{ matrix.QT_API }}"
-
-      - name: Install pytest
-        run: |
-          pip install pytest
-          pip install pytest-xvfb
-          pip install pytest-mock
-
-      - name: Install silx package
-        run: pip install --pre --find-links dist/ --no-cache-dir --no-index --no-build-isolation silx
-
-      - name: Print python info used for tests
-        run: |
+          pip install --pre "$(ls dist/silx*.whl)[full,test]"
           python ./ci/info_platform.py
           pip list
 
-      # For Linux: Start X server with dummy video dirver
-      # Use this instead of Xvfb to have RANDR extension
-      # Otherwise there is a bug with Qt5.10.0
-      - name: Run the tests
+      - name: Test
+        env:
+          QT_API: ${{ matrix.QT_API }}
+          SILX_TEST_LOW_MEM: "False"
         run: |
-          if [ ${{ runner.os }} == 'Linux' ]; then
-              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
-              export DISPLAY=:99.0
-              Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/xorg.conf :99 &
-              sleep 3
+          if [ ${{ runner.os }} == 'Windows' ]; then
+              export WITH_GL_TEST=False
           fi
-          export QT_API=${{ matrix.QT_API }}
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=('--low-mem', '--qt-binding=${{ matrix.QT_API }}')));"
+          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
