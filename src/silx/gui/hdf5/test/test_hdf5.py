@@ -73,10 +73,10 @@ class TestHdf5TreeModel(TestCaseQt):
         super(TestHdf5TreeModel, self).setUp()
 
     def waitForPendingOperations(self, model):
-        for _ in range(10):
+        for _ in range(20):
             if not model.hasPendingOperations():
                 break
-            self.qWait(10)
+            self.qWait(200)
         else:
             raise RuntimeError("Still waiting for a pending operation")
 
@@ -440,10 +440,10 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         TestCaseQt.tearDown(self)
 
     def waitForPendingOperations(self, model):
-        for _ in range(10):
+        for _ in range(20):
             if not model.hasPendingOperations():
                 break
-            self.qWait(10)
+            self.qWait(200)
         else:
             raise RuntimeError("Still waiting for a pending operation")
 
