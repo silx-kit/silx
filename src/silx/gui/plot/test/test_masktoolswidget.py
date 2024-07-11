@@ -57,6 +57,8 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.maskWidget = self.widget.widget()
 
     def tearDown(self):
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
         del self.maskWidget
         del self.widget
         super(TestMaskToolsWidget, self).tearDown()
