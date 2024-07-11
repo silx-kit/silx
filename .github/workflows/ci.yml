@@ -19,6 +19,7 @@ jobs:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name-suffix: "PyQt5 sdist"
@@ -38,17 +39,17 @@ jobs:
             QT_API: PySide6
 
           - name-suffix: "PyQt5 wheel"
-            os: macos-latest
+            os: macos-13
             python-version: "3.10"
             BUILD_OPTION: --wheel
             QT_API: PyQt5
           - name-suffix: "PyQt6 wheel"
-            os: macos-latest
+            os: macos-13
             python-version: "3.12"
             BUILD_OPTION: --wheel
             QT_API: PyQt6
           - name-suffix: "PySide6 wheel"
-            os: macos-latest
+            os: macos-13
             python-version: "3.9"
             BUILD_OPTION: --wheel
             QT_API: PySide6
