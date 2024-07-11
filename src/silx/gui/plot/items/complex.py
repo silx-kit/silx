@@ -226,7 +226,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if mode is None:
             mode = self.getComplexMode()
         else:
-            mode = self.ComplexMode.from_value(mode)
+            mode = self.ComplexMode(mode)
 
         self._colormaps[mode] = colormap
         if mode is self.getComplexMode():
@@ -245,7 +245,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if mode is None:
             mode = self.getComplexMode()
         else:
-            mode = self.ComplexMode.from_value(mode)
+            mode = self.ComplexMode(mode)
 
         return self._colormaps[mode]
 
@@ -343,7 +343,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if mode is None:
             mode = self.getComplexMode()
         else:
-            mode = self.ComplexMode.from_value(mode)
+            mode = self.ComplexMode(mode)
 
         if mode not in self._dataByModesCache:
             self._dataByModesCache[mode] = self.__convertComplexData(
@@ -364,7 +364,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if mode is None:
             mode = self.getComplexMode()
         else:
-            mode = self.ComplexMode.from_value(mode)
+            mode = self.ComplexMode(mode)
 
         colormap = self.getColormap(mode=mode)
         if mode is self.ComplexMode.AMPLITUDE_PHASE:

@@ -747,7 +747,7 @@ class ImageView(PlotWindow):
         - 'embedded': Horizontal, vertical and cross profiles are displayed in
           sides widgets, others are displayed in pop-up windows.
         """
-        behavior = self.ProfileWindowBehavior.from_value(behavior)
+        behavior = self.ProfileWindowBehavior(behavior)
         if behavior is not self.getProfileWindowBehavior():
             manager = self.__profile.getProfileManager()
             manager.clearProfile()

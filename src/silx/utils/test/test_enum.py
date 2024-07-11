@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "29/04/2019"
 
 
-import pytest
 from silx.utils.enum import Enum
 
 
@@ -43,7 +42,3 @@ def test_enum_methods():
     assert Success.names() == ("A", "B")
     assert Success.values() == (1, "B")
 
-    assert Success.from_value(1) == Success.A
-    assert Success.from_value("B") == Success.B
-    with pytest.raises(ValueError):
-        Success.from_value(3)

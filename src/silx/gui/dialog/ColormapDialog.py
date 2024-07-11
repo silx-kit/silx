@@ -763,7 +763,7 @@ class _ColormapHistogram(qt.QWidget):
         return x, y
 
     def setDisplayMode(self, mode: str | DisplayMode):
-        mode = DisplayMode.from_value(mode)
+        mode = DisplayMode(mode)
         if mode is DisplayMode.HISTOGRAM:
             action = self._dataHistogramAction
         elif mode is DisplayMode.RANGE:

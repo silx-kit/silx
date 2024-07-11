@@ -74,7 +74,7 @@ class ImageDataAggregated(ImageDataBase):
 
         :param Aggregation mode: The aggregation method
         """
-        aggregationMode = self.Aggregation.from_value(mode)
+        aggregationMode = self.Aggregation(mode)
         if aggregationMode != self.__aggregationMode:
             self.__aggregationMode = aggregationMode
             self.__cacheLODData = {}  # Clear cache

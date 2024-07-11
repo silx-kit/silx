@@ -339,7 +339,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     @docstring(ScatterVisualizationMixIn)
     def setVisualizationParameter(self, parameter, value):
-        parameter = self.VisualizationParameter.from_value(parameter)
+        parameter = self.VisualizationParameter(parameter)
 
         if super(Scatter, self).setVisualizationParameter(parameter, value):
             if parameter in (
