@@ -38,6 +38,7 @@ from silx.gui import utils
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
 from silx.gui.plot import PlotWidget
+from silx.gui.plot.tools.profile.core import ProfileRoiMixIn
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import CreateRoiModeAction
 from silx.gui.plot import items
@@ -54,75 +55,41 @@ _logger = logging.getLogger(__name__)
 class _RunnableComputeProfile(qt.QRunnable):
     """Runner to process profiles
 
-    :param qt.QThreadPool threadPool: The thread which will be used to
-        execute this runner. It is used to update the used signals
-    :param ~silx.gui.plot.items.Item item: Item in which the profile is
-        computed
-    :param ~silx.gui.plot.tools.profile.core.ProfileRoiMixIn roi: ROI
-        defining the profile shape and other characteristics
+    :param item: Item in which the profile is computed
+    :param roi: ROI defining the profile shape and other characteristics
     """
 
-    class _Signals(qt.QObject):
+    class Signal(qt.QObject):
         """Signal holder"""
-
-        resultReady = qt.Signal(object, object)
         runnerFinished = qt.Signal(object)
 
-    def __init__(self, threadPool, item, roi):
-        """Constructor"""
+    def __init__(self, item: items.Item, roi: ProfileRoiMixIn):
         super(_RunnableComputeProfile, self).__init__()
-        self._signals = self._Signals()
-        self._signals.moveToThread(threadPool.thread())
+        self.setAutoDelete(False)
+        self._signal = self.Signal()
         self._item = item
         self._roi = roi
-        self._cancelled = False
-
-    def _lazyCancel(self):
-        """Cancel the runner if it is not yet started.
-
-        The threadpool will still execute the runner, but this will process
-        nothing.
-
-        This is only used with Qt<5.9 where QThreadPool.tryTake is not available.
-        """
-        self._cancelled = True
-
-    def autoDelete(self):
-        return False
-
-    def getRoi(self):
-        """Returns the ROI in which the runner will compute a profile.
-
-        :rtype: ~silx.gui.plot.tools.profile.core.ProfileRoiMixIn
-        """
-        return self._roi
-
-    @property
-    def resultReady(self):
-        """Signal emitted when the result of the computation is available.
-
-        This signal provides 2 values: The ROI, and the computation result.
-        """
-        return self._signals.resultReady
+        self._profileData = None
 
     @property
     def runnerFinished(self):
-        """Signal emitted when runner have finished.
+        return self._signal.runnerFinished
 
-        This signal provides a single value: the runner itself.
-        """
-        return self._signals.runnerFinished
+    def getRoi(self) -> ProfileRoiMixIn:
+        """Returns the ROI in which the runner will compute a profile."""
+        return self._roi
 
-    def run(self):
+    def getProfileData(self):
+        """Returns result data or None if failure or not finished"""
+        return self._profileData
+
+    def run(self) -> None:
         """Process the profile computation."""
-        if not self._cancelled:
-            try:
-                profileData = self._roi.computeProfile(self._item)
-            except Exception:
-                _logger.error("Error while computing profile", exc_info=True)
-            else:
-                self.resultReady.emit(self._roi, profileData)
-        self.runnerFinished.emit(self)
+        try:
+            self._profileData = self._roi.computeProfile(self._item)
+        except Exception:
+            _logger.error("Error while computing profile", exc_info=True)
+        self._signal.runnerFinished.emit(self)
 
 
 class ProfileWindow(qt.QMainWindow):
@@ -857,12 +824,8 @@ class ProfileManager(qt.QObject):
             if not inspect.isValid(runner):
                 self._pendingRunners.remove(runner)
                 continue
-            if runner.getRoi() is profileRoi:
-                if hasattr(threadPool, "tryTake"):
-                    if threadPool.tryTake(runner):
-                        self._pendingRunners.remove(runner)
-                else:  # Support Qt<5.9
-                    runner._lazyCancel()
+            if runner.getRoi() is profileRoi and threadPool.tryTake(runner):
+                self._pendingRunners.remove(runner)
 
         item = self.getPlotItem()
         if item is None or not isinstance(item, profileRoi.ITEM_KIND):
@@ -874,26 +837,21 @@ class ProfileManager(qt.QObject):
             return
 
         profileRoi._setPlotItem(item)
-        runner = _RunnableComputeProfile(threadPool, item, profileRoi)
-        runner.runnerFinished.connect(self.__cleanUpRunner)
-        runner.resultReady.connect(self.__displayResult)
+        runner = _RunnableComputeProfile(item, profileRoi)
+        runner.runnerFinished.connect(self.__runnerFinished)
         self._pendingRunners.append(runner)
         threadPool.start(runner)
 
-    def __cleanUpRunner(self, runner):
-        """Remove a thread pool runner from the list of hold tasks.
-
-        Called at the termination of the runner.
-        """
+    def __runnerFinished(self, runner: _RunnableComputeProfile):
+        """Clean-up profile runner and display its result"""
         if runner in self._pendingRunners:
             self._pendingRunners.remove(runner)
 
-    def __displayResult(self, roi, profileData):
-        """Display the result of a ROI.
+        roi = runner.getRoi()
+        profileData = runner.getProfileData()
+        if profileData is None:
+            return
 
-        :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
-        :param ~core.CurveProfileData profileData: Computed data profile
-        """
         if roi in self.__reentrantResults:
             # Store the data to process it in the main loop
             # And not a sub loop created by initProfileWindow
