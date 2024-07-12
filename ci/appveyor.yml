@@ -21,7 +21,7 @@ environment:
     global:
         WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
         VENV_BUILD_DIR: "venv_build"
-        VENV_TEST_DIR: "venv_test"
+        VENV_TEST_DIR: "..\\venv_test"
 
     matrix:
         # Python 3.9
