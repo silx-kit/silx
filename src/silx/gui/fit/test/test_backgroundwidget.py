@@ -46,7 +46,9 @@ class TestBackgroundWidget(TestCaseQt):
 
     def testShow(self):
         self.bgdialog.show()
+        self.qWaitForWindowExposed(self.bgdialog)
         self.bgdialog.hide()
+        self.qapp.processEvents()
 
     def testAccept(self):
         self.bgdialog.accept()
