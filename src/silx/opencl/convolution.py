@@ -385,7 +385,7 @@ class Convolution(OpenclProcessing):
             self.kernel_args, input_ref, output_ref
         )
         ev = opencl_kernel(*opencl_kernel_args)
-        if self.device.type == "CPU":
+        if self.queue.device.type == cl.device_type.CPU:
             ev.wait()
         if self.profile:
             self.events.append(EventDescription("batched convolution", ev))
