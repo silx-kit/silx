@@ -52,7 +52,7 @@ class ExternalResources(object):
 
     """
 
-    def __init__(self, project, url_base, env_key=None, timeout=60):
+    def __init__(self, project, url_base, env_key=None, timeout=60, data_home=None):
         """Constructor of the class
 
         :param str project: name of the project, like "silx"
@@ -65,6 +65,7 @@ class ExternalResources(object):
                             The environment variable is optional: in case it is not set,
                             a directory in the temporary folder is used.
         :param timeout: time in seconds before it breaks
+        :param data_home: Directory in which the data will be downloaded
         """
         self.project = project
         self._initialized = False
@@ -74,7 +75,7 @@ class ExternalResources(object):
         self.url_base = url_base
         self.all_data = {}
         self.timeout = timeout
-        self._data_home = None
+        self._data_home = data_home
 
     @property
     def data_home(self):
