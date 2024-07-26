@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import logging
+import warnings
 import weakref
 
 import numpy
@@ -1125,6 +1126,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError("Cannot add image with Y <= 0 with Y axis log scale")
 
         return image
+
+    def addNonUniformImage(self, x, y, data, origin, scale, colormap, alpha):
+        """
+        Add a non-uniform image to the plot.
+
+        This method is not yet implemented in the OpenGL backend.
+        """
+        warnings.warn(
+            "addNonUniformImage not implemented in OpenGL backend. Plotting image "
+            "with regular grid instead."
+        )
+        return self.addImage(data, origin, scale, colormap, alpha)
 
     def addTriangles(self, x, y, triangles, color, alpha):
         # Handle axes log scale: convert data

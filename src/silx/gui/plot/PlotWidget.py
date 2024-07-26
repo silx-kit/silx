@@ -1443,12 +1443,106 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The image item
         """
-        legend = "Unnamed Image 1.1" if legend is None else str(legend)
-
         data = numpy.asarray(data)
         assert data.ndim in (2, 3)
 
+        image, mustBeAdded = self._prepare_image(
+            data,
+            legend,
+            info,
+            origin,
+            scale,
+            z,
+            selectable,
+            draggable,
+            colormap,
+            xlabel,
+            ylabel
+        )
+
+        if data.ndim == 2:
+            image.setData(data, alternative=pixmap, copy=copy)
+        else:  # RGB(A) image
+            if pixmap is not None:
+                _logger.warning(
+                    "addImage: pixmap argument ignored when data is RGB(A)"
+                )
+            image.setData(data, copy=copy)
+        self._finalize_image(image, replace, mustBeAdded, resetzoom)
+        return image
+
+
+    def addNonUniformImage(
+        self,
+        x,
+        y,
+        data,
+        legend=None,
+        info=None,
+        replace=False,
+        z=None,
+        selectable=None,
+        draggable=None,
+        colormap=None,
+        pixmap=None,
+        xlabel=None,
+        ylabel=None,
+        origin=None,
+        scale=None,
+        resetzoom=True,
+        copy=True,
+    ):
+        """
+        Add a 2D image with non-uniform x- and/or y-axes.
+
+        Please refer to the docstring of the addImage method for the full docstring
+        and explanations of all parameters.
+        """
+        data = numpy.asarray(data)
+        if data.ndim != 2:
+            raise ValueError("addNonUniformImage does work with RGB(A) data.")
+
+        image, mustBeAdded = self._prepare_image(
+            data,
+            legend,
+            info,
+            origin,
+            scale,
+            z,
+            selectable,
+            draggable,
+            colormap,
+            xlabel,
+            ylabel
+        )
+        image.setNonUniformData(x, y, data, alternative=pixmap, copy=copy)
+        self._finalize_image(image, replace, mustBeAdded, resetzoom)
+        return image
+
+    def _prepare_image(
+        self,
+        data,
+        legend,
+        info,
+        origin,
+        scale,
+        z,
+        selectable,
+        draggable,
+        colormap,
+        xlabel,
+        ylabel
+    ):
+        """
+        Prepare the image for addition to the plot.
+
+        Please refer to the docstring of the addImage method for a description of the
+        parameters.
+        """
+        legend = "Unnamed Image 1.1" if legend is None else str(legend)
+
         image = self.getImage(legend)
+
         if image is not None and image.getData(copy=False).ndim != data.ndim:
             # Update a data image with RGBA image or the other way around:
             # Remove previous image
@@ -1491,16 +1585,15 @@ class PlotWidget(qt.QMainWindow):
                 image._setXLabel(xlabel)
             if ylabel is not None:
                 image._setYLabel(ylabel)
+        return image, mustBeAdded
 
-            if data.ndim == 2:
-                image.setData(data, alternative=pixmap, copy=copy)
-            else:  # RGB(A) image
-                if pixmap is not None:
-                    _logger.warning(
-                        "addImage: pixmap argument ignored when data is RGB(A)"
-                    )
-                image.setData(data, copy=copy)
+    def _finalize_image(self, image, replace, mustBeAdded, resetzoom):
+        """
+        Finalize the addition of an image to the plot.
 
+        Please refer to the docstring of the addImage method for a description of the
+        parameters.
+        """
         if replace:
             for img in self.getAllImages():
                 if img is not image:
@@ -1519,8 +1612,6 @@ class PlotWidget(qt.QMainWindow):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-
-        return image
 
     def addScatter(
         self,
