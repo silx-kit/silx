@@ -1522,6 +1522,106 @@ class PlotWidget(qt.QMainWindow):
 
         return image
 
+
+    def addNonUniformImage(
+        self,
+        data,
+        x,
+        y,
+        legend=None,
+        info=None,
+        replace=False,
+        z=None,
+        selectable=None,
+        draggable=None,
+        colormap=None,
+        pixmap=None,
+        xlabel=None,
+        ylabel=None,
+        origin=None,
+        scale=None,
+        resetzoom=True,
+        copy=True,
+    ):
+        legend = "Unnamed Image 1.1" if legend is None else str(legend)
+
+        data = numpy.asarray(data)
+        assert data.ndim in (2, 3)
+
+        image = self.getImage(legend)
+        if image is not None and image.getData(copy=False).ndim != data.ndim:
+            # Update a data image with RGBA image or the other way around:
+            # Remove previous image
+            # In this case, we don't retrieve defaults from the previous image
+            self.removeItem(image)
+            image = None
+
+        mustBeAdded = image is None
+        if image is None:
+            # No previous image, create a default one and add it to the plot
+            if data.ndim == 2:
+                image = items.ImageData()
+                image.setColormap(self.getDefaultColormap())
+            else:
+                image = items.ImageRgba()
+            image.setName(legend)
+
+        # Do not emit sigActiveImageChanged,
+        # it will be sent once with _setActiveItem
+        with self._muteActiveItemChangedSignal():
+            # Override previous/default values with provided ones
+            image.setInfo(info)
+            if origin is not None:
+                image.setOrigin(origin)
+            if scale is not None:
+                image.setScale(scale)
+            if z is not None:
+                image.setZValue(z)
+            if selectable is not None:
+                image._setSelectable(selectable)
+            if draggable is not None:
+                image._setDraggable(draggable)
+            if colormap is not None and isinstance(image, items.ColormapMixIn):
+                if isinstance(colormap, dict):
+                    image.setColormap(Colormap._fromDict(colormap))
+                else:
+                    assert isinstance(colormap, Colormap)
+                    image.setColormap(colormap)
+            if xlabel is not None:
+                image._setXLabel(xlabel)
+            if ylabel is not None:
+                image._setYLabel(ylabel)
+
+            if data.ndim == 2:
+                image.setNonUniformData(data, x, y, alternative=pixmap, copy=copy)
+            else:  # RGB(A) image
+                if pixmap is not None:
+                    _logger.warning(
+                        "addImage: pixmap argument ignored when data is RGB(A)"
+                    )
+                image.setData(data, copy=copy)
+
+        if replace:
+            for img in self.getAllImages():
+                if img is not image:
+                    self.removeItem(img)
+
+        if mustBeAdded:
+            self.addItem(image)
+        else:
+            self._notifyContentChanged(image)
+
+        if len(self.getAllImages()) == 1 or image is self.getActiveImage():
+            self.setActiveImage(image)
+
+        if resetzoom:
+            # We ask for a zoom reset in order to handle the plot scaling
+            # if the user does not want that, autoscale of the different
+            # axes has to be set to off.
+            self.resetZoom()
+
+        return image
+
     def addScatter(
         self,
         x,

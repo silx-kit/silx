@@ -166,6 +166,25 @@ class BackendBase(object):
         """
         return object()
 
+    def addNonUniformImage(self, data, x, y, origin, scale, colormap, alpha):
+        """
+        Add a non-uniform image to the plot.
+
+        :param numpy.ndarray data: (nrows, ncolumns) data or
+            (nrows, ncolumns, RGBA) ubyte array
+        :param numpy.ndarray x: 1D array of X coordinates of the data.
+        :param numpy.ndarray y: 1D array of Y coordinates of the data.
+        :param tuple[float] origin: (origin X, origin Y) of the data.
+            Default: (0., 0.)
+        :param tuple[float] scale: (scale X, scale Y) of the data.
+            Default: (1., 1.)
+        :param ~silx.gui.colors.Colormap colormap: Colormap object to use.
+            Ignored if data is RGB(A).
+        :param float alpha: Opacity of the image, as a float in range [0, 1].
+        :returns: The handle used by the backend to univocally access the image
+        """
+        return object()
+
     def addTriangles(self, x, y, triangles, color, alpha):
         """Add a set of triangles.
 
