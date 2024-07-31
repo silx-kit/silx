@@ -1497,6 +1497,10 @@ class PlotWidget(qt.QMainWindow):
 
         Please refer to the docstring of the addImage method for the full docstring
         and explanations of all parameters.
+
+        Parameters used in this method only:
+        :param numpy.ndarray x: The x-coordinates of the data.
+        :param numpy.ndarray y: The y-coordinates of the data.
         """
         data = numpy.asarray(data)
         if data.ndim != 2:
