@@ -159,7 +159,7 @@ class SubjectItem(qt.QStandardItem):
             for signal, slot in self.__slots:
                 try:
                     signal.disconnect(slot)
-                except TypeError:
+                except (RuntimeError, TypeError, SystemError):
                     pass
 
     def _enableRow(self, enable):
@@ -1692,7 +1692,7 @@ class TreeView(qt.QTreeView):
             self.__openPersistentEditors(qt.QModelIndex(), False)
             try:
                 prevModel.rowsRemoved.disconnect(self.rowsRemoved)
-            except TypeError:
+            except (RuntimeError, TypeError, SystemError):
                 pass
 
         super(TreeView, self).setModel(model)

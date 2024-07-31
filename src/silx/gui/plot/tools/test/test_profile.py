@@ -63,9 +63,10 @@ class TestInteractions(TestCaseQt):
             self.qWaitForWindowExposed(widget)
             yield widget
         finally:
+            widget.setAttribute(qt.Qt.WA_DeleteOnClose)
             widget.close()
-            widget = None
-            self.qWait()
+            del widget
+            self.qapp.processEvents()
 
     @contextlib.contextmanager
     def imagePlot(self):
@@ -77,9 +78,10 @@ class TestInteractions(TestCaseQt):
             self.qWaitForWindowExposed(widget)
             yield widget
         finally:
+            widget.setAttribute(qt.Qt.WA_DeleteOnClose)
             widget.close()
-            widget = None
-            self.qWait()
+            del widget
+            self.qapp.processEvents()
 
     @contextlib.contextmanager
     def scatterPlot(self):
@@ -101,9 +103,10 @@ class TestInteractions(TestCaseQt):
             self.qWaitForWindowExposed(widget)
             yield widget.getPlotWidget()
         finally:
+            widget.setAttribute(qt.Qt.WA_DeleteOnClose)
             widget.close()
-            widget = None
-            self.qWait()
+            del widget
+            self.qapp.processEvents()
 
     @contextlib.contextmanager
     def stackPlot(self):
@@ -117,9 +120,10 @@ class TestInteractions(TestCaseQt):
             self.qWaitForWindowExposed(widget)
             yield widget.getPlotWidget()
         finally:
+            widget.setAttribute(qt.Qt.WA_DeleteOnClose)
             widget.close()
-            widget = None
-            self.qWait()
+            del widget
+            self.qapp.processEvents()
 
     def waitPendingOperations(self, proflie):
         for _ in range(10):

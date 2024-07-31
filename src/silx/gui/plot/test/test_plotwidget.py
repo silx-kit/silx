@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -2057,6 +2057,8 @@ class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered:RuntimeWarning")
+@pytest.mark.filterwarnings("ignore:.* converting a masked element to nan.:UserWarning")
+@pytest.mark.filterwarnings("ignore:All-NaN axis encountered:RuntimeWarning")
 @pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
 @pytest.mark.parametrize(
     "xerror,yerror",

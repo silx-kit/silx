@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,9 +76,15 @@ def _subprocess_context(contextmgr, *args, **kw):
 def _open_context(filename, **kw):
     try:
         print(os.getpid(), "OPEN", filename, kw)
+        swmr_writer = kw.get("mode", "r") != "r" and kw.get("swmr", False)
+        if swmr_writer:
+            kw.pop("swmr")  # Avoid a warning
         with h5py_utils.File(filename, **kw) as f:
             if kw.get("mode") == "w":
                 f["check"] = True
+                f.flush()
+            if swmr_writer:
+                f.swmr_mode = True  # SWMR mode must be enabled afterwards
                 f.flush()
             yield f
     except Exception:

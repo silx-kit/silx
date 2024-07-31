@@ -24,6 +24,10 @@
 """This package provides test of the root modules
 """
 
+from __future__ import annotations
+
+from collections.abc import Sequence
+import importlib
 import logging
 import subprocess
 import sys
@@ -38,26 +42,40 @@ except ImportError:
     raise
 
 
-def run_tests(module: str = "silx", verbosity: int = 0, args=()):
+import silx
+
+
+def run_tests(
+    module: str | None = "silx",
+    verbosity: int = 0,
+    args: Sequence[str] = (),
+):
     """Run tests in a subprocess
 
     :param module: Name of the silx module to test (default: 'silx')
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    return subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            "--pyargs",
-            module,
-            "--verbosity",
-            str(verbosity),
-            '-o python_files=["test/test*.py","test/Test*.py"]',
-            '-o python_classes=["Test"]',
-            '-o python_functions=["test"]',
-        ]
-        + list(args),
-        check=False,
-    ).returncode
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        f"--rootdir={silx.__path__[0]}",
+        "--verbosity",
+        str(verbosity),
+        # Handle warning as errors unless explicitly skipped
+        "-Werror",
+        "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning",
+        "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+    ] + list(args)
+
+    if module is not None:
+        # Retrieve folder for packages and file for modules
+        imported_module = importlib.import_module(module)
+        cmd.append(
+            imported_module.__path__[0]
+            if hasattr(imported_module, "__path__")
+            else imported_module.__file__
+        )
+
+    return subprocess.run(cmd, check=False).returncode

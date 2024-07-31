@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 #
 # ###########################################################################*/
 """Test for silx.gui.hdf5 module"""
+
+from __future__ import annotations
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -122,25 +124,42 @@ class _UtilsMixin(object):
             self.qWaitForDestroy(ref)
 
     def qWaitForPendingActions(self, dialog):
+        self.qapp.processEvents()
         for _ in range(20):
             if not dialog.hasPendingEvents():
                 return
-            self.qWait(10)
+            self.qWait(100)
         raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ != path2_:
-            # Use the unittest API to log and display error
-            self.assertEqual(path1, path2)
+        self.assertEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths differs: {path1} != {path2}",
+        )
 
     def assertNotSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ == path2_:
-            # Use the unittest API to log and display error
-            self.assertNotEqual(path1, path2)
+        self.assertNotEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths are equals: {path1} == {path2}",
+        )
+
+    def assertSameUrls(
+        self,
+        url1: silx.io.url.DataUrl | str,
+        url2: silx.io.url.DataUrl | str,
+    ):
+        """Check that both DataUrls are equivalent"""
+        if isinstance(url1, str):
+            url1 = silx.io.url.DataUrl(url1)
+        if isinstance(url2, str):
+            url2 = silx.io.url.DataUrl(url2)
+
+        self.assertEqual(url1.scheme(), url2.scheme())
+        self.assertSamePath(url1.file_path(), url2.file_path())
+        self.assertEqual(url1.data_path(), url2.data_path())
+        self.assertEqual(url1.data_slice(), url2.data_slice())
 
 
 class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
@@ -394,12 +413,11 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.edf"
-        path = filename
-        dialog.selectUrl(path)
+        dialog.selectUrl(filename)
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
-        self.assertSamePath(dialog.selectedUrl(), path)
+        url = silx.io.url.DataUrl(scheme="fabio", file_path=filename)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectImageFromEdf_Activate(self):
         dialog = self.createDialog()
@@ -411,7 +429,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/singleimage.edf"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
+        url = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -421,7 +439,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectFrameFromEdf(self):
         dialog = self.createDialog()
@@ -430,16 +448,14 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/multiframe.edf"
-        path = silx.io.url.DataUrl(
-            scheme="fabio", file_path=filename, data_slice=(1,)
-        ).path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,))
+        dialog.selectUrl(url.path())
         # test
         image = dialog.selectedImage()
         self.assertEqual(image.shape, (100, 100))
         self.assertEqual(image[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectImageFromMsk(self):
         dialog = self.createDialog()
@@ -448,12 +464,12 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.msk"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(scheme="fabio", file_path=filename)
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectImageFromH5(self):
         dialog = self.createDialog()
@@ -462,14 +478,12 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/image"
-        ).path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image")
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectH5_Activate(self):
         dialog = self.createDialog()
@@ -481,9 +495,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -491,7 +503,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectFrameFromH5(self):
         dialog = self.createDialog()
@@ -500,15 +512,15 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/cube", data_slice=(1,)
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertEqual(dialog.selectedImage()[0, 0], 1)
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectSingleFrameFromH5(self):
         dialog = self.createDialog()
@@ -517,18 +529,18 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx",
             file_path=filename,
             data_path="/single_frame",
             data_slice=(0,),
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
         self.assertEqual(dialog.selectedImage()[0, 0], 5)
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectBadFileFormat_Activate(self):
         dialog = self.createDialog()
@@ -545,7 +557,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertSamePath(dialog.selectedUrl(), filename)
+        self.assertSameUrls(dialog.selectedUrl(), filename)
 
     def _countSelectableItems(self, model, rootIndex):
         selectable = 0
