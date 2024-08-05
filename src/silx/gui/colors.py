@@ -331,7 +331,10 @@ class Colormap(qt.QObject):
     """constant for autoscale using mean +/- 3*std(data)
     with a clamp on min/max of the data"""
 
-    AUTOSCALE_MODES = (MINMAX, STDDEV3)
+    PERCENTILE = "percentile"
+    """constant for autoscale using 1st and 99th percentile of data"""
+
+    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE)
     """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
