@@ -32,6 +32,7 @@ import os
 import sys
 import time
 import tempfile
+import pytest
 
 from .. import retry
 
@@ -210,3 +211,41 @@ class TestRetry(unittest.TestCase):
             @retry.retry()
             def method():
                 yield from range(3)
+
+    def test_retry_iter_reset(self):
+        """Test would fail when the timer does not get reset after every iteration"""
+        failure_t0 = None
+        failure_count = 0
+        retry_period = 0.1
+        failure_duration = 0.7
+        nretry_offset = 10
+
+        nfailures = int(failure_duration / retry_period + 0.5)
+        retry_timeout = failure_duration + retry_period
+        xfail_timeout = failure_duration + retry_period * 0.5
+
+        @retry.retry(retry_period=retry_period, retry_timeout=retry_timeout)
+        def iter_with_failure(start_index=0):
+            nonlocal failure_count, failure_t0
+
+            # This takes `nretry_offset * retry_period` seconds
+            if start_index == 0:
+                for i in range(nretry_offset):
+                    time.sleep(retry_period)
+                    yield i
+                failure_t0 = time.time()
+
+            # This will fail for slightly longer than `failure_duration` seconds
+            if failure_count <= nfailures:
+                failure_count += 1
+                if failure_count > 1:
+                    iter_time = (time.time() - failure_t0) / (failure_count - 1)
+                    if (iter_time * nfailures) >= xfail_timeout:
+                        pytest.xfail("iteration takes much longer than retry_period")
+                raise retry.RetryError()
+
+            yield nretry_offset
+
+        yielded = list(iter_with_failure())
+        expected = list(range(nretry_offset + 1))
+        assert yielded == expected
