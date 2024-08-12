@@ -210,3 +210,28 @@ class TestRetry(unittest.TestCase):
             @retry.retry()
             def method():
                 yield from range(3)
+
+    def test_retry_iter_reset(self):
+        failure_count = 0
+        retry_period = 0.2
+        failure_duration = 0.6
+
+        nfailures = int(failure_duration/retry_period + 0.5)
+        retry_timeout = failure_duration + retry_period
+
+        @retry.retry(retry_period=retry_period, retry_timeout=retry_timeout)
+        def iter_silx(start_index=0):
+            nonlocal failure_count
+
+            # This takes `10 * retry_period` seconds
+            if start_index == 0:
+                for i in range(10):
+                    time.sleep(retry_period)
+                    yield i
+
+            # This will fail for slightly longer than `failure_duration` seconds
+            if failure_count <= nfailures:
+                failure_count += 1
+                raise retry.RetryError()
+
+        assert list(iter_silx()) == list(range(10))
