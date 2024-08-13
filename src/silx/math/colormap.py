@@ -265,7 +265,7 @@ class _NormalizationMixIn:
                 vmax = dmax
             else:
                 vmax = min(dmax, stdmax)
-        elif mode == "percentile":
+        elif mode == "percentile_1_99":
             vmin = numpy.nanpercentile(data, 1)
             vmax = numpy.nanpercentile(data, 99)
 
