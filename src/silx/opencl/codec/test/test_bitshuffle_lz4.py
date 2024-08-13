@@ -39,11 +39,16 @@ __date__ = "07/11/2022"
 import struct
 import numpy
 import pytest
+import warnings
 
 try:
     import bitshuffle
 except ImportError:
     bitshuffle = None
+except ValueError as e:
+    warnings.warn(str(e), UserWarning)
+    bitshuffle = None
+
 from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec.bitshuffle_lz4 import BitshuffleLz4
 
