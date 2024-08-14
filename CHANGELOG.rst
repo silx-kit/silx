@@ -1,6 +1,20 @@
 Release Notes
 =============
 
+2.1.1: 2024/08/13
+-----------------
+
+* Bug fixes
+
+  * `silx.io.specfile`: Fixed `SpecFile` deallocation issue (PR #4129)
+  * `silx.gui.data.DataViewer.DataViewer`: Fixed issue with accessing views after using the removeView method (PR #4131)
+  * `silx.opencl.convolution`: Fixed separable convolution on CPU that crashed in some cases by (PR #4150)
+  * `silx.util.retry`: Fixed resetting the timeout timer when iterating (PR #4157)
+
+* Dependencies
+
+  * Removed numpy from build dependency (PR #4114)
+
 2.1.0: 2024/04/19
 -----------------
 
