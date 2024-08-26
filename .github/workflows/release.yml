@@ -142,7 +142,7 @@ jobs:
           - os: windows-2019
             cibw_archs: "auto64"
             with_sse2: true
-          - os: macos-11
+          - os: macos-12
             cibw_archs: "universal2"
             with_sse2: true
 
