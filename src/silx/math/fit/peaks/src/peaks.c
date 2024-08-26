@@ -206,22 +206,20 @@ long seek(long begin_index,
                         realloc_peaks = realloc(peaks0, max_npeaks * sizeof(double));
                         if (realloc_peaks == NULL) {
                             printf("Error: failed to extend memory for peaks array.");
-                            *peaks = peaks0;
-                            *relevances = relevances0;
                             return(-n_peaks);
                         } else {
                             peaks0 = realloc_peaks;
+                            *peaks = peaks0;
                         }
 
                         realloc_relevances = realloc(relevances0, max_npeaks * sizeof(double));
                         if (realloc_relevances == NULL) {
                             printf("Error: failed to extend memory for peak relevances array.");
-                            *peaks = peaks0;
-                            *relevances = relevances0;
                             return(-n_peaks);
                         }
                         else {
                             relevances0 = realloc_relevances;
+                            *relevances = relevances0;
                         }
                     }
                     peaks0[n_peaks] = cch-1;
@@ -257,7 +255,5 @@ long seek(long begin_index,
         printf("index %g with y = %g\n", peaks0[i],data[(long ) peaks0[i]]);
       }
     }
-    *peaks = peaks0;
-    *relevances = relevances0;
     return (n_peaks);
 }
