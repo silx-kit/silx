@@ -31,6 +31,8 @@ import h5py
 import numpy
 
 from . import utils
+from .._utils import NP_OPTIONAL_COPY
+
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -347,12 +349,16 @@ class Dataset(Node):
         :rtype: list or None"""
         return None
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         # Special case for (0,)*-shape datasets
         if numpy.prod(self.shape) == 0:
             return self[()]
         else:
-            return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)
+            return numpy.array(
+                self[...],
+                dtype=self.dtype if dtype is None else dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            )
 
     def __iter__(self):
         """Iterate over the first axis. TypeError if scalar."""
