@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,9 @@ Functions:
 
 import numpy
 import numbers
+
+from .._utils import NP_OPTIONAL_COPY
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -276,13 +279,17 @@ class ListOfImages(object):
         )
         return sorted_indices
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Cast the images into a numpy array, and return it.
 
         If a transposition has been done on this images, return
         a transposed view of a numpy array."""
         return numpy.transpose(
-            numpy.array(self.images, dtype=dtype), self.transposition
+            numpy.array(
+                self.images,
+                dtype=dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy),
+            self.transposition,
         )
 
     def __len__(self):
@@ -543,13 +550,17 @@ class DatasetView(object):
 
         return numpy.transpose(output_data_not_transposed, axes=output_dimensions)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Cast the dataset into a numpy array, and return it.
 
         If a transposition has been done on this dataset, return
         a transposed view of a numpy array."""
         return numpy.transpose(
-            numpy.array(self.dataset, dtype=dtype), self.transposition
+            numpy.array(
+                self.dataset,
+                dtype=dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy),
+            self.transposition,
         )
 
     def __len__(self):
