@@ -99,6 +99,7 @@ class TiledH5(commonh5.File):
             TiledH5._cache = Cache()  # Use tiled cache default
         self.__container = tiled.client.from_uri(name, cache=self._cache)
         assert isinstance(self.__container, tiled.client.container.Container)
+        _logger.warning("tiled support is a preview feature: This may change or be removed without notice.")
 
     def close(self):
         super().close()
