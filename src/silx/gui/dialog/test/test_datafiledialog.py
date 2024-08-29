@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,10 +115,11 @@ class _UtilsMixin(object):
             self.qWaitForDestroy(ref)
 
     def qWaitForPendingActions(self, dialog):
+        self.qapp.processEvents()
         for _ in range(20):
             if not dialog.hasPendingEvents():
                 return
-            self.qWait(10)
+            self.qWait(100)
         raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
