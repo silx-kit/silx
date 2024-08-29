@@ -99,8 +99,8 @@ License
 -------
 
 The source code of *silx* is licensed under the MIT license.
-See the `LICENSE <https://github.com/silx-kit/silx/blob/master/LICENSE>`_ and
-`copyright <https://github.com/silx-kit/silx/blob/master/copyright>`_ files for details.
+See the `LICENSE <https://github.com/silx-kit/silx/blob/main/LICENSE>`_ and
+`copyright <https://github.com/silx-kit/silx/blob/main/copyright>`_ files for details.
 
 Citation
 --------

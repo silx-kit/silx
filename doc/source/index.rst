@@ -29,11 +29,16 @@ You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <http
 
          pip install silx[full]
 
+      See :ref:`Installation with pip`
+
    .. tab-item:: conda
 
       .. code-block:: bash
 
          conda install -c conda-forge silx
+
+      See :ref:`Installation with conda`
+
 
    .. tab-item:: Debian & Ubuntu
 
@@ -41,7 +46,10 @@ You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <http
 
          sudo apt-get install silx
 
+      See :ref:`Installation on Debian & Ubuntu`
+
 |silx_installer_btn| or decompress the |silx_archive|.
+
 
 :ref:`Applications`
 -------------------

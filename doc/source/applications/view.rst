@@ -51,8 +51,8 @@ Custom plot selection
 
       Plot custom curves from selected 1D datasets.
 
-How to access :
-............
+How to access
+.............
 
 .. grid :: 1 2 2 2
 
