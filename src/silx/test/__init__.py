@@ -68,7 +68,8 @@ def run_tests(
         "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
         "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
         "-Wignore:Unable to import recommended hash 'siphash24.siphash13', falling back to 'hashlib.sha256'. Run 'python3 -m pip install siphash24' to install the recommended hash.:UserWarning:pytools.persistent_dict",
-
+        # Remove __array__ ignore once h5py v3.12 is released
+        "-Wignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
     ] + list(args)
 
     if module is not None:
