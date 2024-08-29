@@ -142,7 +142,7 @@ jobs:
           - os: windows-2019
             cibw_archs: "auto64"
             with_sse2: true
-          - os: macos-11
+          - os: macos-12
             cibw_archs: "universal2"
             with_sse2: true
 
@@ -176,8 +176,7 @@ jobs:
           CIBW_TEST_COMMAND: python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3))"
           # Skip tests for emulated architectures and arm64 macos
           # Skip cp38 test on macos: Issue with libOpenGL
-          # Skip cp311 and cp312 on macos: bitshuffle does not build there
-          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64 *-macosx_universal2:arm64 cp38-macosx* cp311-macosx* cp312-macosx*"
+          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64 *-macosx_universal2:arm64 cp38-macosx*"
 
       - uses: actions/upload-artifact@v4
         with:
