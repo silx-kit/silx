@@ -65,8 +65,10 @@ def run_tests(
         str(verbosity),
         # Handle warning as errors unless explicitly skipped
         "-Werror",
-        "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning",
+        "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
         "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+        "-Wignore:Unable to import recommended hash 'siphash24.siphash13', falling back to 'hashlib.sha256'. Run 'python3 -m pip install siphash24' to install the recommended hash.:UserWarning:pytools.persistent_dict",
+
     ] + list(args)
 
     if module is not None:
