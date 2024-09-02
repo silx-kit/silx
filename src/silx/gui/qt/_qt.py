@@ -64,7 +64,7 @@ def _select_binding() -> str:
     :raises ImportError:
     :returns: Loaded binding
     """
-    bindings = "PyQt5", "PySide6", "PyQt6"
+    bindings = "PySide6", "PyQt6", "PyQt5"
 
     envvar = os.environ.get("QT_API", "").lower()
 

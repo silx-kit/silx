@@ -27,4 +27,4 @@ scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.i
 pooch                     # For scipy.datasets.ascent
 Pillow                    # For silx.opencl.image.test
 pint                      # For silx.io.dictdump
-PyQt5  # PySide6, PyQt6>=6.3 # For silx.gui
+PySide6 >= 6.4  # PyQt6, PyQt5  # For silx.gui
