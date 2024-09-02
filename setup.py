@@ -173,7 +173,7 @@ def get_project_configuration():
         "matplotlib>=3.1.0",
         "PyOpenGL",
         "python-dateutil",
-        "PyQt5",
+        "PySide6>=6.4",
         # extra
         "hdf5plugin",
         "scipy",
