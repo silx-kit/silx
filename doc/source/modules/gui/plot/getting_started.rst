@@ -38,7 +38,7 @@ Compatibility with IPython
 ++++++++++++++++++++++++++
 
 silx widgets require Qt to be initialized.
-If Qt is not yet loaded, silx tries to load PyQt5 first before trying other supported bindings.
+If Qt is not yet loaded, silx tries to load PySide6 first before trying other supported bindings.
 
 With versions of IPython lower than 3.0 (e.g., on Debian 8), there is an incompatibility between
 the way silx loads Qt and the way IPython is doing it through the ``--gui`` option,
@@ -87,13 +87,13 @@ A Qt GUI script must have a QApplication initialised before creating widgets:
        [...]
        qapp.exec()
 
-Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt bindings (PyQt5, PySide6, PyQt6).
+Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt bindings (PySide6, PyQt6, PyQt5).
 If you prefer to choose the Qt binding yourself, import it before importing
 a module from :mod:`silx.gui`:
 
 .. code-block:: python
 
-   import PyQt5.QtCore  # Importing PyQt5 will force silx to use it
+   import PyQt6.QtCore  # Importing PyQt6 will force silx to use it
    from silx.gui import qt
 
 
