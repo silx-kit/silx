@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -328,37 +328,32 @@ class TestH5Ls(unittest.TestCase):
 
         os.unlink(self.h5_fname)
 
-    # Following test case disabled d/t errors on AppVeyor:
-    #     os.unlink(spec_fname)
-    # PermissionError: [WinError 32] The process cannot access the file because
-    # it is being used by another process: 'C:\\...\\savespec.dat'
+    def testSpec(self):
+        tempdir = tempfile.mkdtemp()
+        spec_fname = os.path.join(tempdir, "savespec.dat")
 
-    # def testSpec(self):
-    #     tempdir = tempfile.mkdtemp()
-    #     spec_fname = os.path.join(tempdir, "savespec.dat")
-    #
-    #     x = [1, 2, 3]
-    #     xlab = "Abscissa"
-    #     y = [[4, 5, 6], [7, 8, 9]]
-    #     ylabs = ["Ordinate1", "Ordinate2"]
-    #     utils.save1D(spec_fname, x, y, xlabel=xlab,
-    #                  ylabels=ylabs, filetype="spec",
-    #                  fmt=["%d", "%.2f"])
-    #
-    #     rep = h5ls(spec_fname)
-    #     lines = rep.split("\n")
-    #     self.assertIn("+1.1", lines)
-    #     self.assertIn("\t+instrument", lines)
-    #
-    #     self.assertMatchAnyStringInList(
-    #             r'\t\t\t<SPEC dataset "file_header": shape \(\), type "|S60">',
-    #             lines)
-    #     self.assertMatchAnyStringInList(
-    #             r'\t\t<SPEC dataset "Ordinate1": shape \(3L?,\), type "<f4">',
-    #             lines)
-    #
-    #     os.unlink(spec_fname)
-    #     shutil.rmtree(tempdir)
+        x = [1, 2, 3]
+        xlab = "Abscissa"
+        y = [[4, 5, 6], [7, 8, 9]]
+        ylabs = ["Ordinate1", "Ordinate2"]
+        utils.save1D(spec_fname, x, y, xlabel=xlab,
+                     ylabels=ylabs, filetype="spec",
+                     fmt=["%d", "%.2f"])
+
+        rep = h5ls(spec_fname)
+        lines = rep.split("\n")
+        self.assertIn("+1.1", lines)
+        self.assertIn("\t+instrument", lines)
+
+        self.assertMatchAnyStringInList(
+                r'\t\t\t<SPEC dataset "file_header": shape \(\), type "|S60">',
+                lines)
+        self.assertMatchAnyStringInList(
+                r'\t\t<SPEC dataset "Ordinate1": shape \(3L?,\), type "<f4">',
+                lines)
+
+        os.unlink(spec_fname)
+        shutil.rmtree(tempdir)
 
 
 class TestOpen(unittest.TestCase):
