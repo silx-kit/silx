@@ -398,6 +398,9 @@ class ImageData(ImageDataBase):
         ImageDataBase.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
+        self.__x = None
+        self.__y = None
+        self.__ax_non_uniform = False
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -417,7 +420,16 @@ class ImageData(ImageDataBase):
 
         if dataToUse.size == 0:
             return None  # No data to display
-
+        if self.__ax_non_uniform:
+            return backend.addNonUniformImage(
+                self.__x,
+                self.__y,
+                dataToUse,
+                origin=self.getOrigin(),
+                scale=self.getScale(),
+                colormap=self._getColormapForRendering(),
+                alpha=self.getAlpha(),
+            )
         return backend.addImage(
             dataToUse,
             origin=self.getOrigin(),
@@ -496,6 +508,45 @@ class ImageData(ImageDataBase):
         :type alpha: Union[None,numpy.ndarray]
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
+        """
+        self.__ax_non_uniform = False
+        self.__setData(data, alternative=alternative, alpha=alpha, copy=copy)
+
+    def setNonUniformData(self, x, y, data, alternative=None, alpha=None, copy=True):
+        """
+        Set image data on a non-uniform grid.
+
+        :param ndarray x: 1D array of x coordinates
+        :param ndarray y: 1D array of y coordinates
+        :param data: RGB(A) image data to set
+        :param alternative: RGB(A) image to display instead of data,
+                            shape: (h, w, 3 or 4)
+        :type alternative: Union[None,numpy.ndarray]
+        :param alpha: An array of transparency value in [0, 1] to use for
+                      display with shape: (h, w)
+        :type alpha: Union[None,numpy.ndarray]
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        """
+        if numpy.all(numpy.diff(x) < 0):
+            x = x[::-1]
+            data = data[:, ::-1]
+        if numpy.all(numpy.diff(y) < 0):
+            y = y[::-1]
+            data = data[::-1, :]
+        if not numpy.all(numpy.diff(x) > 0) or not numpy.all(numpy.diff(y) > 0):
+            raise ValueError("x and y must be monotonously increasing or decreasing.")
+
+        self.__x = numpy.array(x, copy=copy)
+        self.__y = numpy.array(y, copy=copy)
+        self.__ax_non_uniform = True
+        self.__setData(data, alternative=alternative, alpha=alpha, copy=copy)
+        self.setOrigin((x[0], y[0]))
+        self.setScale(((x.max() - x.min()) / x.size, (y.max() - y.min()) / y.size))
+
+    def __setData(self, data, alternative=None, alpha=None, copy=True):
+        """
+        Set the image data.
         """
         data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2

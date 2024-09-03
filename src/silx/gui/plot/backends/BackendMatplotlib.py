@@ -53,7 +53,7 @@ import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
-from matplotlib.image import AxesImage
+from matplotlib.image import AxesImage, NonUniformImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
@@ -509,6 +509,23 @@ class Image(AxesImage):
             self._A = A  # Override stored data
 
 
+class _NonUniformImage(NonUniformImage):
+    def __init__(self, *args, silx_origin=(0.0, 0.0), silx_scale=(1.0, 1.0), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__silx_origin = silx_origin
+        self.__silx_scale = silx_scale
+
+    def contains(self, mouseevent):
+        """Overridden to fill 'ind' with row and column"""
+        inside, info = super().contains(mouseevent)
+        if inside:
+            x, y = mouseevent.xdata, mouseevent.ydata
+            column = numpy.argmin(abs(self._Ax - x))
+            row = numpy.argmin(abs(self._Ay - y))
+            info["ind"] = (row,), (column,)
+        return inside, info
+
+
 class BackendMatplotlib(BackendBase.BackendBase):
     """Base class for Matplotlib backend without a FigureCanvas.
 
@@ -779,15 +796,56 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
+        data, image = self.__prepare_image(data, origin, scale, colormap, alpha, Image)
+        # All image are shown as RGBA image
+        image.set_data(data)
+        self.ax.add_artist(image)
+        return image
+
+    def addNonUniformImage(self, x, y, data, origin, scale, colormap, alpha):
+        """Add a non-uniform image to the plot."""
+        if x is None or y is None:
+            return self.addImage(data, origin, scale, colormap, alpha)
+        data, image = self.__prepare_image(
+            data, origin, scale, colormap, alpha, _NonUniformImage
+        )
+        image.set_data(x, y, data)
+        image.set_extent((x.min(), x.max(), y.min(), y.max()))
+        self.ax.add_artist(image)
+        return image
+
+    def __prepare_image(self, data, origin, scale, colormap, alpha, Class):
+        """
+        Prepare the image based on the config and the given class.
+
+        :return: The (updated) data and the image instance.
+        :rtype: tuple(np.ndarray, matplotlib.image.AxesImage)
+        """
         for parameter in (data, origin, scale):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
         scale = float(scale[0]), float(scale[1])
-        height, width = data.shape[0:2]
 
-        # All image are shown as RGBA image
-        image = Image(
+        # Set image extent
+        xmin = origin[0]
+        xmax = xmin + scale[0] * data.shape[1]
+        if scale[0] < 0.0:
+            xmin, xmax = xmax, xmin
+
+        ymin = origin[1]
+        ymax = ymin + scale[1] * data.shape[0]
+        if scale[1] < 0.0:
+            ymin, ymax = ymax, ymin
+
+        # Set image data
+        if scale[0] < 0.0 or scale[1] < 0.0:
+            # For negative scale, step by -1
+            xstep = 1 if scale[0] >= 0.0 else -1
+            ystep = 1 if scale[1] >= 0.0 else -1
+            data = data[::ystep, ::xstep]
+
+        image = Class(
             self.ax,
             interpolation="nearest",
             picker=True,
@@ -799,25 +857,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if alpha < 1:
             image.set_alpha(alpha)
 
-        # Set image extent
-        xmin = origin[0]
-        xmax = xmin + scale[0] * width
-        if scale[0] < 0.0:
-            xmin, xmax = xmax, xmin
-
-        ymin = origin[1]
-        ymax = ymin + scale[1] * height
-        if scale[1] < 0.0:
-            ymin, ymax = ymax, ymin
-
         image.set_extent((xmin, xmax, ymin, ymax))
-
-        # Set image data
-        if scale[0] < 0.0 or scale[1] < 0.0:
-            # For negative scale, step by -1
-            xstep = 1 if scale[0] >= 0.0 else -1
-            ystep = 1 if scale[1] >= 0.0 else -1
-            data = data[::ystep, ::xstep]
 
         if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
@@ -826,9 +866,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             data = data.astype(numpy.float32)
             data /= 65535
 
-        image.set_data(data)
-        self.ax.add_artist(image)
-        return image
+        return data, image
 
     def addTriangles(self, x, y, triangles, color, alpha):
         for parameter in (x, y, triangles, color, alpha):
