@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Test for silx.gui.hdf5 module"""
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "08/03/2019"
@@ -47,7 +49,7 @@ _tmpDirectory = None
 
 def setUpModule():
     global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
+    _tmpDirectory = os.path.realpath(tempfile.mkdtemp(prefix=__name__))
 
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
@@ -123,18 +125,27 @@ class _UtilsMixin(object):
         raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ != path2_:
-            # Use the unittest API to log and display error
-            self.assertEqual(path1, path2)
+        self.assertEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths differs: {path1} != {path2}",
+        )
 
-    def assertNotSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ == path2_:
-            # Use the unittest API to log and display error
-            self.assertNotEqual(path1, path2)
+    def assertSameUrls(
+        self,
+        url1: silx.io.url.DataUrl | str,
+        url2: silx.io.url.DataUrl | str,
+    ):
+        """Check that both DataUrls are equivalent"""
+        if isinstance(url1, str):
+            url1 = silx.io.url.DataUrl(url1)
+        if isinstance(url2, str):
+            url2 = silx.io.url.DataUrl(url2)
+
+        self.assertEqual(url1.scheme(), url2.scheme())
+        self.assertSamePath(url1.file_path(), url2.file_path())
+        self.assertEqual(url1.data_path(), url2.data_path())
+        self.assertEqual(url1.data_slice(), url2.data_slice())
 
 
 class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
@@ -273,7 +284,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data/data.h5"
@@ -282,51 +293,47 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        )
+        self.assertSameUrls(urlLineEdit.text(), url)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        self.assertSameUrls(urlLineEdit.text(), url)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data")
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
         button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), path)
+        self.assertSameUrls(urlLineEdit.text(), url)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        self.assertSameUrls(urlLineEdit.text(), url)
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
@@ -334,24 +341,24 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
         button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(file_path=filename, data_path="/group/image")
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        )
+        self.assertSameUrls(urlLineEdit.text(), url)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
         self.assertFalse(button.isEnabled())
 
         # FIXME: There is an unreleased qt.QWidget without nameObject
@@ -363,7 +370,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         forwardAction = testutils.findChildren(
             dialog, qt.QAction, name="forwardAction"
         )[0]
@@ -378,15 +385,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
         self.qWaitForPendingActions(dialog)
-        path2 = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        dialog.selectUrl(path2)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        path3 = silx.io.url.DataUrl(
+        url2 = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group"
-        ).path()
-        dialog.selectUrl(path3)
+        )
+        dialog.selectUrl(url2.path())
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
@@ -396,14 +401,14 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path2)
+        self.assertSameUrls(urlLineEdit.text(), url)
 
         button = testutils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path3)
+        self.assertSameUrls(urlLineEdit.text(), url2)
 
     def testSelectImageFromEdf(self):
         dialog = self.createDialog()
@@ -420,7 +425,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(url.path())
         self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), url.path())
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectImage(self):
         dialog = self.createDialog()
@@ -429,14 +434,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/image"
-        ).path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image")
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectScalar(self):
         dialog = self.createDialog()
@@ -445,14 +448,14 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/scalar"
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog._selectedData()[()], 10)
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectGroup(self):
         dialog = self.createDialog()
@@ -496,9 +499,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -506,7 +507,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectBadFileFormat_Activate(self):
         dialog = self.createDialog()

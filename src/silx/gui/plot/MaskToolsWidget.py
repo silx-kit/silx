@@ -396,7 +396,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare
             )
-        except (RuntimeError, TypeError):
+        except (RuntimeError, TypeError, SystemError):
             pass
 
         # Sync with current active image
@@ -406,14 +406,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def hideEvent(self, event):
         try:
             self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-        except (RuntimeError, TypeError):
+        except (RuntimeError, TypeError, SystemError):
             pass
 
         image = self.getMaskedItem()
         if image is not None:
             try:
                 image.sigItemChanged.disconnect(self.__imageChanged)
-            except (RuntimeError, TypeError):
+            except (RuntimeError, TypeError, SystemError):
                 pass  # TODO should not happen
 
         if self.isMaskInteractionActivated():
@@ -503,7 +503,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # Disconnect from previous image
             try:
                 previous.sigItemChanged.disconnect(self.__imageChanged)
-            except (RuntimeError, TypeError):
+            except (RuntimeError, TypeError, SystemError):
                 pass  # TODO fixme should not happen
 
         # Set the image

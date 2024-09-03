@@ -249,7 +249,7 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
         if previousEditor is not None:
             try:
                 previousEditor.sigDataCommited.disconnect(self._editorDataCommited)
-            except (RuntimeError, TypeError):
+            except (RuntimeError, TypeError, SystemError):
                 pass
             layout.removeWidget(previousEditor)
             previousEditor.deleteLater()

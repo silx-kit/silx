@@ -284,7 +284,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.plot.sigActiveScatterChanged.disconnect(
                 self._activeScatterChangedAfterCare
             )
-        except (RuntimeError, TypeError):
+        except (RuntimeError, TypeError, SystemError):
             pass
         self._activeScatterChanged(None, None)  # Init mask + enable/disable widget
         self.plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
@@ -294,7 +294,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             # if the method is not connected this raises a TypeError and there is no way
             # to know the connected slots
             self.plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
-        except (RuntimeError, TypeError):
+        except (RuntimeError, TypeError, SystemError):
             _logger.info(sys.exc_info()[1])
 
         if self.isMaskInteractionActivated():

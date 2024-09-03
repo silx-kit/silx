@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 
 from .. import BackgroundWidget
@@ -38,12 +39,16 @@ class TestBackgroundWidget(TestCaseQt):
         self.qWaitForWindowExposed(self.bgdialog)
 
     def tearDown(self):
+        self.bgdialog.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.bgdialog.close()
         del self.bgdialog
         super(TestBackgroundWidget, self).tearDown()
 
     def testShow(self):
         self.bgdialog.show()
+        self.qWaitForWindowExposed(self.bgdialog)
         self.bgdialog.hide()
+        self.qapp.processEvents()
 
     def testAccept(self):
         self.bgdialog.accept()
