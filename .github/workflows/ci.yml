@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
 
         # Install packages:
-        # OpenCL lib and icd
+        # OpenCL lib
         # xvfb to run the GUI test headless
         # libegl1-mesa: Required by Qt xcb platform plugin
         # libgl1-mesa-glx: For OpenGL
@@ -63,7 +63,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install ocl-icd-opencl-dev intel-opencl-icd xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
+          sudo apt-get install ocl-icd-opencl-dev xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
+
+      - name: Setup Intel OpenCL ICD
+        if: runner.os == 'Linux'
+        run: |
+          wget -nv http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz -O - | tar -xzvf -
+          echo $(pwd)/intel_opencl_icd/icd/libintelocl.so > intel_opencl_icd/vendors/intel64.icd
 
       - uses: actions/setup-python@v5
         with:
@@ -87,6 +93,9 @@ jobs:
           pip install -r ci/requirements-pinned.txt
           pip install --pre "${{ matrix.QT_API }}"
           pip install --pre "$(ls dist/silx*.whl)[full,test]"
+          if [ ${{ runner.os }} == 'Linux' ]; then
+              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
+          fi
           python ./ci/info_platform.py
           pip list
 
@@ -97,5 +106,8 @@ jobs:
         run: |
           if [ ${{ runner.os }} == 'Windows' ]; then
               export WITH_GL_TEST=False
+          fi
+          if [ ${{ runner.os }} == 'Linux' ]; then
+              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
           fi
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
