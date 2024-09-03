@@ -346,10 +346,10 @@ class TestH5Ls(unittest.TestCase):
         self.assertIn("\t+instrument", lines)
 
         self.assertMatchAnyStringInList(
-                r'\t\t\t<SPEC dataset "file_header": shape \(\), type "|S60">',
+                r'\t\t\t<HDF5-like dataset "file_header": shape \(2,\), type "|O">',
                 lines)
         self.assertMatchAnyStringInList(
-                r'\t\t<SPEC dataset "Ordinate1": shape \(3L?,\), type "<f4">',
+                r'\t\t<HDF5-like dataset "Ordinate1": shape \(3,\), type "<f4">',
                 lines)
 
         os.unlink(spec_fname)
