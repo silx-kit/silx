@@ -183,6 +183,7 @@ jobs:
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
 
           # Install test dependencies
+          CIBW_BEFORE_TEST_LINUX: yum install -y mesa-libEGL mesa-libGL libxkbcommon-x11 libxkbcommon xcb-util-image xcb-util-keysyms libXrandr xcb-util-renderutil libXcursor libxcb
           CIBW_TEST_EXTRAS: "full,test"
           CIBW_TEST_COMMAND: python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3))"
           # Skip tests for emulated architectures and arm64 macos
