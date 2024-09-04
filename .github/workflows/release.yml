@@ -145,19 +145,14 @@ jobs:
         include:
           - os: ubuntu-20.04
             cibw_archs: "auto64"
-            with_sse2: true
           - os: ubuntu-20.04
             cibw_archs: "aarch64"
-            with_sse2: false
           - os: ubuntu-20.04
             cibw_archs: "ppc64le"
-            with_sse2: false
           - os: windows-2019
             cibw_archs: "auto64"
-            with_sse2: true
           - os: macos-12
             cibw_archs: "universal2"
-            with_sse2: true
 
     steps:
       - uses: actions/checkout@v4
