@@ -22,32 +22,50 @@ jobs:
           - os: ubuntu-20.04
             python-version: "3.8"
             QT_API: PyQt5
+            with_opencl: false
+            with_opengl: true
           - os: ubuntu-latest
             python-version: "3.11"
             QT_API: PyQt6
+            with_opencl: true
+            with_opengl: true
           - os: ubuntu-latest
             python-version: "3.12"
             QT_API: PySide6
+            with_opencl: true
+            with_opengl: true
 
           - os: macos-13
             python-version: "3.10"
             QT_API: PyQt5
+            with_opencl: true
+            with_opengl: true
           - os: macos-13
             python-version: "3.12"
             QT_API: PyQt6
+            with_opencl: true
+            with_opengl: true
           - os: macos-13
             python-version: "3.9"
             QT_API: PySide6
+            with_opencl: true
+            with_opengl: true
 
           - os: windows-latest
             python-version: "3.9"
             QT_API: PyQt5
+            with_opencl: false
+            with_opengl: false
           - os: windows-latest
             python-version: "3.12"
             QT_API: PyQt6
+            with_opencl: false
+            with_opengl: false
           - os: windows-latest
             python-version: "3.10"
             QT_API: PySide6
+            with_opencl: false
+            with_opengl: false
 
     steps:
       - uses: actions/checkout@v4
@@ -103,10 +121,9 @@ jobs:
         env:
           QT_API: ${{ matrix.QT_API }}
           SILX_TEST_LOW_MEM: "False"
+          SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
+          WITH_GL_TEST: ${{ matrix.with_opengl && 'True' || 'False' }}
         run: |
-          if [ ${{ runner.os }} == 'Windows' ]; then
-              export WITH_GL_TEST=False
-          fi
           if [ ${{ runner.os }} == 'Linux' ]; then
               export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
           fi
