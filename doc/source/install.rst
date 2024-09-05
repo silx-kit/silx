@@ -144,9 +144,9 @@ The mandatory dependencies are:
 
 The GUI widgets depend on the following extra packages:
 
-* A Qt binding: either `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ (>= 5.9),
-  `PySide6 <https://pypi.org/project/PySide6/>`_ (>= 6.4) or
-  `PyQt6 <https://pypi.org/project/PyQt6/>`_ (>= 6.3)
+* A Qt binding: either `PySide6 <https://pypi.org/project/PySide6/>`_ (>= 6.4),
+  `PyQt6 <https://pypi.org/project/PyQt6/>`_ (>= 6.3) or
+  `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ (>= 5.9)
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `qtconsole <https://pypi.org/project/qtconsole>`_

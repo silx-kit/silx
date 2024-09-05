@@ -14,8 +14,8 @@ Note:
   
   silx uses the Qt library for its graphical user interfaces.
   A word of caution is to be provided.
-  If users develop and distribute software using modules accessing Qt by means of Riverbank Computing Qt bindings PyQt4 or PyQt5, those users will be conditioned by the license of their PyQt4/5 software (GPL or commercial).
-  If the end user does not own a commercial license of PyQt4 or PyQt5 and wishes to be free of any distribution condition, (s)he should be able to use PySide6 because it uses the LGPL license.
+  If users develop and distribute software using modules accessing Qt by means of Riverbank Computing Qt bindings PyQt6 or PyQt5, those users will be conditioned by the license of their PyQt6/5 software (GPL or commercial).
+  If the end user does not own a commercial license of PyQt6 or PyQt5 and wishes to be free of any distribution condition, (s)he should be able to use PySide6 because it uses the LGPL license.
 
 The following list provides the copyright and license of the different source files of the project:
 
