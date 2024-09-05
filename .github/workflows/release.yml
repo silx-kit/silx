@@ -35,14 +35,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
+      - uses: ./.github/actions/setup-system
       - uses: actions/download-artifact@v4
         with:
           name: cibw-sdist
@@ -62,18 +59,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
-      - name: Setup Intel OpenCL ICD
-        run: |
-          wget -nv http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz -O - | tar -xzvf -
-          echo $(pwd)/intel_opencl_icd/icd/libintelocl.so > intel_opencl_icd/vendors/intel64.icd
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
+      - uses: ./.github/actions/setup-system
       - name: Install pandoc&graphviz
         run: sudo apt-get install pandoc graphviz
       - name: Install silx
@@ -82,7 +72,6 @@ jobs:
         env:
           QT_QPA_PLATFORM: "offscreen"
         run: |
-          export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
           export SILX_VERSION="$(python -c 'import silx; print(silx.strictversion)')"
           sphinx-build --fail-on-warning doc/source/ "silx-${SILX_VERSION}_documentation/"
           zip -r "silx-${SILX_VERSION}_documentation.zip" "silx-${SILX_VERSION}_documentation/"
