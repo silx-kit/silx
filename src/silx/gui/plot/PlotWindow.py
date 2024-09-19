@@ -229,6 +229,11 @@ class PlotWindow(PlotWidget):
         )
         self._intensityHistoAction.setVisible(False)
 
+        self.__aggregationModeAction = self.group.addAction(
+            actions.image.AggregationModeAction(parent=self)
+        )
+        self.__aggregationModeAction.setVisible(False)
+
         self._medianFilter2DAction = self.group.addAction(
             actions_medfilt.MedianFilter2DAction(self, parent=self)
         )
@@ -809,6 +814,13 @@ class PlotWindow(PlotWidget):
         :rtype: actions.PlotAction
         """
         return self._intensityHistoAction
+    
+    def getAggregationModeAction(self):
+        """Action toggling the aggregation mode action
+
+        :rtype: actions.PlotAction
+        """
+        return self.__aggregationModeAction
 
     def getCopyAction(self):
         """Action to copy plot snapshot to clipboard

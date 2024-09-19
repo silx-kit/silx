@@ -180,7 +180,7 @@ class ImageDataAggregated(ImageDataBase):
         return lodx, lody
 
     @docstring(ImageDataBase)
-    def setData(self, data, copy=True):
+    def setData(self, data, copy=True, **kwargs):
         self.__cacheLODData = {}  # Reset cache
         super().setData(data)
 

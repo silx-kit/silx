@@ -37,6 +37,8 @@ from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot.actions.image import ImageDataAggregated
+from silx._utils import NP_OPTIONAL_COPY
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -1066,12 +1068,127 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+        widget.getAggregationModeAction().setVisible(True)
+        widget.getAggregationModeAction().sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
         maskToolsWidget = widget.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
+
+    def _aggregationModeChanged(self):
+        plot = self.getWidget()
+        item = plot._getItem("image")
+        if item is None:
+            return
+        
+        aggregationMode = plot.getAggregationModeAction().getAggregationMode()
+        if aggregationMode is not None and isinstance(item, ImageDataAggregated):
+            item.setAggregationMode(aggregationMode)
+        else:
+            image = item.getData(copy=False)
+            if image is None:
+                return
+            origin = item.getOrigin()
+            scale = item.getScale()
+            self.setAggregatedImage(image, origin, scale, copy=False, resetzoom=False)
+
+    def setAggregatedImage(
+        self,
+        image,
+        origin=(0, 0),
+        scale=(1.0, 1.0),
+        copy=True,
+        reset=None,
+        resetzoom=True,
+    ):
+        """Set the image to display.
+
+        :param image: A 2D array representing the image or None to empty plot.
+        :type image: numpy.ndarray-like with 2 dimensions or None.
+        :param origin: The (x, y) position of the origin of the image.
+                       Default: (0, 0).
+                       The origin is the lower left corner of the image when
+                       the Y axis is not inverted.
+        :type origin: Tuple of 2 floats: (origin x, origin y).
+        :param scale: The scale factor to apply to the image on X and Y axes.
+                      Default: (1, 1).
+                      It is the size of a pixel in the coordinates of the axes.
+                      Scales must be positive numbers.
+        :type scale: Tuple of 2 floats: (scale x, scale y).
+        :param bool copy: Whether to copy image data (default) or not.
+        :param bool reset: Deprecated. Alias for `resetzoom`.
+        :param bool resetzoom: Whether to reset zoom and ROI (default) or not.
+        """
+        plot = self.getWidget()
+        legend = plot._getItem('image').getName()
+
+        if reset is not None:
+            resetzoom = reset
+
+        assert len(origin) == 2
+        assert len(scale) == 2
+        assert scale[0] > 0
+        assert scale[1] > 0
+
+
+        if image is None:
+            plot.remove(legend, kind="image")
+            return
+
+        data = numpy.array(image, order="C", copy=copy or NP_OPTIONAL_COPY)
+        if data.size == 0:
+            plot.remove(legend, kind="image")
+            return
+
+        assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
+
+        aggregation = plot.getAggregationModeAction().getAggregationMode()
+        if data.ndim != 2 and aggregation is not None:
+            # RGB/A with aggregation is not supported
+            aggregation = ImageDataAggregated.Aggregation.NONE
+
+        if aggregation is ImageDataAggregated.Aggregation.NONE:
+            self.addImage(
+                data,
+                legend=legend,
+                origin=origin,
+                scale=scale,
+                colormap=plot.getDefaultColormap(),
+                resetzoom=False,
+            )
+        else:
+            item = plot._getItem("image", legend)
+            if isinstance(item, ImageDataAggregated):
+                item.setData(data)
+                item.setOrigin(origin)
+                item.setScale(scale)
+            else:
+                if isinstance(item, ImageDataAggregated):
+                    print("holaaaa")
+                    imageItem = item
+                    wasCreated = False
+                else:
+                    if item is not None:
+                        plot.removeImage(legend)
+                    imageItem = ImageDataAggregated()
+                    imageItem.setName(legend)
+                    imageItem.setColormap(plot.getDefaultColormap())
+                    wasCreated = True
+                imageItem.setData(data)
+                imageItem.setOrigin(origin)
+                imageItem.setScale(scale)
+                imageItem.setAggregationMode(aggregation)
+                if wasCreated:
+                    print(f"adding: {type(imageItem)}")
+                    plot.addItem(imageItem)
+
+        plot.setActiveImage(legend)
+        if resetzoom:
+            plot.resetZoom()
 
     def clear(self):
         self.getWidget().clear()
@@ -1088,6 +1205,15 @@ class _Plot2dView(DataView):
             legend="data", data=data, resetzoom=self.__resetZoomNextTime
         )
         self.__resetZoomNextTime = False
+
+    def setAggregatedData(self, data):
+        data = self.normalizeData(data)
+        self.getWidget().addImage(
+            legend="data", data=data, resetzoom=self.__resetZoomNextTime
+        )
+        self.__resetZoomNextTime = False
+
+
 
     def setDataSelection(self, selection):
         self.getWidget().setGraphTitle(self.titleForSelection(selection))
