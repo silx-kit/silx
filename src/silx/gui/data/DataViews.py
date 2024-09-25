@@ -38,6 +38,7 @@ from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 from silx.gui.plot.actions.image import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 from silx._utils import NP_OPTIONAL_COPY
 
 __authors__ = ["V. Valls", "P. Knobel"]
@@ -1068,16 +1069,24 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
-        widget.getAggregationModeAction().setVisible(True)
-        widget.getAggregationModeAction().sigAggregationModeChanged.connect(
-            self._aggregationModeChanged
-        )
+
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.setVisible(True)
+
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
         maskToolsWidget = widget.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
+    
+    def getAggregationModeAction(self):
+        """Action toggling the aggregation mode action
+
+        :rtype: actions.PlotAction
+        """
+        return self.__aggregationModeAction
 
     def _aggregationModeChanged(self):
         plot = self.getWidget()
