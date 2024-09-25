@@ -1073,6 +1073,7 @@ class _Plot2dView(DataView):
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)
         self.__aggregationModeAction.setVisible(True)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
 
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
@@ -1091,19 +1092,27 @@ class _Plot2dView(DataView):
     def _aggregationModeChanged(self):
         plot = self.getWidget()
         item = plot._getItem("image")
+        legend = item.getName()
+
         if item is None:
             return
-        
-        aggregationMode = plot.getAggregationModeAction().getAggregationMode()
-        if aggregationMode is not None and isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(aggregationMode)
-        else:
-            image = item.getData(copy=False)
-            if image is None:
-                return
+                
+        if not isinstance(item, ImageDataAggregated):
+            data = item.getData()
             origin = item.getOrigin()
             scale = item.getScale()
-            self.setAggregatedImage(image, origin, scale, copy=False, resetzoom=False)
+            plot.removeImage(legend)
+            item = ImageDataAggregated()
+            item.setName(legend)
+            item.setColormap(plot.getDefaultColormap())
+            item.setData(data)
+            item.setOrigin(origin)
+            item.setScale(scale)
+            plot.addItem(item)
+            plot.setActiveImage(legend)
+
+        aggregationMode = self.getAggregationModeAction().getAggregationMode()
+        item.setAggregationMode(aggregationMode)
 
     def setAggregatedImage(
         self,
@@ -1210,19 +1219,21 @@ class _Plot2dView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        self.getWidget().addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
+        plot = self.getWidget()
+        imageItem = plot._getItem("image")
+    
+        if imageItem is None:
+            imageItem = ImageDataAggregated()
+            imageItem.setData(data)
+            imageItem.setColormap(plot.getDefaultColormap())
+            plot.addItem(imageItem)
+            plot.setActiveImage(imageItem.getName())
+            plot.resetZoom()
+        else:
+            imageItem.setData(data)
+
+        imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
         self.__resetZoomNextTime = False
-
-    def setAggregatedData(self, data):
-        data = self.normalizeData(data)
-        self.getWidget().addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
-        self.__resetZoomNextTime = False
-
-
 
     def setDataSelection(self, selection):
         self.getWidget().setGraphTitle(self.titleForSelection(selection))
