@@ -1072,7 +1072,6 @@ class _Plot2dView(DataView):
 
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.setVisible(True)
         self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
 
         widget.setKeepDataAspectRatio(True)
@@ -1082,10 +1081,8 @@ class _Plot2dView(DataView):
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
     
-    def getAggregationModeAction(self):
+    def getAggregationModeAction(self) -> AggregationModeAction:
         """Action toggling the aggregation mode action
-
-        :rtype: actions.PlotAction
         """
         return self.__aggregationModeAction
 
@@ -1120,9 +1117,9 @@ class _Plot2dView(DataView):
             imageItem.setColormap(plot.getDefaultColormap())
             plot.addItem(imageItem)
 
-        plot.addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
+        imageItem.setData(data=data)
+        if self.__resetZoomNextTime:
+            plot.resetZoom()
         self.__resetZoomNextTime = False
 
     def setDataSelection(self, selection):
