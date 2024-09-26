@@ -1119,7 +1119,6 @@ class _Plot2dView(DataView):
             imageItem.setColormap(plot.getDefaultColormap())
             plot.addItem(imageItem)
 
-
         plot.addImage(
             legend="data", data=data, resetzoom=self.__resetZoomNextTime
         )
