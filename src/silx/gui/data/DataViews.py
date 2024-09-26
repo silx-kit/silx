@@ -1826,29 +1826,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             self.defaultColorDialog()
         )
 
-        self.__aggregationModeAction = AggregationModeAction(parent=widget.getPlot())
-        widget.getPlot().toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.setVisible(True)
-        #self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
-
         return widget
-
-    def getAggregationModeAction(self):
-        """Action toggling the aggregation mode action
-
-        :rtype: actions.PlotAction
-        """
-        return self.__aggregationModeAction
-
-    def _aggregationModeChanged(self):
-        plot = self.getWidget().getPlot()
-        item = plot._getItem("image")
-
-        if item is None:
-            return
-
-        aggregationMode = self.getAggregationModeAction().getAggregationMode()
-        item.setAggregationMode(aggregationMode)
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
