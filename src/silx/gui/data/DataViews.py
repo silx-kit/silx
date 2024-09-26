@@ -1825,7 +1825,6 @@ class _NXdataImageView(_NXdataBaseDataView):
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
-
         return widget
 
     def axesNames(self, data, info):
