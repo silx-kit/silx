@@ -27,17 +27,12 @@ and outputs for a :class:`.PlotWidget`.
 
 The following QAction are available:
 
-- :class:`CopyAction`
-- :class:`PrintAction`
-- :class:`SaveAction`
+- :class:`AggregationModeAction`
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "19/09/2024"
-
-
-
 
 import logging
 from silx.gui import qt
@@ -47,9 +42,10 @@ from ..items.image_aggregated import ImageDataAggregated
 _logger = logging.getLogger(__name__)
 
 class AggregationModeAction(qt.QWidgetAction):
-    """Action providing few filters to the image"""
+    """Action providing filters for an aggregated image"""
 
     sigAggregationModeChanged = qt.Signal()
+    """Signal emitted when the aggregation mode has changed"""  
 
     def __init__(self, parent):
         qt.QWidgetAction.__init__(self, parent)
