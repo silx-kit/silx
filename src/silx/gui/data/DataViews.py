@@ -1092,121 +1092,12 @@ class _Plot2dView(DataView):
     def _aggregationModeChanged(self):
         plot = self.getWidget()
         item = plot._getItem("image")
-        legend = item.getName()
 
         if item is None:
             return
-                
-        if not isinstance(item, ImageDataAggregated):
-            data = item.getData()
-            origin = item.getOrigin()
-            scale = item.getScale()
-            plot.removeImage(legend)
-            item = ImageDataAggregated()
-            item.setName(legend)
-            item.setColormap(plot.getDefaultColormap())
-            item.setData(data)
-            item.setOrigin(origin)
-            item.setScale(scale)
-            plot.addItem(item)
-            plot.setActiveImage(legend)
 
         aggregationMode = self.getAggregationModeAction().getAggregationMode()
         item.setAggregationMode(aggregationMode)
-
-    def setAggregatedImage(
-        self,
-        image,
-        origin=(0, 0),
-        scale=(1.0, 1.0),
-        copy=True,
-        reset=None,
-        resetzoom=True,
-    ):
-        """Set the image to display.
-
-        :param image: A 2D array representing the image or None to empty plot.
-        :type image: numpy.ndarray-like with 2 dimensions or None.
-        :param origin: The (x, y) position of the origin of the image.
-                       Default: (0, 0).
-                       The origin is the lower left corner of the image when
-                       the Y axis is not inverted.
-        :type origin: Tuple of 2 floats: (origin x, origin y).
-        :param scale: The scale factor to apply to the image on X and Y axes.
-                      Default: (1, 1).
-                      It is the size of a pixel in the coordinates of the axes.
-                      Scales must be positive numbers.
-        :type scale: Tuple of 2 floats: (scale x, scale y).
-        :param bool copy: Whether to copy image data (default) or not.
-        :param bool reset: Deprecated. Alias for `resetzoom`.
-        :param bool resetzoom: Whether to reset zoom and ROI (default) or not.
-        """
-        plot = self.getWidget()
-        legend = plot._getItem('image').getName()
-
-        if reset is not None:
-            resetzoom = reset
-
-        assert len(origin) == 2
-        assert len(scale) == 2
-        assert scale[0] > 0
-        assert scale[1] > 0
-
-
-        if image is None:
-            plot.remove(legend, kind="image")
-            return
-
-        data = numpy.array(image, order="C", copy=copy or NP_OPTIONAL_COPY)
-        if data.size == 0:
-            plot.remove(legend, kind="image")
-            return
-
-        assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
-
-        aggregation = plot.getAggregationModeAction().getAggregationMode()
-        if data.ndim != 2 and aggregation is not None:
-            # RGB/A with aggregation is not supported
-            aggregation = ImageDataAggregated.Aggregation.NONE
-
-        if aggregation is ImageDataAggregated.Aggregation.NONE:
-            self.addImage(
-                data,
-                legend=legend,
-                origin=origin,
-                scale=scale,
-                colormap=plot.getDefaultColormap(),
-                resetzoom=False,
-            )
-        else:
-            item = plot._getItem("image", legend)
-            if isinstance(item, ImageDataAggregated):
-                item.setData(data)
-                item.setOrigin(origin)
-                item.setScale(scale)
-            else:
-                if isinstance(item, ImageDataAggregated):
-                    print("holaaaa")
-                    imageItem = item
-                    wasCreated = False
-                else:
-                    if item is not None:
-                        plot.removeImage(legend)
-                    imageItem = ImageDataAggregated()
-                    imageItem.setName(legend)
-                    imageItem.setColormap(plot.getDefaultColormap())
-                    wasCreated = True
-                imageItem.setData(data)
-                imageItem.setOrigin(origin)
-                imageItem.setScale(scale)
-                imageItem.setAggregationMode(aggregation)
-                if wasCreated:
-                    print(f"adding: {type(imageItem)}")
-                    plot.addItem(imageItem)
-
-        plot.setActiveImage(legend)
-        if resetzoom:
-            plot.resetZoom()
 
     def clear(self):
         self.getWidget().clear()
@@ -1224,15 +1115,14 @@ class _Plot2dView(DataView):
     
         if imageItem is None:
             imageItem = ImageDataAggregated()
-            imageItem.setData(data)
+            imageItem.setName("data")
             imageItem.setColormap(plot.getDefaultColormap())
             plot.addItem(imageItem)
-            plot.setActiveImage(imageItem.getName())
-            plot.resetZoom()
-        else:
-            imageItem.setData(data)
 
-        imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+
+        plot.addImage(
+            legend="data", data=data, resetzoom=self.__resetZoomNextTime
+        )
         self.__resetZoomNextTime = False
 
     def setDataSelection(self, selection):
