@@ -1843,8 +1843,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return
         
         if isinstance(item, ImageDataAggregated):
-            aggregationMode = self.getAggregationModeAction().getAggregationMode()
-            item.setAggregationMode(aggregationMode)
+            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
