@@ -312,3 +312,76 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def value(self):
         """Get selected value"""
         return self._slider.value()
+
+class FrameRateWidgetAction(qt.QWidgetAction):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._build()
+        
+    def _build(self):
+        widget = qt.QWidget()
+        layout = qt.QHBoxLayout()
+        widget.setLayout(layout)
+        self.line_edit = qt.QLineEdit()
+        layout.addWidget(qt.QLabel("FPS:"))
+        layout.addWidget(self.line_edit)
+        self.setDefaultWidget(widget)        
+
+class PlayButtonContextMenu(qt.QMenu):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._build()
+
+    def _build(self):
+        self.line_edit_action = FrameRateWidgetAction(self)
+        self.addAction(self.line_edit_action)
+        self.setFrameRate("10")
+        
+    def setFrameRate(self, value:str):
+        self.line_edit_action.line_edit.setText(value)
+        
+    def getFrameRate(self):
+        return int(self.line_edit_action.line_edit.text())
+        
+class HorizontalSliderWithBrowserPlay(HorizontalSliderWithBrowser):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.__timer = qt.QTimer(self)
+        self.__timer.timeout.connect(self._updateState)
+        
+        fontMetric = self.fontMetrics()
+        iconSize = qt.QSize(fontMetric.height(), fontMetric.height())
+        
+        self.playButton = qt.QPushButton(self)
+        self.playButton.setIcon(icons.getQIcon("camera"))
+        self.playButton.setIconSize(iconSize)
+        self.mainLayout.addWidget(self.playButton)
+        
+        self.playButton.clicked.connect(self._playStopSequence)
+        self.menu = PlayButtonContextMenu(self)
+        
+    def contextMenuEvent(self, event):
+        self.menu.exec_(self.mapToGlobal(event.pos()))
+            
+    def _playStopSequence(self):
+        if self.__timer.isActive():
+            self._stopTimer()
+        else:
+            self._startTimer()
+        
+    def _updateState(self):
+        if self._browser.getValue() < self._browser.getRange()[-1]:
+            self._browser._nextClicked()
+        else:
+            self._stopTimer()
+            
+    def _startTimer(self):
+        framerate = self.menu.getFrameRate()
+        waiting_time_ms = int(1 / framerate * 1e3)
+        self.__timer.start(waiting_time_ms)
+        self.playButton.setIcon(icons.getQIcon("close"))     
+            
+    def _stopTimer(self):
+        self.__timer.stop()
+        self.playButton.setIcon(icons.getQIcon("camera"))

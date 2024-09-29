@@ -32,7 +32,7 @@ __date__ = "29/01/2018"
 import logging
 import numpy
 import functools
-from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowserPlay
 from silx.gui import qt
 from silx.gui.utils import blockSignals
 import silx.utils.weakref
@@ -65,7 +65,7 @@ class _Axis(qt.QWidget):
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
-        self.__slider = HorizontalSliderWithBrowser(self)
+        self.__slider = HorizontalSliderWithBrowserPlay(self)
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
