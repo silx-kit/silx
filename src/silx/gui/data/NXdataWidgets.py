@@ -34,6 +34,7 @@ from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView, items
 from silx.gui.plot.ComplexImageView import ComplexImageView
+from silx.gui.plot.items.image_aggregated import ImageDataAggregated
 from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
@@ -555,6 +556,10 @@ class ArrayImagePlot(qt.QWidget):
                 "image",
             )
         )
+        imageItem = ImageDataAggregated()
+        imageItem.setName(legend)
+        self._plot.addItem(imageItem)
+        
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -564,14 +569,12 @@ class ArrayImagePlot(qt.QWidget):
 
             self._plot.getXAxis().setScale("linear")
             self._plot.getYAxis().setScale("linear")
-            self._plot.addImage(
-                image,
-                legend=legend,
-                origin=origin,
-                scale=scale,
-                replace=True,
-                resetzoom=False,
-            )
+            
+            imageItem.setData(image)
+            imageItem.setOrigin(origin)
+            imageItem.setScale(scale)
+            imageItem.setColormap(self._plot.getDefaultColormap())
+
         else:
             xaxisscale, yaxisscale = self._axis_scales
 

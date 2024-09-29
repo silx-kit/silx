@@ -1825,7 +1825,26 @@ class _NXdataImageView(_NXdataBaseDataView):
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.getPlot().toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
         return widget
+    
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        plot = self.getWidget().getPlot()
+        item = plot._getItem("image")
+
+        if item is None:
+            return
+        
+        if isinstance(item, ImageDataAggregated):
+            aggregationMode = self.getAggregationModeAction().getAggregationMode()
+            item.setAggregationMode(aggregationMode)
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
@@ -1862,6 +1881,14 @@ class _NXdataImageView(_NXdataBaseDataView):
             yscale=y_scale,
             keep_ratio=(x_units == y_units),
         )
+        
+        item = self.getWidget().getPlot()._getItem("image")
+        
+        if item is None:
+            return
+        
+        if isinstance(item, ImageDataAggregated):
+            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
