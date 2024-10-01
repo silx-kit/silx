@@ -325,7 +325,21 @@ class FrameRateWidgetAction(qt.QWidgetAction):
         self.line_edit = qt.QLineEdit()
         layout.addWidget(qt.QLabel("FPS:"))
         layout.addWidget(self.line_edit)
-        self.setDefaultWidget(widget)        
+        self.setDefaultWidget(widget)
+        
+class IntervalsWidgetAction(qt.QWidgetAction):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._build()
+        
+    def _build(self):
+        widget = qt.QWidget()
+        layout = qt.QHBoxLayout()
+        widget.setLayout(layout)
+        self.spinbox = qt.QSpinBox()
+        layout.addWidget(qt.QLabel("Interval:"))
+        layout.addWidget(self.spinbox)
+        self.setDefaultWidget(widget)
 
 class PlayButtonContextMenu(qt.QMenu):
     def __init__(self, *args, **kwargs):
@@ -334,14 +348,23 @@ class PlayButtonContextMenu(qt.QMenu):
 
     def _build(self):
         self.line_edit_action = FrameRateWidgetAction(self)
+        self.interval_action = IntervalsWidgetAction(self)
         self.addAction(self.line_edit_action)
-        self.setFrameRate("10")
+        self.setFrameRate(value="10")
+        self.addAction(self.interval_action)
+        self.setInterval(value=1)
         
     def setFrameRate(self, value:str):
         self.line_edit_action.line_edit.setText(value)
         
     def getFrameRate(self):
         return int(self.line_edit_action.line_edit.text())
+    
+    def setInterval(self, value:int):
+        self.interval_action.spinbox.setValue(value)
+    
+    def getInterval(self):
+        return int(self.interval_action.spinbox.value())
         
 class HorizontalSliderWithBrowserPlay(HorizontalSliderWithBrowser):
     def __init__(self, *args, **kwargs):
@@ -371,8 +394,9 @@ class HorizontalSliderWithBrowserPlay(HorizontalSliderWithBrowser):
             self._startTimer()
         
     def _updateState(self):
+        interval = self.menu.getInterval()
         if self._browser.getValue() < self._browser.getRange()[-1]:
-            self._browser._nextClicked()
+            self.setValue(self._browser.getValue() + interval)
         else:
             self._stopTimer()
             
