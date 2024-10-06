@@ -393,8 +393,9 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         
     def _updateState(self):
         """Advance an interval number of frames in the browser sequence."""
-        if self._browser.getValue() < self._browser.getRange()[-1]:
-            self.setValue(self._browser.getValue() + self.getInterval())
+        current_index = self._browser.getValue()
+        if current_index < self._browser.getRange()[-1]:
+            self.setValue(current_index + self.getInterval())
         else:
             self._stopTimer()
             
