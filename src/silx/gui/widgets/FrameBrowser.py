@@ -299,7 +299,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._playButton.clicked.connect(self._playStopSequence)
         self._menuPlaySlider = _PlayButtonContextMenu(self)
         self._playButton.setMenu(self._menuPlaySlider)
-        self._playButton.setPopupMode(1)
+        self._playButton.setPopupMode(qt.QToolButton.MenuButtonPopup)
 
     def lineEdit(self):
         """Returns the line edit provided by this widget.
