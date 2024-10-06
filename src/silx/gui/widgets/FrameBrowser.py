@@ -359,26 +359,40 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def value(self):
         """Get selected value"""
         return self._slider.value()
+    
+    def spinBoxFrameRate(self) -> qt.QSpinBox:
+        """Returns the SpinBox widget for FrameRate display."""
+        return self._menuPlaySlider._framerate_action._spinbox
 
-    def setFrameRate(self, value:int):
-        self._menuPlaySlider._framerate_action._spinbox.setValue(value)
+    def spinBoxInterval(self) -> qt.QSpinBox:
+        """Returns the SpinBox widget for interval display."""
+        return self._menuPlaySlider._interval_action._spinbox
+
+    def setFrameRate(self, value: int):
+        """Set the FrameRate value for the PlaySlider"""
+        self.spinBoxFrameRate().setValue(value)
         
-    def getFrameRate(self):
-        return int(self._menuPlaySlider._framerate_action._spinbox.value())
+    def getFrameRate(self) -> int:
+        """Returns the value from the FrameRate SpinBox."""
+        return int(self.spinBoxFrameRate().value())
     
-    def setInterval(self, value:int):
-        self._menuPlaySlider._interval_action._spinbox.setValue(value)
+    def setInterval(self, value: int):
+        """Set the Interval value for the PlaySlider"""
+        self.spinBoxInterval().setValue(value)
     
-    def getInterval(self):
-        return int(self._menuPlaySlider._interval_action._spinbox.value())
+    def getInterval(self) -> int:
+        """Returns the value from the Interval SpinBox."""
+        return int(self.spinBoxInterval().value())
             
     def _playStopSequence(self):
+        """Start/Stop the slider sequence."""
         if self.__timer.isActive():
             self._stopTimer()
         else:
             self._startTimer()
         
     def _updateState(self):
+        """Advance an interval number of frames in the browser sequence."""
         interval = self.getInterval()
         if self._browser.getValue() < self._browser.getRange()[-1]:
             self.setValue(self._browser.getValue() + interval)
@@ -386,11 +400,13 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
             self._stopTimer()
             
     def _startTimer(self):
+        """Start the slider sequence."""
         framerate = self.getFrameRate()
         waiting_time_ms = int(1 / framerate * 1e3)
         self.__timer.start(waiting_time_ms)
         self._playButton.setIcon(icons.getQIcon("close"))     
             
     def _stopTimer(self):
+        """Stop the slider sequence."""
         self.__timer.stop()
         self._playButton.setIcon(icons.getQIcon("camera"))
