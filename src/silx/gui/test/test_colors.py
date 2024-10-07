@@ -652,6 +652,13 @@ class TestAutoscaleRange(ParametricTestCase):
                 numpy.array([10, 50, 100, -50]),
                 (10.8, 99.),
             ),
+            # With inf
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 50, 100, float("inf")]),
+                (10.8, 99.),
+            ),
         ]
         for norm, mode, array, expectedRange in data:
             with self.subTest(norm=norm, mode=mode, array=array):
