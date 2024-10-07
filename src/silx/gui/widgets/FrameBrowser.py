@@ -264,11 +264,11 @@ class _PlayButtonContextMenu(qt.QMenu):
     def _build(self):
         self._framerateAction = _SliderPlayWidgetAction(self, label="FPS:", tooltip="Display speed in frames per second")
         self._framerateAction.sigValueChanged.connect(self.sigFrameRateChanged)
-        self._intervalAction = _SliderPlayWidgetAction(self, label="Interval:", tooltip="Jump between frames")
+        self._stepAction = _SliderPlayWidgetAction(self, label="Step:", tooltip="Step between displayed frames")
         self.addAction(self._framerateAction)
         self._framerateAction.setValue(10)
-        self.addAction(self._intervalAction)
-        self._intervalAction.setValue(1)
+        self.addAction(self._stepAction)
+        self._stepAction.setValue(1)
 
     def getFrameRate(self) -> int:
         return self._framerateAction.value()
@@ -276,11 +276,11 @@ class _PlayButtonContextMenu(qt.QMenu):
     def setFrameRate(self, rate: int):
         self._framerateAction.setValue(rate)
 
-    def getInterval(self) -> int:
-        return self._intervalAction.value()
+    def getStep(self) -> int:
+        return self._stepAction.value()
 
-    def setInterval(self, interval: int):
-        self._intervalAction.setValue(interval)
+    def setStep(self, interval: int):
+        self._stepAction.setValue(interval)
 
 
 class HorizontalSliderWithBrowser(qt.QAbstractSlider):
@@ -335,7 +335,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._playButton.toggled.connect(self._playButtonToggled)
         self._menuPlaySlider = _PlayButtonContextMenu(self)
         self._menuPlaySlider.sigFrameRateChanged.connect(self._frameRateChanged)
-        self._frameRateChanged(self._menuPlaySlider.getInterval())
+        self._frameRateChanged(self.getFrameRate())
         self._playButton.setMenu(self._menuPlaySlider)
         self._playButton.setPopupMode(qt.QToolButton.MenuButtonPopup)
 
@@ -400,20 +400,20 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         return self._slider.value()
     
     def setFrameRate(self, value: int):
-        """Set the FrameRate value for the PlaySlider"""
+        """Set the frame rate at which images are displayed"""
         self._menuPlaySlider.setFrameRate(value)
         
     def getFrameRate(self) -> int:
-        """Returns the value from the FrameRate SpinBox."""
+        """Get the frame rate at which images are displayed"""
         return self._menuPlaySlider.getFrameRate()
     
-    def setInterval(self, value: int):
-        """Set the Interval value for the PlaySlider"""
-        self._menuPlaySlider.setInterval(value)
+    def setPlayImageStep(self, value: int):
+        """Set the step between displayed images when playing"""
+        self._menuPlaySlider.setStep(value)
     
-    def getInterval(self) -> int:
-        """Returns the value from the Interval SpinBox."""
-        return self._menuPlaySlider.getInterval()
+    def getPlayImageStep(self) -> int:
+        """Returns the step between displayed images"""
+        return self._menuPlaySlider.getStep()
 
     def _frameRateChanged(self, framerate: int):
         """Update the timer interval"""
@@ -430,6 +430,6 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         """Advance an interval number of frames in the browser sequence."""
         currentIndex = self._browser.getValue()
         if currentIndex < self._browser.getRange()[-1]:
-            self.setValue(currentIndex + self.getInterval())
+            self.setValue(currentIndex + self.getPlayImageStep())
         else:
             self._playButton.setChecked(False)
