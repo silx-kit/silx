@@ -326,7 +326,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self.__timer.timeout.connect(self._updateState)
         
         self._playButton = qt.QToolButton(self)
-        self._playButton.setToolTip("Display movie with frames")
+        self._playButton.setToolTip("Display dataset movie.")
         self._playButton.setIcon(icons.getQIcon("camera"))
         self._playButton.setIconSize(iconSize)
         self._playButton.setCheckable(True)
