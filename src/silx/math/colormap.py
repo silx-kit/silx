@@ -265,6 +265,8 @@ class _NormalizationMixIn:
                 vmax = dmax
             else:
                 vmax = min(dmax, stdmax)
+        elif mode == "percentile_1_99":
+            vmin, vmax = self.autoscale_percentile_1_99(data)
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
@@ -318,6 +320,15 @@ class _NormalizationMixIn:
         return self.revert(mean - 3 * std, 0.0, 1.0), self.revert(
             mean + 3 * std, 0.0, 1.0
         )
+
+    def autoscale_percentile_1_99(self, data):
+        """Autoscale using [1st, 99th] percentiles"""
+        data = data[self.is_valid(data)]
+        if data.dtype.kind == "f":  # Strip +/-inf
+            data = data[numpy.isfinite(data)]
+        if data.size == 0:
+            return None, None
+        return numpy.nanpercentile(data, (1, 99))
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
