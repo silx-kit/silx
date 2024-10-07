@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+from __future__ import annotations
 """This module defines two main classes:
 
     - :class:`FrameBrowser`: a widget with 4 buttons (first, previous, next,
@@ -217,12 +218,18 @@ class FrameBrowser(qt.QWidget):
         self._lineEdit.setText("%d" % value)
         self._textChangedSlot()
 
-class SliderPlayWidgetAction(qt.QWidgetAction):
-    def __init__(self, parent, label=None, tooltip=None):
+
+class _SliderPlayWidgetAction(qt.QWidgetAction):
+    def __init__(
+            self,
+            parent: qt.QWidget | None = None,
+            label: str | None = None,
+            tooltip: str | None = None,
+    ):
         super().__init__(parent)
         self._build(label=label, tooltip=tooltip)
 
-    def _build(self, label=None, tooltip=None):
+    def _build(self, label: str, tooltip: str):
         widget = qt.QWidget()
         layout = qt.QHBoxLayout()
         widget.setLayout(layout)
@@ -235,18 +242,38 @@ class SliderPlayWidgetAction(qt.QWidgetAction):
         layout.addWidget(self._spinbox)
         self.setDefaultWidget(widget)
 
+    def value(self) -> int:
+        return self._spinbox.value()
+
+    def setValue(self, value: int):
+        self._spinbox.setValue(value)
+
+
 class _PlayButtonContextMenu(qt.QMenu):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent: qt.QWidget | None = None):
+        super().__init__(parent)
         self._build()
 
     def _build(self):
-        self._framerate_action = SliderPlayWidgetAction(self, label="FPS:", tooltip="Display speed in frames per second")
-        self._interval_action = SliderPlayWidgetAction(self, label="Interval:", tooltip="Jump between frames")
-        self.addAction(self._framerate_action)
-        self._framerate_action._spinbox.setValue(10)
-        self.addAction(self._interval_action)
-        self._interval_action._spinbox.setValue(1)
+        self._framerateAction = _SliderPlayWidgetAction(self, label="FPS:", tooltip="Display speed in frames per second")
+        self._intervalAction = _SliderPlayWidgetAction(self, label="Interval:", tooltip="Jump between frames")
+        self.addAction(self._framerateAction)
+        self._framerateAction.setValue(10)
+        self.addAction(self._intervalAction)
+        self._intervalAction.setValue(1)
+
+    def getFrameRate(self) -> int:
+        return self._framerateAction.value()
+
+    def setFrameRate(self, rate: int):
+        self._framerateAction.setValue(rate)
+
+    def getInterval(self) -> int:
+        return self._intervalAction.value()
+
+    def setInterval(self, interval: int):
+        self._intervalAction.setValue(interval)
+
 
 class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     """
@@ -360,29 +387,21 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         """Get selected value"""
         return self._slider.value()
     
-    def spinBoxFrameRate(self) -> qt.QSpinBox:
-        """Returns the SpinBox widget for FrameRate display."""
-        return self._menuPlaySlider._framerate_action._spinbox
-
-    def spinBoxInterval(self) -> qt.QSpinBox:
-        """Returns the SpinBox widget for interval display."""
-        return self._menuPlaySlider._interval_action._spinbox
-
     def setFrameRate(self, value: int):
         """Set the FrameRate value for the PlaySlider"""
-        self.spinBoxFrameRate().setValue(value)
+        self._menuPlaySlider.setFrameRate(value)
         
     def getFrameRate(self) -> int:
         """Returns the value from the FrameRate SpinBox."""
-        return int(self.spinBoxFrameRate().value())
+        return self._menuPlaySlider.getFrameRate()
     
     def setInterval(self, value: int):
         """Set the Interval value for the PlaySlider"""
-        self.spinBoxInterval().setValue(value)
+        self._menuPlaySlider.setInterval(value)
     
     def getInterval(self) -> int:
         """Returns the value from the Interval SpinBox."""
-        return int(self.spinBoxInterval().value())
+        return self._menuPlaySlider.getInterval()
             
     def _playStopSequence(self):
         """Start/Stop the slider sequence."""
@@ -393,17 +412,17 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         
     def _updateState(self):
         """Advance an interval number of frames in the browser sequence."""
-        current_index = self._browser.getValue()
-        if current_index < self._browser.getRange()[-1]:
-            self.setValue(current_index + self.getInterval())
+        currentIndex = self._browser.getValue()
+        if currentIndex < self._browser.getRange()[-1]:
+            self.setValue(currentIndex + self.getInterval())
         else:
             self._stopTimer()
             
     def _startTimer(self):
         """Start the slider sequence."""
         framerate = self.getFrameRate()
-        waiting_time_ms = int(1 / framerate * 1e3)
-        self.__timer.start(waiting_time_ms)
+        waitingTimeMS = int(1 / framerate * 1e3)
+        self.__timer.start(waitingTimeMS)
         self._playButton.setIcon(icons.getQIcon("close"))     
             
     def _stopTimer(self):
