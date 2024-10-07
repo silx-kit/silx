@@ -220,6 +220,9 @@ class FrameBrowser(qt.QWidget):
 
 
 class _SliderPlayWidgetAction(qt.QWidgetAction):
+
+    sigValueChanged = qt.Signal(int)
+
     def __init__(
             self,
             parent: qt.QWidget | None = None,
@@ -236,6 +239,7 @@ class _SliderPlayWidgetAction(qt.QWidgetAction):
         self._spinbox = qt.QSpinBox()
         self._spinbox.setToolTip(tooltip)
         self._spinbox.setRange(1,1000000)
+        self._spinbox.valueChanged.connect(self.sigValueChanged)
         label = qt.QLabel(label)
         label.setToolTip(tooltip)
         layout.addWidget(label)
@@ -250,12 +254,16 @@ class _SliderPlayWidgetAction(qt.QWidgetAction):
 
 
 class _PlayButtonContextMenu(qt.QMenu):
+
+    sigFrameRateChanged = qt.Signal(int)
+
     def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
         self._build()
 
     def _build(self):
         self._framerateAction = _SliderPlayWidgetAction(self, label="FPS:", tooltip="Display speed in frames per second")
+        self._framerateAction.sigValueChanged.connect(self.sigFrameRateChanged)
         self._intervalAction = _SliderPlayWidgetAction(self, label="Interval:", tooltip="Jump between frames")
         self.addAction(self._framerateAction)
         self._framerateAction.setValue(10)
@@ -321,12 +329,16 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._playButton.setToolTip("Display movie with frames")
         self._playButton.setIcon(icons.getQIcon("camera"))
         self._playButton.setIconSize(iconSize)
+        self._playButton.setCheckable(True)
         self.mainLayout.addWidget(self._playButton)
         
-        self._playButton.clicked.connect(self._playStopSequence)
+        self._playButton.toggled.connect(self._playButtonToggled)
         self._menuPlaySlider = _PlayButtonContextMenu(self)
+        self._menuPlaySlider.sigFrameRateChanged.connect(self._frameRateChanged)
+        self._frameRateChanged(self._menuPlaySlider.getInterval())
         self._playButton.setMenu(self._menuPlaySlider)
         self._playButton.setPopupMode(qt.QToolButton.MenuButtonPopup)
+
 
     def lineEdit(self):
         """Returns the line edit provided by this widget.
@@ -402,30 +414,22 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def getInterval(self) -> int:
         """Returns the value from the Interval SpinBox."""
         return self._menuPlaySlider.getInterval()
+
+    def _frameRateChanged(self, framerate: int):
+        """Update the timer interval"""
+        self.__timer.setInterval(int(1 / framerate * 1e3))
             
-    def _playStopSequence(self):
+    def _playButtonToggled(self, checked: bool):
         """Start/Stop the slider sequence."""
-        if self.__timer.isActive():
-            self._stopTimer()
-        else:
-            self._startTimer()
-        
+        if checked:
+            self.__timer.start()
+            return
+        self.__timer.stop()
+
     def _updateState(self):
         """Advance an interval number of frames in the browser sequence."""
         currentIndex = self._browser.getValue()
         if currentIndex < self._browser.getRange()[-1]:
             self.setValue(currentIndex + self.getInterval())
         else:
-            self._stopTimer()
-            
-    def _startTimer(self):
-        """Start the slider sequence."""
-        framerate = self.getFrameRate()
-        waitingTimeMS = int(1 / framerate * 1e3)
-        self.__timer.start(waitingTimeMS)
-        self._playButton.setIcon(icons.getQIcon("close"))     
-            
-    def _stopTimer(self):
-        """Stop the slider sequence."""
-        self.__timer.stop()
-        self._playButton.setIcon(icons.getQIcon("camera"))
+            self._playButton.setChecked(False)
