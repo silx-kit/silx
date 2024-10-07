@@ -171,7 +171,9 @@ def _bytestobool (val):
 
     Raises ValueError if 'val' is not supported.
     """
-    val = val.decode().lower()
+    if isinstance(val, bytes):
+        val = val.decode()
+    val.lower()
     if val in ('y', 'yes', 't', 'true', 'on', '1'):
         return True
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
