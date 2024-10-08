@@ -98,7 +98,8 @@ def _hdf5_file_locking(
 
     :param mode: read-only by default
     :param locking: by default it is disabled for `mode='r'`
-                    and `swmr=False` and enabled for all other modes.
+                    and `swmr=False` and enabled when supported
+                    for all other modes.
     :param swmr: try both modes when `mode='r'` and `swmr=None`
     :param libver:
     """
@@ -361,8 +362,8 @@ class File(h5py.File):
         :param filename:
         :param mode: read-only by default
         :param locking: by default it is disabled for `mode='r'`
-                        and `swmr=False` and enabled for all
-                        other modes.
+                        and `swmr=False` and enabled when supported
+                        for all other modes.
         :param enable_file_locking: deprecated
         :param swmr: try both modes when `mode='r'` and `swmr=None`
         :param libver:
