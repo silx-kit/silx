@@ -92,7 +92,7 @@ def tearDownModule():
     for _ in range(10):
         try:
             shutil.rmtree(_tmpDirectory)
-        except PermissionError:  # Might fail on appveyor
+        except PermissionError:  # Might fail on Windows
             testutils.TestCaseQt.qWait(500)
         else:
             break
