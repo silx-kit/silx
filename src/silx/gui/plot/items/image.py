@@ -595,8 +595,9 @@ class MaskImageData(ImageData):
 
     pass
 
+from .image_aggregated import ImageDataAggregated
 
-class ImageStack(ImageData):
+class ImageStack(ImageDataAggregated):
     """Item to store a stack of images and to show it in the plot as one
     of the images of the stack.
 
@@ -605,7 +606,7 @@ class ImageStack(ImageData):
     """
 
     def __init__(self):
-        ImageData.__init__(self)
+        ImageDataAggregated.__init__(self)
         self.__stack = None
         """A 3D numpy array (or a mimic one, see ListOfImages)"""
         self.__stackPosition = None

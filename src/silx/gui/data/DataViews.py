@@ -37,6 +37,9 @@ from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot.actions.image import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
+from silx._utils import NP_OPTIONAL_COPY
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -1066,12 +1069,32 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
         maskToolsWidget = widget.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
+    
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        plot = self.getWidget()
+        item = plot._getItem("image")
+
+        if item is None:
+            return
+
+        aggregationMode = self.getAggregationModeAction().getAggregationMode()
+        item.setAggregationMode(aggregationMode)
 
     def clear(self):
         self.getWidget().clear()
@@ -1084,9 +1107,19 @@ class _Plot2dView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        self.getWidget().addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
+        plot = self.getWidget()
+        imageItem = plot._getItem("image")
+    
+        if imageItem is None:
+            imageItem = ImageDataAggregated()
+            imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())            
+            imageItem.setName("data")
+            imageItem.setColormap(plot.getDefaultColormap())
+            plot.addItem(imageItem)
+
+        imageItem.setData(data=data)
+        if self.__resetZoomNextTime:
+            plot.resetZoom()
         self.__resetZoomNextTime = False
 
     def setDataSelection(self, selection):
@@ -1302,8 +1335,27 @@ class _StackView(DataView):
         widget.setOptionVisible(False)
         maskToolWidget = widget.getPlotWidget().getMaskToolsDockWidget().widget()
         maskToolWidget.setItemMaskUpdated(True)
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.getPlotWidget().toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
         return widget
 
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        plot = self.getWidget().getPlotWidget()
+        item = plot._getItem("image")
+
+        if item is None:
+            return
+
+        if isinstance(item, ImageDataAggregated):
+            aggregationMode = self.getAggregationModeAction().getAggregationMode()
+            item.setAggregationMode(aggregationMode)
+        
     def clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
@@ -1792,7 +1844,25 @@ class _NXdataImageView(_NXdataBaseDataView):
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.getPlot().toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
         return widget
+    
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        plot = self.getWidget().getPlot()
+        item = plot._getItem("image")
+
+        if item is None:
+            return
+        
+        if isinstance(item, ImageDataAggregated):
+            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
@@ -1829,6 +1899,14 @@ class _NXdataImageView(_NXdataBaseDataView):
             yscale=y_scale,
             keep_ratio=(x_units == y_units),
         )
+        
+        item = self.getWidget().getPlot()._getItem("image")
+        
+        if item is None:
+            return
+        
+        if isinstance(item, ImageDataAggregated):
+            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
