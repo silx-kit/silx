@@ -1055,9 +1055,11 @@ class ProfileManager(qt.QObject):
 
         # Trick to avoid blinking while retrieving the right window size
         # Display the window, hide it and wait for some event loops
-        profileWindow.show()
-        profileWindow.hide()
         eventLoop = qt.QEventLoop(self)
+        profileWindow.show()
+        # Handle PyQt 5.15. Fix issue #4135 
+        eventLoop.processEvents()
+        profileWindow.hide()
         for _ in range(10):
             if not eventLoop.processEvents():
                 break
