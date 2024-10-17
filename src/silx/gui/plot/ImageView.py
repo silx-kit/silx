@@ -65,6 +65,7 @@ from ..utils import blockSignals
 from . import _utils
 from .tools.profile import rois
 from .actions import PlotAction
+from .actions.image import AggregationModeAction
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -352,90 +353,6 @@ class ShowSideHistogramsAction(PlotAction):
         if self.plot.isSideHistogramDisplayed() != checked:
             self.plot.setSideHistogramDisplayed(checked)
 
-
-class AggregationModeAction(qt.QWidgetAction):
-    """Action providing few filters to the image"""
-
-    sigAggregationModeChanged = qt.Signal()
-
-    def __init__(self, parent):
-        qt.QWidgetAction.__init__(self, parent)
-
-        toolButton = qt.QToolButton(parent)
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("No filter")
-        filterAction.setCheckable(True)
-        filterAction.setChecked(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.NONE
-        )
-        densityNoFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Max filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MAX
-        )
-        densityMaxFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Mean filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MEAN
-        )
-        densityMeanFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Min filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MIN
-        )
-        densityMinFilterAction = filterAction
-
-        densityGroup = qt.QActionGroup(self)
-        densityGroup.setExclusive(True)
-        densityGroup.addAction(densityNoFilterAction)
-        densityGroup.addAction(densityMaxFilterAction)
-        densityGroup.addAction(densityMeanFilterAction)
-        densityGroup.addAction(densityMinFilterAction)
-        densityGroup.triggered.connect(self._aggregationModeChanged)
-        self.__densityGroup = densityGroup
-
-        filterMenu = qt.QMenu(toolButton)
-        filterMenu.addAction(densityNoFilterAction)
-        filterMenu.addAction(densityMaxFilterAction)
-        filterMenu.addAction(densityMeanFilterAction)
-        filterMenu.addAction(densityMinFilterAction)
-
-        toolButton.setPopupMode(qt.QToolButton.InstantPopup)
-        toolButton.setMenu(filterMenu)
-        toolButton.setText("Data filters")
-        toolButton.setToolTip("Enable/disable filter on the image")
-        icon = icons.getQIcon("aggregation-mode")
-        toolButton.setIcon(icon)
-        toolButton.setText("Pixel aggregation filter")
-
-        self.setDefaultWidget(toolButton)
-
-    def _aggregationModeChanged(self):
-        self.sigAggregationModeChanged.emit()
-
-    def setAggregationMode(self, mode):
-        """Set an Aggregated enum from ImageDataAggregated"""
-        for a in self.__densityGroup.actions():
-            if a.property("aggregation") is mode:
-                a.setChecked(True)
-
-    def getAggregationMode(self):
-        """Returns an Aggregated enum from ImageDataAggregated"""
-        densityAction = self.__densityGroup.checkedAction()
-        if densityAction is None:
-            return items.ImageDataAggregated.Aggregation.NONE
-        return densityAction.property("aggregation")
 
 
 class ImageView(PlotWindow):
