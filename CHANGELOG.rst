@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+2.1.2: 2024/10/23
+-----------------
+
+* Bug fixes
+
+  * `silx.gui``: Fixed memory leak: Updated OpenGL text rendering to use Qt when possible
+
 2.1.1: 2024/08/13
 -----------------
 
