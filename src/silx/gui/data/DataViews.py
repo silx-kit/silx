@@ -37,7 +37,7 @@ from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
-from silx.gui.plot.actions.image import ImageDataAggregated
+from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
 from silx._utils import NP_OPTIONAL_COPY
 
@@ -1844,26 +1844,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
-        self.__aggregationModeAction = AggregationModeAction(parent=widget)
-        widget.getPlot().toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
         return widget
-    
-    def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action
-        """
-        return self.__aggregationModeAction
-
-    def _aggregationModeChanged(self):
-        plot = self.getWidget().getPlot()
-        item = plot._getItem("image")
-
-        if item is None:
-            return
-        
-        if isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
-
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
@@ -1906,7 +1887,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return
         
         if isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+            item.setAggregationMode(self.getWidget().getAggregationModeAction().getAggregationMode())
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
