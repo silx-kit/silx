@@ -1335,26 +1335,7 @@ class _StackView(DataView):
         widget.setOptionVisible(False)
         maskToolWidget = widget.getPlotWidget().getMaskToolsDockWidget().widget()
         maskToolWidget.setItemMaskUpdated(True)
-        self.__aggregationModeAction = AggregationModeAction(parent=widget)
-        widget.getPlotWidget().toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
         return widget
-
-    def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action
-        """
-        return self.__aggregationModeAction
-
-    def _aggregationModeChanged(self):
-        plot = self.getWidget().getPlotWidget()
-        item = plot._getItem("image")
-
-        if item is None:
-            return
-
-        if isinstance(item, ImageDataAggregated):
-            aggregationMode = self.getAggregationModeAction().getAggregationMode()
-            item.setAggregationMode(aggregationMode)
         
     def clear(self):
         self.getWidget().clear()
