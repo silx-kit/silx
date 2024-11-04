@@ -242,7 +242,7 @@ class ImageStack(qt.QMainWindow):
         """Clear the plot and remove any link to url"""
         self._freeLoadingThreads()
         self._urls = None
-        self._urlIndexes = None
+        self._urlIndexes = {}
         self._urlData = {}
         self._current_url = None
         self._plot.clear()
