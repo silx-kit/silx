@@ -279,7 +279,7 @@ class MCA(object):
         if not len(self):
             raise IndexError("No MCA spectrum found in this scan")
 
-        if isinstance(key, (int, long)):
+        if isinstance(key, int):
             mca_index = key
             # allow negative index, like lists
             if mca_index < 0:
