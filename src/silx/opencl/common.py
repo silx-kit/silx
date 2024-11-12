@@ -38,6 +38,7 @@ __status__ = "stable"
 
 import os
 import logging
+from packaging.version import Version
 import numpy
 from .utils import get_opencl_code
 
@@ -757,17 +758,24 @@ def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
         do not support 1D images, so 1D images are handled as 2D with one row
     :param support_1D: force the image to be 1D if the shape has only one dim
     """
+    # TODO "shape" as optional parameter (kwarg) ?
     if len(shape) == 1 and not (support_1D):
         shape = (1,) + shape
-    return pyopencl.Image(
+    if hostbuf is None:
+        hostbuf = numpy.zeros(shape[::-1], dtype=numpy.float32)
+
+    if Version(pyopencl.version.VERSION_TEXT) >= Version("2024.3"):
+        texture_creation_function = pyopencl.create_image
+    else:
+        texture_creation_function = pyopencl.Image
+    return texture_creation_function(
         ctx,
         pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
         pyopencl.ImageFormat(
             pyopencl.channel_order.INTENSITY, pyopencl.channel_type.FLOAT
         ),
-        hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32),
+        hostbuf=hostbuf,
     )
-
 
 def check_textures_availability(ctx):
     """
