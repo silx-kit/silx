@@ -166,6 +166,21 @@ dtypeConverter = {
     "BOOLEAN": "?",
 }
 
+def _bytestobool (val):
+    """Convert bytes of a truth value to bool.
+
+    Raises ValueError if 'val' is not supported.
+    """
+    if isinstance(val, bytes):
+        val = val.decode()
+    val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError("Invalid truth value %r" % val)
+
 
 def is_fiofile(filename):
     """Test if a file is a FIO file, by checking if three consecutive lines
@@ -256,11 +271,22 @@ class FioFile(object):
                         "Invalid fio file: Found no data "
                         "after %s lines" % ABORTLINENO
                     )
+            np_datatype = \
+                numpy.dtype([(n, t) for (n,t) in zip(self.names, self.dtypes)])
 
-            self.data = numpy.loadtxt(
+            converter = {}
+            for i, t in enumerate(self.dtypes):
+                if t == dtypeConverter['BOOLEAN']:
+                    converter[i] = _bytestobool
+
+            self.data = numpy.genfromtxt(
                 fiof,
-                dtype={"names": tuple(self.names), "formats": tuple(self.dtypes)},
+                dtype=np_datatype,
                 comments="!",
+                invalid_raise=True,
+                names=None,
+                deletechars='',
+                converters=converter
             )
 
             # ToDo: read only last line of file,
@@ -359,7 +385,7 @@ class FioH5(commonh5.File):
         try:
             fiof = FioFile(filename)  # reads complete file
         except Exception as e:
-            raise IOError("FIO file %s cannot be read.") from e
+            raise IOError("FIO file %s cannot be read." % filename) from e
 
         attrs = {
             "NX_class": to_h5py_utf8("NXroot"),

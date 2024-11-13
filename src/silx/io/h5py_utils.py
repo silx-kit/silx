@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
+from __future__ import annotations
 """
 This module provides utility methods on top of h5py, mainly to handle
 parallel writing and reading.
@@ -34,6 +35,7 @@ import os
 import sys
 import traceback
 import logging
+from typing import Sequence
 import h5py
 
 from .._version import calc_hexversion
@@ -79,7 +81,13 @@ def _libver_low_bound_is_v108(libver) -> bool:
     return low == "v108"
 
 
-def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
+def _hdf5_file_locking(
+        mode: str | None = "r",
+        locking: bool | str | None = None,
+        swmr: bool | None = None,
+        libver: str | Sequence[str] | None = None,
+        **_
+    ) -> str | bool | None:
     """Concurrent access by disabling file locking is not supported
     in these cases:
 
@@ -88,17 +96,16 @@ def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
         * libver > v108 and file already locked: does not work
         * windows and HDF5_HAS_LOCKING_ARGUMENT and file already locked: does not work
 
-    :param str or None mode: read-only by default
-    :param bool or None locking: by default it is disabled for `mode='r'`
-                                 and `swmr=False` and enabled for all
-                                 other modes.
-    :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-    :param None or str or tuple libver:
-    :returns bool:
+    :param mode: read-only by default
+    :param locking: by default it is disabled for `mode='r'`
+                    and `swmr=False` and enabled when supported
+                    for all other modes.
+    :param swmr: try both modes when `mode='r'` and `swmr=None`
+    :param libver:
     """
-    if locking is None:
-        locking = bool(mode != "r" or swmr)
-    if not locking:
+    if locking is None and mode == "r" and not swmr:
+        locking = False
+    if locking in (False, "false"):
         if mode != "r":
             raise ValueError("Locking is mandatory for HDF5 writing")
         if swmr:
@@ -341,25 +348,25 @@ class File(h5py.File):
 
     def __init__(
         self,
-        filename,
-        mode=None,
-        locking=None,
-        enable_file_locking=None,
-        swmr=None,
-        libver=None,
+        filename: str,
+        mode: str | None = None,
+        locking: bool | str | None = None,
+        enable_file_locking: bool | None = None,
+        swmr: bool | None = None,
+        libver: str | Sequence[str] | None = None,
         **kwargs,
     ):
         r"""The arguments `locking` and `swmr` should not be
         specified explicitly for normal use cases.
 
-        :param str filename:
-        :param str or None mode: read-only by default
-        :param bool or None locking: by default it is disabled for `mode='r'`
-                                        and `swmr=False` and enabled for all
-                                        other modes.
-        :param bool or None enable_file_locking: deprecated
-        :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-        :param None or str or tuple libver:
+        :param filename:
+        :param mode: read-only by default
+        :param locking: by default it is disabled for `mode='r'`
+                        and `swmr=False` and enabled when supported
+                        for all other modes.
+        :param enable_file_locking: deprecated
+        :param swmr: try both modes when `mode='r'` and `swmr=None`
+        :param libver:
         :param \**kwargs: see `h5py.File.__init__`
         """
         # File locking behavior has changed in recent versions of libhdf5
