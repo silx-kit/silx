@@ -1,4 +1,4 @@
-# /*##########################################################################
+# /*#########################################################################
 #
 # Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
+# ##########################################################################*/
 """This module provides the :class:`ImageData` and :class:`ImageRgba` items
 of the :class:`Plot`.
 """
