@@ -1078,6 +1078,7 @@ class _Plot2dView(DataView):
         self.__imageItem.setName("data")
         self.__imageItem.setColormap(widget.getDefaultColormap())
         widget.addItem(self.__imageItem)
+        widget.setActiveImage(self.__imageItem)
 
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
