@@ -39,7 +39,6 @@ from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
-from silx._utils import NP_OPTIONAL_COPY
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -1336,7 +1335,7 @@ class _StackView(DataView):
         maskToolWidget = widget.getPlotWidget().getMaskToolsDockWidget().widget()
         maskToolWidget.setItemMaskUpdated(True)
         return widget
-        
+
     def clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
@@ -1826,6 +1825,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             self.defaultColorDialog()
         )
         return widget
+
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
@@ -1861,14 +1861,6 @@ class _NXdataImageView(_NXdataBaseDataView):
             yscale=y_scale,
             keep_ratio=(x_units == y_units),
         )
-        
-        item = self.getWidget().getPlot()._getItem("image")
-        
-        if item is None:
-            return
-        
-        if isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(self.getWidget().getAggregationModeAction().getAggregationMode())
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
