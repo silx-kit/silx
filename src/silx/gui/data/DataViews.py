@@ -1073,30 +1073,24 @@ class _Plot2dView(DataView):
         widget.toolBar().addAction(self.__aggregationModeAction)
         self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
 
+        self.__imageItem = ImageDataAggregated()
+        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
+        self.__imageItem.setName("data")
+        self.__imageItem.setColormap(widget.getDefaultColormap())
+        widget.addItem(self.__imageItem)
+
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
         maskToolsWidget = widget.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
-    
-    def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action
-        """
-        return self.__aggregationModeAction
 
     def _aggregationModeChanged(self):
-        plot = self.getWidget()
-        item = plot._getItem("image")
-
-        if item is None:
-            return
-
-        aggregationMode = self.getAggregationModeAction().getAggregationMode()
-        item.setAggregationMode(aggregationMode)
+        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
 
     def clear(self):
-        self.getWidget().clear()
+        self.__imageItem.setData(numpy.zeros((0, 0), dtype=numpy.float32))
         self.__resetZoomNextTime = True
 
     def normalizeData(self, data):
@@ -1107,16 +1101,8 @@ class _Plot2dView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         plot = self.getWidget()
-        imageItem = plot._getItem("image")
-    
-        if imageItem is None:
-            imageItem = ImageDataAggregated()
-            imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())            
-            imageItem.setName("data")
-            imageItem.setColormap(plot.getDefaultColormap())
-            plot.addItem(imageItem)
 
-        imageItem.setData(data=data)
+        self.__imageItem.setData(data=data)
         if self.__resetZoomNextTime:
             plot.resetZoom()
         self.__resetZoomNextTime = False
