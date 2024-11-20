@@ -33,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "22/03/2024"
+__date__ = "20/11/2024"
 __status__ = "stable"
 
 import os
@@ -321,7 +321,11 @@ def _measure_workgroup_size(device_or_context, fast=False):
     data = numpy.random.random(shape).astype(numpy.float32)
     d_data = pyopencl.array.to_device(queue, data)
     d_data_1 = pyopencl.array.empty_like(d_data)
-    d_data_1.fill(numpy.float32(1.0))
+    try:
+        d_data_1.fill(numpy.float32(1.0))
+    except Exception as err:
+        logger.error("Unable to execute any element-wise kernel! %s: %s", type(err), err)
+        return max_valid_wg
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
     if fast:
