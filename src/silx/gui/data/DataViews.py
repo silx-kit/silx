@@ -37,6 +37,8 @@ from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot.items.image import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -1066,6 +1068,18 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+
+        self.__imageItem = ImageDataAggregated()
+        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
+        self.__imageItem.setName("data")
+        self.__imageItem.setColormap(widget.getDefaultColormap())
+        widget.addItem(self.__imageItem)
+        widget.setActiveImage(self.__imageItem)
+
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
@@ -1073,8 +1087,11 @@ class _Plot2dView(DataView):
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
 
+    def _aggregationModeChanged(self):
+        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
+
     def clear(self):
-        self.getWidget().clear()
+        self.__imageItem.setData(numpy.zeros((0, 0), dtype=numpy.float32))
         self.__resetZoomNextTime = True
 
     def normalizeData(self, data):
@@ -1084,9 +1101,11 @@ class _Plot2dView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        self.getWidget().addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
+        plot = self.getWidget()
+
+        self.__imageItem.setData(data=data)
+        if self.__resetZoomNextTime:
+            plot.resetZoom()
         self.__resetZoomNextTime = False
 
     def setDataSelection(self, selection):

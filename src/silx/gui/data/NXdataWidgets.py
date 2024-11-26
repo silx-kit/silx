@@ -34,6 +34,8 @@ from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView, items
 from silx.gui.plot.ComplexImageView import ComplexImageView
+from silx.gui.plot.items.image_aggregated import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
@@ -422,7 +424,25 @@ class ArrayImagePlot(qt.QWidget):
         layout.addWidget(self._auxSigSlider)
 
         self.setLayout(layout)
+        
+        self.__aggregationModeAction = AggregationModeAction(parent=self)
+        self.getPlot().toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
 
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        item = self.getPlot()._getItem("image")
+
+        if item is None:
+            return
+        
+        if isinstance(item, ImageDataAggregated):
+            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+            
     def _sliderIdxChanged(self, value):
         self._updateImage()
 
@@ -555,6 +575,7 @@ class ArrayImagePlot(qt.QWidget):
                 "image",
             )
         )
+
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -564,14 +585,16 @@ class ArrayImagePlot(qt.QWidget):
 
             self._plot.getXAxis().setScale("linear")
             self._plot.getYAxis().setScale("linear")
-            self._plot.addImage(
-                image,
-                legend=legend,
-                origin=origin,
-                scale=scale,
-                replace=True,
-                resetzoom=False,
-            )
+            
+            imageItem = ImageDataAggregated()
+            imageItem.setName(legend)
+            imageItem.setData(image)
+            imageItem.setOrigin(origin)
+            imageItem.setScale(scale)
+            imageItem.setColormap(self._plot.getDefaultColormap())
+            imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+            self._plot.addItem(imageItem)
+            self._plot.setActiveImage(imageItem)
         else:
             xaxisscale, yaxisscale = self._axis_scales
 
