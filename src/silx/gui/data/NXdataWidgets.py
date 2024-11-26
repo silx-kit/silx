@@ -594,6 +594,7 @@ class ArrayImagePlot(qt.QWidget):
             imageItem.setColormap(self._plot.getDefaultColormap())
             imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
             self._plot.addItem(imageItem)
+            self._plot.setActiveImage(imageItem)
         else:
             xaxisscale, yaxisscale = self._axis_scales
 

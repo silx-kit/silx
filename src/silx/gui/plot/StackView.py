@@ -302,15 +302,7 @@ class StackView(qt.QMainWindow):
         return self.__aggregationModeAction
 
     def _aggregationModeChanged(self):
-        plot = self.getPlotWidget()
-        item = plot._getItem("image")
-
-        if item is None:
-            return
-
-        if isinstance(item, ImageDataAggregated):
-            aggregationMode = self.getAggregationModeAction().getAggregationMode()
-            item.setAggregationMode(aggregationMode)
+        self._stackItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
