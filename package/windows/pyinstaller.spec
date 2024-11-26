@@ -108,20 +108,17 @@ silx_coll = COLLECT(
 
 # Generate license file from current Python env
 def create_license_file(filename: str):
-    import PyQt5.QtCore
+    import PySide6.QtCore
 
     with open(filename, "w") as f:
         f.write(
             f"""
 This is free software.
 
-This distribution of silx is provided under the
-GNU General Public License v3 (https://www.gnu.org/licenses/gpl-3.0.en.html) since it includes PyQt5.
-
 It includes mainy software packages with different licenses:
 
 - Python ({sys.version}): PSF license, https://www.python.org/
-- Qt ({PyQt5.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
+- Qt ({PySide6.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
 """
         )
 
