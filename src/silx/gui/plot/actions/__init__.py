@@ -39,3 +39,4 @@ from .PlotAction import PlotAction
 from . import control
 from . import mode
 from . import io
+from . import image

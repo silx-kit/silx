@@ -86,6 +86,8 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx._utils import NP_OPTIONAL_COPY
 from silx.gui.plot.actions import io as silx_io
+from silx.gui.plot.items.image_aggregated import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
@@ -289,6 +291,18 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._profileToolBar.clearProfile
         )
+        
+        self.__aggregationModeAction = AggregationModeAction(parent=self)
+        self._plot.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action
+        """
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        self._stackItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
