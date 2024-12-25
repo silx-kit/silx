@@ -121,7 +121,7 @@ def _hdf5_file_locking(
     return locking
 
 
-def _is_h5py_exception(e):
+def is_h5py_exception(e):
     """
     :param BaseException e:
     :returns bool:
@@ -133,12 +133,12 @@ def _is_h5py_exception(e):
     return False
 
 
-def _retry_h5py_error(e):
+def retry_h5py_error(e):
     """
     :param BaseException e:
     :returns bool:
     """
-    if _is_h5py_exception(e):
+    if is_h5py_exception(e):
         if isinstance(e, (OSError, RuntimeError)):
             return True
         elif isinstance(e, KeyError):
@@ -157,7 +157,7 @@ def retry(**kw):
 
     :param \**kw: see `silx.utils.retry`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry(**kw)
 
 
@@ -168,7 +168,7 @@ def retry_contextmanager(**kw):
 
     :param \**kw: see `silx.utils.retry_contextmanager`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry_contextmanager(**kw)
 
 
@@ -186,7 +186,7 @@ def retry_in_subprocess(**kw):
 
     :param \**kw: see `silx.utils.retry_in_subprocess`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry_in_subprocess(**kw)
 
 
