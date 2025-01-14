@@ -28,7 +28,7 @@ jobs:
             QT_API: PyQt6
             with_opencl: true
           - os: ubuntu-latest
-            python-version: "3.12"
+            python-version: "3.13"
             QT_API: PySide6
             with_opencl: true
 
@@ -37,7 +37,7 @@ jobs:
             QT_API: PyQt5
             with_opencl: true
           - os: macos-13
-            python-version: "3.12"
+            python-version: "3.13"
             QT_API: PyQt6
             with_opencl: true
           - os: macos-13
