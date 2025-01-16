@@ -69,6 +69,7 @@ ScanName = ascan
       180.348418821    3    00008    exposure    1576165748.20308    1    1.243
       180.398418821    3    00009    exposure    1576165749.20308    1    1.243
       180.448418821    3    00010    exposure    1576165750.20308    1    1.243
+      nan    <no-data>    <no-data>    <no-data>    nan    <no-data>    <no-data>
 """
 
 
@@ -134,9 +135,9 @@ class TestFioH5(unittest.TestCase):
 
     def testDataColumn(self):
         self.assertAlmostEqual(
-            sum(self.fioh5["/5.1/measurement/omega(encoder)"]), 1802.23418821
+            sum(self.fioh5["/5.1/measurement/omega(encoder)"][:-1]), 1802.23418821
         )
-        self.assertTrue(numpy.all(self.fioh5["/5.1/measurement/enable"]))
+        self.assertTrue(numpy.all(self.fioh5["/5.1/measurement/enable"][:-1]))
 
     # --- comment section tests ---
 
@@ -175,6 +176,13 @@ ScanName = ascan
             self.fioh5["/5.1/instrument/parameter/channel3_exposure"], "1.000000e+00"
         )
         self.assertEqual(self.fioh5["/5.1/instrument/parameter/ScanName"], "ascan")
+
+    def testNaNAndNoData(self):
+        """Test access to nan and <no-data> fields from last row"""
+        self.assertEqual(self.fioh5["/5.1/measurement/channel"][-1], -1)
+        self.assertFalse(self.fioh5["/5.1/measurement/enable"][-1])
+        self.assertTrue(numpy.isnan(self.fioh5["/5.1/measurement/time"][-1]))
+        self.assertTrue(numpy.isnan(self.fioh5["/5.1/measurement/time_s"][-1]))
 
     def testNotFioH5(self):
         testfilename = os.path.join(self.temp_dir.name, "eh1scan_00010.fio")
