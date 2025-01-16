@@ -423,7 +423,6 @@ def savespec(
     ncol = data.shape[0]
     assert len(labels) == ncol
 
-    print(xlabel, ylabel, fmt, ncol, x_array, y_array)
     if isinstance(fmt, str) and fmt.count("%") == 1:
         full_fmt_string = "  ".join([fmt] * ncol)
     elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
