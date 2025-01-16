@@ -126,7 +126,10 @@ class ProfileRoiMixIn:
         previousPlotItem = self.getPlotItem()
         if previousPlotItem is plotItem:
             return
-        self.__plotItem = weakref.ref(plotItem)
+        if plotItem is None:
+            self.__plotItem = None
+        else:
+            self.__plotItem = weakref.ref(plotItem)
         self.sigPlotItemChanged.emit()
 
     def getPlotItem(self):
