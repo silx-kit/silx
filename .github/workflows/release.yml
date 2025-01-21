@@ -9,7 +9,7 @@ on:
 jobs:
   build_sdist:
     name: Build source distribution
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,7 +32,7 @@ jobs:
   test_sdist:
     needs: [build_sdist]
     name: Test source distribution
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,7 +55,7 @@ jobs:
 
   build_doc:
     name: Build documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -190,7 +190,7 @@ jobs:
         test_windows_installer,
       ]
     name: Upload release to PyPI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment:
       name: pypi
     permissions:
@@ -209,7 +209,7 @@ jobs:
   windows-installer-publish:
     needs: [build_windows_installer, test_windows_installer]
     name: Upload Windows installer
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment:
       name: assets
     permissions:
