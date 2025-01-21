@@ -1193,12 +1193,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
         if y2min is not None and y2max is not None:
-            if not self.isYAxisInverted():
+            if self.ax2.get_autoscaley_on():
+                pass
+            elif not self.isYAxisInverted():
                 self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max))
             else:
                 self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max))
 
-        if not self.isYAxisInverted():
+        if self.ax.get_autoscaley_on():
+            pass
+        elif not self.isYAxisInverted():
             self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax))
         else:
             self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax))
@@ -1347,6 +1351,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setKeepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else "auto")
         self.ax2.set_aspect(1.0 if flag else "auto")
+        # self.ax.set_autoscaley_on(flag)
+        # self.ax2.set_autoscaley_on(flag)
 
     def setGraphGrid(self, which):
         self.ax.grid(False, which="both")  # Disable all grid first
