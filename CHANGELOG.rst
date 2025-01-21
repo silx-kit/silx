@@ -1,6 +1,76 @@
 Release Notes
 =============
 
+2.2.0: 2025/01/21
+-----------------
+
+* `silx view`:
+
+  * Added a new window to plot selected datasets as curves (PR #4132, #4137, #4140, #4141, #4145, #4146)
+  * Added a tool button to control the aggregation of displayed image data (PR #4174)
+
+* `silx.gui`
+
+  * `silx.gui.colors`: Add "percentile" mode for autoscaling (PR #4154)
+  * `silx.gui.data.DataViewer.DataViewer`: Fixed issue with accessing views after using the removeView method. (PR #4131)
+  * `silx.gui.dialog.ColormapDialog`: Fixed typo in method name getDisplayMode (PR #4142)
+  * `silx.gui.plot.tools.profile`: Fixed profile error when plot item is None (PR #4196)
+  * `silx.gui.plot.items`: Fixed Marker.setSymbolSize (PR #4181)
+  * `silx.gui.plot.ImageStack`: Fixed `_urlIndexes` initialization.  (PR #4189)
+  * `silx.gui.plot.tools.profile.manager`: Fixed threaded execution to avoid seg fault with PySide6.7 (PR #4169)
+  * `silx.gui.plot.PlotWidget.addCurve`: Fixed progression in color, linestyle (PR #4138)
+  * `silx.gui.plot.PlotWidget`: Fixed support of PySide6 (PR #4136)
+  * `silx.gui.widgets.FrameBrowser`: Added a play button to `HorizontalSliderWithBrowser` (PR #4176)
+
+* `silx.io`
+
+  * `silx.io.fioh5`: Added tests for NaN and <no-data> in file (PR #4179)
+  * `silx.io.fioh5`: Improved handling of missing data entries (PR #4156)
+  * `silx.io.h5py_utils`: Fixed support of libhdf5 v1.14.4 (PR #4177)
+  * `silx.io.h5py_utils`: Added `is_h5py_exception` and `retry_h5py_error` (PR #4200)
+  * `silx.io.specfile`: Fixed `SpecFile` deallocation issue (PR #4129)
+  * `silx.ui.specfile`: Fixed by using int instead of long in cython code (PR #4195)
+  * `silx.io.url`: Added HSDS URL support (PR #4119)
+  * `silx.io.utils`: Removed `print` statement (PR #4192)
+
+* `silx.math.fit.peaks`: Fixed `-Wuse-after-free` warning (PR #4147)
+
+* `silx.opencl`
+
+  * Fixed deprecation warning upon texture creation (PR #4193)
+  * `silx.opencl.convolution`: Fixed separable convolution on CPU that crashed in some cases (PR #4150)
+  * `silx.opencl.processing`: work-around for double precision GPU on Apple-silicon  (PR #4198)
+
+* `silx.utils`
+
+  * `silx.utils.enum`: Deprecated `Enum.from_value` method (PR #4143)
+  * `silx.utils.ExternalResources`: Allow to set data_home when instantiating the class (PR #4151)
+  * `silx.utils.retry`: Fixed resetting the timeout timer when iterating (PR #4157)
+
+* Documentation
+
+  * Added how-to make a release (PR #4112)
+  * Added missing arg in docstring of open_item (PR #4117)
+  * Updated installation and contribution documentation (PR #4148)
+  * Improved release instructions (PR #4163)
+
+* Dependencies
+
+  * Removed numpy from build dependency (PR #4114)
+  * Removed `bitshuffle` from test dependencies (PR #4164)
+
+* Tests
+
+  * Improved tests by converting warnings to errors (PR #4113)
+
+* Continuous Integration
+
+  * Added build and deployment of Windows installer to the release workflow (PR #4122)
+  * Added tests and wheel generation for Python 3.13 (PR #4201)
+  * Removed appveyor (PR #4171)
+  * Enabled OpenCL tests on Linux and OpenGL tests on Windows (PR #4172)
+  * Fixed issues and updated CI configuration (PR #4126, #4149, #4164, #4126)
+
 2.1.1: 2024/08/13
 -----------------
 

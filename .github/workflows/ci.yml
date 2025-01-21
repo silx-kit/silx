@@ -23,11 +23,11 @@ jobs:
             python-version: "3.8"
             QT_API: PyQt5
             with_opencl: false
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python-version: "3.11"
             QT_API: PyQt6
             with_opencl: true
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python-version: "3.13"
             QT_API: PySide6
             with_opencl: true
