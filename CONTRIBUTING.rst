@@ -129,6 +129,8 @@ Use cases
 
 The `release branch` is the ``main`` branch, except for bug fix releases.
 
+First, decide which kind of release is needed:
+
 Release candidates
 ..................
 
@@ -161,6 +163,8 @@ Automated tests
   - ``REPOSITORY``: ``https://github.com/<user>/silx`` (default: ``https://github.com/silx-kit/silx``)
   - ``TAG``: branch or tag to test (default: ``main`` branch)
 
+  These tests take a long time. You can move to the *Prepare the release* section in the meantime.
+
 Manual testing
 ..............
 
@@ -177,7 +181,8 @@ Write the release notes
   (see `github automatically generated release notes`_) between a new tag and the previous release.
 - Copy the generated changelog to ``CHANGELOG.rst`` and close github's release web page.
   **Warning: DO NOT publish the release yet!**
-- Sort, curate and fix the list of PRs and match the styling of previous release notes.
+- Sort, curate and fix the list of PRs and match the styling of previous release notes. You can run ``tools/format_GH_release_notes.py``
+  first, that will format the GH release notes in `CHANGELOG_new.rst`. 
 
 Steps
 .....
