@@ -1192,16 +1192,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._dirtyLimits = True
         self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
+        keepRatio = self.isKeepDataAspectRatio()
         if y2min is not None and y2max is not None:
             if not self.isYAxisInverted():
-                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max))
+                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max), auto=keepRatio)
             else:
-                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max))
+                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max), auto=keepRatio)
 
         if not self.isYAxisInverted():
-            self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax))
+            self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax), auto=keepRatio)
         else:
-            self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax))
+            self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax), auto=keepRatio)
 
         self._updateMarkers()
 
@@ -1250,10 +1251,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             xcenter = 0.5 * (xmin + xmax)
             ax.set_xlim(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
 
+        keepRatio = self.isKeepDataAspectRatio()
         if not self.isYAxisInverted():
-            ax.set_ylim(ymin, ymax)
+            ax.set_ylim(ymin, ymax, auto=keepRatio)
         else:
-            ax.set_ylim(ymax, ymin)
+            ax.set_ylim(ymax, ymin, auto=keepRatio)
 
         self._updateMarkers()
 
@@ -1315,7 +1317,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     dataRange = self._plot.getDataRange()[dataRangeIndex]
                     if dataRange is None:
                         dataRange = 1, 100  # Fallback
-                    axis.set_ylim(*dataRange)
+                    axis.set_ylim(*dataRange, auto=self.isKeepDataAspectRatio())
                     redraw = True
             if redraw:
                 self.draw()
