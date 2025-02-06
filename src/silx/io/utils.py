@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,11 @@ import sys
 import time
 import logging
 from typing import Generator, Union, Optional
-import urllib.parse
 
 import numpy
 
 from silx.utils.proxy import Proxy
 from .url import DataUrl
-from . import h5py_utils
 from .._version import calc_hexversion
 
 import h5py
@@ -50,6 +48,12 @@ try:
     import h5pyd
 except ImportError as e:
     h5pyd = None
+
+try:
+    from .tiledh5 import TiledH5
+except ImportError as e:
+    TiledH5 = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -692,16 +696,29 @@ def open(filename):  # pylint:disable=redefined-builtin
     :rtype: h5py-like node
     """
     url = DataUrl(filename)
+    if url.scheme() in ("http", "https"):
+        errors = [f"Failed to open {filename}"]
+        if h5pyd is not None:
+            try:
+                return _open_url_with_h5pyd(filename)
+            except Exception as e:
+                errors.append(f"- h5pyd failed: {type(e)} {e}")
 
-    if url.scheme() in [None, "file", "silx"]:
-        # That's a local file
-        if not url.is_valid():
-            raise IOError("URL '%s' is not valid" % filename)
-        h5_file = _open_local_file(url.file_path())
-    elif url.scheme() in ("http", "https"):
-        return _open_url_with_h5pyd(filename)
-    else:
+        if TiledH5 is not None:
+            try:
+                return TiledH5(filename)
+            except Exception as e:
+                errors.append(f"- tiled failed: {type(e)} {e}")
+
+        raise IOError("\n".join(errors))
+
+    if url.scheme() not in (None, "file", "silx"):
         raise IOError(f"Unsupported URL scheme {url.scheme}: {filename}")
+
+    # That's a local file
+    if not url.is_valid():
+        raise IOError("URL '%s' is not valid" % filename)
+    h5_file = _open_local_file(url.file_path())
 
     if url.data_path() in [None, "/", ""]:  # The full file is requested
         if url.data_slice():
