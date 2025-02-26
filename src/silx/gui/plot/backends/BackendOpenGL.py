@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1419,35 +1419,32 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ["png", "ppm", "svg", "tif", "tiff"]:
             raise NotImplementedError("Unsupported format: %s" % fileFormat)
 
+        width, height = self._plotFrame.size
+
         if not self.isValid():
             _logger.error("OpenGL 2.1 not available, cannot save OpenGL image")
-            width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
         else:
             self.makeCurrent()
 
             data = numpy.empty(
-                (self._plotFrame.size[1], self._plotFrame.size[0], 3),
+                (height, width, 3),
                 dtype=numpy.uint8,
                 order="C",
             )
+            framebufferTexture = glu.FramebufferTexture(
+                gl.GL_RGBA,
+                shape=(height, width),
+                minFilter=gl.GL_NEAREST,
+                magFilter=gl.GL_NEAREST,
+                wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
+            )
+            with framebufferTexture:
+                self.paintGL()
+                gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+                gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
 
-            context = self.context()
-            framebufferTexture = self._plotFBOs.get(context)
-            if framebufferTexture is None:
-                # Fallback, supports direct rendering mode: _paintDirectGL
-                # might have issues as it can read on-screen framebuffer
-                fboName = self.defaultFramebufferObject()
-                width, height = self._plotFrame.size
-            else:
-                fboName = framebufferTexture.name
-                height, width = framebufferTexture.shape
-
-            previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboName)
-            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
+            framebufferTexture.discard()
 
             # glReadPixels gives bottom to top,
             # while images are stored as top to bottom
