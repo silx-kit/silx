@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+2.2.1: 2025/02/27
+-----------------
+
+* `silx.io.h5py_utils`: Fixed base exceptions cannot be h5py exceptions (PR #4209)
+* `silx.gui.plot.PlotWidget`:
+
+  * Fixed deprecation warning in matplotlib backend (PR #4204)
+  * Fixed `saveGraph` for OpenGL backend (PR #4218)
+
+* Documentation: Improved Release section of CONTRIBUTING (PR #4208)
+
 2.2.0: 2025/01/21
 -----------------
 
