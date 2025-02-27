@@ -203,7 +203,7 @@ Create the release
   - Select the release branch as the target.
   - Combine the release notes manually edited from ``CHANGELOG.rst`` with `github automatically generated release notes`_.
 * Press the "Publish release" button to push the new tag to the release branch and trigger the release workflow which builds
-  the documentation, the source tarball, the wheels and the Windows "fat binaries" of the release. You should see them starting from the `actions <https://github.com/silx-kit/silx/actions>`_. 
+  the documentation, the source tarball, the wheels and the Windows "fat binaries" of the release. You should see them starting from the `actions page <https://github.com/silx-kit/silx/actions>`_. 
 
 .. note::
 
