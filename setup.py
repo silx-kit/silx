@@ -195,7 +195,7 @@ def get_project_configuration():
         "pandoc",
         "pillow",
         "pydata_sphinx_theme",
-        "sphinx",
+        "sphinx<8.2",  # until https://github.com/spatialaudio/nbsphinx/issues/825 not fixed
         "sphinx-autodoc-typehints",
         "sphinx-design",
     }
