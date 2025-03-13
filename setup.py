@@ -184,8 +184,7 @@ def get_project_configuration():
         "pytest>=6.0",
         "pytest-xvfb",
         "pytest-mock",
-        # Remove bitshuffle until wheels with numpy 2 support are available
-        # "bitshuffle",
+        "bitshuffle",
         "scipy>=1.10",
         "pooch",
     ]
