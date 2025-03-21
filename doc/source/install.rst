@@ -3,7 +3,7 @@
 Installation
 ============
 
-*silx* runs on Linux, MacOS and Windows and supports Python version 3.8 to 3.12.
+*silx* runs on Linux, MacOS and Windows and supports Python version 3.10 to 3.13.
 
 .. _Installation with pip:
 
