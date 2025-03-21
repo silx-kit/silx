@@ -161,7 +161,7 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: SILX_FORCE_CYTHON SILX_WITH_OPENMP WITH_QT_TEST WITH_GL_TEST SILX_OPENCL SILX_TEST_LOW_MEM
 
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
           # Do not build for pypy and muslinux
           CIBW_SKIP: pp* *-musllinux_*
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
@@ -170,9 +170,8 @@ jobs:
           CIBW_TEST_EXTRAS: "full,test"
           CIBW_TEST_COMMAND: python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3))"
           # Skip tests for emulated architectures and arm64 macos
-          # Skip cp38 test on macos: Issue with libOpenGL
           # Skip tests for Python3.13: Missing pyopencl wheel and fails to build
-          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64 *-macosx_universal2:arm64 cp38-macosx* cp313-*"
+          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-macosx_arm64 *-macosx_universal2:arm64 cp313-*"
 
       - uses: actions/upload-artifact@v4
         with:
