@@ -640,9 +640,7 @@ class AbstractDataFileDialog(qt.QDialog):
             self.__directory = self.directory()
         self.__browser.clear()
         self.__closeFile()
-        if self.__fileModel is not None:
-            self.__fileModel.deleteLater()
-            self.__fileModel = None
+        self.__fileModel = None
         if self.__dataModel is not None:
             self.__dataModel.deleteLater()
             self.__dataModel = None
