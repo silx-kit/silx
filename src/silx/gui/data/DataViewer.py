@@ -132,6 +132,11 @@ class DataViewer(qt.QFrame):
 
         self._initializeViews()
 
+        self.__adjustColormap = False
+        self.__regionSize = 20  # Size of the region around the cursor
+        self.__stack.viewport().installEventFilter(self)
+        self.__stack.viewport().setMouseTracking(True)
+
     def _initializeViews(self):
         """Inisialize the available views"""
         views = self.createDefaultViews(self.__stack)
@@ -624,3 +629,40 @@ class DataViewer(qt.QFrame):
         if isReplaced:
             self.__updateAvailableViews()
         return isReplaced
+
+    def eventFilter(self, source, event):
+        if event.type() == qt.QEvent.KeyPress:
+            if event.key() == qt.Qt.Key_W:
+                self.__adjustColormap = True
+        elif event.type() == qt.QEvent.KeyRelease:
+            if event.key() == qt.Qt.Key_W:
+                self.__adjustColormap = False
+        elif event.type() == qt.QEvent.MouseMove:
+            if self.__adjustColormap:
+                self.__adjustColormapToCursor(event.pos())
+        return super(DataViewer, self).eventFilter(source, event)
+
+    def __adjustColormapToCursor(self, pos):
+        if self.__currentView is None or not hasattr(self.__currentView, 'getColormap'):
+            return
+
+        colormap = self.__currentView.getColormap()
+        if colormap is None:
+            return
+
+        data = self.__displayedData
+        if data is None or not hasattr(data, 'shape'):
+            return
+
+        x, y = pos.x(), pos.y()
+        x = max(0, min(data.shape[1] - 1, x))
+        y = max(0, min(data.shape[0] - 1, y))
+
+        x_start = max(0, x - self.__regionSize // 2)
+        x_end = min(data.shape[1], x + self.__regionSize // 2)
+        y_start = max(0, y - self.__regionSize // 2)
+        y_end = min(data.shape[0], y + self.__regionSize // 2)
+
+        region = data[y_start:y_end, x_start:x_end]
+        colormap.setVRange(region.min(), region.max())
+        self.__currentView.setColormap(colormap)
