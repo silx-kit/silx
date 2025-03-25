@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides classes supporting item picking.
-"""
+"""This module provides classes supporting item picking."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

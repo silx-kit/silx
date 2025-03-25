@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt data view example
-"""
+"""Qt data view example"""
 
 import enum
 import logging

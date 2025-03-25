@@ -336,9 +336,15 @@ class TestH5Ls(unittest.TestCase):
         xlab = "Abscissa"
         y = [[4, 5, 6], [7, 8, 9]]
         ylabs = ["Ordinate1", "Ordinate2"]
-        utils.save1D(spec_fname, x, y, xlabel=xlab,
-                     ylabels=ylabs, filetype="spec",
-                     fmt=["%d", "%.2f"])
+        utils.save1D(
+            spec_fname,
+            x,
+            y,
+            xlabel=xlab,
+            ylabels=ylabs,
+            filetype="spec",
+            fmt=["%d", "%.2f"],
+        )
 
         rep = h5ls(spec_fname)
         lines = rep.split("\n")
@@ -346,11 +352,11 @@ class TestH5Ls(unittest.TestCase):
         self.assertIn("\t+instrument", lines)
 
         self.assertMatchAnyStringInList(
-                r'\t\t\t<HDF5-like dataset "file_header": shape \(2,\), type "|O">',
-                lines)
+            r'\t\t\t<HDF5-like dataset "file_header": shape \(2,\), type "|O">', lines
+        )
         self.assertMatchAnyStringInList(
-                r'\t\t<HDF5-like dataset "Ordinate1": shape \(3,\), type "<f4">',
-                lines)
+            r'\t\t<HDF5-like dataset "Ordinate1": shape \(3,\), type "<f4">', lines
+        )
 
         os.unlink(spec_fname)
         shutil.rmtree(tempdir)

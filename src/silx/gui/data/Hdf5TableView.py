@@ -354,7 +354,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         chunks = dataset.chunks
         if chunks is None:
             return ""
-        shape = " \u00D7 ".join([str(i) for i in chunks])
+        shape = " \u00d7 ".join([str(i) for i in chunks])
         sizes = numpy.prod(chunks)
         text = "%s = %s" % (shape, sizes)
         return text

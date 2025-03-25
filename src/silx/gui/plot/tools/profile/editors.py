@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides editors which are used to custom profile ROI properties.
-"""
+"""This module provides editors which are used to custom profile ROI properties."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

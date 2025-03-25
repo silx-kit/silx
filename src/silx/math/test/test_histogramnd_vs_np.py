@@ -608,7 +608,9 @@ class _TestHistogramnd(unittest.TestCase):
         sample = np.repeat(self.sample, n_repeat)
         n_bins = int(1e6)
         result_c = histogramnd(sample, self.histo_range, n_bins, last_bin_closed=True)
-        result_np = np.histogramdd(sample, n_bins, range=self.histo_range.astype(np.float64))
+        result_np = np.histogramdd(
+            sample, n_bins, range=self.histo_range.astype(np.float64)
+        )
         for i_edges, edges in enumerate(result_c[2]):
             self.assertTrue(
                 np.allclose(edges, result_np[1][i_edges]),

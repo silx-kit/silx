@@ -1442,7 +1442,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             with framebufferTexture:
                 self.paintGL()
                 gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-                gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+                gl.glReadPixels(
+                    0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data
+                )
 
             framebufferTexture.discard()
 

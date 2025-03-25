@@ -236,7 +236,9 @@ class Geometry(core.Elem):
         :rtype: numpy.ndarray
         """
         attr = self._attributes.get(name, None)
-        return None if attr is None else numpy.array(attr, copy=copy or NP_OPTIONAL_COPY)
+        return (
+            None if attr is None else numpy.array(attr, copy=copy or NP_OPTIONAL_COPY)
+        )
 
     def useAttribute(self, program, name=None):
         """Enable and bind attribute(s) for a specific program.
@@ -2328,7 +2330,9 @@ class ImageData(_Image):
         self._colormap.addListener(self._cmapChanged)
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.float32)
+        data = numpy.array(
+            data, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.float32
+        )
         # TODO support (u)int8|16
         assert data.ndim == 2
 

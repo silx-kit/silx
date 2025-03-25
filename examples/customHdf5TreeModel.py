@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt Hdf5 widget examples
-"""
+"""Qt Hdf5 widget examples"""
 
 import logging
 import sys

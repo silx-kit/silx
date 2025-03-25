@@ -117,9 +117,7 @@ class MyPlotWindow(qt.QMainWindow):
         toolBar.addWidget(aspectRatioButton)
 
         # Add tool buttons from silx.gui.plot.PlotToolButtons
-        rulerButton = RulerToolButton(
-            parent=self, plot=self._plot
-        )
+        rulerButton = RulerToolButton(parent=self, plot=self._plot)
         toolBar.addWidget(rulerButton)
 
         action = control_actions.OpenGLAction(parent=toolBar, plot=self._plot)

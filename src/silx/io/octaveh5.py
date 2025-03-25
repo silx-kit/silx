@@ -31,7 +31,7 @@ This module provides tool to set HDF5 file for fasttomo input.
 Here is an example of a simple read and write :
 
 .. code-block:: python
-    :emphasize-lines: 3,5    
+    :emphasize-lines: 3,5
 
     # writing a structure
     myStruct = {'MKEEP_MASK': 0.0, 'UNSHARP_SIGMA': 0.80000000000000004 }
@@ -42,7 +42,7 @@ Here is an example of a simple read and write :
     reader = Octaveh5().open("my_h5file")
     strucDict = reader.get('mt_struct_name')
 
-.. note:: These functions depend on the `h5py <http://www.h5py.org/>`_ 
+.. note:: These functions depend on the `h5py <http://www.h5py.org/>`_
     library, which is a mandatory dependency for `silx`.
 
 """

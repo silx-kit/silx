@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module allows to run a function in Qt main thread from another thread
-"""
+"""This module allows to run a function in Qt main thread from another thread"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

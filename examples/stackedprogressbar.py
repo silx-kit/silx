@@ -61,9 +61,30 @@ class Dialog(qt.QMainWindow):
         f3 = StackedProgressBar(self)
         f3.setRange(0, 100)
         f3.setSpacing(1)
-        f3.setProgressItem("foo1", value=50, color=qt.QColor("#800000"), striped=True, animated=True, toolTip="That's foo1")
-        f3.setProgressItem("foo2", value=20, color=qt.QColor("#008000"), striped=True, animated=True, toolTip="That's foo2")
-        f3.setProgressItem("foo3", value=10, color=qt.QColor("#000080"), striped=True, animated=True, toolTip="That's foo3")
+        f3.setProgressItem(
+            "foo1",
+            value=50,
+            color=qt.QColor("#800000"),
+            striped=True,
+            animated=True,
+            toolTip="That's foo1",
+        )
+        f3.setProgressItem(
+            "foo2",
+            value=20,
+            color=qt.QColor("#008000"),
+            striped=True,
+            animated=True,
+            toolTip="That's foo2",
+        )
+        f3.setProgressItem(
+            "foo3",
+            value=10,
+            color=qt.QColor("#000080"),
+            striped=True,
+            animated=True,
+            toolTip="That's foo3",
+        )
         layout.addWidget(f3)
 
         b = qt.QPushButton(self)

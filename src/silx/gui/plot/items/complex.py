@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`ImageComplexData` of the :class:`Plot`.
-"""
+"""This module provides the :class:`ImageComplexData` of the :class:`Plot`."""
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"

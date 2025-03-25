@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""ThreadPoolPushButton module
-"""
+"""ThreadPoolPushButton module"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

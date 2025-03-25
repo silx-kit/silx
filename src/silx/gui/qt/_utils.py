@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides convenient functions related to Qt.
-"""
+"""This module provides convenient functions related to Qt."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

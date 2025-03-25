@@ -24,9 +24,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #  THE SOFTWARE.
 
-"""A general purpose library for manipulating 2D images in 1 or 3 colors 
-
-"""
+"""A general purpose library for manipulating 2D images in 1 or 3 colors"""
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a manager to compute and display profiles.
-"""
+"""This module provides a manager to compute and display profiles."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -61,6 +60,7 @@ class _RunnableComputeProfile(qt.QRunnable):
 
     class Signal(qt.QObject):
         """Signal holder"""
+
         runnerFinished = qt.Signal(object)
 
     def __init__(self, item: items.Item, roi: ProfileRoiMixIn):
@@ -1015,7 +1015,7 @@ class ProfileManager(qt.QObject):
         # Display the window, hide it and wait for some event loops
         eventLoop = qt.QEventLoop(self)
         profileWindow.show()
-        # Handle PyQt 5.15. Fix issue #4135 
+        # Handle PyQt 5.15. Fix issue #4135
         eventLoop.processEvents()
         profileWindow.hide()
         for _ in range(10):

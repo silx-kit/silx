@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module adds convenient functions to use plot3d widgets from the console.
-"""
+"""This module adds convenient functions to use plot3d widgets from the console."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

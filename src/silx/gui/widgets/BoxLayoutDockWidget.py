@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A QDockWidget that update the layout direction of its widget
-"""
+"""A QDockWidget that update the layout direction of its widget"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

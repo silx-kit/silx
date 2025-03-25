@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides 2D and 3D scatter data item class.
-"""
+"""This module provides 2D and 3D scatter data item class."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -346,8 +345,12 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
             True (default) to make a copy of the data,
             False to avoid copy if possible (do not modify the arrays).
         """
-        x = numpy.array(x, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C").reshape(-1)
-        y = numpy.array(y, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C").reshape(-1)
+        x = numpy.array(
+            x, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
+        ).reshape(-1)
+        y = numpy.array(
+            y, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
+        ).reshape(-1)
         assert len(x) == len(y)
 
         if isinstance(value, abc.Iterable):

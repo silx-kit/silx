@@ -86,7 +86,7 @@ class Hdf5Formatter(qt.QObject):
         if dataset.shape == tuple():
             return "scalar"
         shape = [str(i) for i in dataset.shape]
-        text = " \u00D7 ".join(shape)
+        text = " \u00d7 ".join(shape)
         return text
 
     def humanReadableValue(self, dataset):

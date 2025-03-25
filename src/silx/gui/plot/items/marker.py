@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides markers item of the :class:`Plot`.
-"""
+"""This module provides markers item of the :class:`Plot`."""
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
@@ -87,7 +86,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self,
         backend,
         symbol=None,
-        symbolsize=10.,
+        symbolsize=10.0,
         linestyle="-",
         linewidth=1,
     ):

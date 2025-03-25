@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains library wide configuration.
-"""
+"""This module contains library wide configuration."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

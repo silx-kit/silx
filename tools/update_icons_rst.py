@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Script to update icons.rst file according to icons available in resources.
-"""
+"""Script to update icons.rst file according to icons available in resources."""
 
 __authors__ = ["Thomas Vincent"]
 __license__ = "MIT"

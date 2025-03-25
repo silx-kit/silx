@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the class for axes of the :class:`PlotWidget`.
-"""
+"""This module provides the class for axes of the :class:`PlotWidget`."""
 
 from __future__ import annotations
 

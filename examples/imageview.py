@@ -73,9 +73,7 @@ class UpdateThread(threading.Thread):
         x = numpy.linspace(-1.5, 1.5, Nx)
         y = numpy.linspace(-1.0, 1.0, Ny)
         xv, yv = numpy.meshgrid(x, y)
-        signal = numpy.exp(
-            -((xv - x0) ** 2 / sigma_x**2 + (yv - y0) ** 2 / sigma_y**2)
-        )
+        signal = numpy.exp(-((xv - x0) ** 2 / sigma_x**2 + (yv - y0) ** 2 / sigma_y**2))
         # add noise
         signal += 0.3 * numpy.random.random(size=signal.shape)
         return signal

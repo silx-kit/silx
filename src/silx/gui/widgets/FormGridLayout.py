@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a form layout for QWidget: :class:`FormGridLayout`.
-"""
+"""This module provides a form layout for QWidget: :class:`FormGridLayout`."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

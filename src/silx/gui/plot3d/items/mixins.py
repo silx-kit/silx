@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides mix-in classes for :class:`Item3D`.
-"""
+"""This module provides mix-in classes for :class:`Item3D`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

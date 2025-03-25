@@ -352,4 +352,4 @@ class ImageFileDialog(AbstractDataFileDialog):
             else:
                 v = str(s)
             result.append(v)
-        return " \u00D7 ".join(result)
+        return " \u00d7 ".join(result)

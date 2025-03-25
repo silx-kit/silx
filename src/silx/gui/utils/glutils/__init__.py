@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :func:`isOpenGLAvailable` utility function.
-"""
+"""This module provides the :func:`isOpenGLAvailable` utility function."""
 from __future__ import annotations
 
 

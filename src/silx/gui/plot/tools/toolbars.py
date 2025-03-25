@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides toolbars that work with :class:`PlotWidget`.
-"""
+"""This module provides toolbars that work with :class:`PlotWidget`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

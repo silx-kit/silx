@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides API to manage colors.
-"""
+"""This module provides API to manage colors."""
 
 from __future__ import annotations
 

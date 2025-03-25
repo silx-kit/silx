@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-""" I/O utility functions"""
+"""I/O utility functions"""
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
@@ -557,7 +557,7 @@ def _open_local_file(filename):
             try:
                 return h5py.File(filename, "r")
             except OSError:
-                return h5py.File(filename, "r", libver='latest', swmr=True)
+                return h5py.File(filename, "r", libver="latest", swmr=True)
 
         try:
             from . import fabioh5
@@ -613,12 +613,12 @@ def _open_url_with_h5pyd(url: str):
         if "hs_endpoint" in cfg:
             default_endpoint = cfg["hs_endpoint"].rstrip("/")
     else:
-        default_endpoint = default_endpoint.rstrip("/") 
+        default_endpoint = default_endpoint.rstrip("/")
 
     # Remove endpoint prefix from the URL:
     # Needed for HSDS servers not exposed as the url netloc, e.g., example.com/hsds/
     if default_endpoint and url.startswith(default_endpoint):
-        return h5pyd.File(url[len(default_endpoint):], "r")
+        return h5pyd.File(url[len(default_endpoint) :], "r")
 
     return h5pyd.File(url, "r")
 

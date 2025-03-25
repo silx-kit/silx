@@ -41,11 +41,12 @@ from ..items.image_aggregated import ImageDataAggregated
 
 _logger = logging.getLogger(__name__)
 
+
 class AggregationModeAction(qt.QWidgetAction):
     """Action providing filters for an aggregated image"""
 
     sigAggregationModeChanged = qt.Signal()
-    """Signal emitted when the aggregation mode has changed"""  
+    """Signal emitted when the aggregation mode has changed"""
 
     def __init__(self, parent):
         qt.QWidgetAction.__init__(self, parent)
@@ -56,33 +57,25 @@ class AggregationModeAction(qt.QWidgetAction):
         filterAction.setText("No filter")
         filterAction.setCheckable(True)
         filterAction.setChecked(True)
-        filterAction.setProperty(
-            "aggregation", ImageDataAggregated.Aggregation.NONE
-        )
+        filterAction.setProperty("aggregation", ImageDataAggregated.Aggregation.NONE)
         densityNoFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Max filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", ImageDataAggregated.Aggregation.MAX
-        )
+        filterAction.setProperty("aggregation", ImageDataAggregated.Aggregation.MAX)
         densityMaxFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Mean filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", ImageDataAggregated.Aggregation.MEAN
-        )
+        filterAction.setProperty("aggregation", ImageDataAggregated.Aggregation.MEAN)
         densityMeanFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Min filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", ImageDataAggregated.Aggregation.MIN
-        )
+        filterAction.setProperty("aggregation", ImageDataAggregated.Aggregation.MIN)
         densityMinFilterAction = filterAction
 
         densityGroup = qt.QActionGroup(self)

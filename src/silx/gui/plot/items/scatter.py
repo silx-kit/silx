@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Scatter` item of the :class:`Plot`.
-"""
+"""This module provides the :class:`Scatter` item of the :class:`Plot`."""
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
@@ -725,13 +724,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         points[0, :, 1] = xFiltered
 
                     # Add a second line that will be clipped in the end
-                    points[1, :-1] = (
-                        points[0, :-1]
-                        + numpy.cross(points[0, 1:] - points[0, :-1], (0.0, 0.0, 1.0))
+                    points[1, :-1] = points[0, :-1] + numpy.cross(
+                        points[0, 1:] - points[0, :-1], (0.0, 0.0, 1.0)
                     )
-                    points[1, -1] = (
-                        points[0, -1]
-                        + numpy.cross(points[0, -1] - points[0, -2], (0.0, 0.0, 1.0))
+                    points[1, -1] = points[0, -1] + numpy.cross(
+                        points[0, -1] - points[0, -2], (0.0, 0.0, 1.0)
                     )
 
                     points = points[:, :, :2]

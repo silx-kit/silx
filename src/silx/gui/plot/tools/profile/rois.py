@@ -468,7 +468,6 @@ class ProfileImageDirectedLineROI(roi_items.LineROI, _DefaultImageProfileRoiMixI
 
 
 class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
-
     """ROI to manage a cross of profiles
 
     It is managed using 2 sub ROIs for vertical and horizontal.

@@ -22,6 +22,7 @@
 #
 # ###########################################################################*/
 from __future__ import annotations
+
 """This module defines two main classes:
 
     - :class:`FrameBrowser`: a widget with 4 buttons (first, previous, next,
@@ -224,10 +225,10 @@ class _SliderPlayWidgetAction(qt.QWidgetAction):
     sigValueChanged = qt.Signal(int)
 
     def __init__(
-            self,
-            parent: qt.QWidget | None = None,
-            label: str | None = None,
-            tooltip: str | None = None,
+        self,
+        parent: qt.QWidget | None = None,
+        label: str | None = None,
+        tooltip: str | None = None,
     ):
         super().__init__(parent)
         self._build(label=label, tooltip=tooltip)
@@ -238,7 +239,7 @@ class _SliderPlayWidgetAction(qt.QWidgetAction):
         widget.setLayout(layout)
         self._spinbox = qt.QSpinBox()
         self._spinbox.setToolTip(tooltip)
-        self._spinbox.setRange(1,1000000)
+        self._spinbox.setRange(1, 1000000)
         self._spinbox.valueChanged.connect(self.sigValueChanged)
         label = qt.QLabel(label)
         label.setToolTip(tooltip)
@@ -262,9 +263,13 @@ class _PlayButtonContextMenu(qt.QMenu):
         self._build()
 
     def _build(self):
-        self._framerateAction = _SliderPlayWidgetAction(self, label="FPS:", tooltip="Display speed in frames per second")
+        self._framerateAction = _SliderPlayWidgetAction(
+            self, label="FPS:", tooltip="Display speed in frames per second"
+        )
         self._framerateAction.sigValueChanged.connect(self.sigFrameRateChanged)
-        self._stepAction = _SliderPlayWidgetAction(self, label="Step:", tooltip="Step between displayed frames")
+        self._stepAction = _SliderPlayWidgetAction(
+            self, label="Step:", tooltip="Step between displayed frames"
+        )
         self.addAction(self._framerateAction)
         self._framerateAction.setValue(10)
         self.addAction(self._stepAction)
@@ -321,24 +326,23 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
         fontMetric = self.fontMetrics()
         iconSize = qt.QSize(fontMetric.height(), fontMetric.height())
-        
+
         self.__timer = qt.QTimer(self)
         self.__timer.timeout.connect(self._updateState)
-        
+
         self._playButton = qt.QToolButton(self)
         self._playButton.setToolTip("Display dataset movie.")
         self._playButton.setIcon(icons.getQIcon("camera"))
         self._playButton.setIconSize(iconSize)
         self._playButton.setCheckable(True)
         self.mainLayout.addWidget(self._playButton)
-        
+
         self._playButton.toggled.connect(self._playButtonToggled)
         self._menuPlaySlider = _PlayButtonContextMenu(self)
         self._menuPlaySlider.sigFrameRateChanged.connect(self._frameRateChanged)
         self._frameRateChanged(self.getFrameRate())
         self._playButton.setMenu(self._menuPlaySlider)
         self._playButton.setPopupMode(qt.QToolButton.MenuButtonPopup)
-
 
     def lineEdit(self):
         """Returns the line edit provided by this widget.
@@ -398,19 +402,19 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def value(self):
         """Get selected value"""
         return self._slider.value()
-    
+
     def setFrameRate(self, value: int):
         """Set the frame rate at which images are displayed"""
         self._menuPlaySlider.setFrameRate(value)
-        
+
     def getFrameRate(self) -> int:
         """Get the frame rate at which images are displayed"""
         return self._menuPlaySlider.getFrameRate()
-    
+
     def setPlayImageStep(self, value: int):
         """Set the step between displayed images when playing"""
         self._menuPlaySlider.setStep(value)
-    
+
     def getPlayImageStep(self) -> int:
         """Returns the step between displayed images"""
         return self._menuPlaySlider.getStep()
@@ -418,7 +422,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def _frameRateChanged(self, framerate: int):
         """Update the timer interval"""
         self.__timer.setInterval(int(1 / framerate * 1e3))
-            
+
     def _playButtonToggled(self, checked: bool):
         """Start/Stop the slider sequence."""
         if checked:

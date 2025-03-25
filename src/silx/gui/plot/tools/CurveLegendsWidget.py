@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a widget to display :class:`PlotWidget` curve legends.
-"""
+"""This module provides a widget to display :class:`PlotWidget` curve legends."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

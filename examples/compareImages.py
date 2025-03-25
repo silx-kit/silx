@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Example demonstrating the use of the widget CompareImages
-"""
+"""Example demonstrating the use of the widget CompareImages"""
 
 import sys
 import logging

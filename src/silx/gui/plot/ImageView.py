@@ -354,7 +354,6 @@ class ShowSideHistogramsAction(PlotAction):
             self.plot.setSideHistogramDisplayed(checked)
 
 
-
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
 

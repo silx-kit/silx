@@ -51,17 +51,13 @@ class _RulerROI(LineROI):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._formatFunction: typing.Optional[
-            typing.Callable[
-                [numpy.ndarray, numpy.ndarray], str
-            ]
+            typing.Callable[[numpy.ndarray, numpy.ndarray], str]
         ] = None
         self.setColor("#001122")  # Only there to trig updateStyle
 
     def registerFormatFunction(
         self,
-        fct: typing.Callable[
-            [numpy.ndarray, numpy.ndarray], str
-        ],
+        fct: typing.Callable[[numpy.ndarray, numpy.ndarray], str],
     ):
         """Register a function for the formatting of the label"""
         self._formatFunction = fct
@@ -71,7 +67,8 @@ class _RulerROI(LineROI):
             color="red",
             gapcolor="white",
             linestyle=(0, (5, 5)),
-            linewidth=style.getLineWidth())
+            linewidth=style.getLineWidth(),
+        )
         LineROI._updatedStyle(self, event, style)
         self._handleLabel.setColor("black")
         self._handleLabel.setBackgroundColor("#FFFFFF60")
@@ -80,9 +77,7 @@ class _RulerROI(LineROI):
     def setEndPoints(self, startPoint: numpy.ndarray, endPoint: numpy.ndarray):
         super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
         if self._formatFunction is not None:
-            ruler_text = self._formatFunction(
-                startPoint=startPoint, endPoint=endPoint
-            )
+            ruler_text = self._formatFunction(startPoint=startPoint, endPoint=endPoint)
             self._updateText(ruler_text)
 
 
@@ -171,7 +166,9 @@ class RulerToolButton(PlotToolButton):
             currentRoi.registerFormatFunction(self.buildDistanceText)
             self.__lastRoiCreated = weakref.ref(currentRoi)
 
-    def buildDistanceText(self, startPoint: numpy.ndarray, endPoint: numpy.ndarray) -> str:
+    def buildDistanceText(
+        self, startPoint: numpy.ndarray, endPoint: numpy.ndarray
+    ) -> str:
         """
         Define the text to be displayed by the ruler.
 

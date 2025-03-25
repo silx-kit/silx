@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides regular mesh item class.
-"""
+"""This module provides regular mesh item class."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -299,9 +298,7 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         else:
             mesh = primitives.ColormapMesh3D(
                 position=position,
-                value=numpy.asarray(value).reshape(
-                    -1, 1
-                ),  # Make it a 2D array
+                value=numpy.asarray(value).reshape(-1, 1),  # Make it a 2D array
                 colormap=self._getSceneColormap(),
                 normal=normal,
                 mode=mode,
