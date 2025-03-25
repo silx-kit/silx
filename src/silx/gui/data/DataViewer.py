@@ -134,6 +134,7 @@ class DataViewer(qt.QFrame):
 
         self.__adjustColormap = False
         self.__regionSize = 20  # Size of the region around the cursor
+        self.__zoomFactor = 1.2  # Zoom factor
         self.__stack.viewport().installEventFilter(self)
         self.__stack.viewport().setMouseTracking(True)
 
@@ -634,6 +635,10 @@ class DataViewer(qt.QFrame):
         if event.type() == qt.QEvent.KeyPress:
             if event.key() == qt.Qt.Key_W:
                 self.__adjustColormap = True
+            elif event.key() == qt.Qt.Key_I:
+                self.__zoom(event.pos(), in_=True)
+            elif event.key() == qt.Qt.Key_O:
+                self.__zoom(event.pos(), in_=False)
         elif event.type() == qt.QEvent.KeyRelease:
             if event.key() == qt.Qt.Key_W:
                 self.__adjustColormap = False
@@ -666,3 +671,10 @@ class DataViewer(qt.QFrame):
         region = data[y_start:y_end, x_start:x_end]
         colormap.setVRange(region.min(), region.max())
         self.__currentView.setColormap(colormap)
+
+    def __zoom(self, pos, in_):
+        if self.__currentView is None or not hasattr(self.__currentView, 'zoom'):
+            return
+
+        factor = self.__zoomFactor if in_ else 1 / self.__zoomFactor
+        self.__currentView.zoom(pos, factor)
