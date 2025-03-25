@@ -67,10 +67,10 @@ RELEASE_LEVEL_VALUE = {"dev": 0, "alpha": 10, "beta": 11, "candidate": 12, "fina
 
 PRERELEASE_NORMALIZED_NAME = {"dev": "a", "alpha": "a", "beta": "b", "candidate": "rc"}
 
-MAJOR = 2
-MINOR = 2
-MICRO = 1
-RELEV = "final"  # <16
+MAJOR = 3
+MINOR = 0
+MICRO = 0
+RELEV = "dev"  # <16
 SERIAL = 0  # <16
 
 date = __date__
