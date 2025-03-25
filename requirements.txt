@@ -15,7 +15,6 @@ Cython >= 0.21.1
 packaging
 h5py
 fabio >= 0.9
-importlib_resources; python_version < '3.9'
 
 # Extra dependencies (from setup.py extra_requires 'full' target)
 pyopencl; platform_machine in "i386, x86_64, AMD64"  # For silx.opencl
