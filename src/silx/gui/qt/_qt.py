@@ -41,10 +41,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, PySide6, PyQt6."""
+"""The name of the Qt binding in use: PySide6, PyQt6, PyQt5."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PySide6, PyQt6."""
+"""The Qt binding module in use: PySide6, PyQt6, PyQt5."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -64,7 +64,7 @@ def _select_binding() -> str:
     :raises ImportError:
     :returns: Loaded binding
     """
-    bindings = "PyQt5", "PySide6", "PyQt6"
+    bindings = "PySide6", "PyQt6", "PyQt5"
 
     envvar = os.environ.get("QT_API", "").lower()
 
@@ -103,7 +103,7 @@ def _select_binding() -> str:
         else:
             return binding
 
-    raise ImportError("No Qt wrapper found. Install PyQt5, PySide6, PyQt6.")
+    raise ImportError("No Qt wrapper found. Install PySide6, PyQt6, PyQt5.")
 
 
 BINDING = _select_binding()

@@ -61,34 +61,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-        # Install packages:
-        # OpenCL lib
-        # xvfb to run the GUI test headless
-        # libegl1-mesa: Required by Qt xcb platform plugin
-        # libgl1-mesa-glx: For OpenGL
-        # xserver-xorg-video-dummy: For OpenGL
-        # libxkbcommon-x11-0, ..: needed for Qt plugins
-      - name: Install system packages
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install ocl-icd-opencl-dev xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
-
-      - name: Setup Intel OpenCL ICD
-        if: runner.os == 'Linux'
-        run: |
-          wget -nv http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz -O - | tar -xzvf -
-          echo $(pwd)/intel_opencl_icd/icd/libintelocl.so > intel_opencl_icd/vendors/intel64.icd
-
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      - name: Setup OpenGL
-        if: runner.os == 'Windows'
-        run: |
-          C:\\msys64\\usr\\bin\\wget.exe -nv -O $(python -c 'import sys, os.path; print(os.path.dirname(sys.executable))')\\opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
+      - uses: ./.github/actions/setup-system
 
       - name: Install build dependencies
         run: |
@@ -107,9 +85,6 @@ jobs:
           pip install -r ci/requirements-pinned.txt
           pip install --pre "${{ matrix.QT_API }}"
           pip install --pre "$(ls dist/silx*.whl)[full,test]"
-          if [ ${{ runner.os }} == 'Linux' ]; then
-              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
-          fi
           python ./ci/info_platform.py
           pip list
 
@@ -119,7 +94,4 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          if [ ${{ runner.os }} == 'Linux' ]; then
-              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
-          fi
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"

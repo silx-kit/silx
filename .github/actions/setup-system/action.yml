@@ -1,0 +1,33 @@
+name: 'Setup Linux'
+description: 'Install system packages and setup Intel Opencl ICD'
+
+runs:
+  using: "composite"
+  steps:
+    # Install packages:
+    # OpenCL lib
+    # xvfb to run the GUI test headless
+    # libegl1-mesa: Required by Qt xcb platform plugin
+    # libgl1-mesa-glx: For OpenGL
+    # xserver-xorg-video-dummy: For OpenGL
+    # libxkbcommon-x11-0, ..: needed for Qt plugins
+    - name: Install system packages
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install ocl-icd-opencl-dev xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
+
+    - name: Setup Intel OpenCL ICD
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        wget -nv http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz -O - | tar -xzvf -
+        echo $(pwd)/intel_opencl_icd/icd/libintelocl.so > intel_opencl_icd/vendors/intel64.icd
+        echo "OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors/intel64.icd" >> "$GITHUB_ENV"
+
+    - name: Setup OpenGL
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        C:\\msys64\\usr\\bin\\wget.exe -nv -O $(python -c 'import sys, os.path; print(os.path.dirname(sys.executable))')\\opengl32.dll http://www.silx.org/pub/silx/continuous_integration/opengl32_mingw-mesa-x86_64.dll
