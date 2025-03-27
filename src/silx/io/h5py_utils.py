@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -146,7 +146,11 @@ def retry_h5py_error(e):
         elif isinstance(e, KeyError):
             # For example this needs to be retried:
             # KeyError: 'Unable to open object (bad object header version number)'
-            return "Unable to open object" in str(e)
+            message = str(e)
+            return (
+                "Unable to open object" in message
+                or "Unable to synchronously open object" in message
+            )
     elif isinstance(e, retry_mod.RetryError):
         return True
     return False
