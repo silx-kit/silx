@@ -288,7 +288,8 @@ class ListOfImages(object):
             numpy.array(
                 self.images,
                 dtype=dtype,
-                copy=NP_OPTIONAL_COPY if copy is None else copy),
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            ),
             self.transposition,
         )
 
@@ -559,7 +560,8 @@ class DatasetView(object):
             numpy.array(
                 self.dataset,
                 dtype=dtype,
-                copy=NP_OPTIONAL_COPY if copy is None else copy),
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            ),
             self.transposition,
         )
 

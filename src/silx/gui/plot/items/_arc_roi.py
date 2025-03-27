@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides Arc ROI item for the :class:`~silx.gui.plot.PlotWidget`.
-"""
+"""This module provides Arc ROI item for the :class:`~silx.gui.plot.PlotWidget`."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

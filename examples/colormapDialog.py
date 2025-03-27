@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
-"""
+"""This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

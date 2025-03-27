@@ -324,8 +324,14 @@ class LinearAlign(OpenclProcessing):
                     [transform_matrix[5], transform_matrix[2]], dtype=numpy.float32
                 )
                 matrix = numpy.empty((2, 2), dtype=numpy.float32)
-                matrix[0, 0], matrix[0, 1] = transform_matrix[4, 0], transform_matrix[3, 0]
-                matrix[1, 0], matrix[1, 1] = transform_matrix[1, 0], transform_matrix[0, 0]
+                matrix[0, 0], matrix[0, 1] = (
+                    transform_matrix[4, 0],
+                    transform_matrix[3, 0],
+                )
+                matrix[1, 0], matrix[1, 1] = (
+                    transform_matrix[1, 0],
+                    transform_matrix[0, 0],
+                )
             if double_check and (
                 len_match >= 3 * 6
             ):  # and abs(matrix - numpy.identity(2)).max() > 0.1:

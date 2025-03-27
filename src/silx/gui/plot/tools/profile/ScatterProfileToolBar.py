@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module profile tools for scatter plots.
-"""
+"""This module profile tools for scatter plots."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

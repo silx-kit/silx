@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`ImageDataAggregated` items of the :class:`Plot`.
-"""
+"""This module provides the :class:`ImageDataAggregated` items of the :class:`Plot`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

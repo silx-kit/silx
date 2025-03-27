@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a QMainWindow with a 3D SceneWidget and toolbars.
-"""
+"""This module provides a QMainWindow with a 3D SceneWidget and toolbars."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides handling of :class:`PlotWidget` limits history.
-"""
+"""This module provides handling of :class:`PlotWidget` limits history."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

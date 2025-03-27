@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the base class for items of the :class:`Plot`.
-"""
+"""This module provides the base class for items of the :class:`Plot`."""
 from __future__ import annotations
 
 
@@ -651,7 +650,9 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
             Minimum of strictly positive values of the data
         :param Union[None,float] max_: Maximum value of the data
         """
-        self.__data = None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
+        self.__data = (
+            None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
+        )
         self.__cacheColormapRange = {}  # Reset cache
 
         # Fill-up colormap range cache if values are provided
@@ -1314,9 +1315,9 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         self.__parameters = dict(  # Init parameters to None
             (parameter, None) for parameter in self.VisualizationParameter
         )
-        self.__parameters[
-            self.VisualizationParameter.BINNED_STATISTIC_FUNCTION
-        ] = "mean"
+        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = (
+            "mean"
+        )
 
     @classmethod
     def supportedVisualizations(cls):

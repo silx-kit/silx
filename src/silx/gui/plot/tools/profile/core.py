@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module define core objects for profile tools.
-"""
+"""This module define core objects for profile tools."""
 
 from __future__ import annotations
 

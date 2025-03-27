@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""WaitingPushButton module
-"""
+"""WaitingPushButton module"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

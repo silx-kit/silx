@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides 3D array item class and its sub-items.
-"""
+"""This module provides 3D array item class and its sub-items."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -537,7 +536,9 @@ class ScalarField3D(BaseNodeItem):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C")
+            data = numpy.array(
+                data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
+            )
             assert data.ndim == 3
             assert min(data.shape) >= 2
 
@@ -840,7 +841,9 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.complex64, order="C")
+            data = numpy.array(
+                data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.complex64, order="C"
+            )
             assert data.ndim == 3
             assert min(data.shape) >= 2
 

@@ -27,7 +27,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Test suite for byte-offset decompression 
+Test suite for byte-offset decompression
 """
 
 __authors__ = ["Jérôme Kieffer"]

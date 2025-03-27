@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A cut plane in a 3D texture: hackish implementation...
-"""
+"""A cut plane in a 3D texture: hackish implementation..."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

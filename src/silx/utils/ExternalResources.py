@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Helper to access to external resources.
-"""
+"""Helper to access to external resources."""
 
 __authors__ = ["Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"

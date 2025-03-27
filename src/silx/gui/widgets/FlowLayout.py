@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a flow layout for QWidget: :class:`FlowLayout`.
-"""
+"""This module provides a flow layout for QWidget: :class:`FlowLayout`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

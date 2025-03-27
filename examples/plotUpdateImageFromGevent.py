@@ -74,10 +74,7 @@ def update_image(plot2d):
         y = numpy.linspace(-1.0, 1.0, Ny)
         xv, yv = numpy.meshgrid(x, y)
         signal = numpy.exp(
-            -(
-                (xv - pos["x0"]) ** 2 / sigma_x**2
-                + (yv - pos["y0"]) ** 2 / sigma_y**2
-            )
+            -((xv - pos["x0"]) ** 2 / sigma_x**2 + (yv - pos["y0"]) ** 2 / sigma_y**2)
         )
         # add noise
         signal += 0.3 * numpy.random.random(size=signal.shape)

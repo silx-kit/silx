@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Sample code illustrating how to custom silx view into another application.
-"""
+"""Sample code illustrating how to custom silx view into another application."""
 
 import sys
 import numpy

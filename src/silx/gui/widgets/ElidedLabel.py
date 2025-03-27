@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module contains an elidable label
-"""
+"""Module contains an elidable label"""
 
 __license__ = "MIT"
 __date__ = "07/12/2018"

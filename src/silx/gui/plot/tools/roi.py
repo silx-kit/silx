@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`.
-"""
+"""This module provides ROI interaction for :class:`~silx.gui.plot.PlotWidget`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

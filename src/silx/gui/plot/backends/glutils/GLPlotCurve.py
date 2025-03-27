@@ -547,7 +547,7 @@ def distancesFromArrays(xData, yData, ratio: float = 1.0):
                     numpy.ediff1d(xData[begin:end], to_begin=numpy.float32(0.0)),
                     numpy.ediff1d(
                         (yData[begin:end] * ratio).astype(numpy.float32),
-                        to_begin=numpy.float32(0.0)
+                        to_begin=numpy.float32(0.0),
                     ),
                 )
             )[0]

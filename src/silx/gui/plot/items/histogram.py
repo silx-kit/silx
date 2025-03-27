@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Histogram` item of the :class:`Plot`.
-"""
+"""This module provides the :class:`Histogram` item of the :class:`Plot`."""
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"

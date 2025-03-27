@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Main window used to compare images
-"""
+"""Main window used to compare images"""
 
 import logging
 import numpy

@@ -1152,7 +1152,9 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()
 
         else:
-            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C")
+            data = numpy.array(
+                data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
+            )
             assert data.ndim == 3
             assert min(data.shape) >= 2
 

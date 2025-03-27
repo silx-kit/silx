@@ -1180,12 +1180,16 @@ class GLPlotFrame2D(GLPlotFrame):
             yPixel = self.size[1] - self.margins.bottom - yOffset
 
         return (
-            int(xPixel)
-            if isinstance(xPixel, numbers.Real)
-            else xPixel.astype(numpy.int64),
-            int(yPixel)
-            if isinstance(yPixel, numbers.Real)
-            else yPixel.astype(numpy.int64),
+            (
+                int(xPixel)
+                if isinstance(xPixel, numbers.Real)
+                else xPixel.astype(numpy.int64)
+            ),
+            (
+                int(yPixel)
+                if isinstance(yPixel, numbers.Real)
+                else yPixel.astype(numpy.int64)
+            ),
         )
 
     def pixelToData(self, x, y, axis="left"):

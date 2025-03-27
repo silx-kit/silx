@@ -43,8 +43,8 @@ non-commercial research applications.
 
 This algorithm is patented: U.S. Patent 6,711,293:
 "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image",
-David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999. 
-It is due to expire in March 2019. 
+David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999.
+It is due to expire in March 2019.
 """
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
@@ -1063,6 +1063,7 @@ class SiftPlan(OpenclProcessing):
 def demo():
     # Prepare debugging
     from scipy.datasets import ascent
+
     img = ascent()
 
     s = SiftPlan(template=img)

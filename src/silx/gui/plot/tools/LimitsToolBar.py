@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A toolbar to display and edit limits of a PlotWidget
-"""
+"""A toolbar to display and edit limits of a PlotWidget"""
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"

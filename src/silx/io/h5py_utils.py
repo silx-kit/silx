@@ -21,6 +21,7 @@
 #
 # ############################################################################*/
 from __future__ import annotations
+
 """
 This module provides utility methods on top of h5py, mainly to handle
 parallel writing and reading.
@@ -82,12 +83,12 @@ def _libver_low_bound_is_v108(libver) -> bool:
 
 
 def _hdf5_file_locking(
-        mode: str | None = "r",
-        locking: bool | str | None = None,
-        swmr: bool | None = None,
-        libver: str | Sequence[str] | None = None,
-        **_
-    ) -> str | bool | None:
+    mode: str | None = "r",
+    locking: bool | str | None = None,
+    swmr: bool | None = None,
+    libver: str | Sequence[str] | None = None,
+    **_,
+) -> str | bool | None:
     """Concurrent access by disabling file locking is not supported
     in these cases:
 

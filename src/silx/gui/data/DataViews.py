@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a views used by :class:`silx.gui.data.DataViewer`.
-"""
+"""This module defines a views used by :class:`silx.gui.data.DataViewer`."""
 
 import logging
 import numbers
@@ -1071,10 +1070,14 @@ class _Plot2dView(DataView):
 
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
 
         self.__imageItem = ImageDataAggregated()
-        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
+        self.__imageItem.setAggregationMode(
+            self.__aggregationModeAction.getAggregationMode()
+        )
         self.__imageItem.setName("data")
         self.__imageItem.setColormap(widget.getDefaultColormap())
         widget.addItem(self.__imageItem)
@@ -1088,7 +1091,9 @@ class _Plot2dView(DataView):
         return widget
 
     def _aggregationModeChanged(self):
-        self.__imageItem.setAggregationMode(self.__aggregationModeAction.getAggregationMode())
+        self.__imageItem.setAggregationMode(
+            self.__aggregationModeAction.getAggregationMode()
+        )
 
     def clear(self):
         self.__imageItem.setData(numpy.zeros((0, 0), dtype=numpy.float32))

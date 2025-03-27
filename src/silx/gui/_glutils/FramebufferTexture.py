@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Association of a texture and a framebuffer object for off-screen rendering.
-"""
+"""Association of a texture and a framebuffer object for off-screen rendering."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

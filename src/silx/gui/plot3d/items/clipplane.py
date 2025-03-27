@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a scene clip plane class.
-"""
+"""This module provides a scene clip plane class."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

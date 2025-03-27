@@ -324,7 +324,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
     try:
         d_data_1.fill(numpy.float32(1.0))
     except Exception as err:
-        logger.error("Unable to execute any element-wise kernel! %s: %s", type(err), err)
+        logger.error(
+            "Unable to execute any element-wise kernel! %s: %s", type(err), err
+        )
         return max_valid_wg
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
@@ -780,6 +782,7 @@ def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
         ),
         hostbuf=hostbuf,
     )
+
 
 def check_textures_availability(ctx):
     """

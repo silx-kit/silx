@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utilitary functions dealing with numbers.
-"""
+"""Utilitary functions dealing with numbers."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -107,7 +106,9 @@ def min_numerical_convertible_type(string, check_accuracy=True):
 
     nb_precision_digits = int(exponent) - len(decimal) - 1
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", "overflow encountered in scalar power", RuntimeWarning)
+        warnings.filterwarnings(
+            "ignore", "overflow encountered in scalar power", RuntimeWarning
+        )
         precision = _biggest_float(10) ** nb_precision_digits * 1.2
     previous_type = _biggest_float
     for numpy_type in _float_types:
@@ -115,7 +116,9 @@ def min_numerical_convertible_type(string, check_accuracy=True):
             # value was already casted using the bigger type
             continue
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", "overflow encountered in cast", RuntimeWarning)
+            warnings.filterwarnings(
+                "ignore", "overflow encountered in cast", RuntimeWarning
+            )
             reduced_value = numpy_type(value)
         if not numpy.isfinite(reduced_value):
             break

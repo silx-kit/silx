@@ -135,7 +135,9 @@ class BaseMask(qt.QObject):
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         """
-        self._mask = numpy.array(mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8)
+        self._mask = numpy.array(
+            mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8
+        )
         self._notify()
 
     # History control

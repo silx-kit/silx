@@ -1530,7 +1530,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         with self.assertRaises(Exception):
             item.setBounds((-1000, 1000, 2000, -2000))
 
-    @pytest.mark.filterwarnings("ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning")
+    @pytest.mark.filterwarnings(
+        "ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning"
+    )
     def testBoundingRectWithLog(self):
         item = BoundingRect()
         self.plot.addItem(item)
@@ -1550,7 +1552,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis()._setLogarithmic(False)
         self.assertIsNone(item.getBounds())
 
-    @pytest.mark.filterwarnings("ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning")
+    @pytest.mark.filterwarnings(
+        "ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning"
+    )
     def testAxisExtent(self):
         """Test XAxisExtent and yAxisExtent"""
         for cls, axis in (

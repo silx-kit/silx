@@ -680,7 +680,9 @@ class Viewer(qt.QMainWindow):
         action.setCheckable(True)
         action.toggled.connect(self.__togglePlotSelectionWindow)
         self._displayCustomPlotSelectionWindow = action
-        self._customPlotSelectionWindow.sigVisibilityChanged.connect(self._displayCustomPlotSelectionWindow.setChecked)
+        self._customPlotSelectionWindow.sigVisibilityChanged.connect(
+            self._displayCustomPlotSelectionWindow.setChecked
+        )
 
     def __toggleCustomNxdataWindow(self):
         isVisible = self._displayCustomNxdataWindow.isChecked()
@@ -1014,12 +1016,20 @@ class Viewer(qt.QMainWindow):
                 menu.addAction(action)
 
                 if h5.ndim == 1:
-                    action = qt.QAction("Set X values of plot selection", event.source())
-                    action.triggered.connect(lambda: self.setToPlotSelectionAbscissaValues(obj.data_url))
+                    action = qt.QAction(
+                        "Set X values of plot selection", event.source()
+                    )
+                    action.triggered.connect(
+                        lambda: self.setToPlotSelectionAbscissaValues(obj.data_url)
+                    )
                     menu.addAction(action)
 
-                    action = qt.QAction("Add Y values to plot selection", event.source())
-                    action.triggered.connect(lambda: self.addAsPlotSelectionOrdinateValues(obj.data_url))
+                    action = qt.QAction(
+                        "Add Y values to plot selection", event.source()
+                    )
+                    action.triggered.connect(
+                        lambda: self.addAsPlotSelectionOrdinateValues(obj.data_url)
+                    )
                     menu.addAction(action)
 
             if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):

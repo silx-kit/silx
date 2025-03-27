@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains a DataViewer with a view selector.
-"""
+"""This module contains a DataViewer with a view selector."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

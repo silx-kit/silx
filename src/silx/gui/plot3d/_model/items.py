@@ -281,9 +281,9 @@ class Settings(StaticRow):
             fset=sceneWidget.setFogMode,
             notify=sceneWidget.sigStyleChanged,
             toModelData=lambda mode: mode is Plot3DWidget.FogMode.LINEAR,
-            fromModelData=lambda mode: Plot3DWidget.FogMode.LINEAR
-            if mode
-            else Plot3DWidget.FogMode.NONE,
+            fromModelData=lambda mode: (
+                Plot3DWidget.FogMode.LINEAR if mode else Plot3DWidget.FogMode.NONE
+            ),
         )
 
         # Settings row

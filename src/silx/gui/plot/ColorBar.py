@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module containing several widgets associated to a colormap.
-"""
+"""Module containing several widgets associated to a colormap."""
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"

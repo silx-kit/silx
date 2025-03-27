@@ -92,7 +92,7 @@ And getting the result with HistogramLut :
 >>> ranges = [[40., 150.], [-130., 250.], [0., 505]]
 
 >>> histo_lut = HistogramndLut(sample, ranges, n_bins)
-                           
+
 First call, with weight_1 :
 
 >>> histo_lut.accumulate(weights_1)

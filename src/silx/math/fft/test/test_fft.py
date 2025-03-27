@@ -34,6 +34,7 @@ from tempfile import TemporaryDirectory
 
 try:
     from scipy.datasets import ascent
+
     __have_scipy = True
 except ImportError:
     __have_scipy = False

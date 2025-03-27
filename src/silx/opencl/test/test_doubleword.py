@@ -226,9 +226,7 @@ class TestDoubleWord(unittest.TestCase):
         self.assertGreater(
             abs(self.a + self.b - res_m).max(), EPS64, "Exact mismatches"
         )
-        self.assertLess(
-            abs(self.a + self.b - res).max(), 3 * EPS32**2, "Exact matches"
-        )
+        self.assertLess(abs(self.a + self.b - res).max(), 3 * EPS32**2, "Exact matches")
 
     def test_dw_times_fp(self):
         test_kernel = ElementwiseKernel(
@@ -273,9 +271,7 @@ class TestDoubleWord(unittest.TestCase):
         self.assertGreater(
             abs(self.a * self.b - res_m).max(), EPS64, "Exact mismatches"
         )
-        self.assertLess(
-            abs(self.a * self.b - res).max(), 5 * EPS32**2, "Exact matches"
-        )
+        self.assertLess(abs(self.a * self.b - res).max(), 5 * EPS32**2, "Exact matches")
 
     def test_dw_div_fp(self):
         test_kernel = ElementwiseKernel(
@@ -320,6 +316,4 @@ class TestDoubleWord(unittest.TestCase):
         self.assertGreater(
             abs(self.a / self.b - res_m).max(), EPS64, "Exact mismatches"
         )
-        self.assertLess(
-            abs(self.a / self.b - res).max(), 6 * EPS32**2, "Exact matches"
-        )
+        self.assertLess(abs(self.a / self.b - res).max(), 6 * EPS32**2, "Exact matches")

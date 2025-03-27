@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the base class for items of the :class:`.SceneWidget`.
-"""
+"""This module provides the base class for items of the :class:`.SceneWidget`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

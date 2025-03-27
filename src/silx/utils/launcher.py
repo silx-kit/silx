@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module define silx application available throug the silx launcher.
-"""
+"""This module define silx application available throug the silx launcher."""
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"

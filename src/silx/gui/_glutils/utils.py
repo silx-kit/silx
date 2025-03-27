@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides conversion functions between OpenGL and numpy types.
-"""
+"""This module provides conversion functions between OpenGL and numpy types."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

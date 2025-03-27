@@ -88,14 +88,14 @@ class TestTextFormatter(TestCaseQt):
 
     def test_numpy_void(self):
         formatter = TextFormatter()
-        result = formatter.toString(numpy.void(b"\xFF"))
+        result = formatter.toString(numpy.void(b"\xff"))
         self.assertEqual(result, 'b"\\xFF"')
 
     def test_char_cp1252(self):
         # degree character in cp1252
         formatter = TextFormatter()
-        result = formatter.toString(numpy.bytes_(b"\xB0"))
-        self.assertEqual(result, '"\u00B0"')
+        result = formatter.toString(numpy.bytes_(b"\xb0"))
+        self.assertEqual(result, '"\u00b0"')
 
 
 class TestTextFormatterWithH5py(TestCaseQt):
@@ -134,12 +134,12 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, '"i\u2661cookies"')
 
     def testBadAscii(self):
-        d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
+        d = self.create_dataset(data=b"\xf0\x9f\x92\x94")
         result = self.read_dataset(d)
         self.assertEqual(result, 'b"\\xF0\\x9F\\x92\\x94"')
 
     def testVoid(self):
-        d = self.create_dataset(data=numpy.void(b"abc\xF0"))
+        d = self.create_dataset(data=numpy.void(b"abc\xf0"))
         result = self.read_dataset(d)
         self.assertEqual(result, 'b"\\x61\\x62\\x63\\xF0"')
 
@@ -171,12 +171,12 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, '["i\u2661cookies"]')
 
     def testArrayBadAscii(self):
-        d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
+        d = self.create_dataset(data=[b"\xf0\x9f\x92\x94"])
         result = self.read_dataset(d)
         self.assertEqual(result, '[b"\\xF0\\x9F\\x92\\x94"]')
 
     def testArrayVoid(self):
-        d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
+        d = self.create_dataset(data=numpy.void([b"abc\xf0"]))
         result = self.read_dataset(d)
         self.assertEqual(result, '[b"\\x61\\x62\\x63\\xF0"]')
 

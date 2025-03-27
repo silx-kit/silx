@@ -28,7 +28,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Contains a class for creating a matching plan, allocating arrays, 
+Contains a class for creating a matching plan, allocating arrays,
 compiling kernels and other things like that
 """
 

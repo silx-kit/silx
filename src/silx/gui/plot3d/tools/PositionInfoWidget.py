@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a widget that displays data values of a SceneWidget.
-"""
+"""This module provides a widget that displays data values of a SceneWidget."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
