@@ -119,7 +119,8 @@ def get_pyopencl_ctx_tuple(pyopencl_ctx_str):
         try:
             ret = int(val)
         except ValueError:
-            return default_val
+            ret = default_val
+        return ret
 
     if pyopencl_ctx_str in ["", ":"]:
         return (0, 0)
