@@ -603,7 +603,11 @@ class OpenCL(object):
             platformid = int(platformid)
             deviceid = int(deviceid)
         elif "PYOPENCL_CTX" in os.environ:
+            #
+            #
+            #
             ctx = pyopencl.create_some_context()
+
             # try:
             device = ctx.devices[0]
             platforms = [
