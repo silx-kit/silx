@@ -627,11 +627,11 @@ class OpenCL(object):
             platformid = int(platformid)
             deviceid = int(deviceid)
         elif "PYOPENCL_CTX" in os.environ:
-            (platformid, deviceid) = get_pyopencl_ctx_tuple(os.environ["PYOPENCL_CTX"])
-
-            try_ctx = self.context_cache.get((platformid, deviceid), None)
-            if try_ctx is not None:
-                return try_ctx
+            if cached:
+                (platformid, deviceid) = get_pyopencl_ctx_tuple(os.environ["PYOPENCL_CTX"])
+                try_ctx = self.context_cache.get((platformid, deviceid), None)
+                if try_ctx is not None:
+                    return try_ctx
 
             ctx = pyopencl.create_some_context()
             # try:
