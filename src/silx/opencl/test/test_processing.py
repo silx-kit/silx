@@ -1,7 +1,13 @@
 import os
 import pytest
-from silx.opencl.processing import OpenclProcessing
 
+from silx.opencl.common import ocl
+
+if ocl:
+    from silx.opencl.processing import OpenclProcessing
+
+
+@pytest.mark.skipif(ocl is None, reason="PyOpenCl is missing")
 def test_context_cache():
 
     op1 = OpenclProcessing()
