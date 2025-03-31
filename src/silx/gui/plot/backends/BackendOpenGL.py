@@ -1540,13 +1540,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._ensureAspectRatio(keepDim)
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        assert xmin < xmax
-        assert ymin < ymax
-
         if y2min is None or y2max is None:
             y2Range = None
         else:
-            assert y2min < y2max
             y2Range = y2min, y2max
         self._setPlotBounds((xmin, xmax), (ymin, ymax), y2Range)
 
@@ -1554,7 +1550,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return self._plotFrame.dataRanges.x
 
     def setGraphXLimits(self, xmin, xmax):
-        assert xmin < xmax
         self._setPlotBounds(xRange=(xmin, xmax), keepDim="x")
 
     def getGraphYLimits(self, axis):
@@ -1565,7 +1560,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return self._plotFrame.dataRanges.y2
 
     def setGraphYLimits(self, ymin, ymax, axis):
-        assert ymin < ymax
         assert axis in ("left", "right")
 
         if axis == "left":
