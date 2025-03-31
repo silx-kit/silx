@@ -343,7 +343,6 @@ def _measure_workgroup_size(device_or_context, fast=False):
             platformid=device_or_context[0], deviceid=device_or_context[1]
         )
         device = ctx.devices[0]
-        print(device_or_context, device)
     else:
         raise RuntimeError(
             """given parameter device_or_context is not an
