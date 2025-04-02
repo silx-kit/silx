@@ -405,7 +405,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        with warnings.catch_warnings("ignore"):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             try:
                 self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
             except (RuntimeError, TypeError, SystemError):
