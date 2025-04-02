@@ -32,10 +32,11 @@ This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/12/2020"
+__date__ = "02/04/2025"
 
 import os
 import sys
+import warnings
 import numpy
 import logging
 import h5py
@@ -404,10 +405,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        try:
-            self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-        except (RuntimeError, TypeError, SystemError):
-            pass
+        with warnings.catch_warnings(action="ignore"):
+            try:
+                self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+            except (RuntimeError, TypeError, SystemError):
+                pass
 
         image = self.getMaskedItem()
         if image is not None:
