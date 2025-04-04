@@ -1621,7 +1621,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
-
     def draw(self):
         """Overload draw
 
