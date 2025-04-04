@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+2.2.2: 2025/04/07
+-----------------
+
+* `silx.gui.plot.PlotWidget`:
+
+  * Fixed matplotlib backend issue with plot axes limits (PR #4256)
+  * Fixed OpenGL backend axes (PR #4246)
+
+* `silx.io.h5py_utils`: Fixed support of libhdf5 1.14.x (PR #4242)
+* `silx.opencl`: Fixed context creation through `PYOPENCL_CTX environment` variable (PR #4245)
+
 2.2.1: 2025/02/27
 -----------------
 
