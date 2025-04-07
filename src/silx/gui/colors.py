@@ -35,7 +35,7 @@ import logging
 import numbers
 import re
 from collections.abc import Iterable
-from typing import Any, Tuple, Union
+from typing import Any, Union
 from collections.abc import Sequence
 
 import silx

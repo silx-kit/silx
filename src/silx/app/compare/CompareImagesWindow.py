@@ -26,7 +26,6 @@
 
 import logging
 import numpy
-import typing
 import os.path
 
 import silx.io

@@ -194,7 +194,6 @@ def _get_custom_widgets(ui_file):
     section, then automatically load all the custom widget classes.
     """
 
-    import sys
     import importlib
     from xml.etree.ElementTree import ElementTree
 

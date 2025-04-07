@@ -32,15 +32,12 @@ import os
 import sys
 import time
 import logging
-from typing import Union, Optional
 from collections.abc import Generator
-import urllib.parse
 
 import numpy
 
 from silx.utils.proxy import Proxy
 from .url import DataUrl
-from . import h5py_utils
 from .._version import calc_hexversion
 
 import h5py

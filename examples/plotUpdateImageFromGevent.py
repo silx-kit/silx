@@ -30,15 +30,12 @@ __license__ = "MIT"
 __date__ = "05/09/2017"
 
 
-import threading
-import time
 import gevent
 import logging
 
 import numpy
 
 from silx.gui import qt
-from silx.gui.utils import concurrent
 from silx.gui.plot import Plot2D
 
 _logger = logging.getLogger(__name__)

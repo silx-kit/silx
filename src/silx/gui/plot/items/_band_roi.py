@@ -25,7 +25,7 @@
 
 import functools
 import logging
-from typing import List, NamedTuple, Optional, Tuple
+from typing import NamedTuple
 from collections.abc import Iterable, Sequence
 import numpy
 

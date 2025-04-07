@@ -28,7 +28,6 @@ import sys
 import logging
 import numpy
 import argparse
-import os
 
 import silx.io
 from silx.gui import qt

@@ -29,7 +29,6 @@ __date__ = "07/07/2021"
 
 import enum
 import logging
-from typing import Tuple, Union
 import warnings
 
 import numpy

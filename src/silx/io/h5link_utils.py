@@ -1,5 +1,5 @@
 import os
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 from .utils import is_dataset
 
 

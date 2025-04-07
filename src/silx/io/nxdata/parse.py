@@ -41,7 +41,6 @@ Other public functions:
 """
 
 import json
-from typing import Optional
 
 import numpy
 

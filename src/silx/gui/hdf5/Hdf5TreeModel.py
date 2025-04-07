@@ -29,7 +29,6 @@ __date__ = "12/03/2019"
 
 import os
 import logging
-from typing import Optional
 import functools
 from .. import qt
 from .. import icons

@@ -31,7 +31,6 @@ import sys
 import os
 import platform
 import logging
-from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 

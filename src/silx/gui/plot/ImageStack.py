@@ -39,7 +39,6 @@ from silx.gui.widgets.UrlList import UrlList
 from silx.gui.utils import blockSignals
 from silx.utils.deprecation import deprecated
 
-import typing
 import logging
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
 from collections.abc import Iterable

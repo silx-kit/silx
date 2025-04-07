@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "28/08/2018"
 
 import logging
-import typing
 
 import numpy
 from collections import abc

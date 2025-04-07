@@ -31,7 +31,6 @@ import locale
 import logging
 import numpy
 import os
-import sys
 import tempfile
 import unittest
 

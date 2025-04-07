@@ -30,7 +30,6 @@ __date__ = "06/03/2017"
 
 
 import logging
-import numpy
 
 from ....utils.proxy import docstring
 from .core import (

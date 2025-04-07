@@ -34,7 +34,6 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "07/11/2023"
 __license__ = "MIT"
 
-from typing import Optional, Tuple
 import numpy
 import logging
 import weakref

@@ -27,7 +27,6 @@ __license__ = "MIT"
 __date__ = "24/07/2018"
 
 import weakref
-from typing import Optional
 
 
 class Hdf5Node:

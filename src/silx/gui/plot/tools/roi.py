@@ -33,7 +33,6 @@ import logging
 import time
 import weakref
 import functools
-from typing import Optional
 
 import numpy
 

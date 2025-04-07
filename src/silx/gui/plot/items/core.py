@@ -34,7 +34,7 @@ from copy import deepcopy
 import logging
 import enum
 import numbers
-from typing import Optional, Tuple, Union
+from typing import Union
 import weakref
 
 import numpy

@@ -22,7 +22,6 @@
 # ############################################################################*/
 """Tests for utils module"""
 
-import io
 import numpy
 import os
 import re

@@ -29,7 +29,6 @@ __date__ = "17/01/2019"
 
 import logging
 import enum
-from typing import Optional
 
 from .. import qt
 from .. import icons

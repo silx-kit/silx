@@ -35,7 +35,6 @@ __date__ = "28/06/2018"
 
 import logging
 import numpy
-from typing import Tuple
 
 from ... import utils
 from .. import items

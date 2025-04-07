@@ -31,7 +31,6 @@ __date__ = "17/01/2018"
 import os
 import tempfile
 import unittest
-import io
 import gc
 import h5py
 

@@ -44,12 +44,10 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
-from typing import Union
 
 import silx
 from .. import qt
 from .. import colors
-from .. import icons
 
 from . import items, PlotWindow, PlotWidget, actions
 from ..colors import Colormap

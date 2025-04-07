@@ -34,7 +34,7 @@ import math
 import numpy
 import time
 import weakref
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from silx.gui import qt
 from .. import colors

@@ -41,7 +41,6 @@ import math
 import weakref
 import logging
 import numbers
-from typing import Optional, Union
 from collections import namedtuple
 
 import numpy

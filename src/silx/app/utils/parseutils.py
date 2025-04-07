@@ -31,7 +31,7 @@ __date__ = "28/05/2018"
 from collections.abc import Sequence
 import glob
 import logging
-from typing import Union, Any, Optional
+from typing import Any
 from collections.abc import Generator, Iterable
 from pathlib import Path
 

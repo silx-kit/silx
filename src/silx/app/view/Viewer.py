@@ -34,7 +34,6 @@ import logging
 import functools
 import traceback
 from types import TracebackType
-from typing import Optional
 
 import silx.io.nxdata
 from silx.gui import qt

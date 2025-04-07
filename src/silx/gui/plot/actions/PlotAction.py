@@ -31,7 +31,6 @@ __license__ = "MIT"
 __date__ = "03/01/2018"
 
 
-from typing import Optional, Union
 from collections.abc import Callable
 import weakref
 from silx.gui import icons

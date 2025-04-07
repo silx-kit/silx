@@ -1,5 +1,3 @@
-import weakref
-from typing import Optional
 from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.gui import qt
 from silx.gui.qt import inspect as qt_inspect

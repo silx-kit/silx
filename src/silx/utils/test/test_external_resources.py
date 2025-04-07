@@ -31,7 +31,6 @@ __date__ = "08/03/2019"
 import os
 import unittest
 import shutil
-import socket
 import urllib.request
 import urllib.error
 

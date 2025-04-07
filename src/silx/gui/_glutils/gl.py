@@ -32,7 +32,6 @@ from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
 import sys
-from typing import Optional
 
 from packaging.version import Version
 

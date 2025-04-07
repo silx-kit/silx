@@ -39,7 +39,6 @@ _logger = logging.getLogger(__name__)
 from collections import namedtuple
 from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Optional, Union
 import datetime as dt
 import itertools
 import numbers

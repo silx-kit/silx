@@ -35,7 +35,6 @@ __date__ = "12/06/2023"
 
 
 import weakref
-from typing import Optional
 
 from silx.gui import qt
 

@@ -30,7 +30,6 @@ __date__ = "28/06/2018"
 
 import logging
 import weakref
-from typing import List, Optional
 
 from silx.gui import qt
 from silx.gui import icons

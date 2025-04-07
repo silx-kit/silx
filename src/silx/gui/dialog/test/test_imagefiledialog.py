@@ -34,7 +34,6 @@ import tempfile
 import numpy
 import shutil
 import os
-import io
 import weakref
 import fabio
 import h5py

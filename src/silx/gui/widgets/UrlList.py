@@ -24,7 +24,6 @@
 
 from __future__ import annotations
 
-import typing
 import logging
 from collections.abc import Iterable
 from silx.io.url import DataUrl

@@ -32,7 +32,6 @@ __date__ = "21/12/2018"
 
 import logging
 import datetime as dt
-from typing import Tuple, Union
 import numpy
 
 from packaging.version import Version

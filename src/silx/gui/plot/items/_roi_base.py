@@ -38,7 +38,6 @@ import logging
 import numpy
 import weakref
 import functools
-from typing import Optional
 
 from ....utils.weakref import WeakList
 from ... import qt

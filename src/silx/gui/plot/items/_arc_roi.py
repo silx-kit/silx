@@ -30,7 +30,6 @@ __date__ = "28/06/2018"
 import logging
 import numpy
 import enum
-from typing import Tuple
 
 from ... import utils
 from .. import items

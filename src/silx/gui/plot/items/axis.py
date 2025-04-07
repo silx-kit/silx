@@ -31,7 +31,6 @@ __date__ = "22/11/2018"
 
 import datetime as dt
 import enum
-from typing import Optional
 
 import dateutil.tz
 

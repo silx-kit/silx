@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "29/09/2022"
 
 
-import typing
 from .. import qt
 
 
