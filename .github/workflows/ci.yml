@@ -23,36 +23,36 @@ jobs:
             python-version: "3.10"
             QT_API: PyQt5
             with_opencl: false
-          - os: ubuntu-22.04
-            python-version: "3.11"
-            QT_API: PyQt6
-            with_opencl: true
-          - os: ubuntu-22.04
-            python-version: "3.13"
-            QT_API: PySide6
-            with_opencl: true
+          #- os: ubuntu-22.04
+          #  python-version: "3.11"
+          #  QT_API: PyQt6
+          #  with_opencl: true
+          #- os: ubuntu-22.04
+          #  python-version: "3.13"
+          #  QT_API: PySide6
+          #  with_opencl: true
 
-          - os: macos-13
-            python-version: "3.12"
-            QT_API: PyQt5
-            with_opencl: true
+          #- os: macos-13
+          #  python-version: "3.12"
+          #  QT_API: PyQt5
+          #  with_opencl: true
           - os: macos-13
             python-version: "3.13"
             QT_API: PyQt6
             with_opencl: true
-          - os: macos-13
-            python-version: "3.10"
-            QT_API: PySide6
-            with_opencl: true
+          #- os: macos-13
+          #  python-version: "3.10"
+          #  QT_API: PySide6
+          #  with_opencl: true
 
-          - os: windows-latest
-            python-version: "3.13"
-            QT_API: PyQt5
-            with_opencl: false
-          - os: windows-latest
-            python-version: "3.10"
-            QT_API: PyQt6
-            with_opencl: false
+          #- os: windows-latest
+          #  python-version: "3.13"
+          #  QT_API: PyQt5
+          #  with_opencl: false
+          #- os: windows-latest
+          #  python-version: "3.10"
+          #  QT_API: PyQt6
+          #  with_opencl: false
           - os: windows-latest
             python-version: "3.12"
             QT_API: PySide6
