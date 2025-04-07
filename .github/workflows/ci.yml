@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-20.04
             python-version: "3.10"
-            QT_API: PyQt5
+            QT_API: PySide6
             with_opencl: false
           #- os: ubuntu-22.04
           #  python-version: "3.11"
@@ -55,7 +55,7 @@ jobs:
           #  with_opencl: false
           - os: windows-latest
             python-version: "3.12"
-            QT_API: PySide6
+            QT_API: PyQt5
             with_opencl: false
 
     steps:
