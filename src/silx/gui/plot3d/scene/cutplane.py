@@ -118,9 +118,7 @@ class ColormapMesh3D(Geometry):
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
         self._interpolation = "linear"
-        super(ColormapMesh3D, self).__init__(
-            mode, indices, position=position, normal=normal
-        )
+        super().__init__(mode, indices, position=position, normal=normal)
 
         self.isBackfaceVisible = True
         self.textureOffset = 0.0, 0.0, 0.0
@@ -194,7 +192,7 @@ class ColormapMesh3D(Geometry):
             self._texture.minFilter = filter_
             self._texture.magFilter = filter_
 
-        super(ColormapMesh3D, self).prepareGL2(ctx)
+        super().prepareGL2(ctx)
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
@@ -245,7 +243,7 @@ class CutPlane(PlaneInGroup):
         self._alpha = 1.0
         self._interpolation = "linear"
         self._colormap = Colormap()
-        super(CutPlane, self).__init__(point, normal)
+        super().__init__(point, normal)
 
     def setData(self, data, copy=True):
         if data is None:
@@ -336,11 +334,11 @@ class CutPlane(PlaneInGroup):
             else:
                 self._mesh.textureOffset = 0.0, 0.0, 0.0
 
-        super(CutPlane, self).prepareGL2(ctx)
+        super().prepareGL2(ctx)
 
     def renderGL2(self, ctx):
         with self.viewport.light.turnOff():
-            super(CutPlane, self).renderGL2(ctx)
+            super().renderGL2(ctx)
 
     def _bounds(self, dataBounds=False):
         if not dataBounds:

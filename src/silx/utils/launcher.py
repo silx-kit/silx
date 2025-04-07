@@ -39,7 +39,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class LauncherCommand(object):
+class LauncherCommand:
     """Description of a command"""
 
     def __init__(self, name, description=None, module_name=None, function=None):
@@ -131,7 +131,7 @@ class LauncherCommand(object):
             return status
 
 
-class Launcher(object):
+class Launcher:
     """
     Manage launch of module.
 
@@ -202,11 +202,11 @@ class Launcher(object):
         if description is not None:
             print(description)
             print("")
-        print("The {0.prog} commands are:".format(self))
+        print(f"The {self.prog} commands are:")
         commands = sorted(self._commands.keys())
         for command in commands:
             command = self._commands[command]
-            print("   {:10s} {:s}".format(command.name, command.description))
+            print(f"   {command.name:10s} {command.description:s}")
         print("")
         print(epilog.format(self))
 
@@ -244,7 +244,7 @@ class Launcher(object):
             return -1
 
         command = self._commands[command_name]
-        prog = "%s %s" % (self.prog, command.name)
+        prog = f"{self.prog} {command.name}"
         return command.execute([prog, "--help"])
 
     def execute(self, argv=None):
@@ -265,7 +265,7 @@ class Launcher(object):
         command_name = argv[1]
 
         if command_name == "--version":
-            print("%s version %s" % (self.prog, str(self.version)))
+            print(f"{self.prog} version {str(self.version)}")
             return 0
 
         if command_name in ["--help", "-h"]:
@@ -276,10 +276,10 @@ class Launcher(object):
             else:
                 command_name = argv[2]
                 command_argv = argv[2:] + ["--help"]
-                command_argv[0] = "%s %s" % (self.prog, command_argv[0])
+                command_argv[0] = f"{self.prog} {command_argv[0]}"
         else:
             command_argv = argv[1:]
-            command_argv[0] = "%s %s" % (self.prog, command_argv[0])
+            command_argv[0] = f"{self.prog} {command_argv[0]}"
 
         if command_name not in self._commands:
             print("Unknown command: %s" % command_name)

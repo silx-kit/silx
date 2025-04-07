@@ -74,7 +74,7 @@ except ImportError:
 class TestMatching(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestMatching, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -89,7 +89,7 @@ class TestMatching(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestMatching, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -101,7 +101,7 @@ class TestMatching(unittest.TestCase):
             self.use_cpu = False
         kernel = "matching_gpu.cl" if not (self.use_cpu) else "matching_cpu.cl"
         kernel_src = os.linesep.join(
-            (get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel))
+            get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel)
         )
         self.program = pyopencl.Program(
             self.ctx, kernel_src

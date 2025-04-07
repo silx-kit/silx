@@ -169,7 +169,7 @@ class NiceDateLocator(Locator):
         :param numTicks: target number of ticks
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
-        super(NiceDateLocator, self).__init__()
+        super().__init__()
         self.numTicks = numTicks
 
         self._spacing = None
@@ -222,7 +222,7 @@ class NiceAutoDateFormatter(Formatter):
         :param niceDateLocator: a NiceDateLocator object
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
-        super(NiceAutoDateFormatter, self).__init__()
+        super().__init__()
         self.locator = locator
         self.tz = tz
 
@@ -327,8 +327,8 @@ class _TextWithOffset(Text):
             yoffset = 0
 
         trans = self.get_transform()
-        x = super(_TextWithOffset, self).convert_xunits(self._x)
-        y = super(_TextWithOffset, self).convert_xunits(self._y)
+        x = super().convert_xunits(self._x)
+        y = super().convert_xunits(self._y)
         pos = x, y
 
         try:
@@ -502,10 +502,10 @@ class Image(AxesImage):
         """Overridden to add a fast path for RGBA unit8 images"""
         A = numpy.asarray(A)
         if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
-            super(Image, self).set_data(A)
+            super().set_data(A)
         else:
             # Call AxesImage.set_data with small data to set attributes
-            super(Image, self).set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
+            super().set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
             self._A = A  # Override stored data
 
 
@@ -518,7 +518,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     """
 
     def __init__(self, plot, parent=None):
-        super(BackendMatplotlib, self).__init__(plot, parent)
+        super().__init__(plot, parent)
 
         # matplotlib is handling keep aspect ratio at draw time
         # When keep aspect ratio is on, and one changes the limits and
@@ -660,7 +660,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             assert parameter is not None
         assert yaxis in ("left", "right")
 
-        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+        if len(color) == 4 and type(color[3]) in [int, numpy.uint8, numpy.int8]:
             color = numpy.array(color, dtype=numpy.float64) / 255.0
 
         if yaxis == "right":
@@ -1269,7 +1269,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         )
 
     def setXAxisTimeZone(self, tz):
-        super(BackendMatplotlib, self).setXAxisTimeZone(tz)
+        super().setXAxisTimeZone(tz)
 
         # Make new formatter and locator with the time zone.
         self.setXAxisTimeSeries(self.isXAxisTimeSeries())
@@ -1352,15 +1352,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return 1.0
 
     def _mplToQtPosition(
-        self, x: Union[float, numpy.ndarray], y: Union[float, numpy.ndarray]
-    ) -> Tuple[Union[float, numpy.ndarray], Union[float, numpy.ndarray]]:
+        self, x: float | numpy.ndarray, y: float | numpy.ndarray
+    ) -> tuple[float | numpy.ndarray, float | numpy.ndarray]:
         """Convert matplotlib "display" space coord to Qt widget logical pixel"""
         ratio = self._getDevicePixelRatio()
         # Convert from matplotlib origin (bottom) to Qt origin (top)
         # and apply device pixel ratio
         return x / ratio, (self.fig.get_window_extent().height - y) / ratio
 
-    def _qtToMplPosition(self, x: float, y: float) -> Tuple[float, float]:
+    def _qtToMplPosition(self, x: float, y: float) -> tuple[float, float]:
         """Convert Qt widget logical pixel to matplotlib "display" space coord"""
         ratio = self._getDevicePixelRatio()
         # Apply device pixel ration and

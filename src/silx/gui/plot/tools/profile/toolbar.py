@@ -49,7 +49,7 @@ class ProfileToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(ProfileToolBar, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.__scheme = None
         self.__manager = None
         self.__plot = weakref.ref(plot)

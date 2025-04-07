@@ -117,7 +117,7 @@ def prepareMarkerSignal(
 
         posDataCursor = posDataMarker
     else:
-        raise NotImplementedError("Unknown event type {0}".format(eventType))
+        raise NotImplementedError(f"Unknown event type {eventType}")
 
     eventDict = {
         "event": eventType,

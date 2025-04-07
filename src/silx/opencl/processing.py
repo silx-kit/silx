@@ -67,7 +67,7 @@ ProfileDescription = namedtuple("ProfileDescription", ["name", "start", "stop"])
 logger = logging.getLogger(__name__)
 
 
-class KernelContainer(object):
+class KernelContainer:
     """Those object holds a copy of all kernels accessible as attributes"""
 
     def __init__(self, program):
@@ -111,7 +111,7 @@ class KernelContainer(object):
         )
 
 
-class OpenclProcessing(object):
+class OpenclProcessing:
     """Abstract class for different types of OpenCL processing.
 
     This class provides:

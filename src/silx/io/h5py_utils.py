@@ -36,7 +36,7 @@ import os
 import sys
 import traceback
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 import h5py
 
 from .._version import calc_hexversion
@@ -388,7 +388,7 @@ class File(h5py.File):
         if mode is None:
             mode = "r"
         elif mode not in ("r", "w", "w-", "x", "a", "r+"):
-            raise ValueError("invalid mode {}".format(mode))
+            raise ValueError(f"invalid mode {mode}")
         if not HAS_SWMR:
             swmr = False
         if swmr and libver is None:

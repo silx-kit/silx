@@ -45,7 +45,7 @@ from ..PlotWidget import PlotWidget
 class ZoomEnabledAxesMenu(qt.QMenu):
     """Menu to toggle axes for zoom interaction"""
 
-    def __init__(self, plot: PlotWidget, parent: Optional[qt.QWidget] = None):
+    def __init__(self, plot: PlotWidget, parent: qt.QWidget | None = None):
         super().__init__(parent)
         self.setTitle("Zoom axes")
 
@@ -68,7 +68,7 @@ class ZoomEnabledAxesMenu(qt.QMenu):
         # Init the state
         self._interactionChanged()
 
-    def getPlotWidget(self) -> Optional[PlotWidget]:
+    def getPlotWidget(self) -> PlotWidget | None:
         return self.__plotRef()
 
     def _axesActionTriggered(self, checked=False):

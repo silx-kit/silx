@@ -109,7 +109,7 @@ class _RegionOfInterestBase(qt.QObject):
         return False  # Override in subclass to perform actual test
 
 
-class RoiInteractionMode(object):
+class RoiInteractionMode:
     """Description of an interaction mode.
 
     An interaction mode provide a specific kind of interaction for a ROI.
@@ -131,7 +131,7 @@ class RoiInteractionMode(object):
         return self._description
 
 
-class InteractionModeMixIn(object):
+class InteractionModeMixIn:
     """Mix in feature which can be implemented by a ROI object.
 
     This provides user interaction to switch between different
@@ -303,7 +303,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             previousPlot = previousParent.parent()
             if previousPlot is not None:
                 self._disconnectFromPlot(previousPlot)
-        super(RegionOfInterest, self).setParent(parent)
+        super().setParent(parent)
         if parent is not None:
             plot = parent.parent()
             if plot is not None:
@@ -473,7 +473,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """Returns the currently displayed text for this ROI"""
         return self.getName() if self.__text is None else self.__text
 
-    def setText(self, text: Optional[str] = None) -> None:
+    def setText(self, text: str | None = None) -> None:
         """Set the displayed text for this ROI.
 
         If None (the default), the ROI name is used.
@@ -598,7 +598,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
                 style = self.getCurrentStyle()
                 self._updatedStyle(event, style)
 
-        super(RegionOfInterest, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
         # Displayed text has changed, send a text event
         if event == items.ItemChangedType.NAME and self.__text is None:
@@ -792,10 +792,10 @@ class HandleBasedROI(RegionOfInterest):
                 editable = self.isEditable()
                 if role not in ["user", "label"]:
                     self.__updateEditable(item, editable)
-        super(HandleBasedROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(HandleBasedROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
 
         # Update color of shape items in the plot
         color = rgba(self.getColor())
@@ -823,7 +823,7 @@ class HandleBasedROI(RegionOfInterest):
                 handle.sigDragFinished.disconnect(self._handleEditingFinished)
 
     def _handleEditingStarted(self):
-        super(HandleBasedROI, self)._editingStarted()
+        super()._editingStarted()
         handle = self.sender()
         self._posOrigin = numpy.array(handle.getPosition())
         self._posPrevious = numpy.array(self._posOrigin)
@@ -844,7 +844,7 @@ class HandleBasedROI(RegionOfInterest):
         self.handleDragFinished(handle, self._posOrigin, current)
         self._posPrevious = None
         self._posOrigin = None
-        super(HandleBasedROI, self)._editingFinished()
+        super()._editingFinished()
 
     def isHandleBeingDragged(self):
         """Returns True if one of the handles is currently being dragged.

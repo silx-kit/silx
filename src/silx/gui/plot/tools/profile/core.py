@@ -70,13 +70,13 @@ class ImageProfileData(typing.NamedTuple):
 
 class CurveProfileDesc(typing.NamedTuple):
     profile: numpy.ndarray
-    name: typing.Optional[str] = None
-    color: typing.Optional[str] = None
+    name: str | None = None
+    color: str | None = None
 
 
 class CurvesProfileData(typing.NamedTuple):
     coords: numpy.ndarray
-    profiles: typing.List[CurveProfileDesc]
+    profiles: list[CurveProfileDesc]
     title: str
     xLabel: str
     yLabel: str
@@ -189,9 +189,7 @@ class ProfileRoiMixIn:
 
     def computeProfile(
         self, item: silx.gui.plot.items.Item
-    ) -> typing.Union[
-        CurveProfileData, ImageProfileData, RgbaProfileData, CurvesProfileData
-    ]:
+    ) -> CurveProfileData | ImageProfileData | RgbaProfileData | CurvesProfileData:
         """
         Compute the profile which will be displayed.
 
@@ -385,7 +383,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         if roiWidth <= 1:
             profileName = "{ylabel} = %g" % yMin
         else:
-            profileName = "{ylabel} = [%g, %g]" % (yMin, yMax)
+            profileName = f"{{ylabel}} = [{yMin:g}, {yMax:g}]"
         xLabel = "{xlabel}"
 
     elif lineProjectionMode == "Y":  # Vertical profile on the whole image
@@ -403,7 +401,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         if roiWidth <= 1:
             profileName = "{xlabel} = %g" % xMin
         else:
-            profileName = "{xlabel} = [%g, %g]" % (xMin, xMax)
+            profileName = f"{{xlabel}} = [{xMin:g}, {xMax:g}]"
         xLabel = "{ylabel}"
 
     else:  # Free line profile
@@ -537,7 +535,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         x1 = endPt[1] * scale[0] + origin[0]
 
         if startPt[1] == endPt[1]:
-            profileName = "{xlabel} = %g; {ylabel} = [%g, %g]" % (x0, y0, y1)
+            profileName = f"{{xlabel}} = {x0:g}; {{ylabel}} = [{y0:g}, {y1:g}]"
             if method == "none":
                 coords = None
             else:
@@ -546,7 +544,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
             xLabel = "{ylabel}"
 
         elif startPt[0] == endPt[0]:
-            profileName = "{ylabel} = %g; {xlabel} = [%g, %g]" % (y0, x0, x1)
+            profileName = f"{{ylabel}} = {y0:g}; {{xlabel}} = [{x0:g}, {x1:g}]"
             if method == "none":
                 coords = None
             else:
@@ -557,7 +555,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         else:
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
-            profileName = "{ylabel} = %g * {xlabel} %+g" % (m, b)
+            profileName = f"{{ylabel}} = {m:g} * {{xlabel}} {b:+g}"
             if method == "none":
                 coords = None
             else:

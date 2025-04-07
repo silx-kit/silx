@@ -56,7 +56,7 @@ class LimitsToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, plot=None, title="Limits"):
-        super(LimitsToolBar, self).__init__(title, parent)
+        super().__init__(title, parent)
         assert plot is not None
         self._plot = plot
         self._plot.sigPlotSignal.connect(self._plotWidgetSlot)

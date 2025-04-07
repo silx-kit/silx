@@ -143,7 +143,7 @@ class HierarchicalTableView(qt.QTableView):
 
         :param qt.QWidget parent: Parent of the widget
         """
-        super(HierarchicalTableView, self).__init__(parent)
+        super().__init__(parent)
         self.setItemDelegate(HierarchicalItemDelegate(self))
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setVisible(False)
@@ -153,7 +153,7 @@ class HierarchicalTableView(qt.QTableView):
         function"""
         if self.model() is not None:
             model.modelReset.disconnect(self.__modelReset)
-        super(HierarchicalTableView, self).setModel(model)
+        super().setModel(model)
         if self.model() is not None:
             model.modelReset.connect(self.__modelReset)
             self.__modelReset()

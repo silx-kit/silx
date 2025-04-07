@@ -67,7 +67,7 @@ class ScatterView(qt.QMainWindow):
     """Legend used for the scatter item"""
 
     def __init__(self, parent=None, backend=None):
-        super(ScatterView, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)

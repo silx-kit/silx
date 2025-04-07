@@ -67,7 +67,7 @@ _logger = logging.getLogger(__name__)
 # PlotAxis ####################################################################
 
 
-class PlotAxis(object):
+class PlotAxis:
     """Represents a 1D axis of the plot.
     This class is intended to be used with :class:`GLPlotFrame`.
     """
@@ -460,7 +460,7 @@ class PlotAxis(object):
 # GLPlotFrame #################################################################
 
 
-class GLPlotFrame(object):
+class GLPlotFrame:
     """Base class for rendering a 2D frame surrounded by axes."""
 
     _TICK_LENGTH_IN_PIXELS = 5
@@ -829,9 +829,7 @@ class GLPlotFrame2D(GLPlotFrame):
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
         :param font: Font used by the axes label
         """
-        super(GLPlotFrame2D, self).__init__(
-            marginRatios, foregroundColor, gridColor, font
-        )
+        super().__init__(marginRatios, foregroundColor, gridColor, font)
         self._font = font
 
         self.axes.append(
@@ -893,7 +891,7 @@ class GLPlotFrame2D(GLPlotFrame):
         self._transformedDataY2ProjMat = None
 
     def _dirty(self):
-        super(GLPlotFrame2D, self)._dirty()
+        super()._dirty()
         self._transformedDataRanges = None
         self._transformedDataProjMat = None
         self._transformedDataY2ProjMat = None
@@ -902,7 +900,7 @@ class GLPlotFrame2D(GLPlotFrame):
     def isDirty(self):
         """True if it need to refresh graphic rendering, False otherwise."""
         return (
-            super(GLPlotFrame2D, self).isDirty
+            super().isDirty
             or self._transformedDataRanges is None
             or self._transformedDataProjMat is None
             or self._transformedDataY2ProjMat is None
@@ -1126,8 +1124,8 @@ class GLPlotFrame2D(GLPlotFrame):
 
     @staticmethod
     def __applyLog(
-        data: Union[float, numpy.ndarray], isLog: bool
-    ) -> Optional[Union[float, numpy.ndarray]]:
+        data: float | numpy.ndarray, isLog: bool
+    ) -> float | numpy.ndarray | None:
         """Apply log to data filtering out"""
         if not isLog:
             return data
@@ -1372,7 +1370,7 @@ class GLPlotFrame2D(GLPlotFrame):
             (xCoords[1], yCoords[1]),
         )
 
-        super(GLPlotFrame2D, self)._buildVerticesAndLabels()
+        super()._buildVerticesAndLabels()
 
         vertices, gridVertices, labels = self._renderResources
 

@@ -511,7 +511,7 @@ class ConfigDict(dict):
                         llist.append(str(item))
                 fp.write("%s\n" % (sep.join(llist)))
             elif isinstance(ddict[key], str):
-                fp.write("%s = %s\n" % (key, self._escape_str(ddict[key])))
+                fp.write(f"{key} = {self._escape_str(ddict[key])}\n")
             else:
                 if isinstance(ddict[key], numpy.ndarray):
                     fp.write(
@@ -521,13 +521,13 @@ class ConfigDict(dict):
                         + " ]\n"
                     )
                 else:
-                    fp.write("%s = %s\n" % (key, ddict[key]))
+                    fp.write(f"{key} = {ddict[key]}\n")
 
         for key in dictkey:
             if secthead is None:
                 newsecthead = key.replace(".", "_|_")
             else:
-                newsecthead = "%s.%s" % (secthead, key.replace(".", "_|_"))
+                newsecthead = "{}.{}".format(secthead, key.replace(".", "_|_"))
 
             fp.write("\n[%s]\n" % newsecthead)
             self.__write(fp, ddict[key], newsecthead)

@@ -75,13 +75,13 @@ def _lineProfileTitle(x0, y0, x1, y1):
     :rtype: str
     """
     if x0 == x1:
-        title = "{xlabel} = %g; {ylabel} = [%g, %g]" % (x0, y0, y1)
+        title = f"{{xlabel}} = {x0:g}; {{ylabel}} = [{y0:g}, {y1:g}]"
     elif y0 == y1:
-        title = "{ylabel} = %g; {xlabel} = [%g, %g]" % (y0, x0, x1)
+        title = f"{{ylabel}} = {y0:g}; {{xlabel}} = [{x0:g}, {x1:g}]"
     else:
         m = (y1 - y0) / (x1 - x0)
         b = y0 - m * x0
-        title = "{ylabel} = %g * {xlabel} %+g" % (m, b)
+        title = f"{{ylabel}} = {m:g} * {{xlabel}} {b:+g}"
 
     return title
 
@@ -779,7 +779,7 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
                 x0 = x1 = self.getPosition()
                 y0, y1 = plot.getYAxis().getLimits()
         else:
-            raise RuntimeError("Unsupported ROI for profile: {}".format(self.__class__))
+            raise RuntimeError(f"Unsupported ROI for profile: {self.__class__}")
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
@@ -1054,7 +1054,7 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
     ITEM_KIND = items.ImageStack
 
     def __init__(self, parent=None):
-        super(_DefaultImageStackProfileRoiMixIn, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.__profileType = "1D"
         """Kind of profile"""
 

@@ -51,7 +51,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         return PlotWindow()
 
     def setUp(self):
-        super(TestScatterMaskToolsWidget, self).setUp()
+        super().setUp()
         self.widget = ScatterMaskToolsWidget.ScatterMaskToolsDockWidget(
             plot=self.plot, name="TEST"
         )
@@ -64,7 +64,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.widget.close()
         del self.maskWidget
         del self.widget
-        super(TestScatterMaskToolsWidget, self).tearDown()
+        super().tearDown()
 
     def testEmptyPlot(self):
         """Empty plot, display MaskToolsDockWidget, toggle multiple masks"""

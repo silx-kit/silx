@@ -47,7 +47,7 @@ class MaskScatterWidget(qt.QMainWindow):
     """
 
     def __init__(self, parent=None):
-        super(MaskScatterWidget, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._activeScatterLegend = "active scatter"
         self._bgImageLegend = "background image"
 
@@ -99,7 +99,7 @@ class MaskScatterWidget(qt.QMainWindow):
     def setBackgroundImage(
         self, image, xscale=(0, 1.0), yscale=(0, 1.0), colormap=None
     ):
-        """Set a background image
+        r"""Set a background image
 
         :param image: 2D image, array of shape (nrows, ncolumns)
             or (nrows, ncolumns, 3) or (nrows, ncolumns, 4) RGB(A) pixmap

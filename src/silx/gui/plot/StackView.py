@@ -1096,7 +1096,7 @@ class PlanesWidget(qt.QWidget):
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(PlanesWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
         layout0 = qt.QHBoxLayout()
@@ -1181,7 +1181,7 @@ class StackViewMainWindow(StackView):
 
     def __init__(self, parent=None):
         self._dataInfo = None
-        super(StackViewMainWindow, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowFlags(qt.Qt.Window)
 
         # Add toolbars and status bar
@@ -1263,5 +1263,5 @@ class StackViewMainWindow(StackView):
             self._dataInfo = None
 
         # Set the new stack in StackView widget
-        super(StackViewMainWindow, self).setStack(stack, *args, **kwargs)
+        super().setStack(stack, *args, **kwargs)
         self.setStatusBar(None)

@@ -119,7 +119,7 @@ class TestLauncher(unittest.TestCase):
         """
         Returns an associated environment with a working project.
         """
-        env = dict((str(k), str(v)) for k, v in os.environ.items())
+        env = {str(k): str(v) for k, v in os.environ.items()}
         env["PYTHONPATH"] = os.pathsep.join(sys.path)
         return env
 

@@ -25,7 +25,8 @@
 
 import functools
 import logging
-from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
+from typing import List, NamedTuple, Optional, Tuple
+from collections.abc import Iterable, Sequence
 import numpy
 
 from ... import qt, utils
@@ -56,7 +57,7 @@ class BandGeometry(NamedTuple):
     def create(
         begin: Sequence[float] = (0.0, 0.0),
         end: Sequence[float] = (0.0, 0.0),
-        width: Optional[float] = None,
+        width: float | None = None,
     ):
         begin = Point(float(begin[0]), float(begin[1]))
         end = Point(float(end[0]), float(end[1]))
@@ -65,7 +66,7 @@ class BandGeometry(NamedTuple):
         return BandGeometry(begin, end, max(0.0, float(width)))
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def normal(self) -> Point:
         vector = numpy.array(self.end) - self.begin
         length = numpy.linalg.norm(vector)
@@ -74,13 +75,13 @@ class BandGeometry(NamedTuple):
         return Point(-vector[1] / length, vector[0] / length)
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def center(self) -> Point:
         return Point(*(0.5 * (numpy.array(self.begin) + self.end)))
 
     @property
-    @functools.lru_cache()
-    def corners(self) -> Tuple[Point, Point, Point, Point]:
+    @functools.lru_cache
+    def corners(self) -> tuple[Point, Point, Point, Point]:
         """Returns a 4-uple of (x,y) position in float"""
         offset = 0.5 * self.width * numpy.array(self.normal)
         return tuple(
@@ -96,7 +97,7 @@ class BandGeometry(NamedTuple):
         )
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def slope(self) -> float:
         """Slope of the line (begin, end), infinity for a vertical line"""
         if self.begin.x == self.end.x:
@@ -104,7 +105,7 @@ class BandGeometry(NamedTuple):
         return (self.end.y - self.begin.y) / (self.end.x - self.begin.x)
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def intercept(self) -> float:
         """Intercept of the line (begin, end) or value of x for vertical line"""
         if self.begin.x == self.end.x:
@@ -112,8 +113,8 @@ class BandGeometry(NamedTuple):
         return self.begin.y - self.slope * self.begin.x
 
     @property
-    @functools.lru_cache()
-    def edgesIntercept(self) -> Tuple[float, float]:
+    @functools.lru_cache
+    def edgesIntercept(self) -> tuple[float, float]:
         """Intercepts of lines describing band edges"""
         offset = 0.5 * self.width * numpy.array(self.normal)
         if self.begin.x == self.end.x:
@@ -151,7 +152,7 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
-        self.__availableInteractionModes = set((self.BoundedMode, self.UnboundedMode))
+        self.__availableInteractionModes = {self.BoundedMode, self.UnboundedMode}
         InteractionModeMixIn.__init__(self)
 
         self.__handleBegin = self.addHandle()
@@ -190,7 +191,7 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self._initInteractionMode(self.BoundedMode)
         self._interactiveModeUpdated(self.BoundedMode)
 
-    def availableInteractionModes(self) -> List[RoiInteractionMode]:
+    def availableInteractionModes(self) -> list[RoiInteractionMode]:
         """Returns the list of available interaction modes"""
         return list(self.__availableInteractionModes)
 
@@ -201,7 +202,7 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             :attr:`BoundedMode` and :attr:`UnboundedMode`.
         """
         modes = set(modes)
-        if not modes <= set((self.BoundedMode, self.UnboundedMode)):
+        if not modes <= {self.BoundedMode, self.UnboundedMode}:
             raise ValueError("Unsupported interaction modes")
         self.__availableInteractionModes = set(modes)
         if self.getInteractionMode() not in self.__availableInteractionModes:
@@ -256,7 +257,7 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self,
         begin: Sequence[float],
         end: Sequence[float],
-        width: Optional[float] = None,
+        width: float | None = None,
     ):
         """Set the geometry of the ROI
 
@@ -297,9 +298,9 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
     def __updateGeometry(
         self,
-        begin: Optional[Sequence[float]] = None,
-        end: Optional[Sequence[float]] = None,
-        width: Optional[float] = None,
+        begin: Sequence[float] | None = None,
+        end: Sequence[float] | None = None,
+        width: float | None = None,
     ):
         geometry = self.getGeometry()
         self.setGeometry(
@@ -310,8 +311,8 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
     @staticmethod
     def __snap(
-        point: Tuple[float, float], fixed: Tuple[float, float]
-    ) -> Tuple[float, float]:
+        point: tuple[float, float], fixed: tuple[float, float]
+    ) -> tuple[float, float]:
         """Snap point so that vector [point, fixed] snap to direction 0, 45 or 90 degrees
 
         :return: the snapped point position.
@@ -353,14 +354,14 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 geometry.width + 2 * offset,
             )
 
-    def __handleWidthUpConstraint(self, x: float, y: float) -> Tuple[float, float]:
+    def __handleWidthUpConstraint(self, x: float, y: float) -> tuple[float, float]:
         geometry = self.getGeometry()
         offset = max(
             0, numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center)
         )
         return tuple(geometry.center + offset * numpy.array(geometry.normal))
 
-    def __handleWidthDownConstraint(self, x: float, y: float) -> Tuple[float, float]:
+    def __handleWidthDownConstraint(self, x: float, y: float) -> tuple[float, float]:
         geometry = self.getGeometry()
         offset = max(
             0, -numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center)

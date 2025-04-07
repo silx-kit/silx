@@ -243,9 +243,7 @@ class Histogram(
                 max(0, numpy.nanmax(values)),
             )
 
-    def __pickFilledHistogram(
-        self, x: float, y: float
-    ) -> typing.Optional[PickingResult]:
+    def __pickFilledHistogram(self, x: float, y: float) -> PickingResult | None:
         """Picking implementation for filled histogram
 
         :param x: X position in pixels

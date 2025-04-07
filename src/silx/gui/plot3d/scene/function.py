@@ -43,7 +43,7 @@ from . import utils
 _logger = logging.getLogger(__name__)
 
 
-class ProgramFunction(object):
+class ProgramFunction:
     """Class providing a function to add to a GLProgram shaders."""
 
     def setupProgram(self, context, program):
@@ -88,7 +88,7 @@ class Fog(event.Notifier, ProgramFunction):
     """
 
     def __init__(self):
-        super(Fog, self).__init__()
+        super().__init__()
         self._isOn = True
 
     @property
@@ -290,7 +290,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         specular=(1.0, 1.0, 1.0),
         shininess=0,
     ):
-        super(DirectionalLight, self).__init__()
+        super().__init__()
         self._direction = None
         self.direction = direction  # Set _direction
         self._isOn = True
@@ -465,7 +465,7 @@ class Colormap(event.Notifier, ProgramFunction):
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
         """
-        super(Colormap, self).__init__()
+        super().__init__()
 
         # Init privates to default
         self._colormap = None

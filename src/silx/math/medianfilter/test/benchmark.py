@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class BenchmarkMedianFilter(object):
+class BenchmarkMedianFilter:
     """Simple benchmark of the median fiter silx vs scipy"""
 
     NB_ITER = 3
@@ -83,20 +83,24 @@ class BenchmarkMedianFilter(object):
         t = Timer(execSilx)
         execTime["silx"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
         logger.info(
-            "exec time silx (kernel size = %s) is %s" % (width, execTime["silx"])
+            "exec time silx (kernel size = {}) is {}".format(width, execTime["silx"])
         )
 
         if scipy is not None:
             t = Timer(execScipy)
             execTime["scipy"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                "exec time scipy (kernel size = %s) is %s" % (width, execTime["scipy"])
+                "exec time scipy (kernel size = {}) is {}".format(
+                    width, execTime["scipy"]
+                )
             )
         if pymca is not None:
             t = Timer(execPymca)
             execTime["pymca"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                "exec time pymca (kernel size = %s) is %s" % (width, execTime["pymca"])
+                "exec time pymca (kernel size = {}) is {}".format(
+                    width, execTime["pymca"]
+                )
             )
 
         return execTime

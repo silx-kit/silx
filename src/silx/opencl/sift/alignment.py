@@ -335,7 +335,7 @@ class LinearAlign(OpenclProcessing):
             if double_check and (
                 len_match >= 3 * 6
             ):  # and abs(matrix - numpy.identity(2)).max() > 0.1:
-                logger.warning("Validating keypoints, %s,%s" % (matrix, offset))
+                logger.warning(f"Validating keypoints, {matrix},{offset}")
                 dx = matching[:, 1].x - matching[:, 0].x
                 dy = matching[:, 1].y - matching[:, 0].y
                 dangle = matching[:, 1].angle - matching[:, 0].angle

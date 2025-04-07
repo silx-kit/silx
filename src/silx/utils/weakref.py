@@ -80,7 +80,7 @@ def proxy(object, callback=None):
         return weakref.proxy(object, callback)
 
 
-class WeakMethod(object):
+class WeakMethod:
     """Wraps a callable object like a function or a bound method.
     Feature callback when the object is about to be finalized.
     Provids the same interface as a normal weak reference.
@@ -171,7 +171,7 @@ class WeakMethodProxy(WeakMethod):
 
         :raises: ReferenceError, if the method is not alive
         """
-        fn = super(WeakMethodProxy, self).__call__()
+        fn = super().__call__()
         if fn is None:
             raise ReferenceError("weakly-referenced object no longer exists")
         return fn(*args, **kwargs)

@@ -459,7 +459,7 @@ class BackgroundDialog(qt.QDialog):
     def accept(self):
         """Update :attr:`output`, then call :meth:`QDialog.accept`"""
         self.output = self.getParameters()
-        super(BackgroundDialog, self).accept()
+        super().accept()
 
     def sizeHint(self):
         return qt.QSize(

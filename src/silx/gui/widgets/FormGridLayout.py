@@ -40,7 +40,7 @@ class FormGridLayout(qt.QGridLayout):
     """
 
     def __init__(self, parent):
-        super(FormGridLayout, self).__init__(parent)
+        super().__init__(parent)
         self.__cursor = 0
 
     def _addCell(self, something, row, column, rowSpan=1, columnSpan=1):
@@ -53,8 +53,8 @@ class FormGridLayout(qt.QGridLayout):
 
     def addRow(
         self,
-        label: typing.Union[str, qt.QWidget, qt.QLayout],
-        field: typing.Union[None, qt.QWidget, qt.QLayout] = None,
+        label: str | qt.QWidget | qt.QLayout,
+        field: None | qt.QWidget | qt.QLayout = None,
     ):
         """
         Adds a new row to the bottom of this form layout.
@@ -74,5 +74,5 @@ class FormGridLayout(qt.QGridLayout):
         """
         Adds a new layout item to the bottom of this form layout.
         """
-        super(FormGridLayout, self).addItem(item)
+        super().addItem(item)
         self.__cursor += 1

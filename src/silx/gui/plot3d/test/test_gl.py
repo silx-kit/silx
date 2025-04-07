@@ -47,7 +47,7 @@ class TestOpenGL(TestCaseQt):
 
         def __init__(self):
             self._dump = False
-            super(TestOpenGL.OpenGLWidgetLogger, self).__init__(version=(1, 0))
+            super().__init__(version=(1, 0))
 
         def paintOpenGL(self):
             """Perform the rendering and logging"""
@@ -69,7 +69,7 @@ class TestOpenGL(TestCaseQt):
 
     def testOpenGL(self):
         """Log OpenGL version using an OpenGLWidget"""
-        super(TestOpenGL, self).setUp()
+        super().setUp()
         widget = self.OpenGLWidgetLogger()
         widget.show()
         widget.setAttribute(qt.Qt.WA_DeleteOnClose)

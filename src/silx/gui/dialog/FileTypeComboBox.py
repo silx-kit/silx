@@ -36,7 +36,7 @@ import silx.io
 from silx.gui import qt
 
 
-class Codec(object):
+class Codec:
     def __init__(self, any_fabio=False, any_silx=False, fabio_codec=None, auto=False):
         self.__any_fabio = any_fabio
         self.__any_silx = any_silx
@@ -92,7 +92,7 @@ class FileTypeComboBox(qt.QComboBox):
         self.setItemData(index, Codec(auto=True), role=self.CODEC_ROLE)
 
     def __insertAllSupported(self):
-        allExtensions = set([])
+        allExtensions = set()
         for index in range(self.count()):
             ext = self.itemExtensions(index)
             allExtensions.update(ext)
@@ -107,7 +107,7 @@ class FileTypeComboBox(qt.QComboBox):
         formats = silx.io.supported_extensions()
 
         extensions = []
-        allExtensions = set([])
+        allExtensions = set()
 
         for description, ext in formats.items():
             allExtensions.update(ext)
@@ -125,9 +125,9 @@ class FileTypeComboBox(qt.QComboBox):
         for e in extensions:
             index = self.count()
             if len(e[1]) < 10:
-                self.addItem("%s%s (%s)" % (self.INDENTATION, e[0], " ".join(e[1])))
+                self.addItem(f"{self.INDENTATION}{e[0]} ({' '.join(e[1])})")
             else:
-                self.addItem("%s%s" % (self.INDENTATION, e[0]))
+                self.addItem(f"{self.INDENTATION}{e[0]}")
             codec = Codec(any_silx=True)
             self.setItemData(index, e[1], role=self.EXTENSIONS_ROLE)
             self.setItemData(index, codec, role=self.CODEC_ROLE)
@@ -136,14 +136,14 @@ class FileTypeComboBox(qt.QComboBox):
         formats = fabio.fabioformats.get_classes(reader=True)
 
         extensions = []
-        allExtensions = set([])
+        allExtensions = set()
 
         def extensionsIterator(reader):
             for extension in reader.DEFAULT_EXTENSIONS:
                 yield "*.%s" % extension
             for compressedExtension in fabioutils.COMPRESSED_EXTENSIONS:
                 for extension in reader.DEFAULT_EXTENSIONS:
-                    yield "*.%s.%s" % (extension, compressedExtension)
+                    yield f"*.{extension}.{compressedExtension}"
 
         for reader in formats:
             if not hasattr(reader, "DESCRIPTION"):
@@ -173,10 +173,12 @@ class FileTypeComboBox(qt.QComboBox):
             index = self.count()
             if len(e[1]) < 10:
                 self.addItem(
-                    "%s%s (%s)" % (self.INDENTATION, description, " ".join(displayExt))
+                    "{}{} ({})".format(
+                        self.INDENTATION, description, " ".join(displayExt)
+                    )
                 )
             else:
-                self.addItem("%s%s" % (self.INDENTATION, description))
+                self.addItem(f"{self.INDENTATION}{description}")
             codec = Codec(fabio_codec=_codecName)
             self.setItemData(index, allExt, role=self.EXTENSIONS_ROLE)
             self.setItemData(index, codec, role=self.CODEC_ROLE)

@@ -45,7 +45,7 @@ class TestNumpyFile(unittest.TestCase):
         shutil.rmtree(cls.tmpDirectory)
 
     def testNumpyFile(self):
-        filename = "%s/%s.npy" % (self.tmpDirectory, self.id())
+        filename = f"{self.tmpDirectory}/{self.id()}.npy"
         c = numpy.random.rand(5, 5)
         numpy.save(filename, c)
         h5 = rawh5.NumpyFile(filename)
@@ -53,7 +53,7 @@ class TestNumpyFile(unittest.TestCase):
         self.assertEqual(h5["data"].dtype.kind, "f")
 
     def testNumpyZFile(self):
-        filename = "%s/%s.npz" % (self.tmpDirectory, self.id())
+        filename = f"{self.tmpDirectory}/{self.id()}.npz"
         a = numpy.array("aaaaa")
         b = numpy.array([1, 2, 3, 4])
         c = numpy.random.rand(5, 5)
@@ -73,7 +73,7 @@ class TestNumpyFile(unittest.TestCase):
         self.assertEqual(h5["e"].dtype.kind, "U")
 
     def testNumpyZFileContainingDirectories(self):
-        filename = "%s/%s.npz" % (self.tmpDirectory, self.id())
+        filename = f"{self.tmpDirectory}/{self.id()}.npz"
         data = {}
         data["a/b/c"] = numpy.arange(10)
         data["a/b/e"] = numpy.arange(10)

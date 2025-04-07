@@ -284,7 +284,7 @@ class Marker(MarkerBase, SymbolMixIn):
         elif constraint == "vertical":
             constraint = self._verticalConstraint
 
-        super(Marker, self)._setConstraint(constraint)
+        super()._setConstraint(constraint)
 
     def _horizontalConstraint(self, _, y):
         return self.getXPosition(), y

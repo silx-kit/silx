@@ -59,7 +59,7 @@ class Plot3DWidgetToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, title=""):
-        super(Plot3DWidgetToolBar, self).__init__(title, parent)
+        super().__init__(title, parent)
 
         self._plot3DRef = None
 
@@ -98,7 +98,7 @@ class InteractiveModeToolBar(Plot3DWidgetToolBar):
     """
 
     def __init__(self, parent=None, title="Plot3D Interaction"):
-        super(InteractiveModeToolBar, self).__init__(parent, title)
+        super().__init__(parent, title)
 
         self._rotateAction = actions.mode.RotateArcballAction(parent=self)
         self.addAction(self._rotateAction)
@@ -129,7 +129,7 @@ class OutputToolBar(Plot3DWidgetToolBar):
     """
 
     def __init__(self, parent=None, title="Plot3D Output"):
-        super(OutputToolBar, self).__init__(parent, title)
+        super().__init__(parent, title)
 
         self._copyAction = actions.io.CopyAction(parent=self)
         self.addAction(self._copyAction)
@@ -180,7 +180,7 @@ class ViewpointToolBar(Plot3DWidgetToolBar):
     """
 
     def __init__(self, parent=None, title="Viewpoint control"):
-        super(ViewpointToolBar, self).__init__(parent, title)
+        super().__init__(parent, title)
 
         self._viewpointToolButton = ViewpointToolButton(parent=self)
         self.addWidget(self._viewpointToolButton)
@@ -189,7 +189,7 @@ class ViewpointToolBar(Plot3DWidgetToolBar):
 
     def _plot3DWidgetChanged(self, widget):
         self.getViewpointToolButton().setPlot3DWidget(widget)
-        super(ViewpointToolBar, self)._plot3DWidgetChanged(widget)
+        super()._plot3DWidgetChanged(widget)
 
     def getViewpointToolButton(self):
         """Returns the ViewpointToolButton to set viewpoint of the Plot3DWidget

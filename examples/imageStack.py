@@ -108,7 +108,7 @@ class MyOwnUrlLoader(UrlLoader):
     """
 
     def __init__(self, parent, url):
-        super(MyOwnUrlLoader, self).__init__(parent=parent, url=url)
+        super().__init__(parent=parent, url=url)
         self.url = url
         self.data = None
 

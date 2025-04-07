@@ -43,7 +43,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
 
     def setUp(self):
-        super(TestSceneWidget, self).setUp()
+        super().setUp()
         self.widget = SceneWidget()
         self.widget.show()
         self.qWaitForWindowExposed(self.widget)
@@ -53,7 +53,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         del self.widget
-        super(TestSceneWidget, self).tearDown()
+        super().tearDown()
 
     def testFogEffect(self):
         """Test fog effect on scene primitive"""

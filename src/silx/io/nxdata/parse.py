@@ -68,7 +68,7 @@ class InvalidNXdataError(Exception):
     pass
 
 
-class _SilxStyle(object):
+class _SilxStyle:
     """NXdata@SILX_style parser.
 
     :param NXdata nxdata:
@@ -144,7 +144,7 @@ class _SilxStyle(object):
     )
 
 
-class NXdata(object):
+class NXdata:
     """NXdata parser.
 
     .. note::
@@ -160,7 +160,7 @@ class NXdata(object):
     """
 
     def __init__(self, group, validate=True):
-        super(NXdata, self).__init__()
+        super().__init__()
         self._plot_style = None
 
         self.group = group
@@ -1032,7 +1032,7 @@ def _get_default(
     group,
     validate: bool,
     traversed: list,
-) -> Optional[NXdata]:
+) -> NXdata | None:
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
@@ -1054,7 +1054,7 @@ def _get_default(
         return None
 
 
-def get_default(group, validate: bool = True) -> Optional[NXdata]:
+def get_default(group, validate: bool = True) -> NXdata | None:
     """Find the default :class:`NXdata` group in given group.
 
     `@default` attributes are recursively followed until finding a group with

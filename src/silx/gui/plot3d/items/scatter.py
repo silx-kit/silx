@@ -77,7 +77,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             self._scatter.marker = symbol
             self._scatter.setAttribute("size", size, copy=True)
 
-        super(Scatter3D, self)._updated(event)
+        super()._updated(event)
 
     def setData(self, x, y, z, value, copy=True):
         """Set the data of the scatter plot
@@ -272,7 +272,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         elif event is ItemChangedType.VISUALIZATION_MODE:
             self._updateScene()
 
-        super(Scatter2D, self)._updated(event)
+        super()._updated(event)
 
     def isPropertyEnabled(self, name, visualization=None):
         """Returns true if the property is used with visualization mode.

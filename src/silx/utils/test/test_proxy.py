@@ -34,7 +34,7 @@ import numpy
 from silx.utils.proxy import Proxy, docstring
 
 
-class Thing(object):
+class Thing:
     def __init__(self, value):
         self.value = value
 
@@ -282,7 +282,7 @@ class TestPickle(unittest.TestCase):
 class TestDocstring(unittest.TestCase):
     """Test docstring decorator"""
 
-    class Base(object):
+    class Base:
         def method(self):
             """Docstring"""
             pass
@@ -296,7 +296,7 @@ class TestDocstring(unittest.TestCase):
         self.assertEqual(Derived.method.__doc__, TestDocstring.Base.method.__doc__)
 
     def test_composition(self):
-        class Composed(object):
+        class Composed:
             def __init__(self):
                 self._base = TestDocstring.Base()
 

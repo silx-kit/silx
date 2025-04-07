@@ -43,7 +43,7 @@ class FlowLayout(qt.QLayout):
     """
 
     def __init__(self, parent=None):
-        super(FlowLayout, self).__init__(parent)
+        super().__init__(parent)
         self._items = []
         self._horizontalSpacing = -1
         self._verticalSpacing = -1
@@ -76,7 +76,7 @@ class FlowLayout(qt.QLayout):
         return self._layout(qt.QRect(0, 0, width, 0), test=True)
 
     def setGeometry(self, rect):
-        super(FlowLayout, self).setGeometry(rect)
+        super().setGeometry(rect)
         self._layout(rect)
 
     def sizeHint(self):

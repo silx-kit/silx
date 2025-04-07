@@ -51,15 +51,15 @@ def log_method(func, class_name=None):
 
         indent = "  " * _indent
         if class_name is not None:
-            name = "%s.%s" % (class_name, func.__name__)
+            name = f"{class_name}.{func.__name__}"
         else:
             name = "%s" % func.__name__
 
-        debug_logger.warning("%s%s" % (indent, name))
+        debug_logger.warning(f"{indent}{name}")
         _indent += 1
         result = func(*args, **kwargs)
         _indent -= 1
-        debug_logger.warning("%sreturn  (%s)" % (indent, name))
+        debug_logger.warning(f"{indent}return  ({name})")
         return result
 
     return wrapper

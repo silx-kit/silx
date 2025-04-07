@@ -91,7 +91,7 @@ class _Wrapper(qt.QObject):
     """Signal emitted when the visible data area has changed"""
 
     def __init__(self, plot=None):
-        super(_Wrapper, self).__init__(parent=None)
+        super().__init__(parent=None)
         self._plotRef = None if plot is None else weakref.ref(plot)
 
     def getPlot(self):
@@ -146,7 +146,7 @@ class _PlotWidgetWrapper(_Wrapper):
 
     def __init__(self, plot):
         assert isinstance(plot, PlotWidget)
-        super(_PlotWidgetWrapper, self).__init__(plot)
+        super().__init__(plot)
         plot.sigItemAdded.connect(self.sigItemAdded.emit)
         plot.sigItemAboutToBeRemoved.connect(self.sigItemRemoved.emit)
         plot.sigActiveCurveChanged.connect(self._activeCurveChanged)
@@ -230,7 +230,7 @@ class _SceneWidgetWrapper(_Wrapper):
         from ..plot3d.SceneWidget import SceneWidget
 
         assert isinstance(plot, SceneWidget)
-        super(_SceneWidgetWrapper, self).__init__(plot)
+        super().__init__(plot)
         plot.getSceneGroup().sigItemAdded.connect(self.sigItemAdded)
         plot.getSceneGroup().sigItemRemoved.connect(self.sigItemRemoved)
         plot.selection().sigCurrentChanged.connect(self._currentChanged)
@@ -280,7 +280,7 @@ class _ScalarFieldViewWrapper(_Wrapper):
         from ..plot3d.items import ScalarField3D
 
         assert isinstance(plot, ScalarFieldView)
-        super(_ScalarFieldViewWrapper, self).__init__(plot)
+        super().__init__(plot)
         self._item = ScalarField3D()
         self._dataChanged()
         plot.sigDataChanged.connect(self._dataChanged)
@@ -309,7 +309,7 @@ class _ScalarFieldViewWrapper(_Wrapper):
         return "image"
 
 
-class _Container(object):
+class _Container:
     """Class to contain a plot item.
 
     This is apparently needed for compatibility with PySide2,
@@ -324,7 +324,7 @@ class _Container(object):
         return self._obj
 
 
-class _StatsWidgetBase(object):
+class _StatsWidgetBase:
     """
     Base class for all widgets which want to display statistics
     """

@@ -52,7 +52,7 @@ class TestCurvesROIWidget(TestCaseQt):
     """Basic test for CurvesROIWidget"""
 
     def setUp(self):
-        super(TestCurvesROIWidget, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
@@ -71,7 +71,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.close()
         del self.widget
 
-        super(TestCurvesROIWidget, self).tearDown()
+        super().tearDown()
 
     def testDummyAPI(self):
         """Simple test of the getRois and setRois API"""

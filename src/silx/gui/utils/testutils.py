@@ -411,7 +411,7 @@ class TestCaseQt(unittest.TestCase):
         _logger.log(level, "Screenshot saved at %s", filename)
 
 
-class SignalListener(object):
+class SignalListener:
     """Util to listen a Qt event and store parameters"""
 
     def __init__(self):

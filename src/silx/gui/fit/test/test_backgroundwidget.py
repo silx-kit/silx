@@ -33,7 +33,7 @@ __date__ = "05/12/2016"
 
 class TestBackgroundWidget(TestCaseQt):
     def setUp(self):
-        super(TestBackgroundWidget, self).setUp()
+        super().setUp()
         self.bgdialog = BackgroundWidget.BackgroundDialog()
         self.bgdialog.setData(list([0, 1, 2, 3]), list([0, 1, 4, 8]))
         self.qWaitForWindowExposed(self.bgdialog)
@@ -42,7 +42,7 @@ class TestBackgroundWidget(TestCaseQt):
         self.bgdialog.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.bgdialog.close()
         del self.bgdialog
-        super(TestBackgroundWidget, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         self.bgdialog.show()

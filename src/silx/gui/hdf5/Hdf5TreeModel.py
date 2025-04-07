@@ -61,7 +61,7 @@ def _createRootLabel(h5obj):
         path = h5obj.name
         if path.startswith("/"):
             path = path[1:]
-        label = "%s::%s" % (filename, path)
+        label = f"{filename}::{path}"
         if isinstance(h5obj, DatasetSlice):
             label += str(list(h5obj.indices))
     return label
@@ -81,7 +81,7 @@ class LoadingItemRunnable(qt.QRunnable):
 
         :param LoadingItemWorker worker: Object holding data and signals
         """
-        super(LoadingItemRunnable, self).__init__()
+        super().__init__()
         self.filename = filename
         self.oldItem = item
         self.signals = self.__Signals()
@@ -123,7 +123,7 @@ class LoadingItemRunnable(qt.QRunnable):
             h5file = silx_io.open(self.filename)
             newItem = self.__loadItemTree(self.oldItem, h5file)
             error = None
-        except IOError as e:
+        except OSError as e:
             # Should be logged
             error = e
             newItem = None
@@ -202,7 +202,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param bool ownFiles: If true (default) the model will manage the files
             life cycle when they was added using path (like DnD).
         """
-        super(Hdf5TreeModel, self).__init__(parent)
+        super().__init__(parent)
 
         self.header_labels = [None] * len(self.COLUMN_IDS)
         self.header_labels[self.NAME_COLUMN] = "Name"
@@ -221,7 +221,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         self.__animatedIcon = icons.getWaitIcon()
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
-        self.__runnerSet = set([])
+        self.__runnerSet = set()
 
         # store used icons to avoid the cache to release it
         self.__icons = []
@@ -272,8 +272,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __itemReady(
         self,
         oldItem: Hdf5Node,
-        newItem: Optional[Hdf5Node],
-        error: Optional[Exception],
+        newItem: Hdf5Node | None,
+        error: Exception | None,
         filename: str,
     ):
         """Called at the end of a concurent file loading, when the loading
@@ -431,14 +431,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 try:
                     self.insertFileAsync(url.toLocalFile(), row)
                     row += 1
-                except IOError as e:
+                except OSError as e:
                     messages.append(e.args[0])
             if len(messages) > 0:
                 title = "Error occurred when loading files"
-                message = "<html>%s:<ul><li>%s</li><ul></html>" % (
-                    title,
-                    "</li><li>".join(messages),
-                )
+                message = f"<html>{title}:<ul><li>{'</li><li>'.join(messages)}</li><ul></html>"
                 qt.QMessageBox.critical(None, title, message)
             return True
 
@@ -671,9 +668,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def insertH5pyObject(
         self,
         h5pyObject,
-        text: Optional[str] = None,
+        text: str | None = None,
         row: int = -1,
-        filename: Optional[str] = None,
+        filename: str | None = None,
     ):
         """Append an HDF5 object from h5py to the tree.
 
@@ -699,7 +696,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def insertFileAsync(self, filename, row=-1, synchronizingNode=None):
         if not os.path.isfile(filename):
-            raise IOError("Filename '%s' must be a file path" % filename)
+            raise OSError("Filename '%s' must be a file path" % filename)
 
         # create temporary item
         if synchronizingNode is None:
@@ -735,7 +732,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 self.__openedFiles.append(h5file)
             self.sigH5pyObjectLoaded.emit(h5file, filename)
             self.insertH5pyObject(h5file, row=row, filename=filename)
-        except IOError:
+        except OSError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise
 

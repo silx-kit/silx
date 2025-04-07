@@ -34,7 +34,7 @@ from silx.gui.plot import PlotWidget
 from .utils import PlotWidgetTestCase
 
 
-class _SignalDump(object):
+class _SignalDump:
     """Callable object that store passed arguments in a list"""
 
     def __init__(self):

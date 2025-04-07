@@ -54,7 +54,7 @@ class PlotWidgetTestCase(TestCaseQt):
         return PlotWidget(backend=self.backend)
 
     def setUp(self):
-        super(PlotWidgetTestCase, self).setUp()
+        super().setUp()
         self.plot = self._createPlot()
         self.plot.show()
         self.plotAlive = True
@@ -89,4 +89,4 @@ class PlotWidgetTestCase(TestCaseQt):
                 self.logScreenShot()
         self.qapp.processEvents()
         self._waitForPlotClosed()
-        super(PlotWidgetTestCase, self).tearDown()
+        super().tearDown()

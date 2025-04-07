@@ -31,7 +31,8 @@ __license__ = "MIT"
 __date__ = "03/01/2018"
 
 
-from typing import Callable, Optional, Union
+from typing import Optional, Union
+from collections.abc import Callable
 import weakref
 from silx.gui import icons
 from silx.gui import qt
@@ -54,12 +55,12 @@ class PlotAction(qt.QAction):
     def __init__(
         self,
         plot: PlotWidget,
-        icon: Union[str, qt.QIcon],
+        icon: str | qt.QIcon,
         text: str,
-        tooltip: Optional[str] = None,
-        triggered: Optional[Callable] = None,
+        tooltip: str | None = None,
+        triggered: Callable | None = None,
         checkable: bool = False,
-        parent: Optional[qt.QObject] = None,
+        parent: qt.QObject | None = None,
     ):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
@@ -68,7 +69,7 @@ class PlotAction(qt.QAction):
             # Try with icon as a string and load corresponding icon
             icon = icons.getQIcon(icon)
 
-        super(PlotAction, self).__init__(icon, text, parent)
+        super().__init__(icon, text, parent)
 
         if tooltip is not None:
             self.setToolTip(tooltip)

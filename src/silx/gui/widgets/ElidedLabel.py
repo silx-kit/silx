@@ -44,7 +44,7 @@ class ElidedLabel(qt.QLabel):
     """
 
     def __init__(self, parent=None):
-        super(ElidedLabel, self).__init__(parent)
+        super().__init__(parent)
         self.__text = ""
         self.__toolTip = ""
         self.__textAsToolTip = True

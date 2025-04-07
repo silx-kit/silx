@@ -87,7 +87,7 @@ class ClipPlane(Item3D, PlaneMixIn):
 
     def _pick(self, context):
         # Perform picking before modifying context
-        result = super(ClipPlane, self)._pick(context)
+        result = super()._pick(context)
 
         # Modify context if needed
         if self.isVisible() and context.isEnabled():

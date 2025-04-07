@@ -80,7 +80,7 @@ def _getMaxSquareTexture2DSize(
     return max(MIN_TEXTURE_SIZE, maxTexSize)
 
 
-class Image(object):
+class Image:
     """Image of any size eventually using multiple textures or larger texture"""
 
     _WRAP = (gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE)

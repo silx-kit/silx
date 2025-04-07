@@ -397,7 +397,7 @@ class TestOpen(unittest.TestCase):
         fabiofile.write(cls.edf_filename)
 
         cls.txt_filename = os.path.join(directory, "test.txt")
-        f = io.open(cls.txt_filename, "w+t")
+        f = open(cls.txt_filename, "w+t")
         f.write("Kikoo")
         f.close()
 
@@ -506,7 +506,7 @@ class TestNodes(unittest.TestCase):
             os.unlink(name)
 
     def test_h5py_like_file(self):
-        class Foo(object):
+        class Foo:
             def __init__(self):
                 self.h5_class = utils.H5Type.FILE
 
@@ -516,7 +516,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_group(self):
-        class Foo(object):
+        class Foo:
             def __init__(self):
                 self.h5_class = utils.H5Type.GROUP
 
@@ -526,7 +526,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_dataset(self):
-        class Foo(object):
+        class Foo:
             def __init__(self):
                 self.h5_class = utils.H5Type.DATASET
 
@@ -536,7 +536,7 @@ class TestNodes(unittest.TestCase):
         self.assertTrue(utils.is_dataset(obj))
 
     def test_bad(self):
-        class Foo(object):
+        class Foo:
             def __init__(self):
                 pass
 
@@ -546,7 +546,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_bad_api(self):
-        class Foo(object):
+        class Foo:
             def __init__(self):
                 self.h5_class = int
 
@@ -596,7 +596,7 @@ class TestGetData(unittest.TestCase):
         fabiofile.write(cls.edf_multiframe_filename)
 
         cls.txt_filename = os.path.join(directory, "test.txt")
-        f = io.open(cls.txt_filename, "w+t")
+        f = open(cls.txt_filename, "w+t")
         f.write("Kikoo")
         f.close()
 
@@ -671,8 +671,8 @@ class TestGetData(unittest.TestCase):
 
 
 def _h5_py_version_older_than(version):
-    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split(".")[:3]]
-    r_majeur, r_mineur, r_micro = [int(i) for i in version.split(".")]
+    v_majeur, v_mineur, v_micro = (int(i) for i in h5py.version.version.split(".")[:3])
+    r_majeur, r_mineur, r_micro = (int(i) for i in version.split("."))
     return calc_hexversion(v_majeur, v_mineur, v_micro) >= calc_hexversion(
         r_majeur, r_mineur, r_micro
     )

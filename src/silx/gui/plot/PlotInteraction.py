@@ -75,7 +75,7 @@ from ._utils import (
 # Base class ##################################################################
 
 
-class _PlotInteraction(object):
+class _PlotInteraction:
     """Base class for interaction handler.
 
     It provides a weakref to the plot and methods to set/reset overlay.
@@ -324,7 +324,7 @@ class Zoom(_PlotInteractionWithClickEvents):
         self.color = color
         self.enabledAxes = EnabledAxes()
 
-        super(Zoom, self).__init__(plot)
+        super().__init__(plot)
         self.plot.getLimitsHistory().clear()
 
     def _getAxesExtent(
@@ -333,7 +333,7 @@ class Zoom(_PlotInteractionWithClickEvents):
         y0: float,
         x1: float,
         y1: float,
-        enabledAxes: Optional[EnabledAxes] = None,
+        enabledAxes: EnabledAxes | None = None,
     ) -> AxesExtent:
         """Convert selection coordinates (pixels) to axes coordinates (data)
 
@@ -606,7 +606,7 @@ class SelectPolygon(Select):
 
     def __init__(self, plot, parameters):
         states = {"idle": SelectPolygon.Idle, "select": SelectPolygon.Select}
-        super(SelectPolygon, self).__init__(plot, parameters, states, "idle")
+        super().__init__(plot, parameters, states, "idle")
 
     def cancel(self):
         if isinstance(self.state, self.states["select"]):
@@ -660,7 +660,7 @@ class Select2Points(Select):
             "start": Select2Points.Start,
             "select": Select2Points.Select,
         }
-        super(Select2Points, self).__init__(plot, parameters, states, "idle")
+        super().__init__(plot, parameters, states, "idle")
 
     def beginSelect(self, x, y):
         pass
@@ -867,7 +867,7 @@ class Select1Point(Select):
 
     def __init__(self, plot, parameters):
         states = {"idle": Select1Point.Idle, "select": Select1Point.Select}
-        super(Select1Point, self).__init__(plot, parameters, states, "idle")
+        super().__init__(plot, parameters, states, "idle")
 
     def select(self, x, y):
         pass
@@ -999,7 +999,7 @@ class DrawFreeHand(Select):
         self._circle = size * numpy.array((numpy.cos(angle), numpy.sin(angle))).T
 
         states = {"idle": DrawFreeHand.Idle, "select": DrawFreeHand.Select}
-        super(DrawFreeHand, self).__init__(plot, parameters, states, "idle")
+        super().__init__(plot, parameters, states, "idle")
 
     @property
     def width(self):
@@ -1123,7 +1123,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
     class Idle(ClickOrDrag.Idle):
         def __init__(self, *args, **kw):
-            super(ItemsInteraction.Idle, self).__init__(*args, **kw)
+            super().__init__(*args, **kw)
             self._hoverMarker = None
 
         def enterState(self):
@@ -1163,7 +1163,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             self, clickButtons=(LEFT_BTN, RIGHT_BTN), dragButtons=(LEFT_BTN, MIDDLE_BTN)
         )
 
-    def _setCursorForMarker(self, marker: Optional[items.MarkerBase] = None):
+    def _setCursorForMarker(self, marker: items.MarkerBase | None = None):
         """Set mouse cursor for given marker"""
         if marker is None:
             cursor = None
@@ -1479,7 +1479,7 @@ class FocusManager(StateMachine):
         self.eventHandlers = list(eventHandlers)
 
         states = {"idle": FocusManager.Idle, "focus": FocusManager.Focus}
-        super(FocusManager, self).__init__(states, "idle")
+        super().__init__(states, "idle")
 
     def cancel(self):
         for handler in self.eventHandlers:
@@ -1494,7 +1494,7 @@ class ZoomAndSelect(ItemsInteraction):
     """
 
     def __init__(self, plot, color):
-        super(ZoomAndSelect, self).__init__(plot)
+        super().__init__(plot)
         self._zoom = Zoom(plot, color)
         self._doZoom = False
 
@@ -1543,7 +1543,7 @@ class ZoomAndSelect(ItemsInteraction):
         :param y: Y position in pixels
         :param str btn: The mouse button for which a drag is starting.
         """
-        self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y, btn)
+        self._doZoom = not super().beginDrag(x, y, btn)
         if self._doZoom:
             self._zoom.beginDrag(x, y, btn)
 
@@ -1557,7 +1557,7 @@ class ZoomAndSelect(ItemsInteraction):
         if self._doZoom:
             return self._zoom.drag(x, y, btn)
         else:
-            return super(ZoomAndSelect, self).drag(x, y, btn)
+            return super().drag(x, y, btn)
 
     def endDrag(self, startPos, endPos, btn):
         """Handle end of drag, eventually forwarding to zoom.
@@ -1569,7 +1569,7 @@ class ZoomAndSelect(ItemsInteraction):
         if self._doZoom:
             return self._zoom.endDrag(startPos, endPos, btn)
         else:
-            return super(ZoomAndSelect, self).endDrag(startPos, endPos, btn)
+            return super().endDrag(startPos, endPos, btn)
 
 
 class PanAndSelect(ItemsInteraction):
@@ -1579,7 +1579,7 @@ class PanAndSelect(ItemsInteraction):
     """
 
     def __init__(self, plot):
-        super(PanAndSelect, self).__init__(plot)
+        super().__init__(plot)
         self._pan = Pan(plot)
         self._doPan = False
 
@@ -1614,7 +1614,7 @@ class PanAndSelect(ItemsInteraction):
         :param y: Y position in pixels
         :param str btn: The mouse button for which a drag is starting.
         """
-        self._doPan = not super(PanAndSelect, self).beginDrag(x, y, btn)
+        self._doPan = not super().beginDrag(x, y, btn)
         if self._doPan:
             self._pan.beginDrag(x, y, btn)
 
@@ -1628,7 +1628,7 @@ class PanAndSelect(ItemsInteraction):
         if self._doPan:
             return self._pan.drag(x, y, btn)
         else:
-            return super(PanAndSelect, self).drag(x, y, btn)
+            return super().drag(x, y, btn)
 
     def endDrag(self, startPos, endPos, btn):
         """Handle end of drag, eventually forwarding to zoom.
@@ -1640,7 +1640,7 @@ class PanAndSelect(ItemsInteraction):
         if self._doPan:
             return self._pan.endDrag(startPos, endPos, btn)
         else:
-            return super(PanAndSelect, self).endDrag(startPos, endPos, btn)
+            return super().endDrag(startPos, endPos, btn)
 
 
 # Interaction mode control ####################################################

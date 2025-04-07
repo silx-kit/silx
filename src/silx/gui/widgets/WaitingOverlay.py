@@ -43,7 +43,7 @@ class WaitingOverlay(qt.QWidget):
         self._listenedWidget(self.parent()).installEventFilter(self)
         self._resizeLater()
 
-    def _registerParent(self, parent: Optional[qt.QWidget]):
+    def _registerParent(self, parent: qt.QWidget | None):
         if parent is None:
             return
         self._listenedWidget(parent).installEventFilter(self)
@@ -51,7 +51,7 @@ class WaitingOverlay(qt.QWidget):
             parent.sigBackendChanged.connect(self._backendChanged)
         self._resize()
 
-    def _unregisterParent(self, parent: Optional[qt.QWidget]):
+    def _unregisterParent(self, parent: qt.QWidget | None):
         if parent is None:
             return
         if isinstance(parent, PlotWidget):

@@ -48,7 +48,7 @@ import h5py
 _logger = logging.getLogger(__name__)
 
 
-_fabio_extensions = set([])
+_fabio_extensions = set()
 
 
 def supported_extensions():
@@ -62,7 +62,7 @@ def supported_extensions():
         return _fabio_extensions
 
     formats = fabio.fabioformats.get_classes(reader=True)
-    all_extensions = set([])
+    all_extensions = set()
 
     for reader in formats:
         if not hasattr(reader, "DEFAULT_EXTENSIONS"):
@@ -132,7 +132,7 @@ class FrameData(commonh5.LazyLoadableDataset):
                     # negative indexing
                     item += len(self)
                 return self.__fabio_reader.fabio_file().jump_image(item).data
-        return super(FrameData, self).__getitem__(item)
+        return super().__getitem__(item)
 
 
 class RawHeaderData(commonh5.LazyLoadableDataset):
@@ -145,13 +145,13 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
     def _create_data(self):
         """Initialize hold data by merging all headers of each frames."""
         headers = []
-        types = set([])
+        types = set()
         for fabio_frame in self.__fabio_reader.iter_frames():
             header = fabio_frame.header
 
             data = []
             for key, value in header.items():
-                data.append("%s: %s" % (str(key), str(value)))
+                data.append(f"{str(key)}: {str(value)}")
 
             data = "\n".join(data)
             try:
@@ -316,7 +316,7 @@ class MeasurementGroup(commonh5.LazyLoadableGroup):
             self.add_node(dataset)
 
 
-class FabioReader(object):
+class FabioReader:
     """Class which read and cache data and metadata from a fabio image."""
 
     DEFAULT = 0
@@ -341,7 +341,7 @@ class FabioReader(object):
         self.__counters = {}
         self.__positioners = {}
         self.__measurements = {}
-        self.__key_filters = set([])
+        self.__key_filters = set()
         self.__data = None
         self.__frame_count = self.frame_count()
         self._read()
@@ -596,7 +596,7 @@ class FabioReader(object):
         """Convert a list of numpy data into a numpy array with the better
         fitting type."""
         converted = []
-        types = set([])
+        types = set()
         has_none = False
         is_array = False
         array = []
@@ -718,7 +718,7 @@ class FabioReader(object):
         try:
             numpy_values = []
             values = value.split(" ")
-            types = set([])
+            types = set()
             for string_value in values:
                 v = self._convert_scalar_value(string_value)
                 numpy_values.append(v)
@@ -780,7 +780,7 @@ class EdfFabioReader(FabioReader):
     def _read_frame(self, frame_id, header):
         """Overwrite the method to check and parse special keys: counter and
         motors keys."""
-        self.__catch_keys = set([])
+        self.__catch_keys = set()
         if "motor_pos" in header and "motor_mne" in header:
             self.__catch_keys.add("motor_pos")
             self.__catch_keys.add("motor_mne")
@@ -850,7 +850,7 @@ class EdfFabioReader(FabioReader):
         :rtype: bool
         """
         header = self._get_first_header()
-        expected_keys = set(["UB_mne", "UB_pos", "sample_mne", "sample_pos"])
+        expected_keys = {"UB_mne", "UB_pos", "sample_mne", "sample_pos"}
         return expected_keys.issubset(header)
 
     def parse_ub_matrix(self):

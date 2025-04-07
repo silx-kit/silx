@@ -53,7 +53,7 @@ def _submain(filename, kwcheck=None, ncausefailure=0, faildelay=0):
     assert kwcheck
     sys.stderr = open(os.devnull, "w")
 
-    with open(filename, mode="r") as f:
+    with open(filename) as f:
         failcounter = int(f.readline().strip())
 
     if failcounter < ncausefailure:

@@ -124,7 +124,7 @@ def binning(input_img, binsize):
 class TestPreproc(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestPreproc, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -148,7 +148,7 @@ class TestPreproc(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestPreproc, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -844,8 +844,7 @@ class TestPreproc(unittest.TestCase):
         lint = numpy.ascontiguousarray(self.input, numpy.float32)
 
         out_shape = tuple(
-            int(math.ceil((float(i) / j)))
-            for i, j in zip(self.input.shape, self.binning)
+            int(math.ceil(float(i) / j)) for i, j in zip(self.input.shape, self.binning)
         )
         t0 = time.time()
         inp_gpu = pyopencl.array.to_device(self.queue, lint)

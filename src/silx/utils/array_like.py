@@ -195,7 +195,7 @@ def get_concatenated_dtype(arrays):
     return numpy.array(dummy).dtype
 
 
-class ListOfImages(object):
+class ListOfImages:
     """This class provides a way to access values and slices in a stack of
     images stored as a list of 2D numpy arrays, without creating a 3D numpy
     array first.
@@ -215,7 +215,7 @@ class ListOfImages(object):
 
     def __init__(self, images, transposition=None):
         """ """
-        super(ListOfImages, self).__init__()
+        super().__init__()
 
         # if images is a ListOfImages instance, get the underlying data
         # as a list of 2D arrays
@@ -414,7 +414,7 @@ class ListOfImages(object):
         return max_value
 
 
-class DatasetView(object):
+class DatasetView:
     """This class provides a way to transpose a dataset without
     casting it into a numpy array. This way, the dataset in a file need not
     necessarily be integrally read into memory to view it in a different
@@ -433,7 +433,7 @@ class DatasetView(object):
 
     def __init__(self, dataset, transposition=None):
         """ """
-        super(DatasetView, self).__init__()
+        super().__init__()
         self.dataset = dataset
         """original dataset"""
 

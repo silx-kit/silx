@@ -44,7 +44,7 @@ class DataViewerSelector(qt.QWidget):
         :param QWidget parent: The parent of the widget
         :param DataViewer dataViewer: The connected `DataViewer`
         """
-        super(DataViewerSelector, self).__init__(parent)
+        super().__init__(parent)
 
         self.__group = None
         self.__buttons = {}

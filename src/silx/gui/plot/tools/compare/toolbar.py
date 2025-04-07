@@ -48,7 +48,7 @@ class AlignmentModeToolButton(qt.QToolButton):
     sigSelected = qt.Signal(AlignmentMode)
 
     def __init__(self, parent=None):
-        super(AlignmentModeToolButton, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         menu = qt.QMenu(self)
         self.setMenu(menu)
@@ -96,7 +96,7 @@ class AlignmentModeToolButton(qt.QToolButton):
             action.setToolTip("Sift module is not available")
         self.__group.addAction(action)
 
-    def getActionFromMode(self, mode: AlignmentMode) -> Optional[qt.QAction]:
+    def getActionFromMode(self, mode: AlignmentMode) -> qt.QAction | None:
         """Returns an action from it's mode"""
         for action in self.__group.actions():
             actionMode = action.property("enum")
@@ -104,7 +104,7 @@ class AlignmentModeToolButton(qt.QToolButton):
                 return action
         return None
 
-    def setVisibleModes(self, modes: List[AlignmentMode]):
+    def setVisibleModes(self, modes: list[AlignmentMode]):
         """Make visible only a set of modes.
 
         The order does not matter.
@@ -159,7 +159,7 @@ class VisualizationModeToolButton(qt.QToolButton):
     sigSelected = qt.Signal(VisualizationMode)
 
     def __init__(self, parent=None):
-        super(VisualizationModeToolButton, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         menu = qt.QMenu(self)
         self.setMenu(menu)
@@ -238,7 +238,7 @@ class VisualizationModeToolButton(qt.QToolButton):
         self.__ycChannelModeAction = action
         self.__group.addAction(action)
 
-    def getActionFromMode(self, mode: VisualizationMode) -> Optional[qt.QAction]:
+    def getActionFromMode(self, mode: VisualizationMode) -> qt.QAction | None:
         """Returns an action from it's mode"""
         for action in self.__group.actions():
             actionMode = action.property("enum")
@@ -246,7 +246,7 @@ class VisualizationModeToolButton(qt.QToolButton):
                 return action
         return None
 
-    def setVisibleModes(self, modes: List[VisualizationMode]):
+    def setVisibleModes(self, modes: list[VisualizationMode]):
         """Make visible only a set of modes.
 
         The order does not matter.

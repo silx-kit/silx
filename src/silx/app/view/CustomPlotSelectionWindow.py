@@ -46,7 +46,7 @@ class _HashDropZones(qt.QStyledItemDelegate):
     """Delegate item displaying a drop zone when the item does not contain a dataset."""
 
     def __init__(self, parent: qt.QWidget | None = None):
-        super(_HashDropZones, self).__init__(parent)
+        super().__init__(parent)
         self.__dropPen = qt.QPen(qt.QColor("#D0D0D0"), 2, qt.Qt.DotLine)
         self.__highlightDropPen = qt.QPen(qt.QColor("#000000"), 2, qt.Qt.SolidLine)
         self.__dropTargetIndex = None

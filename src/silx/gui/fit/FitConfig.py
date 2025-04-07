@@ -166,14 +166,14 @@ class TabsDialogData(TabsDialog):
             if self.output[key] is None:
                 if key in self.default:
                     self.output[key] = self.default[key]
-        super(TabsDialogData, self).accept()
+        super().accept()
 
     def reject(self):
         """When the *Cancel* button is clicked, reinitialize :attr:`output`
         and quit
         """
         self.setDefault()
-        super(TabsDialogData, self).reject()
+        super().reject()
 
     def _resetDefault(self, checked):
         self.setDefault()
@@ -201,7 +201,7 @@ class ConstraintsPage(qt.QGroupBox):
     """
 
     def __init__(self, parent=None, title="Set constraints"):
-        super(ConstraintsPage, self).__init__(parent)
+        super().__init__(parent)
         self.setTitle(title)
         self.setToolTip(
             "Disable 'Set constraints' to remove all "
@@ -273,7 +273,7 @@ class ConstraintsPage(qt.QGroupBox):
 
 class SearchPage(qt.QWidget):
     def __init__(self, parent=None):
-        super(SearchPage, self).__init__(parent)
+        super().__init__(parent)
         layout = qt.QVBoxLayout(self)
 
         self.manualFwhmGB = qt.QGroupBox("Define FWHM manually", self)
@@ -387,7 +387,7 @@ class BackgroundPage(qt.QGroupBox):
     def __init__(
         self, parent=None, title="Subtract strip background prior to estimation"
     ):
-        super(BackgroundPage, self).__init__(parent)
+        super().__init__(parent)
         self.setTitle(title)
         self.setCheckable(True)
         self.setToolTip(

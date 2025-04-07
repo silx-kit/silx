@@ -111,7 +111,7 @@ def _cause_segfault():
 def _top_level_names_test(txtfilename, *args, **kw):
     sys.stderr = open(os.devnull, "w")
 
-    with open(txtfilename, mode="r") as f:
+    with open(txtfilename) as f:
         failcounter = int(f.readline().strip())
 
     ncausefailure = kw.pop("ncausefailure")
@@ -160,7 +160,7 @@ class TestH5pyUtils(unittest.TestCase):
     def _filenames(self):
         i = 1
         while True:
-            filename = os.path.join(self.test_dir, "file{}.h5".format(i))
+            filename = os.path.join(self.test_dir, f"file{i}.h5")
             with self._open_context(filename):
                 pass
             yield filename

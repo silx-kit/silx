@@ -47,7 +47,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
     """Tests StatsWidget combined with SceneWidget"""
 
     def setUp(self):
-        super(TestSceneWidget, self).setUp()
+        super().setUp()
         self.sceneWidget = SceneWidget()
         self.sceneWidget.resize(300, 300)
         self.sceneWidget.show()
@@ -64,7 +64,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         self.statsWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.statsWidget.close()
         del self.statsWidget
-        super(TestSceneWidget, self).tearDown()
+        super().tearDown()
 
     def test(self):
         """Test StatsWidget with SceneWidget"""
@@ -141,7 +141,7 @@ class TestScalarFieldView(TestCaseQt):
     """Tests StatsWidget combined with ScalarFieldView"""
 
     def setUp(self):
-        super(TestScalarFieldView, self).setUp()
+        super().setUp()
         self.scalarFieldView = ScalarFieldView()
         self.scalarFieldView.resize(300, 300)
         self.scalarFieldView.show()
@@ -158,7 +158,7 @@ class TestScalarFieldView(TestCaseQt):
         self.statsWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.statsWidget.close()
         del self.statsWidget
-        super(TestScalarFieldView, self).tearDown()
+        super().tearDown()
 
     def _getTextFor(self, row, name):
         """Returns text in table at given row for column name

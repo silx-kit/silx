@@ -68,7 +68,7 @@ PRINT_KEYPOINTS = False
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestImage, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -89,13 +89,13 @@ class TestImage(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestImage, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
     def setUp(self):
         kernel_src = os.linesep.join(
-            (get_opencl_code(os.path.join("sift", i)) for i in ("sift", "image"))
+            get_opencl_code(os.path.join("sift", i)) for i in ("sift", "image")
         )
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (8, 1)

@@ -53,7 +53,7 @@ def change_combo(item):
 
 
 def click_table(item):
-    print("New table click: %s (%s)" % (item.name, item.subcategory))
+    print(f"New table click: {item.name} ({item.subcategory})")
 
 
 def change_table(items):

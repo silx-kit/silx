@@ -42,7 +42,7 @@ class BoxLayoutDockWidget(qt.QDockWidget):
     """
 
     def __init__(self, parent=None, flags=qt.Qt.Widget):
-        super(BoxLayoutDockWidget, self).__init__(parent, flags)
+        super().__init__(parent, flags)
         self._currentArea = qt.Qt.NoDockWidgetArea
         self.dockLocationChanged.connect(self._dockLocationChanged)
         self.topLevelChanged.connect(self._topLevelChanged)
@@ -52,7 +52,7 @@ class BoxLayoutDockWidget(qt.QDockWidget):
 
         See :meth:`QDockWidget.setWidget`
         """
-        super(BoxLayoutDockWidget, self).setWidget(widget)
+        super().setWidget(widget)
         # Update widget's layout direction
         self._dockLocationChanged(self._currentArea)
 

@@ -91,10 +91,10 @@ else:
                 format_.setVersion(*self.__requestedOpenGLVersion)
                 format_.setDoubleBuffer(True)
 
-                super(_OpenGLWidget, self).__init__(format_, parent, None, f)
+                super().__init__(format_, parent, None, f)
 
             else:  # QOpenGLWidget
-                super(_OpenGLWidget, self).__init__(parent, f)
+                super().__init__(parent, f)
 
                 format_ = qt.QSurfaceFormat()
                 format_.setAlphaBufferSize(alphaBufferSize)
@@ -168,7 +168,7 @@ else:
 
             :rtype: bool
             """
-            return self.__isValid and super(_OpenGLWidget, self).isValid()
+            return self.__isValid and super().isValid()
 
         def defaultFramebufferObject(self):
             """Returns the framebuffer object handle.
@@ -178,7 +178,7 @@ else:
             if self.__legacy:  # QGLWidget
                 return 0
             else:  # QOpenGLWidget
-                return super(_OpenGLWidget, self).defaultFramebufferObject()
+                return super().defaultFramebufferObject()
 
         # *GL overridden methods
 
@@ -280,7 +280,7 @@ class OpenGLWidget(qt.QWidget):
         version=(2, 0),
         f=qt.Qt.Widget,
     ):
-        super(OpenGLWidget, self).__init__(parent, f)
+        super().__init__(parent, f)
 
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

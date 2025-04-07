@@ -38,7 +38,7 @@ class AnimatedToolButton(qt.QToolButton):
     """ToolButton which support animated icons"""
 
     def __init__(self, parent=None):
-        super(AnimatedToolButton, self).__init__(parent)
+        super().__init__(parent)
         self.__animatedIcon = None
 
     def setIcon(self, icon):
@@ -46,7 +46,7 @@ class AnimatedToolButton(qt.QToolButton):
             self._setAnimatedIcon(icon)
         else:
             self._setAnimatedIcon(None)
-            super(AnimatedToolButton, self).setIcon(icon)
+            super().setIcon(icon)
 
     def _setAnimatedIcon(self, icon):
         if self.__animatedIcon is not None:
@@ -59,16 +59,16 @@ class AnimatedToolButton(qt.QToolButton):
             i = self.__animatedIcon.currentIcon()
         else:
             i = qt.QIcon()
-        super(AnimatedToolButton, self).setIcon(i)
+        super().setIcon(i)
 
     def __updateIcon(self, icon):
-        super(AnimatedToolButton, self).setIcon(icon)
+        super().setIcon(icon)
 
     def icon(self):
         if self.__animatedIcon is not None:
             return self.__animatedIcon
         else:
-            return super(AnimatedToolButton, self).icon()
+            return super().icon()
 
 
 class IconPreview(qt.QMainWindow):

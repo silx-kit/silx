@@ -37,7 +37,7 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
     """Tests for CurveLegendsWidget class"""
 
     def setUp(self):
-        super(TestCurveLegendsWidget, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
 
         self.legends = CurveLegendsWidget.CurveLegendsWidget()
@@ -57,7 +57,7 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestCurveLegendsWidget, self).tearDown()
+        super().tearDown()
 
     def _assertNbLegends(self, count):
         """Check the number of legends in the CurveLegendsWidget"""

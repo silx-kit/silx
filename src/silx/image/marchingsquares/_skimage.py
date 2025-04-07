@@ -30,7 +30,7 @@ import numpy
 import skimage.measure
 
 
-class MarchingSquaresSciKitImage(object):
+class MarchingSquaresSciKitImage:
     """Reference implementation of a marching squares using sci-kit image.
 
     It uses `skimage.measure.find_contours` to find iso contours taking care of

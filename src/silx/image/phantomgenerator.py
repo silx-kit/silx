@@ -29,7 +29,7 @@ __date__ = "19/09/2017"
 import numpy
 
 
-class PhantomGenerator(object):
+class PhantomGenerator:
     """
     Class for generating Phantoms
     """

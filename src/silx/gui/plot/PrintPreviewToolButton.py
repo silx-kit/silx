@@ -127,7 +127,7 @@ class PrintPreviewToolButton(qt.QToolButton):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(PrintPreviewToolButton, self).__init__(parent)
+        super().__init__(parent)
 
         if not isinstance(plot, PlotWidget):
             raise TypeError("plot parameter must be a PlotWidget")
@@ -307,17 +307,11 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         if width is not None:
             if (availableWidth + 0.1) < width:
-                txt = "Available width  %f is less than requested width %f" % (
-                    availableWidth,
-                    width,
-                )
+                txt = f"Available width  {availableWidth:f} is less than requested width {width:f}"
                 raise ValueError(txt)
         if height is not None:
             if (availableHeight + 0.1) < height:
-                txt = "Available height  %f is less than requested height %f" % (
-                    availableHeight,
-                    height,
-                )
+                txt = f"Available height  {availableHeight:f} is less than requested height {height:f}"
                 raise ValueError(txt)
 
         if keepAspectRatio:

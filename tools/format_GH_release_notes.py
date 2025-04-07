@@ -5,7 +5,7 @@ import re
 
 root_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
-with open(os.path.join(root_dir, "CHANGELOG.rst"), "r") as f:
+with open(os.path.join(root_dir, "CHANGELOG.rst")) as f:
     content = f.read().split("/n")
 
 

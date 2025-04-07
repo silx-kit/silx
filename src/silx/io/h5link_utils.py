@@ -7,7 +7,7 @@ class ExternalDatasetInfo(NamedTuple):
     type: str
     nfiles: int
     first_file_path: str
-    first_data_path: Optional[str] = None
+    first_data_path: str | None = None
 
     @property
     def first_source_url(self):
@@ -19,7 +19,7 @@ class ExternalDatasetInfo(NamedTuple):
         return self.first_file_path
 
 
-def external_dataset_info(hdf5obj) -> Optional[ExternalDatasetInfo]:
+def external_dataset_info(hdf5obj) -> ExternalDatasetInfo | None:
     """When the object is a virtual dataset or an external dataset,
     return information on the external files. Return `None` otherwise.
 

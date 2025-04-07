@@ -39,7 +39,7 @@ __license__ = "MIT"
 __date__ = "02/07/2018"
 
 
-class Node(object):
+class Node:
     """This is the base class for all :mod:`spech5` and :mod:`fabioh5`
     classes. It represents a tree node, and knows its parent node
     (:attr:`parent`).
@@ -285,7 +285,7 @@ class Dataset(Node):
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<HDF5-like dataset "%s": shape %s, type "%s">' % (
+        return '<HDF5-like dataset "{}": shape {}, type "{}">'.format(
             basename,
             self.shape,
             self.dtype.str,
@@ -516,7 +516,7 @@ class LazyLoadableDataset(Dataset):
     """
 
     def __init__(self, name, parent=None, attrs=None):
-        super(LazyLoadableDataset, self).__init__(name, None, parent, attrs=attrs)
+        super().__init__(name, None, parent, attrs=attrs)
         self._is_initialized = False
 
     def _create_data(self):
@@ -543,7 +543,7 @@ class LazyLoadableDataset(Dataset):
             # is case of wrong check of the data
             self._is_initialized = True
             self._set_data(data)
-        return super(LazyLoadableDataset, self)._get_data()
+        return super()._get_data()
 
 
 class SoftLink(Node):
@@ -802,8 +802,7 @@ class Group(Node):
 
     def __iter__(self):
         """Iterate over member names"""
-        for x in self._get_items().__iter__():
-            yield x
+        yield from self._get_items().__iter__()
 
     def keys(self):
         """Returns an iterator over the children's names in a group."""

@@ -34,7 +34,7 @@ from silx.gui.widgets.TableWidget import TableWidget
 
 class TestTableWidget(TestCaseQt):
     def setUp(self):
-        super(TestTableWidget, self).setUp()
+        super().setUp()
         self._result = []
 
     def testShow(self):

@@ -118,7 +118,7 @@ class TestConvertCommand(unittest.TestCase):
 
         # write a temporary SPEC file
         specname = os.path.join(tempdir, "input.dat")
-        with io.open(specname, "wb") as fd:
+        with open(specname, "wb") as fd:
             fd.write(bytes(sftext, "ascii"))
 
         # convert it

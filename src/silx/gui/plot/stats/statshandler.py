@@ -58,7 +58,7 @@ class _FloatItem(qt.QTableWidgetItem):
         return False
 
 
-class StatFormatter(object):
+class StatFormatter:
     """
     Class used to apply format on :class:`Stat`
 
@@ -84,7 +84,7 @@ class StatFormatter(object):
         return str(val)
 
 
-class StatsHandler(object):
+class StatsHandler:
     """
     Give
     create:

@@ -48,7 +48,7 @@ def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
     formats = _qt.QImageReader.supportedImageFormats()
-    return set([str(data, "ascii") for data in formats])
+    return {str(data, "ascii") for data in formats}
 
 
 __globalThreadPoolInstance = None

@@ -85,7 +85,7 @@ import weakref
 # state machine ###############################################################
 
 
-class State(object):
+class State:
     """Base class for the states of a state machine.
 
     This class is meant to be subclassed.
@@ -144,7 +144,7 @@ class State(object):
         pass
 
 
-class StateMachine(object):
+class StateMachine:
     """State machine controller.
 
     This is the entry point of a state machine.
@@ -294,7 +294,7 @@ class ClickOrDrag(StateMachine):
         }
         self.__clickButtons = set(clickButtons)
         self.__dragButtons = set(dragButtons)
-        super(ClickOrDrag, self).__init__(states, "idle")
+        super().__init__(states, "idle")
 
     clickButtons = property(
         lambda self: self.__clickButtons,

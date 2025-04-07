@@ -261,10 +261,8 @@ def dicttoh5(
 
     if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
         raise ValueError(
-            (
-                "Argument 'update_mode' can only have values: {}"
-                "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
-            )
+            "Argument 'update_mode' can only have values: {}"
+            "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
         )
 
     if not isinstance(treedict, Mapping):
@@ -505,7 +503,7 @@ def h5_to_nexus_dict(treedict):
         if isinstance(key, tuple):
             if len(key) != 2:
                 raise ValueError("HDF5 attribute must be described by 2 values")
-            key = "%s@%s" % (key[0], key[1])
+            key = f"{key[0]}@{key[1]}"
         elif is_softlink(value):
             key = ">" + key
             value = value.path
@@ -821,7 +819,7 @@ def dump(ddict, ffile, mode="w", fmat=None):
     elif fmat in ["ini", "cfg"]:
         dicttoini(ddict, ffile, mode=mode)
     else:
-        raise IOError("Unknown format " + fmat)
+        raise OSError("Unknown format " + fmat)
 
 
 def load(ffile, fmat=None):
@@ -840,7 +838,7 @@ def load(ffile, fmat=None):
     """
     must_be_closed = False
     if not hasattr(ffile, "read"):
-        f = open(ffile, "r")
+        f = open(ffile)
         fname = ffile
         must_be_closed = True
     else:
@@ -859,7 +857,7 @@ def load(ffile, fmat=None):
         elif fmat in ["ini", "cfg"]:
             return ConfigDict(filelist=[fname])
         else:
-            raise IOError("Unknown format " + fmat)
+            raise OSError("Unknown format " + fmat)
     finally:
         if must_be_closed:
             f.close()

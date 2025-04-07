@@ -239,7 +239,7 @@ class Viewer(qt.QMainWindow):
         indexes = selection.selectedIndexes()
         selectedItems = []
         model = self.__treeview.model()
-        h5files = set([])
+        h5files = set()
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
@@ -311,7 +311,7 @@ class Viewer(qt.QMainWindow):
 
         qt.QApplication.restoreOverrideCursor()
 
-    def __synchronizeH5pyObject(self, h5, filename: Optional[str] = None):
+    def __synchronizeH5pyObject(self, h5, filename: str | None = None):
         model = self.__treeview.findHdf5TreeModel()
         # This is buggy right now while h5py do not allow to close a file
         # while references are still used.
@@ -855,7 +855,7 @@ class Viewer(qt.QMainWindow):
         filters = []
         filters.append("All supported files (%s)" % " ".join(all_supported_extensions))
         for name, extension in extensions.items():
-            filters.append("%s (%s)" % (name, extension))
+            filters.append(f"{name} ({extension})")
         filters.append("All files (*)")
 
         dialog.setNameFilters(filters)

@@ -50,7 +50,7 @@ CURSOR_SIZE_VER = "size vertical"
 CURSOR_SIZE_ALL = "size all"
 
 
-class BackendBase(object):
+class BackendBase:
     """Class defining the API a backend of the Plot should provide."""
 
     def __init__(self, plot, parent=None):

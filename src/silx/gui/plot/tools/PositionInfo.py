@@ -112,7 +112,7 @@ class PositionInfo(qt.QWidget):
         self._plotRef = weakref.ref(plot)
         self._snappingMode = self.SNAPPING_DISABLED
 
-        super(PositionInfo, self).__init__(parent)
+        super().__init__(parent)
 
         if converters is None:
             converters = (("X", lambda x, y: x), ("Y", lambda x, y: y))

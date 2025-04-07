@@ -46,7 +46,7 @@ from . import transform
 from .function import DirectionalLight, ClippingPlane, Fog
 
 
-class RenderContext(object):
+class RenderContext:
     """Handle a current rendering context.
 
     An instance of this class is passed to rendering method through
@@ -211,7 +211,7 @@ class Viewport(event.Notifier):
     def __init__(self, framebuffer=0):
         from . import Group  # Here to avoid cyclic import
 
-        super(Viewport, self).__init__()
+        super().__init__()
         self._dirty = True
         self._origin = 0, 0
         self._size = 1, 1

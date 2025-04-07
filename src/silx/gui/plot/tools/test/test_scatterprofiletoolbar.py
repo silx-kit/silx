@@ -41,7 +41,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
     """Tests for ScatterProfileToolBar class"""
 
     def setUp(self):
-        super(TestScatterProfileToolBar, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
 
         self.manager = manager.ProfileManager(plot=self.plot)
@@ -57,7 +57,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestScatterProfileToolBar, self).tearDown()
+        super().tearDown()
 
     def testHorizontalProfile(self):
         """Test ScatterProfileToolBar horizontal profile"""

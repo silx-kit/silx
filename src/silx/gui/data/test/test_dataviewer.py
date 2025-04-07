@@ -94,7 +94,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
         self.assertIn(DataViews.PLOT1D_MODE, availableModes)
 
@@ -103,7 +103,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
@@ -112,7 +112,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         data[::2, ::2] = True
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
@@ -121,7 +121,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
@@ -130,7 +130,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         data.shape = [3] * 3
         widget = self.create_widget()
         widget.setData(data)
-        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
+        availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         try:
             import silx.gui.plot3d  # noqa
 

@@ -59,9 +59,9 @@ class _Axis(qt.QWidget):
 
         :param parent: Parent of the widget
         """
-        super(_Axis, self).__init__(parent)
+        super().__init__(parent)
         self.__axisNumber = None
-        self.__customAxisNames = set([])
+        self.__customAxisNames = set()
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
@@ -240,13 +240,13 @@ class NumpyAxesSelector(qt.QWidget):
 
         :param parent: Parent of the widget
         """
-        super(NumpyAxesSelector, self).__init__(parent)
+        super().__init__(parent)
 
         self.__data = None
         self.__selectedData = None
         self.__axis = []
         self.__axisNames = []
-        self.__customAxisNames = set([])
+        self.__customAxisNames = set()
         self.__namedAxesVisibility = True
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

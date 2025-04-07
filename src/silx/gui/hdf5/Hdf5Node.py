@@ -30,7 +30,7 @@ import weakref
 from typing import Optional
 
 
-class Hdf5Node(object):
+class Hdf5Node:
     """Abstract tree node
 
     It provides link to the childs and to the parents, and a link to an
@@ -41,7 +41,7 @@ class Hdf5Node(object):
         self,
         parent=None,
         populateAll=False,
-        openedPath: Optional[str] = None,
+        openedPath: str | None = None,
     ):
         """
         Constructor
@@ -69,7 +69,7 @@ class Hdf5Node(object):
             return "%s/?" % (parent._getCanonicalName())
 
     @property
-    def _openedPath(self) -> Optional[str]:
+    def _openedPath(self) -> str | None:
         """url or filename the node was created from, None if not directly created"""
         return self.__openedPath
 

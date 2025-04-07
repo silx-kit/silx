@@ -64,14 +64,14 @@ class Hdf5Item(Hdf5Node):
 
     def __init__(
         self,
-        text: Optional[str],
+        text: str | None,
         obj,
         parent,
         key=None,
         h5Class=None,
         linkClass=None,
         populateAll=False,
-        openedPath: Optional[str] = None,
+        openedPath: str | None = None,
     ):
         """
         :param text: text displayed
@@ -94,7 +94,7 @@ class Hdf5Item(Hdf5Node):
         if parent is None:
             return self.__text
         else:
-            return "%s/%s" % (parent._getCanonicalName(), self.__text)
+            return f"{parent._getCanonicalName()}/{self.__text}"
 
     @property
     def obj(self):
@@ -210,7 +210,7 @@ class Hdf5Item(Hdf5Node):
                 class_ = silx.io.utils.get_h5_class(self.__obj)
 
                 if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
-                    message = "External link broken. Path %s::%s does not exist" % (
+                    message = "External link broken. Path {}::{} does not exist".format(
                         self.__obj.filename,
                         self.__obj.path,
                     )
@@ -241,7 +241,7 @@ class Hdf5Item(Hdf5Node):
                                 obj[key]
                     except Exception as e:
                         _logger.debug(e, exc_info=True)
-                        message = "%s broken. %s" % (self.__obj.name, e.args[0])
+                        message = f"{self.__obj.name} broken. {e.args[0]}"
                         self.__error = message
                         self.__isBroken = True
 
@@ -605,7 +605,7 @@ class Hdf5Item(Hdf5Node):
                 return self.__error
             kind, label = self.__getDataDescription()
             if label is not None:
-                return "<b>%s</b><br/>%s" % (kind.value.capitalize(), label)
+                return f"<b>{kind.value.capitalize()}</b><br/>{label}"
             else:
                 return ""
         return None

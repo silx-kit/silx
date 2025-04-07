@@ -553,7 +553,7 @@ class Box(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Box, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.size = None
         self.color = None
@@ -645,7 +645,7 @@ class Cylinder(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Cylinder, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.radius = None
         self.height = None
@@ -749,7 +749,7 @@ class Hexagon(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Hexagon, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.radius = 0
         self.height = 0

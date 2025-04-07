@@ -39,7 +39,7 @@ class Plot3DWindow(qt.QMainWindow):
     """OpenGL widget with a 3D viewport and an overview."""
 
     def __init__(self, parent=None):
-        super(Plot3DWindow, self).__init__(parent)
+        super().__init__(parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)

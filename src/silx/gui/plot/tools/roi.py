@@ -171,7 +171,7 @@ class CreateRoiModeAction(qt.QAction):
 
 class RoiModeSelector(qt.QWidget):
     def __init__(self, parent=None):
-        super(RoiModeSelector, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.__roi = None
         self.__reentrant = LockReentrant()
 
@@ -269,7 +269,7 @@ class RoiModeSelectorAction(qt.QWidgetAction):
     """Display the selected mode of a ROI and allow to change it"""
 
     def __init__(self, parent=None):
-        super(RoiModeSelectorAction, self).__init__(parent)
+        super().__init__(parent)
         self.__roiManager = None
 
     def createWidget(self, parent):
@@ -389,7 +389,7 @@ class RegionOfInterestManager(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
-        super(RegionOfInterestManager, self).__init__(parent)
+        super().__init__(parent)
         self._rois = []  # List of ROIs
         self._drawnROI = None  # New ROI being currently drawn
 
@@ -527,7 +527,7 @@ class RegionOfInterestManager(qt.QObject):
                         return roi
         return None
 
-    def setCurrentRoi(self, roi: Optional[RegionOfInterest]):
+    def setCurrentRoi(self, roi: RegionOfInterest | None):
         """Set the currently selected ROI, and emit a signal.
 
         :param Union[RegionOfInterest,None] roi: The ROI to select
@@ -551,7 +551,7 @@ class RegionOfInterestManager(qt.QObject):
             self._currentRoi.setHighlighted(True)
         self.sigCurrentRoiChanged.emit(roi)
 
-    def getCurrentRoi(self) -> Optional[RegionOfInterest]:
+    def getCurrentRoi(self) -> RegionOfInterest | None:
         """Returns the currently selected ROI, else None."""
         return self._currentRoi
 
@@ -971,7 +971,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
     """
 
     def __init__(self, parent):
-        super(InteractiveRegionOfInterestManager, self).__init__(parent)
+        super().__init__(parent)
         self._maxROI = None
         self.__timeoutEndTime = None
         self.__message = ""
@@ -1094,7 +1094,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
                     # Stop further handling of keys if something was undone
                     return True
 
-        return super(InteractiveRegionOfInterestManager, self).eventFilter(obj, event)
+        return super().eventFilter(obj, event)
 
     # Message API
 
@@ -1223,13 +1223,13 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            rois = super(InteractiveRegionOfInterestManager, self).exec(roiClass)
+            rois = super().exec(roiClass)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            rois = super(InteractiveRegionOfInterestManager, self).exec(roiClass)
+            rois = super().exec(roiClass)
 
         plot.removeEventFilter(self)
 
@@ -1250,7 +1250,7 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
     """
 
     def __init__(self, parent, roi):
-        super(_DeleteRegionOfInterestToolButton, self).__init__(parent)
+        super().__init__(parent)
         self.setIcon(icons.getQIcon("remove"))
         self.setToolTip("Remove this ROI")
         self.__roiRef = roi if roi is None else weakref.ref(roi)
@@ -1279,7 +1279,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
     ) = range(5)
 
     def __init__(self, parent=None):
-        super(RegionOfInterestTableWidget, self).__init__(parent)
+        super().__init__(parent)
         self._roiManagerRef = None
 
         headers = ["Label", "Edit", "Kind", "Coordinates", ""]

@@ -52,7 +52,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
     """
 
     def __init__(self, parent=None):
-        super(MyCurveLegendsWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # Activate/Deactivate curve with left click on the legend widget
         self.sigCurveClicked.connect(self._switchCurveActive)

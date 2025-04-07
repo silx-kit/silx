@@ -44,7 +44,7 @@ class Hdf5LoadingItem(Hdf5Node):
         text,
         parent,
         animatedIcon,
-        openedPath: Optional[str] = None,
+        openedPath: str | None = None,
     ):
         """Constructor"""
         Hdf5Node.__init__(self, parent, openedPath=openedPath)

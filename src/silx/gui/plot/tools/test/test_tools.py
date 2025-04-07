@@ -45,13 +45,13 @@ class TestPositionInfo(PlotWidgetTestCase):
         return PlotWindow()
 
     def setUp(self):
-        super(TestPositionInfo, self).setUp()
+        super().setUp()
         self.mouseMove(self.plot, pos=(0, 0))
         self.qapp.processEvents()
         self.qWait(100)
 
     def tearDown(self):
-        super(TestPositionInfo, self).tearDown()
+        super().tearDown()
 
     def _test(self, positionWidget, converterNames, **kwargs):
         """General test of PositionInfo.

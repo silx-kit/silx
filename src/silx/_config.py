@@ -29,7 +29,7 @@ __license__ = "MIT"
 __date__ = "09/11/2018"
 
 
-class Config(object):
+class Config:
     """
     Class containing shared global configuration for the silx library.
 

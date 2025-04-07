@@ -44,7 +44,7 @@ def isSilxWebsiteAvailable():
         return True
     except urllib.error.URLError:
         return False
-    except socket.timeout:
+    except TimeoutError:
         # This exception is still received in Python 2.7
         return False
 

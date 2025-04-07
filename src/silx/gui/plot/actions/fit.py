@@ -180,7 +180,7 @@ class FitAction(PlotToolAction):
         self.__curveParams = {}  # Store curve parameters to use for fit result
         self.__legend = None
 
-        super(FitAction, self).__init__(
+        super().__init__(
             plot,
             icon="math-fit",
             text="Fit curve",
@@ -264,7 +264,7 @@ class FitAction(PlotToolAction):
             xmin, xmax = self.getXRange()
             fitWidget.setData(xdata, ydata, xmin=xmin, xmax=xmax)
             fitWidget.setWindowTitle(
-                "Fitting " + item.getName() + " on x range %f-%f" % (xmin, xmax)
+                f"Fitting {item.getName()} on x range {xmin:f}-{xmax:f}"
             )
 
     # X Range management

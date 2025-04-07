@@ -45,7 +45,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-class TestStatsBase(object):
+class TestStatsBase:
     """Base class for stats TestCase"""
 
     def setUp(self):
@@ -399,7 +399,7 @@ class TestStatsHandler(TestCaseQt):
         self.assertEqual(res["amax"], "19")
 
         with self.assertRaises(ValueError):
-            statshandler.StatsHandler(("name"))
+            statshandler.StatsHandler("name")
 
 
 class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
@@ -669,7 +669,7 @@ class TestStatsWidgetWithImages(TestCaseQt):
         image = self.plot._getItem(kind="image", legend=self.IMAGE_LEGEND)
         tableItems = self.widget._itemToTableItems(image)
 
-        maxText = "{0:.3f}".format((128 * 128) - 1)
+        maxText = f"{(128 * 128) - 1:.3f}"
         self.assertEqual(tableItems["legend"].text(), self.IMAGE_LEGEND)
         self.assertEqual(tableItems["min"].text(), "0.000")
         self.assertEqual(tableItems["max"].text(), maxText)
