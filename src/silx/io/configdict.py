@@ -527,7 +527,7 @@ class ConfigDict(dict):
             if secthead is None:
                 newsecthead = key.replace(".", "_|_")
             else:
-                newsecthead = "{}.{}".format(secthead, key.replace(".", "_|_"))
+                newsecthead = f"{secthead}.{key.replace('.', '_|_')}"
 
             fp.write("\n[%s]\n" % newsecthead)
             self.__write(fp, ddict[key], newsecthead)

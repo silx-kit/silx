@@ -116,10 +116,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
     def testUnconstrainedFitWeight(self):
@@ -137,10 +134,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
     def testDerivativeFunction(self):
@@ -230,10 +224,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
     def testUnconstrainedFitAnalyticalDerivative(self):
@@ -257,10 +248,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
     @testutils.validate_logging(fitlogger.name, warning=2)
@@ -285,9 +273,8 @@ class Test_leastsq(unittest.TestCase):
             if not test_condition:
                 msg = "Unsuccessfull fit\n"
                 for i in range(len(fittedpar)):
-                    msg += "Expected {:g} obtained {:g}\n".format(
-                        parameters_actual[i],
-                        fittedpar[i],
+                    msg += (
+                        f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
                     )
                 self.assertTrue(test_condition, msg)
 
@@ -328,10 +315,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
         # testing now with ydata containing NaN
@@ -345,10 +329,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
         # testing now with sigma containing NaN
@@ -360,10 +341,7 @@ class Test_leastsq(unittest.TestCase):
         if not test_condition:
             msg = "Unsuccessfull fit\n"
             for i in range(len(fittedpar)):
-                msg += "Expected {:g} obtained {:g}\n".format(
-                    parameters_actual[i],
-                    fittedpar[i],
-                )
+                msg += f"Expected {parameters_actual[i]:g} obtained {fittedpar[i]:g}\n"
             self.assertTrue(test_condition, msg)
 
     def testUncertainties(self):

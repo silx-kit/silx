@@ -285,11 +285,7 @@ class Dataset(Node):
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<HDF5-like dataset "{}": shape {}, type "{}">'.format(
-            basename,
-            self.shape,
-            self.dtype.str,
-        )
+        return f'<HDF5-like dataset "{basename}": shape {self.shape}, type "{self.dtype.str}">'
 
     def __getslice__(self, i, j):
         """Returns the slice of the data exposed by this dataset.

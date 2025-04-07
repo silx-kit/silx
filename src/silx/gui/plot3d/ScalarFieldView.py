@@ -1008,9 +1008,7 @@ class ScalarFieldView(Plot3DWindow):
                 if closeId != itemId:
                     # TODO : explicit error
                     raise ValueError(
-                        "Unexpected closing tag {} "
-                        "(expected {})"
-                        "".format(closeId, itemId)
+                        f"Unexpected closing tag {closeId} (expected {itemId})"
                     )
 
                 if itemId == "ScalarFieldView":
@@ -1062,7 +1060,7 @@ class ScalarFieldView(Plot3DWindow):
                 self.setForegroundColor(foreground)
                 self.setHighlightColor(highlight)
             else:
-                raise ValueError("Unknown entry tag {}." "".format(itemId))
+                raise ValueError(f"Unknown entry tag {itemId}.")
 
     def _initPanPlaneAction(self):
         """Creates and init the pan plane action"""

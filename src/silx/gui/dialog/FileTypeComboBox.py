@@ -173,9 +173,7 @@ class FileTypeComboBox(qt.QComboBox):
             index = self.count()
             if len(e[1]) < 10:
                 self.addItem(
-                    "{}{} ({})".format(
-                        self.INDENTATION, description, " ".join(displayExt)
-                    )
+                    f"{self.INDENTATION}{description} ({' '.join(displayExt)})"
                 )
             else:
                 self.addItem(f"{self.INDENTATION}{description}")

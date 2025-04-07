@@ -67,9 +67,8 @@ def commpare_results(
     ):
         err_txt = (
             txt + " : results arent the same : "
-            "hits : {}, "
-            "weights : {}."
-            "".format("OK" if hits_cmp else "NOK", "OK" if weights_cmp else "NOK")
+            f"hits : {'OK' if hits_cmp else 'NOK'}, "
+            f"weights : {'OK' if weights_cmp else 'NOK'}."
         )
         print("\t" + err_txt)
         if raise_ex:
@@ -78,9 +77,7 @@ def commpare_results(
 
     result_txt = f" : results OK. c : {times[0]: <7.3f};"
     if result_np or result_np_w:
-        result_txt += (
-            " np : {: <7.3f}; " "np (weights) {: <7.3f}." "".format(times[1], times[2])
-        )
+        result_txt += f" np : {times[1]: <7.3f}; " "np (weights) {times[2]: <7.3f}."
     print("\t" + txt + result_txt)
     return True
 

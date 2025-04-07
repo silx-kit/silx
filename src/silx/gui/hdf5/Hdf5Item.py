@@ -210,17 +210,12 @@ class Hdf5Item(Hdf5Node):
                 class_ = silx.io.utils.get_h5_class(self.__obj)
 
                 if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
-                    message = "External link broken. Path {}::{} does not exist".format(
-                        self.__obj.filename,
-                        self.__obj.path,
-                    )
+                    message = f"External link broken. Path {self.__obj.filename}::{self.__obj.path} does not exist"
                 elif class_ == silx.io.utils.H5Type.SOFT_LINK:
-                    message = "Soft link broken. Path %s does not exist" % (
-                        self.__obj.path
-                    )
+                    message = f"Soft link broken. Path {self.__obj.path} does not exist"
                 else:
                     name = self.__obj.__class__.__name__.split(".")[-1].capitalize()
-                    message = "%s broken" % (name)
+                    message = f"{name} broken"
                 self.__error = message
                 self.__isBroken = True
             else:

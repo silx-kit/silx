@@ -67,7 +67,7 @@ else:
             """Use as unittest.TestCase.subTest method in Python >= 3.4."""
             # Format arguments as: '[msg] (key=value, ...)'
             param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
-            self._subtest_msg = "[{}] ({})".format(msg or "", param_str)
+            self._subtest_msg = f"[{msg or ''}] ({param_str})"
             yield
             self._subtest_msg = None
 

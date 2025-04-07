@@ -417,7 +417,7 @@ def spec_date_to_iso8601(date, zone=None):
     month = grp_d.get("month_nb")
 
     if not month:
-        month = "{:02d}".format(months.index(grp_d.get("month")) + 1)
+        month = f"{months.index(grp_d.get('month')) + 1:02d}"
 
     day = grp_d["day_nb"]
 
@@ -425,9 +425,9 @@ def spec_date_to_iso8601(date, zone=None):
     if not tz:
         tz = zone
 
-    time = "{}:{}:{}".format(grp_d["hh"], grp_d["mm"], grp_d["ss"])
+    time = f"{grp_d['hh']}:{grp_d['mm']}:{grp_d['ss']}"
 
-    full_date = "{}-{}-{}T{}{}".format(year, month, day, time, tz if tz else "")
+    full_date = f"{year}-{month}-{day}T{time}{tz if tz else ''}"
     return full_date
 
 

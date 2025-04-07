@@ -170,9 +170,8 @@ class TestSpecDate(unittest.TestCase):
             self.assertEqual(
                 iso_date,
                 expected_date,
-                msg="Testing {}. format={}. "
-                'Expected "{}", got "{} ({})" (dt={}).'
-                "".format(msg, i_fmt, expected_date, iso_date, spec_date, dt),
+                msg=f"Testing {msg}. format={i_fmt}. "
+                f'Expected "{expected_date}", got "{iso_date} ({spec_date})" (dt={dt}).',
             )
 
     def testYearsNominal(self):

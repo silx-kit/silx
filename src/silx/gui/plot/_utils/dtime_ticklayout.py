@@ -171,9 +171,7 @@ def setDateElement(dateTime, value, unit):
         raise ValueError(f"Unexpected DtUnit: {unit}")
 
     _logger.debug(
-        "creating date time {}".format(
-            (year, month, day, hour, minute, second, microsecond)
-        )
+        f"creating date time {(year, month, day, hour, minute, second, microsecond)}"
     )
 
     return dt.datetime(
@@ -231,7 +229,7 @@ def addValueToDate(dateTime, value, unit):
     :return:
     :raises ValueError: unit is unsupported or result is out of datetime bounds
     """
-    # logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
+    # logger.debug(f"addValueToDate({dateTime}, {value}, {unit})")
 
     if unit == DtUnit.YEARS:
         intValue = int(value)  # floats not implemented in relativeDelta(years)

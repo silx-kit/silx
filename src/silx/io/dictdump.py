@@ -261,8 +261,7 @@ def dicttoh5(
 
     if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
         raise ValueError(
-            "Argument 'update_mode' can only have values: {}"
-            "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
+            f"Argument 'update_mode' can only have values: {UPDATE_MODE_VALID_EXISTING_VALUES}"
         )
 
     if not isinstance(treedict, Mapping):

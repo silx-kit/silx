@@ -82,25 +82,19 @@ class BenchmarkMedianFilter:
 
         t = Timer(execSilx)
         execTime["silx"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
-        logger.info(
-            "exec time silx (kernel size = {}) is {}".format(width, execTime["silx"])
-        )
+        logger.info(f"exec time silx (kernel size = {width}) is {execTime['silx']}")
 
         if scipy is not None:
             t = Timer(execScipy)
             execTime["scipy"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                "exec time scipy (kernel size = {}) is {}".format(
-                    width, execTime["scipy"]
-                )
+                f"exec time scipy (kernel size = {width}) is {execTime['scipy']}"
             )
         if pymca is not None:
             t = Timer(execPymca)
             execTime["pymca"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                "exec time pymca (kernel size = {}) is {}".format(
-                    width, execTime["pymca"]
-                )
+                f"exec time pymca (kernel size = {width}) is {execTime['pymca']}"
             )
 
         return execTime

@@ -1094,11 +1094,8 @@ class PlaneEquationRow(ItemProxyRow):
             item = self._item()
             if item is not None:
                 params = item.getParameters()
-                return "{:g}x {:+g}y {:+g}z {:+g} = 0".format(
-                    params[0],
-                    params[1],
-                    params[2],
-                    params[3],
+                return (
+                    f"{params[0]:g}x {params[1]:+g}y {params[2]:+g}z {params[3]:+g} = 0"
                 )
         return super().data(column, role)
 
