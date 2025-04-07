@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -552,7 +552,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
             axis.set_major_formatter(DefaultTickFormatter())
 
-        self.ax2.set_autoscaley_on(True)
+        self.ax.set_autoscaley_on(False)
+        self.ax2.set_autoscaley_on(False)
 
         # this works but the figure color is left
         if self._matplotlibVersion < Version("2"):
@@ -1192,17 +1193,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._dirtyLimits = True
         self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
-        keepRatio = self.isKeepDataAspectRatio()
         if y2min is not None and y2max is not None:
-            if not self.isYAxisInverted():
-                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max), auto=keepRatio)
-            else:
-                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max), auto=keepRatio)
+            self.ax2.set_ybound(min(y2min, y2max), max(y2min, y2max))
 
-        if not self.isYAxisInverted():
-            self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax), auto=keepRatio)
-        else:
-            self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax), auto=keepRatio)
+        self.ax.set_ybound(min(ymin, ymax), max(ymin, ymax))
 
         self._updateMarkers()
 
@@ -1251,11 +1245,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             xcenter = 0.5 * (xmin + xmax)
             ax.set_xlim(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
 
-        keepRatio = self.isKeepDataAspectRatio()
-        if not self.isYAxisInverted():
-            ax.set_ylim(ymin, ymax, auto=keepRatio)
-        else:
-            ax.set_ylim(ymax, ymin, auto=keepRatio)
+        ax.set_ybound(ymin, ymax)
 
         self._updateMarkers()
 
@@ -1317,7 +1307,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     dataRange = self._plot.getDataRange()[dataRangeIndex]
                     if dataRange is None:
                         dataRange = 1, 100  # Fallback
-                    axis.set_ylim(*dataRange, auto=self.isKeepDataAspectRatio())
+                    axis.set_ybound(*dataRange)
                     redraw = True
             if redraw:
                 self.draw()
@@ -1623,6 +1613,8 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self.ax.get_ybound(),
             self.ax2.get_ybound(),
         )
+        self.ax.set_autoscaley_on(True)
+        self.ax2.set_autoscaley_on(True)
 
         FigureCanvasQTAgg.resizeEvent(self, event)
         if self.isKeepDataAspectRatio() or self._hasOverlays():
@@ -1672,6 +1664,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
             if xLimits != self.ax.get_xbound() or yLimits != self.ax.get_ybound():
                 self._updateMarkers()
+
+            self.ax.set_autoscaley_on(False)
+            self.ax2.set_autoscaley_on(False)
 
             if xLimits != self.ax.get_xbound():
                 self._plot.getXAxis()._emitLimitsChanged()

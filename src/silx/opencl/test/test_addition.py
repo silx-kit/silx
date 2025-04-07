@@ -131,12 +131,8 @@ class TestAddition(unittest.TestCase):
         for platform in ocl.platforms:
             for did, device in enumerate(platform.devices):
                 meas = _measure_workgroup_size((platform.id, device.id))
-                self.assertEqual(
-                    meas,
-                    device.max_work_group_size,
-                    "Workgroup size for %s/%s: %s == %s"
-                    % (platform, device, meas, device.max_work_group_size),
-                )
+                self.assertEqual(meas, device.max_work_group_size,
+                    f"Workgroup size for {platform}/{device}: {meas} == {device.max_work_group_size}")
 
     def test_query(self):
         """
