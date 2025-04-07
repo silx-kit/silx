@@ -99,12 +99,12 @@ class MaskScatterWidget(qt.QMainWindow):
     def setBackgroundImage(
         self, image, xscale=(0, 1.0), yscale=(0, 1.0), colormap=None
     ):
-        r"""Set a background image
+        """Set a background image
 
         :param image: 2D image, array of shape (nrows, ncolumns)
             or (nrows, ncolumns, 3) or (nrows, ncolumns, 4) RGB(A) pixmap
         :param xscale: Factors for polynomial scaling  for x-axis,
-            *(a, b)* such as :math:`x \mapsto a + bx`
+            *(a, b)* such as :math:`x \\mapsto a + bx`
         :param yscale: Factors for polynomial scaling  for y-axis
         """
         self._plot.addImage(
