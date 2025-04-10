@@ -539,7 +539,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax = self.fig.add_subplot(label="left")
         else:
             self.ax = self.fig.add_axes([0.15, 0.15, 0.75, 0.75], label="left")
+        self.ax.xaxis.get_offset_text().set_backgroundcolor("yellow")
+        self.ax.yaxis.get_offset_text().set_backgroundcolor("yellow")
         self.ax2 = self.ax.twinx()
+        self.ax2.yaxis.get_offset_text().set_backgroundcolor("yellow")
         self.ax2.set_label("right")
         # Make sure background of Axes is displayed
         self.ax2.patch.set_visible(False)
