@@ -427,8 +427,8 @@ def leastsq(
                             )
                         else:
                             txt = "Error processing constrained fit\n"
-                            txt += "Parameter limits are %g and %g\n" % (pmin, pmax)
-                            txt += "A = %g B = %g" % (A, B)
+                            txt += f"Parameter limits are {pmin:g} and {pmax:g}\n"
+                            txt += f"A = {A:g} B = {B:g}"
                             raise ValueError("Invalid parameter limits")
                     newpar[free_index[i]] = pwork[0][i]
                 newpar = numpy.array(_get_parameters(newpar, constraints))
@@ -688,7 +688,7 @@ def chisq_alpha_beta(
                 elif (pmax - pmin) > 0:
                     print("WARNING: Quoted parameter outside boundaries")
                     print("Initial value = %f" % parameters[i])
-                    print("Limits are %f and %f" % (pmin, pmax))
+                    print(f"Limits are {pmin:f} and {pmax:f}")
                     print("Parameter will be kept at its starting value")
     fitparam = numpy.array(fitparam, numpy.float64)
     alpha = numpy.zeros((n_free, n_free), numpy.float64)

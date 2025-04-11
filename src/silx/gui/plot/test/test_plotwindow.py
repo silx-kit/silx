@@ -42,7 +42,7 @@ class TestPlotWindow(TestCaseQt):
     """Base class for tests of PlotWindow."""
 
     def setUp(self):
-        super(TestPlotWindow, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
@@ -51,7 +51,7 @@ class TestPlotWindow(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestPlotWindow, self).tearDown()
+        super().tearDown()
 
     def testActions(self):
         """Test the actions QToolButtons"""

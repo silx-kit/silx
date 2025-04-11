@@ -39,7 +39,7 @@ from ...qt.inspect import isValid as _isQObjectValid
 _logger = logging.getLogger(__name__)
 
 
-class SyncAxes(object):
+class SyncAxes:
     """Synchronize a set of plot axes together.
 
     It is created with the expected axes and starts to synchronize them.

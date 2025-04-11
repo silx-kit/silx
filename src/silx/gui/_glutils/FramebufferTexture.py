@@ -37,7 +37,7 @@ from .Texture import Texture
 _logger = logging.getLogger(__name__)
 
 
-class FramebufferTexture(object):
+class FramebufferTexture:
     """Framebuffer with a texture.
 
     Aimed at off-screen rendering to texture.

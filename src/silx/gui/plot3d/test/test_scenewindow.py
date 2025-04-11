@@ -44,7 +44,7 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
 
     def setUp(self):
-        super(TestSceneWindow, self).setUp()
+        super().setUp()
         self.window = SceneWindow()
         self.window.show()
         self.qWaitForWindowExposed(self.window)
@@ -54,7 +54,7 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
         self.window.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.window.close()
         del self.window
-        super(TestSceneWindow, self).tearDown()
+        super().tearDown()
 
     def testAdd(self):
         """Test add basic scene primitive"""

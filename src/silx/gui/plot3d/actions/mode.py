@@ -55,7 +55,7 @@ class InteractiveModeAction(Plot3DAction):
     def __init__(self, parent, interaction, plot3d=None):
         self._interaction = interaction
 
-        super(InteractiveModeAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
         self.setCheckable(True)
         self.triggered[bool].connect(self._triggered)
 
@@ -77,7 +77,7 @@ class InteractiveModeAction(Plot3DAction):
         if plot3d is not None:
             plot3d.sigInteractiveModeChanged.disconnect(self._interactiveModeChanged)
 
-        super(InteractiveModeAction, self).setPlot3DWidget(widget)
+        super().setPlot3DWidget(widget)
 
         # Connect to new Plot3DWidget
         if widget is None:
@@ -103,7 +103,7 @@ class RotateArcballAction(InteractiveModeAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(RotateArcballAction, self).__init__(parent, "rotate", plot3d)
+        super().__init__(parent, "rotate", plot3d)
 
         self.setIcon(getQIcon("rotate-3d"))
         self.setText("Rotate")
@@ -119,7 +119,7 @@ class PanAction(InteractiveModeAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(PanAction, self).__init__(parent, "pan", plot3d)
+        super().__init__(parent, "pan", plot3d)
 
         self.setIcon(getQIcon("pan"))
         self.setText("Pan")
@@ -143,7 +143,7 @@ class PickingModeAction(Plot3DAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(PickingModeAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
         self.setIcon(getQIcon("pointing-hand"))
         self.setText("Picking")
         self.setToolTip("Toggle picking with left button click")
@@ -165,7 +165,7 @@ class PickingModeAction(Plot3DAction):
         if plot3d is not None and self.isChecked():
             plot3d.sigSceneClicked.disconnect(self.sigSceneClicked)
 
-        super(PickingModeAction, self).setPlot3DWidget(widget)
+        super().setPlot3DWidget(widget)
 
         # Connect to new Plot3DWidget
         if widget is None:

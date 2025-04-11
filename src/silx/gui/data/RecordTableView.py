@@ -108,7 +108,7 @@ class _MultiLineItem(qt.QItemDelegate):
         :param qt.QIndex index: Index of the data to display
         """
         if not index.isValid():
-            return super(_MultiLineItem, self).createEditor(parent, option, index)
+            return super().createEditor(parent, option, index)
 
         editor = qt.QTextEdit(parent)
         editor.setReadOnly(True)
@@ -319,7 +319,7 @@ class RecordTableModel(qt.QAbstractTableModel):
                     if dtype.shape != tuple():
                         keys = itertools.product(*[range(x) for x in dtype.shape])
                         for key in keys:
-                            label = "%s%s" % (name, list(key))
+                            label = f"{name}{list(key)}"
                             array_key = (name, key)
                             self.__fields.append((label, array_key))
                     else:
@@ -383,7 +383,7 @@ class _ShowEditorProxyModel(qt.QIdentityProxyModel):
 
         :param qt.QObject arent: parent object
         """
-        super(_ShowEditorProxyModel, self).__init__(parent)
+        super().__init__(parent)
         self.__forceEditable = False
 
     def flags(self, index):

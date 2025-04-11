@@ -43,7 +43,7 @@ class TestSubmitToQtThread(TestCaseQt):
     def setUp(self):
         # Reset executor to test lazy-loading in different conditions
         concurrent._executor = None
-        super(TestSubmitToQtThread, self).setUp()
+        super().setUp()
 
     def _task(self, value1, value2):
         return value1, value2
@@ -95,14 +95,14 @@ class TestSubmitToQtThread(TestCaseQt):
             if not thread.is_alive():
                 break
         else:
-            self.fail(("Thread task still running"))
+            self.fail("Thread task still running")
 
     def testFromQtThread(self):
         """Call submitToQtMainThread from a Qt thread pool"""
 
         class Runner(qt.QRunnable):
             def __init__(self, fn):
-                super(Runner, self).__init__()
+                super().__init__()
                 self._fn = fn
 
             def run(self):

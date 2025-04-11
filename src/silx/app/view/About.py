@@ -73,7 +73,7 @@ class About(qt.QDialog):
             :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
             instances)
         """
-        super(About, self).__init__(parent)
+        super().__init__(parent)
         self.__createLayout()
         self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         self.setModal(True)

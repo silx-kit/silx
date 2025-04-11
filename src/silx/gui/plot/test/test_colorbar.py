@@ -41,7 +41,7 @@ class TestColorScale(TestCaseQt):
     """Test that interaction with the colorScale is correct"""
 
     def setUp(self):
-        super(TestColorScale, self).setUp()
+        super().setUp()
         self.colorScaleWidget = _ColorScale(colormap=None, parent=None)
         self.colorScaleWidget.show()
         self.qWaitForWindowExposed(self.colorScaleWidget)
@@ -51,7 +51,7 @@ class TestColorScale(TestCaseQt):
         self.colorScaleWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.colorScaleWidget.close()
         del self.colorScaleWidget
-        super(TestColorScale, self).tearDown()
+        super().tearDown()
 
     def testNoColormap(self):
         """Test _ColorScale without a colormap"""
@@ -104,7 +104,7 @@ class TestNoAutoscale(TestCaseQt):
     """
 
     def setUp(self):
-        super(TestNoAutoscale, self).setUp()
+        super().setUp()
         self.plot = Plot2D()
         self.colorBar = self.plot.getColorBarWidget()
         self.colorBar.setVisible(True)  # Makes sure the colormap is visible
@@ -122,7 +122,7 @@ class TestNoAutoscale(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestNoAutoscale, self).tearDown()
+        super().tearDown()
 
     def testLogNormNoAutoscale(self):
         colormapLog = Colormap(
@@ -175,7 +175,7 @@ class TestColorBarWidget(TestCaseQt):
     """Test interaction with the ColorBarWidget"""
 
     def setUp(self):
-        super(TestColorBarWidget, self).setUp()
+        super().setUp()
         self.plot = Plot2D()
         self.colorBar = self.plot.getColorBarWidget()
         self.colorBar.setVisible(True)  # Makes sure the colormap is visible
@@ -189,7 +189,7 @@ class TestColorBarWidget(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestColorBarWidget, self).tearDown()
+        super().tearDown()
 
     def testEmptyColorBar(self):
         colorBar = ColorBarWidget(parent=None)
@@ -264,7 +264,7 @@ class TestColorBarUpdate(TestCaseQt):
     """
 
     def setUp(self):
-        super(TestColorBarUpdate, self).setUp()
+        super().setUp()
         self.plot = Plot2D()
         self.colorBar = self.plot.getColorBarWidget()
         self.colorBar.setVisible(True)  # Makes sure the colormap is visible
@@ -280,7 +280,7 @@ class TestColorBarUpdate(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestColorBarUpdate, self).tearDown()
+        super().tearDown()
 
     def testUpdateColorMap(self):
         colormap = Colormap(name="gray", normalization="linear", vmin=0, vmax=1)

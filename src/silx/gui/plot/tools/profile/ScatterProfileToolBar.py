@@ -39,5 +39,5 @@ class ScatterProfileToolBar(toolbar.ProfileToolBar):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(ScatterProfileToolBar, self).__init__(parent, plot)
+        super().__init__(parent, plot)
         self.setScheme("scatter")

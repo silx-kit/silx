@@ -108,7 +108,7 @@ class BaseAlphaSlider(qt.QSlider):
         :param plot: Parent plot widget
         """
         assert plot is not None
-        super(BaseAlphaSlider, self).__init__(parent)
+        super().__init__(parent)
 
         self.plot = plot
 
@@ -171,7 +171,7 @@ class ActiveImageAlphaSlider(BaseAlphaSlider):
         :param parent: Parent QWidget
         :param plot: Plot widget on which to operate
         """
-        super(ActiveImageAlphaSlider, self).__init__(parent, plot)
+        super().__init__(parent, plot)
         plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def getItem(self):
@@ -209,7 +209,7 @@ class NamedItemAlphaSlider(BaseAlphaSlider):
         self._item_legend = legend
         self._item_kind = kind
 
-        super(NamedItemAlphaSlider, self).__init__(parent, plot)
+        super().__init__(parent, plot)
 
         self._updateState()
         plot.sigContentChanged.connect(self._onContentChanged)

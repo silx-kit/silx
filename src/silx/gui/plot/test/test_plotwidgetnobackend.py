@@ -202,11 +202,11 @@ class TestPlotRanges(ParametricTestCase):
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(
                     numpy.array_equal(dataRange.x, xRange),
-                    msg="{0} != {1}".format(dataRange.x, xRange),
+                    msg=f"{dataRange.x} != {xRange}",
                 )
                 self.assertTrue(
                     numpy.array_equal(dataRange.y, yRange),
-                    msg="{0} != {1}".format(dataRange.y, yRange),
+                    msg=f"{dataRange.y} != {yRange}",
                 )
                 self.assertIsNone(dataRange.yright)
 
@@ -324,11 +324,11 @@ class TestPlotRanges(ParametricTestCase):
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(
                     numpy.array_equal(dataRange.x, xRange),
-                    msg="{0} != {1}".format(dataRange.x, xRange),
+                    msg=f"{dataRange.x} != {xRange}",
                 )
                 self.assertTrue(
                     numpy.array_equal(dataRange.y, yRange),
-                    msg="{0} != {1}".format(dataRange.y, yRange),
+                    msg=f"{dataRange.y} != {yRange}",
                 )
                 self.assertIsNone(dataRange.yright)
 
@@ -367,11 +367,11 @@ class TestPlotRanges(ParametricTestCase):
                 xRange, yRange = ranges[logX, logY]
                 self.assertTrue(
                     numpy.array_equal(dataRange.x, xRange),
-                    msg="{0} != {1}".format(dataRange.x, xRange),
+                    msg=f"{dataRange.x} != {xRange}",
                 )
                 self.assertTrue(
                     numpy.array_equal(dataRange.y, yRange),
-                    msg="{0} != {1}".format(dataRange.y, yRange),
+                    msg=f"{dataRange.y} != {yRange}",
                 )
                 self.assertIsNone(dataRange.yright)
 

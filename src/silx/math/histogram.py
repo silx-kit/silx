@@ -147,7 +147,7 @@ from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
 from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
 
 
-class Histogramnd(object):
+class Histogramnd:
     """
     Computes the multidimensional histogram of some data.
     """
@@ -352,7 +352,7 @@ class Histogramnd(object):
     """
 
 
-class HistogramndLut(object):
+class HistogramndLut:
     """
     The HistogramndLut class allows you to bin data onto a regular grid.
     The use of HistogramndLut is interesting when several sets of data that

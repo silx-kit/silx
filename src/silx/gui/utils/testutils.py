@@ -31,7 +31,6 @@ __date__ = "22/11/2023"
 import gc
 import logging
 import unittest
-import time
 import functools
 import sys
 import os
@@ -411,7 +410,7 @@ class TestCaseQt(unittest.TestCase):
         _logger.log(level, "Screenshot saved at %s", filename)
 
 
-class SignalListener(object):
+class SignalListener:
     """Util to listen a Qt event and store parameters"""
 
     def __init__(self):

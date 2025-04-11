@@ -121,7 +121,7 @@ class PlotWindow(PlotWidget):
         mask=True,
         fit=False,
     ):
-        super(PlotWindow, self).__init__(parent=parent, backend=backend)
+        super().__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle("PlotWindow")
 
@@ -334,22 +334,22 @@ class PlotWindow(PlotWidget):
 
     @docstring(PlotWidget)
     def setBackend(self, backend):
-        super(PlotWindow, self).setBackend(backend)
+        super().setBackend(backend)
         self.__setCentralWidget()  # Recreate PlotWindow's central widget
 
     @docstring(PlotWidget)
     def setBackgroundColor(self, color):
-        super(PlotWindow, self).setBackgroundColor(color)
+        super().setBackgroundColor(color)
         self._updateColorBarBackground()
 
     @docstring(PlotWidget)
     def setDataBackgroundColor(self, color):
-        super(PlotWindow, self).setDataBackgroundColor(color)
+        super().setDataBackgroundColor(color)
         self._updateColorBarBackground()
 
     @docstring(PlotWidget)
     def setForegroundColor(self, color):
-        super(PlotWindow, self).setForegroundColor(color)
+        super().setForegroundColor(color)
         self._updateColorBarBackground()
 
     def _updateColorBarBackground(self):
@@ -532,7 +532,7 @@ class PlotWindow(PlotWidget):
         """
         if dockwidget in self._dockWidgets:
             self._dockWidgets.remove(dockwidget)
-        super(PlotWindow, self).removeDockWidget(dockwidget)
+        super().removeDockWidget(dockwidget)
 
     def _handleFirstDockWidgetShow(self, visible):
         """Handle QDockWidget.visibilityChanged
@@ -875,7 +875,7 @@ class Plot1D(PlotWindow):
     """
 
     def __init__(self, parent=None, backend=None):
-        super(Plot1D, self).__init__(
+        super().__init__(
             parent=parent,
             backend=backend,
             resetzoom=True,
@@ -926,7 +926,7 @@ class Plot2D(PlotWindow):
             ("Dims", WeakMethodProxy(self._getImageDims)),
         ]
 
-        super(Plot2D, self).__init__(
+        super().__init__(
             parent=parent,
             backend=backend,
             resetzoom=True,

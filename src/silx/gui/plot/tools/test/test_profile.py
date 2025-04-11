@@ -323,7 +323,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
     """Tests for ProfileToolBar widget."""
 
     def setUp(self):
-        super(TestProfileToolBar, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
         self.toolBar = Profile.ProfileToolBar(plot=self.plot)
         self.plot.addToolBar(self.toolBar)
@@ -344,7 +344,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         del self.plot
         del self.toolBar
 
-        super(TestProfileToolBar, self).tearDown()
+        super().tearDown()
 
     def testAlignedProfile(self):
         """Test horizontal and vertical profile, without and with image"""
@@ -441,7 +441,7 @@ class TestProfile3DToolBar(TestCaseQt):
     """Tests for Profile3DToolBar widget."""
 
     def setUp(self):
-        super(TestProfile3DToolBar, self).setUp()
+        super().setUp()
         self.plot = StackView()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
@@ -464,7 +464,7 @@ class TestProfile3DToolBar(TestCaseQt):
         self.plot.close()
         self.plot = None
 
-        super(TestProfile3DToolBar, self).tearDown()
+        super().tearDown()
 
     def testMethodProfile2D(self):
         """Test that the profile can have a different method if we want to
@@ -529,7 +529,7 @@ class TestProfile3DToolBar(TestCaseQt):
 class TestGetProfilePlot(TestCaseQt):
     def setUp(self):
         self.plot = None
-        super(TestGetProfilePlot, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if self.plot is not None:
@@ -540,7 +540,7 @@ class TestGetProfilePlot(TestCaseQt):
             self.plot.close()
             self.plot = None
 
-        super(TestGetProfilePlot, self).tearDown()
+        super().tearDown()
 
     def testProfile1D(self):
         self.plot = Plot2D()

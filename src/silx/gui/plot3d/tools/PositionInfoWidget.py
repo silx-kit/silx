@@ -48,7 +48,7 @@ class PositionInfoWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(PositionInfoWidget, self).__init__(parent)
+        super().__init__(parent)
         self._sceneWidgetRef = None
 
         self.setToolTip("Double-click on a data point to show its value")

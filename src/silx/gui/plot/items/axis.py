@@ -31,7 +31,6 @@ __date__ = "22/11/2018"
 
 import datetime as dt
 import enum
-from typing import Optional
 
 import dateutil.tz
 
@@ -64,7 +63,7 @@ class Axis(qt.QObject):
     LOGARITHMIC = "log"
     """Constant defining a logarithmic scale"""
 
-    _SCALES = set([LINEAR, LOGARITHMIC])
+    _SCALES = {LINEAR, LOGARITHMIC}
 
     sigInvertedChanged = qt.Signal(bool)
     """Signal emitted when axis orientation has changed"""
@@ -153,7 +152,7 @@ class Axis(qt.QObject):
             vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel
         )
 
-    def _getDataRange(self) -> Optional[tuple[float, float]]:
+    def _getDataRange(self) -> tuple[float, float] | None:
         """Returns the range of data items over this axis as (vmin, vmax)"""
         raise NotImplementedError()
 
@@ -404,7 +403,7 @@ class XAxis(Axis):
         elif tickMode == TickMode.TIME_SERIES:
             self._getBackend().setXAxisTimeSeries(True)
         else:
-            raise ValueError("Unexpected TickMode: {}".format(tickMode))
+            raise ValueError(f"Unexpected TickMode: {tickMode}")
 
     def _internalSetCurrentLabel(self, label):
         self._getBackend().setGraphXLabel(label)
@@ -429,7 +428,7 @@ class XAxis(Axis):
         return updated
 
     @docstring(Axis)
-    def _getDataRange(self) -> Optional[tuple[float, float]]:
+    def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
         return ranges.x
 
@@ -486,7 +485,7 @@ class YAxis(Axis):
         return updated
 
     @docstring(Axis)
-    def _getDataRange(self) -> Optional[tuple[float, float]]:
+    def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
         return ranges.y
 
@@ -575,6 +574,6 @@ class YRightAxis(Axis):
         return self.__mainAxis.setAutoScale(flag)
 
     @docstring(Axis)
-    def _getDataRange(self) -> Optional[tuple[float, float]]:
+    def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
         return ranges.y2

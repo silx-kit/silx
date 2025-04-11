@@ -45,7 +45,7 @@ from ... import _glutils
 from . import event
 
 
-class Context(object):
+class Context:
     """Correspond to an operating system OpenGL context.
 
     User should NEVER use an instance of this class beyond the method
@@ -125,7 +125,7 @@ class ContextGL2(Context):
     """
 
     def __init__(self, glContextHandle):
-        super(ContextGL2, self).__init__(glContextHandle)
+        super().__init__(glContextHandle)
 
         self._programs = {}  # GL programs already compiled
         self._vbos = {}  # GL Vbos already set
@@ -273,7 +273,7 @@ class Window(event.Notifier):
     )
 
     def __init__(self, mode="framebuffer"):
-        super(Window, self).__init__()
+        super().__init__()
         self._dirty = True
         self._size = 0, 0
         self._contexts = {}  # To map system GL context id to Context objects

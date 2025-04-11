@@ -51,7 +51,7 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         return PlotWindow()
 
     def setUp(self):
-        super(TestMaskToolsWidget, self).setUp()
+        super().setUp()
         self.widget = MaskToolsWidget.MaskToolsDockWidget(plot=self.plot, name="TEST")
         self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, self.widget)
         self.maskWidget = self.widget.widget()
@@ -61,7 +61,7 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.widget.close()
         del self.maskWidget
         del self.widget
-        super(TestMaskToolsWidget, self).tearDown()
+        super().tearDown()
 
     def testEmptyPlot(self):
         """Empty plot, display MaskToolsDockWidget, toggle multiple masks"""

@@ -77,12 +77,12 @@ def main():
     icons = sorted(icons)
 
     icons_table = "\n".join(
-        "   * - |%s|\n     - %s" % (os.path.basename(f)[:-4], os.path.basename(f)[:-4])
+        f"   * - |{os.path.basename(f)[:-4]}|\n     - {os.path.basename(f)[:-4]}"
         for f in icons
     )
 
     icon_definitions = "\n".join(
-        ".. |%s| image:: %s" % (os.path.basename(f)[:-4], f) for f in icons
+        f".. |{os.path.basename(f)[:-4]}| image:: {f}" for f in icons
     )
 
     content = ICONS_RST_HEADER + icons_table + "\n\n" + icon_definitions + "\n"

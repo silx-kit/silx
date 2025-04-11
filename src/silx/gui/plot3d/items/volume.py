@@ -123,7 +123,7 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         if isinstance(oldParent, Item3D):
             oldParent.sigItemChanged.disconnect(self._parentChanged)
 
-        super(CutPlane, self).setParent(parent)
+        super().setParent(parent)
 
         if isinstance(parent, Item3D):
             parent.sigItemChanged.connect(self._parentChanged)
@@ -244,7 +244,7 @@ class Isosurface(Item3D):
         if isinstance(oldParent, Item3D):
             oldParent.sigItemChanged.disconnect(self._parentChanged)
 
-        super(Isosurface, self).setParent(parent)
+        super().setParent(parent)
 
         if isinstance(parent, Item3D):
             parent.sigItemChanged.connect(self._parentChanged)
@@ -706,7 +706,7 @@ class ComplexCutPlane(CutPlane, ComplexMixIn):
         """
         if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
-        super(ComplexCutPlane, self)._updated(event)
+        super()._updated(event)
 
 
 class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
@@ -737,7 +737,7 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         ):
             primitive.children[0].alpha = self._color[3]
         else:
-            super(ComplexIsosurface, self)._updateColor(color)
+            super()._updateColor(color)
 
     def _syncDataWithParent(self):
         """Synchronize this instance data with that of its parent"""
@@ -760,7 +760,7 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         """Handle data change in the parent this isosurface belongs to"""
         if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
-        super(ComplexIsosurface, self)._parentChanged(event)
+        super()._parentChanged(event)
 
     def _updated(self, event=None):
         """Handle update of the isosurface (and take care of mode change)
@@ -772,12 +772,12 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
 
         elif event in (ItemChangedType.COLORMAP, Item3DChangedType.INTERPOLATION):
             self._updateScenePrimitive()
-        super(ComplexIsosurface, self)._updated(event)
+        super()._updated(event)
 
     def _updateScenePrimitive(self):
         """Update underlying mesh"""
         if self.getComplexMode() == self.ComplexMode.NONE:
-            super(ComplexIsosurface, self)._updateScenePrimitive()
+            super()._updateScenePrimitive()
 
         else:  # Specific display for colormapped isosurface
             self._getScenePrimitive().children = []
@@ -870,7 +870,7 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
         :rtype: Union[numpy.ndarray,None]
         """
         if mode is None:
-            return super(ComplexField3D, self).getData(copy=copy)
+            return super().getData(copy=copy)
         else:
             return self._convertComplexData(self._data, mode)
 

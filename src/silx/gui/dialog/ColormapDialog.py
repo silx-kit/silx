@@ -241,7 +241,7 @@ class _AutoscaleModeComboBox(qt.QComboBox):
     }
 
     def __init__(self, parent: qt.QWidget):
-        super(_AutoscaleModeComboBox, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.currentIndexChanged.connect(self.__updateTooltip)
         self._init()
 
@@ -254,7 +254,7 @@ class _AutoscaleModeComboBox(qt.QComboBox):
 
     def setCurrentIndex(self, index):
         self.__updateTooltip(index)
-        super(_AutoscaleModeComboBox, self).setCurrentIndex(index)
+        super().setCurrentIndex(index)
 
     def __updateTooltip(self, index):
         if index > -1:
@@ -360,7 +360,7 @@ class _ColormapHistogram(qt.QWidget):
             self._updateDisplayMode()
             self._invalidated = False
         self._updateMarkerPosition()
-        return super(_ColormapHistogram, self).paintEvent(event)
+        return super().paintEvent(event)
 
     def getFiniteRange(self):
         """Returns the colormap range as displayed in the plot."""
@@ -1131,20 +1131,20 @@ class ColormapDialog(qt.QDialog):
 
     def showEvent(self, event):
         self.visibleChanged.emit(True)
-        super(ColormapDialog, self).showEvent(event)
+        super().showEvent(event)
         if self.isVisible():
             self._validate()
 
     def closeEvent(self, event):
         if not self.isModal():
             self.accept()
-        super(ColormapDialog, self).closeEvent(event)
+        super().closeEvent(event)
 
     def hideEvent(self, event):
         if self._selectedAreaButton.isChecked():
             self._selectedAreaButton.setChecked(False)
         self.visibleChanged.emit(False)
-        super(ColormapDialog, self).hideEvent(event)
+        super().hideEvent(event)
 
     def close(self):
         if self._selectedAreaButton.isChecked():
@@ -1161,12 +1161,12 @@ class ColormapDialog(qt.QDialog):
     def event(self, event):
         if event.type() == qt.QEvent.DeferredDelete:
             self.__aboutToDelete = True
-        return super(ColormapDialog, self).event(event)
+        return super().event(event)
 
     def exec(self):
         wasModal = self.isModal()
         self.setModal(True)
-        result = super(ColormapDialog, self).exec()
+        result = super().exec()
         if not self.__aboutToDelete:
             self.setModal(wasModal)
         return result
@@ -1924,4 +1924,4 @@ class ColormapDialog(qt.QDialog):
             if nextFocus is not None:
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
-            super(ColormapDialog, self).keyPressEvent(event)
+            super().keyPressEvent(event)

@@ -54,7 +54,7 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
     """:class:`ThreadPoolExecutor` with an extra :meth:`submit_greedy` method."""
 
     def __init__(self, *args, **kwargs):
-        super(_GreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.__futures = defaultdict(WeakList)
         self.__lock = threading.RLock()
 
@@ -75,7 +75,7 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
                 if not future.done():
                     future.cancel()
 
-            future = super(_GreedyThreadPoolExecutor, self).submit(fn, *args, **kwargs)
+            future = super().submit(fn, *args, **kwargs)
             self.__futures[queue].append(future)
 
         return future
@@ -340,7 +340,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     def setVisualizationParameter(self, parameter, value):
         parameter = self.VisualizationParameter(parameter)
 
-        if super(Scatter, self).setVisualizationParameter(parameter, value):
+        if super().setVisualizationParameter(parameter, value):
             if parameter in (
                 self.VisualizationParameter.GRID_BOUNDS,
                 self.VisualizationParameter.GRID_MAJOR_ORDER,
@@ -795,7 +795,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     @docstring(PointsBase)
     def pick(self, x, y):
-        result = super(Scatter, self).pick(x, y)
+        result = super().pick(x, y)
 
         if result is not None:
             visualization = self.getVisualization()

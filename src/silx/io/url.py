@@ -70,7 +70,7 @@ def slice_sequence_to_string(data_slice: Iterable[SliceLike] | SliceLike) -> str
         return _slice_to_string(data_slice)
 
 
-class DataUrl(object):
+class DataUrl:
     """Non-mutable object to parse a string representing a resource data
     locator.
 

@@ -66,7 +66,7 @@ class ArrayCurvePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayCurvePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -223,7 +223,7 @@ class XYVScatterPlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(XYVScatterPlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__y_axis = None
         """1D array"""
@@ -386,7 +386,7 @@ class ArrayImagePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayImagePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -660,7 +660,7 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayComplexImagePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -866,7 +866,7 @@ class ArrayStackPlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayStackPlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signal = None
         self.__signal_name = None
@@ -1050,7 +1050,7 @@ class ArrayVolumePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayVolumePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signal = None
         self.__signal_name = None

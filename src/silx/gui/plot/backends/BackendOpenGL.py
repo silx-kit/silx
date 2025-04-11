@@ -70,10 +70,10 @@ class _ShapeItem(dict):
         dashpattern,
         gapcolor,
     ):
-        super(_ShapeItem, self).__init__()
+        super().__init__()
 
         if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
-            raise NotImplementedError("Unsupported shape {0}".format(shape))
+            raise NotImplementedError(f"Unsupported shape {shape}")
 
         x = numpy.asarray(x)
         y = numpy.asarray(y)
@@ -119,7 +119,7 @@ class _MarkerItem(dict):
         font,
         bgcolor,
     ):
-        super(_MarkerItem, self).__init__()
+        super().__init__()
 
         if symbol is None:
             symbol = "+"
@@ -289,7 +289,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def mousePressEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
-            return super(BackendOpenGL, self).mousePressEvent(event)
+            return super().mousePressEvent(event)
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMousePress(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
@@ -317,7 +317,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
-            return super(BackendOpenGL, self).mouseReleaseEvent(event)
+            return super().mouseReleaseEvent(event)
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseRelease(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
@@ -1014,7 +1014,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # TODO check if need more filtering of error (e.g., clip to positive)
 
         # TODO check and improve this
-        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+        if len(color) == 4 and type(color[3]) in [int, numpy.uint8, numpy.int8]:
             color = numpy.array(color, dtype=numpy.float32) / 255.0
 
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
@@ -1118,7 +1118,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             image = glutils.GLPlotRGBAImage(data, origin, scale, alpha)
 
         else:
-            raise RuntimeError("Unsupported data shape {0}".format(data.shape))
+            raise RuntimeError(f"Unsupported data shape {data.shape}")
 
         # TODO is this needed?
         if self._plotFrame.xAxis.isLog and image.xMin <= 0.0:
@@ -1248,10 +1248,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setGraphCursorShape(self, cursor):
         if cursor is None:
-            super(BackendOpenGL, self).unsetCursor()
+            super().unsetCursor()
         else:
             cursor = self._QT_CURSORS[cursor]
-            super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
+            super().setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if linestyle != "-":

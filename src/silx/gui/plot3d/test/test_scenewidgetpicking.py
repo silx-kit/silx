@@ -43,7 +43,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
 
     def setUp(self):
-        super(TestSceneWidgetPicking, self).setUp()
+        super().setUp()
         self.widget = SceneWidget()
         self.widget.resize(300, 300)
         self.widget.show()
@@ -54,7 +54,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.widget.close()
         del self.widget
-        super(TestSceneWidgetPicking, self).tearDown()
+        super().tearDown()
 
     def _widgetCenter(self):
         """Returns widget center"""

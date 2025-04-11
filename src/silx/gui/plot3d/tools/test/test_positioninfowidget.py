@@ -40,7 +40,7 @@ class TestPositionInfoWidget(TestCaseQt):
     """Tests PositionInfoWidget"""
 
     def setUp(self):
-        super(TestPositionInfoWidget, self).setUp()
+        super().setUp()
         self.sceneWidget = SceneWidget()
         self.sceneWidget.resize(300, 300)
         self.sceneWidget.show()
@@ -62,7 +62,7 @@ class TestPositionInfoWidget(TestCaseQt):
         self.positionInfoWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.positionInfoWidget.close()
         del self.positionInfoWidget
-        super(TestPositionInfoWidget, self).tearDown()
+        super().tearDown()
 
     def test(self):
         """Test PositionInfoWidget"""

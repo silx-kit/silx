@@ -82,9 +82,9 @@ def _initSymbols():
     if _Symbols is not None:
         return
 
-    symbols = dict(
-        [(name, qt.QPainterPath()) for name in ["o", "s", "t", "d", "+", "x", ".", ","]]
-    )
+    symbols = {
+        name: qt.QPainterPath() for name in ["o", "s", "t", "d", "+", "x", ".", ","]
+    }
     symbols["o"].addEllipse(qt.QRectF(0.1, 0.1, 0.8, 0.8))
     symbols["."].addEllipse(qt.QRectF(0.3, 0.3, 0.4, 0.4))
     symbols[","].addEllipse(qt.QRectF(0.4, 0.4, 0.2, 0.2))
@@ -143,7 +143,7 @@ class LegendIconWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(LegendIconWidget, self).__init__(parent)
+        super().__init__(parent)
         _initSymbols()
 
         # Visibilities

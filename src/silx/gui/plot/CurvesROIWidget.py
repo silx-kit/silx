@@ -85,7 +85,7 @@ class CurvesROIWidget(qt.QWidget):
     sigROISignal = qt.Signal(object)
 
     def __init__(self, parent=None, name=None, plot=None):
-        super(CurvesROIWidget, self).__init__(parent)
+        super().__init__(parent)
         if name is not None:
             self.setWindowTitle(name)
         self.__lastSigROISignal = None
@@ -334,7 +334,7 @@ class CurvesROIWidget(qt.QWidget):
         if os.path.exists(outputFile):
             try:
                 os.remove(outputFile)
-            except IOError:
+            except OSError:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
                 msg.setText("Input Output Error: %s" % (sys.exc_info()[1]))
@@ -483,7 +483,7 @@ class ROITable(TableWidget):
     INFO_NOT_FOUND = "????????"
 
     def __init__(self, parent=None, plot=None, rois=None):
-        super(ROITable, self).__init__(parent)
+        super().__init__(parent)
         self._showAllMarkers = False
         self._userIsEditingRoi = False
         """bool used to avoid conflict when editing the ROI object"""
@@ -642,7 +642,7 @@ class ROITable(TableWidget):
                     )
             elif name == "Type":
                 item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+                item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
             elif name in ("To", "From"):
                 item = _FloatItem()
                 if roi.getName().upper() in ("ICR", "DEFAULT"):
@@ -655,7 +655,7 @@ class ROITable(TableWidget):
                     )
             elif name in ("Raw Counts", "Net Counts", "Raw Area", "Net Area"):
                 item = _FloatItem()
-                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+                item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
             else:
                 raise ValueError("item type not recognized")
 
@@ -874,16 +874,14 @@ class ROITable(TableWidget):
 
         if order is None or order.lower() == "none":
             ordered_roilist = list(self._roiDict.values())
-            res = dict(
-                [(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist]
-            )
+            res = {roi.getName(): self._roiDict[roi.getID()] for roi in ordered_roilist}
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
             ordered_roilist = sorted(
                 self._roiDict.keys(),
                 key=lambda roi_id: self._roiDict[roi_id].get(order),
             )
-            res = dict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
+            res = {roi.getName(): self._roiDict[id] for id in ordered_roilist}
 
         return res
 
@@ -1261,7 +1259,7 @@ class ROI(_RegionOfInterestBase):
         return self._fromdata <= position[0] <= self._todata
 
 
-class _RoiMarkerManager(object):
+class _RoiMarkerManager:
     """
     Deal with all the ROI markers
     """
@@ -1382,7 +1380,7 @@ class _RoiMarkerManager(object):
         return res
 
 
-class _RoiMarkerHandler(object):
+class _RoiMarkerHandler:
     """Used to deal with ROI markers used in ROITable"""
 
     def __init__(self, roi, plot):
@@ -1538,7 +1536,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
     """
 
     def __init__(self, parent=None, plot=None, name=None):
-        super(CurvesROIDockWidget, self).__init__(name, parent)
+        super().__init__(name, parent)
 
         assert plot is not None
         self.plot = plot
@@ -1569,7 +1567,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
         See :class:`QMainWindow`.
         """
-        action = super(CurvesROIDockWidget, self).toggleViewAction()
+        action = super().toggleViewAction()
         action.setIcon(icons.getQIcon("plot-roi"))
         return action
 

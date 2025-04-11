@@ -97,20 +97,20 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
 
 class _DefaultImageStackProfileRoiEditor(_DefaultImageProfileRoiEditor):
     def _initLayout(self, layout):
-        super(_DefaultImageStackProfileRoiEditor, self)._initLayout(layout)
+        super()._initLayout(layout)
         self._profileDim = ProfileToolButton(parent=self, plot=None)
         self._profileDim.sigDimensionChanged.connect(self._widgetChanged)
         layout.addWidget(self._profileDim)
 
     def setEditorData(self, roi):
-        super(_DefaultImageStackProfileRoiEditor, self).setEditorData(roi)
+        super().setEditorData(roi)
         with blockSignals(self._profileDim):
             kind = roi.getProfileType()
             dim = {"1D": 1, "2D": 2}[kind]
             self._profileDim.setDimension(dim)
 
     def setRoiData(self, roi):
-        super(_DefaultImageStackProfileRoiEditor, self).setRoiData(roi)
+        super().setRoiData(roi)
         dim = self._profileDim.getDimension()
         kind = {1: "1D", 2: "2D"}[dim]
         roi.setProfileType(kind)
@@ -157,7 +157,7 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
     """
 
     def __init__(self, parent=None):
-        super(ProfileRoiEditorAction, self).__init__(parent)
+        super().__init__(parent)
         self.__roiManager = None
         self.__roi = None
         self.__inhibiteReentance = None

@@ -64,7 +64,7 @@ class _RunnableComputeProfile(qt.QRunnable):
         runnerFinished = qt.Signal(object)
 
     def __init__(self, item: items.Item, roi: ProfileRoiMixIn):
-        super(_RunnableComputeProfile, self).__init__()
+        super().__init__()
         self.setAutoDelete(False)
         self._signal = self.Signal()
         self._item = item
@@ -341,7 +341,7 @@ class _ClearAction(qt.QAction):
     """
 
     def __init__(self, parent, profileManager):
-        super(_ClearAction, self).__init__(parent)
+        super().__init__(parent)
         self.__profileManager = weakref.ref(profileManager)
         icon = icons.getQIcon("profile-clear")
         self.setIcon(icon)
@@ -381,7 +381,7 @@ class _StoreLastParamBehavior(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, ProfileManager)
-        super(_StoreLastParamBehavior, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.__properties = {}
         self.__profileRoi = None
         self.__filter = utils.LockReentrant()
@@ -480,7 +480,7 @@ class ProfileManager(qt.QObject):
     """
 
     def __init__(self, parent=None, plot=None, roiManager=None):
-        super(ProfileManager, self).__init__(parent)
+        super().__init__(parent)
 
         assert isinstance(plot, PlotWidget)
         self._plotRef = weakref.ref(plot, WeakMethodProxy(self.__plotDestroyed))

@@ -86,7 +86,7 @@ version_info = _version_info(MAJOR, MINOR, MICRO, RELEV, SERIAL)
 strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":
     _prerelease = PRERELEASE_NORMALIZED_NAME[version_info[3]]
-    version += "-%s%s" % (_prerelease, version_info[-1])
+    version += f"-{_prerelease}{version_info[-1]}"
     debianversion += (
         "~adev%i" % version_info[-1]
         if RELEV == "dev"

@@ -107,7 +107,7 @@ class Item3D(qt.QObject):
         if isinstance(previousParent, Item3D):
             previousParent.sigItemChanged.disconnect(self.__parentItemChanged)
 
-        super(Item3D, self).setParent(parent)
+        super().setParent(parent)
 
         if isinstance(parent, Item3D):
             parent.sigItemChanged.connect(self.__parentItemChanged)
@@ -201,8 +201,8 @@ class Item3D(qt.QObject):
         :param color: RGBA color
         :type color: tuple of 4 float in [0., 1.]
         """
-        if hasattr(super(Item3D, self), "_setForegroundColor"):
-            super(Item3D, self)._setForegroundColor(color)
+        if hasattr(super(), "_setForegroundColor"):
+            super()._setForegroundColor(color)
 
     def __syncForegroundColor(self):
         """Retrieve foreground color from parent and update this item"""
@@ -321,7 +321,7 @@ class DataItem3D(Item3D):
         """
         if event == ItemChangedType.DATA:
             self._updateRotationCenter()
-        super(DataItem3D, self)._updated(event)
+        super()._updated(event)
 
     # Transformations
 
@@ -492,7 +492,7 @@ class DataItem3D(Item3D):
         :param color: RGBA color as 4 floats in [0, 1]
         """
         self._getScenePrimitive().color = color
-        super(DataItem3D, self)._setForegroundColor(color)
+        super()._setForegroundColor(color)
 
     def isBoundingBoxVisible(self):
         """Returns item's bounding box visibility.
@@ -545,8 +545,7 @@ class BaseNodeItem(DataItem3D):
         for child in self.getItems():
             yield child
             if hasattr(child, "visit"):
-                for item in child.visit(included=False):
-                    yield item
+                yield from child.visit(included=False)
 
     def pickItems(self, x, y, condition=None):
         """Iterator over picked items in the group at given position.
@@ -566,8 +565,7 @@ class BaseNodeItem(DataItem3D):
             raise RuntimeError("Cannot perform picking: Item not attached to a widget")
 
         context = PickContext(x, y, viewport, condition)
-        for result in self._pickItems(context):
-            yield result
+        yield from self._pickItems(context)
 
     def _pickItems(self, context):
         """Implement :meth:`pickItems`
@@ -684,7 +682,7 @@ class GroupItem(_BaseGroupItem):
     """Group of items sharing a common transform."""
 
     def __init__(self, parent=None):
-        super(GroupItem, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
 
 class GroupWithAxesItem(_BaseGroupItem):
@@ -697,9 +695,7 @@ class GroupWithAxesItem(_BaseGroupItem):
 
         :param parent: The View widget this item belongs to.
         """
-        super(GroupWithAxesItem, self).__init__(
-            parent=parent, group=axes.LabelledAxes()
-        )
+        super().__init__(parent=parent, group=axes.LabelledAxes())
 
     # Axes labels
 
@@ -766,7 +762,7 @@ class RootGroupWithAxesItem(GroupWithAxesItem):
     """
 
     def __init__(self, parent=None):
-        super(RootGroupWithAxesItem, self).__init__(parent)
+        super().__init__(parent)
         self.__group = scene.Group()
         self.__group.transforms = self._getSceneTransforms()
 

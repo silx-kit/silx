@@ -35,13 +35,13 @@ class TestFitConfig(TestCaseQt):
     """Basic test for FitWidget"""
 
     def setUp(self):
-        super(TestFitConfig, self).setUp()
+        super().setUp()
         self.fit_config = FitConfig.getFitConfigDialog(modal=False)
         self.qWaitForWindowExposed(self.fit_config)
 
     def tearDown(self):
         del self.fit_config
-        super(TestFitConfig, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         self.fit_config.show()

@@ -58,7 +58,7 @@ __date__ = "16/01/2017"
 _logger = logging.getLogger(__name__)
 
 
-class FitManager(object):
+class FitManager:
     """
     Fit functions manager
 

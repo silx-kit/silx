@@ -46,7 +46,7 @@ from .ScalarFieldView import Isosurface
 _logger = logging.getLogger(__name__)
 
 
-class ModelColumns(object):
+class ModelColumns:
     NameColumn, ValueColumn, ColumnMax = range(3)
     ColumnNames = ["Name", "Value"]
 
@@ -86,7 +86,7 @@ class SubjectItem(qt.QStandardItem):
     """
 
     def __init__(self, subject, *args):
-        super(SubjectItem, self).__init__(*args)
+        super().__init__(*args)
 
         self.setEditable(self.editable)
 
@@ -108,7 +108,7 @@ class SubjectItem(qt.QStandardItem):
             setValue = self._pushData(value, role)
             if setValue != value:
                 value = setValue
-        super(SubjectItem, self).setData(value, role)
+        super().setData(value, role)
 
     @property
     def subject(self):
@@ -429,7 +429,7 @@ class _DirectionalLightProxy(qt.QObject):
     """Signal sent when altitude angle has changed."""
 
     def __init__(self, light):
-        super(_DirectionalLightProxy, self).__init__()
+        super().__init__()
         self._light = light
         light.addListener(self._directionUpdated)
         self._azimuth = 0.0
@@ -512,7 +512,7 @@ class DirectionalLightGroup(SubjectItem):
     def __init__(self, subject, *args):
         self._light = _DirectionalLightProxy(subject.getPlot3DWidget().viewport.light)
 
-        super(DirectionalLightGroup, self).__init__(subject, *args)
+        super().__init__(subject, *args)
 
     def _init(self):
         nameItem = qt.QStandardItem("Azimuth")
@@ -570,7 +570,7 @@ class ViewSettingsItem(qt.QStandardItem):
     """Viewport settings"""
 
     def __init__(self, subject, *args):
-        super(ViewSettingsItem, self).__init__(*args)
+        super().__init__(*args)
 
         self.setEditable(False)
 
@@ -647,7 +647,7 @@ class ScaleItem(DataChangedItem):
 class MatrixItem(DataChangedItem):
     def __init__(self, subject, row, *args):
         self.__row = row
-        super(MatrixItem, self).__init__(subject, *args)
+        super().__init__(subject, *args)
 
     def _pullData(self):
         matrix = self.subject.getTransformMatrix()
@@ -656,7 +656,7 @@ class MatrixItem(DataChangedItem):
 
 class DataSetItem(qt.QStandardItem):
     def __init__(self, subject, *args):
-        super(DataSetItem, self).__init__(*args)
+        super().__init__(*args)
 
         self.setEditable(False)
 
@@ -692,7 +692,7 @@ class IsoSurfaceRootItem(SubjectItem):
 
     def __init__(self, subject, normalization, *args):
         self._isoLevelSliderNormalization = normalization
-        super(IsoSurfaceRootItem, self).__init__(subject, *args)
+        super().__init__(subject, *args)
 
     def getSignals(self):
         subject = self.subject
@@ -794,7 +794,7 @@ class _IsoLevelSlider(qt.QSlider):
     """QSlider used for iso-surface level with linear scale"""
 
     def __init__(self, parent, subject, normalization):
-        super(_IsoLevelSlider, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self.subject = subject
 
         if normalization == "arcsinh":
@@ -851,7 +851,7 @@ class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
 
     def __init__(self, subject, normalization):
         self.normalization = normalization
-        super(IsoSurfaceLevelSlider, self).__init__(subject)
+        super().__init__(subject)
 
     def getEditor(self, parent, option, index):
         editor = _IsoLevelSlider(parent, self.subject, self.normalization)
@@ -915,7 +915,7 @@ class QColorEditor(qt.QWidget):
         self.__previousColor = color
 
     def __init__(self, *args, **kwargs):
-        super(QColorEditor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         button = qt.QToolButton()
@@ -1039,7 +1039,7 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
     """Signal for the tree view to perform some task"""
 
     def __init__(self, parent, item):
-        super(IsoSurfaceAddRemoveWidget, self).__init__(parent)
+        super().__init__(parent)
         self._item = item
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -1091,7 +1091,7 @@ class IsoSurfaceGroup(SubjectItem):
 
     def __init__(self, subject, normalization, *args):
         self._isoLevelSliderNormalization = normalization
-        super(IsoSurfaceGroup, self).__init__(subject, *args)
+        super().__init__(subject, *args)
 
     def getSignals(self):
         subject = self.subject
@@ -1585,7 +1585,7 @@ class ItemDelegate(qt.QStyledItemDelegate):
     sigDelegateEvent = qt.Signal(str)
 
     def __init__(self, parent=None):
-        super(ItemDelegate, self).__init__(parent)
+        super().__init__(parent)
 
     def createEditor(self, parent, option, index):
         item = index.model().itemFromIndex(index)
@@ -1598,7 +1598,7 @@ class ItemDelegate(qt.QStyledItemDelegate):
                         editor.sigViewTask.connect(self.__viewTask)
                     return editor
 
-        editor = super(ItemDelegate, self).createEditor(parent, option, index)
+        editor = super().createEditor(parent, option, index)
         return editor
 
     def updateEditorGeometry(self, editor, option, index):
@@ -1609,13 +1609,13 @@ class ItemDelegate(qt.QStyledItemDelegate):
         if item:
             if isinstance(item, SubjectItem) and item.setEditorData(editor):
                 return
-        super(ItemDelegate, self).setEditorData(editor, index)
+        super().setEditorData(editor, index)
 
     def setModelData(self, editor, model, index):
         item = index.model().itemFromIndex(index)
         if isinstance(item, SubjectItem) and item._setModelData(editor):
             return
-        super(ItemDelegate, self).setModelData(editor, model, index)
+        super().setModelData(editor, model, index)
 
     def __viewTask(self, task):
         self.sigDelegateEvent.emit(task)
@@ -1627,7 +1627,7 @@ class TreeView(qt.QTreeView):
     """
 
     def __init__(self, parent=None):
-        super(TreeView, self).__init__(parent)
+        super().__init__(parent)
         self.__openedIndex = None
         self._isoLevelSliderNormalization = "linear"
 
@@ -1695,7 +1695,7 @@ class TreeView(qt.QTreeView):
             except (RuntimeError, TypeError, SystemError):
                 pass
 
-        super(TreeView, self).setModel(model)
+        super().setModel(model)
         model.rowsRemoved.connect(self.rowsRemoved)
         self.__openPersistentEditors(qt.QModelIndex())
 
@@ -1753,7 +1753,7 @@ class TreeView(qt.QTreeView):
         :param int end: End index from parent index (inclusive)
         """
         self.__openPersistentEditors(parent, False)
-        super(TreeView, self).rowsAboutToBeRemoved(parent, start, end)
+        super().rowsAboutToBeRemoved(parent, start, end)
 
     def rowsRemoved(self, parent, start, end):
         """
@@ -1764,7 +1764,7 @@ class TreeView(qt.QTreeView):
         :param int start: Start index from parent index (inclusive)
         :param int end: End index from parent index (inclusive)
         """
-        super(TreeView, self).rowsRemoved(parent, start, end)
+        super().rowsRemoved(parent, start, end)
         self.__openPersistentEditors(parent, True)
 
     def rowsInserted(self, parent, start, end):
@@ -1777,7 +1777,7 @@ class TreeView(qt.QTreeView):
         :param int end: End index from parent index
         """
         self.__openPersistentEditors(parent, False)
-        super(TreeView, self).rowsInserted(parent, start, end)
+        super().rowsInserted(parent, start, end)
         self.__openPersistentEditors(parent)
 
     def keyReleaseEvent(self, event):
@@ -1796,7 +1796,7 @@ class TreeView(qt.QTreeView):
         if key == qt.Qt.Key_Delete and modifiers == qt.Qt.NoModifier:
             self.__removeIsosurfaces()
 
-        super(TreeView, self).keyReleaseEvent(event)
+        super().keyReleaseEvent(event)
 
     def __removeIsosurfaces(self):
         model = self.model()

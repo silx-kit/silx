@@ -131,7 +131,7 @@ def getDateElement(dateTime, unit):
     elif unit == DtUnit.MICRO_SECONDS:
         return dateTime.microsecond
     else:
-        raise ValueError("Unexpected DtUnit: {}".format(unit))
+        raise ValueError(f"Unexpected DtUnit: {unit}")
 
 
 def setDateElement(dateTime, value, unit):
@@ -143,9 +143,7 @@ def setDateElement(dateTime, value, unit):
     :return: datetime.datetime
     """
     intValue = int(value)
-    _logger.debug(
-        "setDateElement({}, {} (int={}), {})".format(dateTime, value, intValue, unit)
-    )
+    _logger.debug(f"setDateElement({dateTime}, {value} (int={intValue}), {unit})")
 
     year = dateTime.year
     month = dateTime.month
@@ -170,12 +168,10 @@ def setDateElement(dateTime, value, unit):
     elif unit == DtUnit.MICRO_SECONDS:
         microsecond = intValue
     else:
-        raise ValueError("Unexpected DtUnit: {}".format(unit))
+        raise ValueError(f"Unexpected DtUnit: {unit}")
 
     _logger.debug(
-        "creating date time {}".format(
-            (year, month, day, hour, minute, second, microsecond)
-        )
+        f"creating date time {(year, month, day, hour, minute, second, microsecond)}"
     )
 
     return dt.datetime(
@@ -233,7 +229,7 @@ def addValueToDate(dateTime, value, unit):
     :return:
     :raises ValueError: unit is unsupported or result is out of datetime bounds
     """
-    # logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
+    # logger.debug(f"addValueToDate({dateTime}, {value}, {unit})")
 
     if unit == DtUnit.YEARS:
         intValue = int(value)  # floats not implemented in relativeDelta(years)
@@ -252,7 +248,7 @@ def addValueToDate(dateTime, value, unit):
     elif unit == DtUnit.MICRO_SECONDS:
         return dateTime + relativedelta(microseconds=value)
     else:
-        raise ValueError("Unexpected DtUnit: {}".format(unit))
+        raise ValueError(f"Unexpected DtUnit: {unit}")
 
 
 def bestUnit(durationInSeconds):
@@ -328,7 +324,7 @@ def bestFormatString(spacing, unit):
     elif unit == DtUnit.MICRO_SECONDS:
         return "%S.%f"
     else:
-        raise ValueError("Unexpected DtUnit: {}".format(unit))
+        raise ValueError(f"Unexpected DtUnit: {unit}")
 
 
 def formatDatetimes(
@@ -371,7 +367,7 @@ def niceDateTimeElement(value, unit, isRound=False):
 
 def findStartDate(dMin, dMax, nTicks):
     """Rounds a date down to the nearest nice number of ticks"""
-    assert dMax >= dMin, "dMin ({}) should come before dMax ({})".format(dMin, dMax)
+    assert dMax >= dMin, f"dMin ({dMin}) should come before dMax ({dMax})"
 
     if dMin == dMax:
         # Fallback when range is smaller than microsecond resolution
@@ -388,9 +384,7 @@ def findStartDate(dMin, dMax, nTicks):
     length, unit = bestUnit(lengthSec)
     niceLength = niceDateTimeElement(length, unit)
 
-    _logger.debug(
-        "Length: {:8.3f} {} (nice = {})".format(length, unit.name, niceLength)
-    )
+    _logger.debug(f"Length: {length:8.3f} {unit.name} (nice = {niceLength})")
 
     niceSpacing = niceDateTimeElement(niceLength / nTicks, unit, isRound=True)
 
@@ -412,9 +406,7 @@ def findStartDate(dMin, dMax, nTicks):
     if unit == DtUnit.YEARS and niceVal <= dt.MINYEAR:
         niceVal = max(1, niceSpacing)
 
-    _logger.debug(
-        "StartValue: dVal = {}, niceVal: {} ({})".format(dVal, niceVal, unit.name)
-    )
+    _logger.debug(f"StartValue: dVal = {dVal}, niceVal: {niceVal} ({unit.name})")
 
     startDate = roundToElement(dMin, unit)
     startDate = setDateElement(startDate, niceVal, unit)
@@ -462,7 +454,7 @@ def calcTicks(dMin, dMax, nTicks):
         ticks may differ.
     :returns: (list of datetimes, DtUnit) tuple
     """
-    _logger.debug("Calc calcTicks({}, {}, nTicks={})".format(dMin, dMax, nTicks))
+    _logger.debug(f"Calc calcTicks({dMin}, {dMax}, nTicks={nTicks})")
 
     startDate, niceSpacing, unit = findStartDate(dMin, dMax, nTicks)
 

@@ -63,7 +63,7 @@ class UpdateThread(threading.Thread):
         self.imageview = imageview
         self.running = False
         self.future_result = None
-        super(UpdateThread, self).__init__()
+        super().__init__()
 
     def createImage(self, x0: float = 0.0, y0: float = 0.0):
         # width of peak
@@ -81,7 +81,7 @@ class UpdateThread(threading.Thread):
     def start(self):
         """Start the update thread"""
         self.running = True
-        super(UpdateThread, self).start()
+        super().start()
 
     def run(self):
         """Method implementing thread loop that updates the plot

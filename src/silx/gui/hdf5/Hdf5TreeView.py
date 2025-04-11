@@ -273,7 +273,7 @@ class Hdf5TreeView(qt.QTreeView):
         """Override mousePressEvent to provide a consistante compatible API
         between Qt4 and Qt5
         """
-        super(Hdf5TreeView, self).mousePressEvent(event)
+        super().mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
             qindex = self.indexAt(event.pos())
             self.clicked.emit(qindex)

@@ -58,7 +58,7 @@ __license__ = "MIT"
 __date__ = "05/10/2016"
 
 
-class Octaveh5(object):
+class Octaveh5:
     """This class allows communication between octave and python using hdf5 format."""
 
     def __init__(self, octave_targetted_version=3.8):
@@ -80,7 +80,7 @@ class Octaveh5(object):
         try:
             self.file = h5py.File(h5file, mode)
             return self
-        except IOError as e:
+        except OSError as e:
             if mode == "a":
                 reason = "\n %s: Can t find or create " % h5file
             else:

@@ -183,7 +183,7 @@ class TestCommonFeatures_h5py(_TestCommonFeatures):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestCommonFeatures_h5py, cls).tearDownClass()
+        super().tearDownClass()
         if hasattr(cls, "tmp_dir") and cls.tmp_dir is not None:
             shutil.rmtree(cls.tmp_dir)
 

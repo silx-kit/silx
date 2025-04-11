@@ -35,7 +35,6 @@ import sys
 import traceback
 
 from packaging.version import Version
-from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
 
@@ -151,7 +150,7 @@ if BINDING == "PyQt5":
 
     # Disable PyQt5's cooperative multi-inheritance since other bindings do not provide it.
     # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
-    class _Foo(object):
+    class _Foo:
         pass
 
     class QObject(QObject, _Foo):
@@ -246,7 +245,7 @@ elif BINDING == "PyQt6":
 
     # Disable PyQt6 cooperative multi-inheritance since other bindings do not provide it.
     # See https://www.riverbankcomputing.com/static/Docs/PyQt6/multiinheritance.html?highlight=inheritance
-    class _Foo(object):
+    class _Foo:
         pass
 
     class QObject(QObject, _Foo):
@@ -274,7 +273,7 @@ def exceptionHandler(type_, value, trace):
     msg = QMessageBox()
     msg.setWindowTitle("Unhandled exception")
     msg.setIcon(QMessageBox.Critical)
-    msg.setInformativeText("%s %s\nPlease report details" % (type_, value))
+    msg.setInformativeText(f"{type_} {value}\nPlease report details")
     msg.setDetailedText(("%s " % value) + "".join(traceback.format_tb(trace)))
     msg.raise_()
     msg.exec()

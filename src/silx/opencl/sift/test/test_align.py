@@ -62,7 +62,7 @@ PRINT_KEYPOINTS = False
 class TestLinalign(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestLinalign, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             print(cls.ctx, logger.getEffectiveLevel() <= logging.INFO)
@@ -79,7 +79,7 @@ class TestLinalign(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestLinalign, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 

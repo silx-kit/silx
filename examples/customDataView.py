@@ -71,7 +71,7 @@ class MyColorView(DataView):
         widget = self.getWidget()
         colors = {Color.RED: "#FF0000", Color.GREEN: "#00FF00", Color.BLUE: "#0000FF"}
         color = colors.get(data, "#000000")
-        text = "<span style='color:%s'>%s</span>" % (color, str(data))
+        text = f"<span style='color:{color}'>{str(data)}</span>"
         widget.setText(text)
 
     def axesNames(self, data, info):

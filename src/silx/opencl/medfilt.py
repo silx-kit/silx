@@ -120,9 +120,9 @@ class MedianFilter2D(OpenclProcessing):
     def set_kernel_arguments(self):
         """Parametrize all kernel arguments"""
         for val in self.mapping.values():
-            self.cl_kernel_args[val] = dict(
-                ((i, self.cl_mem[i]) for i in ("image_raw", "image"))
-            )
+            self.cl_kernel_args[val] = {
+                i: self.cl_mem[i] for i in ("image_raw", "image")
+            }
         self.cl_kernel_args["medfilt2d"] = dict(
             (
                 ("image", self.cl_mem["image"]),
@@ -224,9 +224,7 @@ class MedianFilter2D(OpenclProcessing):
         amws = kernel_workgroup_size(self.program, "medfilt2d")
         logger.warning("max actual workgroup size: %s, expected: %s", amws, wg)
         if wg > amws:
-            raise RuntimeError(
-                "Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws)
-            )
+            raise RuntimeError(f"Workgroup size is too big for medfilt2d: {wg}>{amws}")
 
         localmem = self._get_local_mem(wg)
 
@@ -272,7 +270,7 @@ class MedianFilter2D(OpenclProcessing):
         return kernel_size
 
 
-class _MedFilt2d(object):
+class _MedFilt2d:
     median_filter = None
 
     @classmethod

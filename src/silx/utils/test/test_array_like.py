@@ -194,7 +194,7 @@ class TestTransposedDatasetView(unittest.TestCase):
 
         self.assertTrue(
             numpy.array_equal(a, b),
-            "failed with double transposition %s %s" % (transposition1, transposition2),
+            f"failed with double transposition {transposition1} {transposition2}",
         )
 
     def test1DIndex(self):
@@ -327,7 +327,7 @@ class TestTransposedListOfImages(unittest.TestCase):
 
         self.assertTrue(
             numpy.array_equal(a, b),
-            "failed with double transposition %s %s" % (transposition1, transposition2),
+            f"failed with double transposition {transposition1} {transposition2}",
         )
 
     def testTransposition012(self):

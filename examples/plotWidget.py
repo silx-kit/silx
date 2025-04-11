@@ -54,7 +54,7 @@ class MyPlotWindow(qt.QMainWindow):
     """QMainWindow with selected tools"""
 
     def __init__(self, parent=None):
-        super(MyPlotWindow, self).__init__(parent)
+        super().__init__(parent)
 
         # Create a PlotWidget
         self._plot = PlotWidget(parent=self)

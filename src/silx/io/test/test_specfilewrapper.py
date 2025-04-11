@@ -29,7 +29,6 @@ __date__ = "15/05/2017"
 import logging
 import numpy
 import os
-import sys
 import tempfile
 import unittest
 

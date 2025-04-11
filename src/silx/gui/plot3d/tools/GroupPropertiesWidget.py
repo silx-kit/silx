@@ -47,7 +47,7 @@ class GroupPropertiesWidget(qt.QWidget):
     """Maximum value for line width"""
 
     def __init__(self, parent=None):
-        super(GroupPropertiesWidget, self).__init__(parent)
+        super().__init__(parent)
         self._group = None
         self.setEnabled(False)
 

@@ -83,7 +83,7 @@ link_attrs["links"]["external_link"] = h5py.ExternalLink(
 
 class DictTestCase(unittest.TestCase):
     def assertRecursiveEqual(self, expected, actual, nodes=tuple()):
-        err_msg = "\n\n Tree nodes: {}".format(nodes)
+        err_msg = f"\n\n Tree nodes: {nodes}"
         if isinstance(expected, dict):
             self.assertTrue(isinstance(actual, dict), msg=err_msg)
             self.assertEqual(set(expected.keys()), set(actual.keys()), msg=err_msg)
@@ -960,7 +960,7 @@ class TestDictToJson(DictTestCase):
         self.json_fname = os.path.join(self.dir_path, "cityattrs.json")
         dicttojson(city_attrs, self.json_fname, indent=3)
 
-        with open(self.json_fname, "r") as f:
+        with open(self.json_fname) as f:
             json_content = f.read()
             self.assertIn('"inhabitants": 160215', json_content)
 
@@ -1019,9 +1019,7 @@ class TestDictToIni(DictTestCase):
         for key in testdict["simple_types"]:
             original = testdict["simple_types"][key]
             read = readdict["simple_types"][key]
-            self.assertEqual(
-                read, original, "Read <%s> instead of <%s>" % (read, original)
-            )
+            self.assertEqual(read, original, f"Read <{read}> instead of <{original}>")
 
         for key in testdict["containers"]:
             original = testdict["containers"][key]
@@ -1030,11 +1028,11 @@ class TestDictToIni(DictTestCase):
                 self.assertEqual(
                     read.all(),
                     original.all(),
-                    "Read <%s> instead of <%s>" % (read, original),
+                    f"Read <{read}> instead of <{original}>",
                 )
             else:
                 self.assertEqual(
-                    read, original, "Read <%s> instead of <%s>" % (read, original)
+                    read, original, f"Read <{read}> instead of <{original}>"
                 )
 
     def testConfigDictOrder(self):

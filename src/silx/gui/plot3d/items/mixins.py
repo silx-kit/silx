@@ -101,7 +101,7 @@ class ColormapMixIn(_ColormapMixIn):
     """
 
     def __init__(self, sceneColormap=None):
-        super(ColormapMixIn, self).__init__()
+        super().__init__()
 
         self.__sceneColormap = sceneColormap
         self._syncSceneColormap()
@@ -109,7 +109,7 @@ class ColormapMixIn(_ColormapMixIn):
     def _colormapChanged(self):
         """Handle colormap updates"""
         self._syncSceneColormap()
-        super(ColormapMixIn, self)._colormapChanged()
+        super()._colormapChanged()
 
     def _setSceneColormap(self, sceneColormap):
         """Set the scene colormap to sync with Colormap object.
@@ -288,5 +288,5 @@ class PlaneMixIn(ItemMixInBase):
         :param color: RGBA color as 4 floats in [0, 1]
         """
         self.__plane.color = rgba(color)
-        if hasattr(super(PlaneMixIn, self), "_setForegroundColor"):
-            super(PlaneMixIn, self)._setForegroundColor(color)
+        if hasattr(super(), "_setForegroundColor"):
+            super()._setForegroundColor(color)

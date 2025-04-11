@@ -604,7 +604,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         def formatKey(name, value):
             name, value = html.escape(str(name)), html.escape(str(value))
-            return "<li><b>%s</b>: %s</li>" % (name, value)
+            return f"<li><b>{name}</b>: {value}</li>"
 
         text = "<html>"
         text += "<h1>Event</h1>"

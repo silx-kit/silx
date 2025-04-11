@@ -40,7 +40,7 @@ from .SafeFileIconProvider import SafeFileIconProvider
 _logger = logging.getLogger(__name__)
 
 
-class _Item(object):
+class _Item:
     def __init__(self, fileInfo):
         self.__fileInfo = fileInfo
         self.__parent = None

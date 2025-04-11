@@ -201,7 +201,7 @@ class SaveAction(PlotAction):
                 dataKind="scatter", nameFilter=nameFilter, func=self._saveScatter
             )
 
-        super(SaveAction, self).__init__(
+        super().__init__(
             plot,
             icon="document-save",
             text="Save as...",
@@ -372,7 +372,7 @@ class SaveAction(PlotAction):
                 csvdelim=csvdelim,
                 autoheader=autoheader,
             )
-        except IOError:
+        except OSError:
             self._errorMessage("Save failed\n", parent=self.plot)
             return False
 
@@ -411,7 +411,7 @@ class SaveAction(PlotAction):
                 write_file_header=True,
                 close_file=False,
             )
-        except IOError:
+        except OSError:
             self._errorMessage("Save failed\n", parent=self.plot)
             return False
 
@@ -430,7 +430,7 @@ class SaveAction(PlotAction):
                     write_file_header=False,
                     close_file=False,
                 )
-            except IOError:
+            except OSError:
                 self._errorMessage("Save failed\n", parent=self.plot)
                 return False
         specfile.close()
@@ -468,7 +468,7 @@ class SaveAction(PlotAction):
         elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
                 numpy.save(filename, data)
-            except IOError:
+            except OSError:
                 self._errorMessage("Save failed\n", parent=self.plot)
                 return False
             return True
@@ -523,7 +523,7 @@ class SaveAction(PlotAction):
                     autoheader=True,
                 )
 
-            except IOError:
+            except OSError:
                 self._errorMessage("Save failed\n", parent=self.plot)
                 return False
             return True
@@ -758,7 +758,7 @@ class PrintAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(PrintAction, self).__init__(
+        super().__init__(
             plot,
             icon="document-print",
             text="Print...",
@@ -854,7 +854,7 @@ class CopyAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(CopyAction, self).__init__(
+        super().__init__(
             plot,
             icon="edit-copy",
             text="Copy plot",

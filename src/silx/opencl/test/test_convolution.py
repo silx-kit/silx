@@ -188,7 +188,7 @@ class ConvolutionData:
         ref_func = self.get_reference_function(test_name)
         ref = ref_func(data, kernel)
         metric = self.compare(res, ref)
-        logger.info("%s: max error = %.2e" % (test_name, metric))
+        logger.info(f"{test_name}: max error = {metric:.2e}")
         tol = self.tol[str("%dD" % kernel.ndim)]
         assert metric < tol, self.print_err(conv)
 

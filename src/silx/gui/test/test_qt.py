@@ -152,7 +152,7 @@ class TestLoadUi(TestCaseQt):
 
             class TestMainWindow(qt.QMainWindow):
                 def __init__(self, parent=None):
-                    super(TestMainWindow, self).__init__(parent)
+                    super().__init__(parent)
                     qt.loadUi(uifile, self)
 
             testMainWindow = TestMainWindow()

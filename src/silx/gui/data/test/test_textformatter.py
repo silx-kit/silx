@@ -101,7 +101,7 @@ class TestTextFormatter(TestCaseQt):
 class TestTextFormatterWithH5py(TestCaseQt):
     @classmethod
     def setUpClass(cls):
-        super(TestTextFormatterWithH5py, cls).setUpClass()
+        super().setUpClass()
 
         cls.tmpDirectory = tempfile.mkdtemp()
         cls.h5File = h5py.File("%s/formatter.h5" % cls.tmpDirectory, mode="w")
@@ -109,7 +109,7 @@ class TestTextFormatterWithH5py(TestCaseQt):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestTextFormatterWithH5py, cls).tearDownClass()
+        super().tearDownClass()
         cls.h5File.close()
         cls.h5File = None
         shutil.rmtree(cls.tmpDirectory)

@@ -31,7 +31,6 @@ import sys
 import os
 import platform
 import logging
-from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 
@@ -60,7 +59,7 @@ export LC_ALL=en_US.utf-8
 # ############## #
 
 
-def parse_env_as_bool(key: str, default: Optional[bool] = None) -> Optional[bool]:
+def parse_env_as_bool(key: str, default: bool | None = None) -> bool | None:
     """Parse `key` env. var. and convert its value to a boolean or None.
 
     If it cannot parse it or if None, `default` is returned.

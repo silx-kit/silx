@@ -34,7 +34,6 @@ import tempfile
 import numpy
 import shutil
 import os
-import io
 import weakref
 import fabio
 import h5py
@@ -83,7 +82,7 @@ def setUpModule():
     f.close()
 
     filename = _tmpDirectory + "/badformat.h5"
-    with io.open(filename, "wb") as f:
+    with open(filename, "wb") as f:
         f.write(b"{\nHello Nurse!")
 
 
@@ -99,7 +98,7 @@ def tearDownModule():
     _tmpDirectory = None
 
 
-class _UtilsMixin(object):
+class _UtilsMixin:
     def createDialog(self):
         self._deleteDialog()
         self._dialog = self._createDialog()

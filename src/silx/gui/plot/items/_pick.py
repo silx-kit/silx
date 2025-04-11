@@ -31,7 +31,7 @@ import numpy
 from silx._utils import NP_OPTIONAL_COPY
 
 
-class PickingResult(object):
+class PickingResult:
     """Class to access picking information in a :class:`PlotWidget`"""
 
     def __init__(self, item, indices=None):

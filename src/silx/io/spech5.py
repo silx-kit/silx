@@ -410,14 +410,14 @@ def spec_date_to_iso8601(date, zone=None):
             break
 
     if not grp_d:
-        raise ValueError("Date format not recognized : {0}".format(date))
+        raise ValueError(f"Date format not recognized : {date}")
 
     year = grp_d["year"]
 
     month = grp_d.get("month_nb")
 
     if not month:
-        month = "{0:02d}".format(months.index(grp_d.get("month")) + 1)
+        month = f"{months.index(grp_d.get('month')) + 1:02d}"
 
     day = grp_d["day_nb"]
 
@@ -425,9 +425,9 @@ def spec_date_to_iso8601(date, zone=None):
     if not tz:
         tz = zone
 
-    time = "{0}:{1}:{2}".format(grp_d["hh"], grp_d["mm"], grp_d["ss"])
+    time = f"{grp_d['hh']}:{grp_d['mm']}:{grp_d['ss']}"
 
-    full_date = "{0}-{1}-{2}T{3}{4}".format(year, month, day, time, tz if tz else "")
+    full_date = f"{year}-{month}-{day}T{time}{tz if tz else ''}"
     return full_date
 
 
@@ -459,7 +459,7 @@ def _demultiplex_mca(scan, analyser_index):
 
 
 # Node classes
-class SpecH5Dataset(object):
+class SpecH5Dataset:
     """This convenience class is to be inherited by all datasets, for
     compatibility purpose with code that tests for
     ``isinstance(obj, SpecH5Dataset)``.
@@ -541,7 +541,7 @@ class SpecH5LazyNodeDataset(commonh5.LazyLoadableDataset, SpecH5Dataset):
         raise NotImplementedError()
 
 
-class SpecH5Group(object):
+class SpecH5Group:
     """This convenience class is to be inherited by all groups, for
     compatibility purposes with code that tests for
     ``isinstance(obj, SpecH5Group)``.
@@ -867,7 +867,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
                 idx = self._analyser_index + spectrum_idx * self._num_analysers
                 return self._scan.mca[idx][channel_idx_or_slice]
 
-        return super(McaDataDataset, self).__getitem__(item)
+        return super().__getitem__(item)
 
 
 class MeasurementGroup(commonh5.Group, SpecH5Group):
