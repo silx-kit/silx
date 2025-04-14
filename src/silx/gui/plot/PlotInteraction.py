@@ -1644,7 +1644,10 @@ class PanAndSelect(ItemsInteraction):
 
 
 class DynamicColormapMode(ItemsInteraction):
+    ROI_SIZE = (10, 10) #(y,x)
+    
     def handleEvent(self, eventName, *args, **kwargs):
+        
         print("eventName is", eventName)
         super().handleEvent(eventName, *args, **kwargs)
         try:
@@ -1653,28 +1656,48 @@ class DynamicColormapMode(ItemsInteraction):
             return
 
         print("mouse positon is", x, y)
-        result = self.plot._pickTopMost(x, y)
-        item = result.getItem()
+        result = self.plot._pickTopMost(x, y, lambda i: isinstance(i, items.ImageBase))
+        if result is None:
+            print("Result is none")
+            raise RuntimeError("No item found at the given position")
+        else:
+            item = result.getItem()
         print(type(item))
         print("data is", item.getData())
         colormap = item.getColormap()
         print("colormap is", colormap)
         dataPos = self.plot.pixelToData(x, y)
         data = item.getData()
-        try:
-            data_value = data[int(dataPos[0]), int(dataPos[1])]
-        except IndexError as e:
-            print(e)
-            pass
-        else:
-            colormap.setVRange(data_value - 2, data_value + 2)
-            print("new v min and v max", colormap.vmin, colormap.vmax)
-            # colormap.vmax = data_value + 2
-            item.setColormap(colormap)
-            item.update()
 
-        print("data pos is", dataPos)
+        # Extract ROI min and max
+        idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
+        x_start = numpy.max((0,idx_x - self.ROI_SIZE[1]))
+        x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[0]))
+        y_start = numpy.max((0,idx_y - self.ROI_SIZE[0]))
+        y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[1]))
 
+        self.plot.addShape(
+            (x_start, x_start, x_end, x_end),
+            (y_start, y_end, y_end, y_start),
+            legend="ColorMap reference",
+            replace=False,
+            fill=False,
+            color='blue',
+            gapcolor=None,
+            linestyle="--",
+            overlay=True,
+            z=1,
+        )
+
+
+        data_value = data[y_start:y_end,x_start:x_end]
+        vmin = data_value.min()
+        vmax = data_value.max()
+
+        # Set new min and max
+        colormap.setVRange(vmin, vmax)
+        print("new v min and v max", colormap._vmin, colormap._vmax)
+        item.setColormap(colormap)
 
 # Interaction mode control ####################################################
 

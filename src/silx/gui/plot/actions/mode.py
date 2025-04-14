@@ -140,15 +140,17 @@ class PanModeAction(PlotAction):
 
 
 class DynamicColormapAction(PlotAction):
-    """
-    TODO
+    """QAction controlling the colormap mode of a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
     """
 
     def __init__(self, plot, parent=None):
         super().__init__(
             plot,
             icon="dynamic_colormap",  # TODO: add a dedicated icon
-            text="Colormap dynamic mode",
+            text="Dynamic Colormap mode",
             tooltip="Update the colormap according to the mouse position in the plot",
             triggered=self._actionTriggered,
             checkable=True,
