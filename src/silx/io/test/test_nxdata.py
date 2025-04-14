@@ -725,3 +725,25 @@ class TestGetDefault:
         )
         default = nxdata.get_default(hdf5_file)
         assert default is None
+
+
+def test_units(tmp_path):
+    with h5py.File(tmp_path / "nx.h5", "w") as h5file:
+        nxdata_grp = h5file.create_group("NXdata")
+        nxdata_grp.attrs["NX_class"] = "NXdata"
+        signal = nxdata_grp.create_dataset(
+            "Temperature", data=numpy.random.random((10, 20))
+        )
+        x = nxdata_grp.create_dataset("Latitude", data=numpy.linspace(0, 1, 10))
+        y = nxdata_grp.create_dataset("Longitude", data=numpy.linspace(0, 40, 20))
+        nxdata_grp.attrs["signal"] = "Temperature"
+        nxdata_grp.attrs["axes"] = ["Latitude", "Longitude"]
+        signal.attrs["units"] = "K"
+        x.attrs["units"] = "deg"
+        y.attrs["units"] = "sec"
+
+        nxd = nxdata.NXdata(nxdata_grp)
+        assert nxd.signal_name == "Temperature (K)"
+        assert len(nxd.axes_names) == 2
+        assert nxd.axes_names[0] == "Latitude (deg)"
+        assert nxd.axes_names[1] == "Longitude (sec)"

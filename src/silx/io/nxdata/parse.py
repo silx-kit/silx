@@ -52,6 +52,7 @@ from ._utils import (
     Interpretation,
     get_attr_as_unicode,
     INTERPDIM,
+    get_dataset_name,
     nxdata_logger,
     get_uncertainties_names,
     get_signal_name,
@@ -209,10 +210,7 @@ class NXdata:
             nxdata_logger.debug("%s", self.issues)
         else:
             self.signal = self.group[self.signal_dataset_name]
-            self.signal_name = get_attr_as_unicode(self.signal, "long_name")
-
-            if self.signal_name is None:
-                self.signal_name = self.signal_dataset_name
+            self.signal_name = get_dataset_name(self.group, self.signal_dataset_name)
 
             # ndim will be available in very recent h5py versions only
             self.signal_ndim = getattr(self.signal, "ndim", len(self.signal.shape))
@@ -222,15 +220,10 @@ class NXdata:
             self.signal_is_2d = self.signal_ndim == 2
             self.signal_is_3d = self.signal_ndim == 3
 
-            self.axes_names = []
-            # check if axis dataset defines @long_name
-            for _, dsname in enumerate(self.axes_dataset_names):
-                if dsname is not None and "long_name" in self.group[dsname].attrs:
-                    self.axes_names.append(
-                        get_attr_as_unicode(self.group[dsname], "long_name")
-                    )
-                else:
-                    self.axes_names.append(dsname)
+            self.axes_names = [
+                get_dataset_name(self.group, dsname)
+                for dsname in self.axes_dataset_names
+            ]
 
             # excludes scatters
             self.signal_is_1d = (
