@@ -168,8 +168,6 @@ class DynamicColormapAction(PlotAction):
         self.blockSignals(old)
 
     def _actionTriggered(self, checked=False):
-        print("triggered")
         plot = self.plot
         if plot is not None:
-            print("set dynamic_colormap")
             plot.setInteractiveMode("dynamic_colormap", source=self)
