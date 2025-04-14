@@ -29,7 +29,7 @@ cimport cython
 from libc.stdint cimport int32_t, uint32_t
 import numpy as np
 
-cimport silx.math.histogramnd_c as histogramnd_c
+cimport histogramnd_c
 
 
 def chistogramnd(sample,

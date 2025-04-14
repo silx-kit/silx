@@ -1,10 +1,9 @@
 subdir('marchingcubes')
 subdir('medianfilter')
 subdir('fit')
-subdir('include')
 subdir('fft')
-subdir('test')
 subdir('histogramnd')
+subdir('test')
 
 
 py.install_sources([
@@ -16,3 +15,11 @@ py.install_sources([
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/math',  # Folder relative to site-packages to install to
 )
+
+py.extension_module('_colormap', '_colormap.pyx',
+        subdir: 'silx/math',
+        dependencies : [py_dep, omp],
+        include_directories: ['include'], 
+        install: true, 
+        )
+
