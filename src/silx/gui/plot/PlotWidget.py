@@ -335,6 +335,13 @@ class PlotWidget(qt.QMainWindow):
     It provides the source as passed to :meth:`setInteractiveMode`.
     """
 
+    # sigDynamicColormapModeChanged = qt.Signal(object)
+    # """
+    # Signal emitted when the dynamic colormap changed
+
+    # It provides the source as passed to :meth:`setInteractiveMode`.
+    # """
+
     sigItemAdded = qt.Signal(items.Item)
     """Signal emitted when an item was just added to the plot
 
@@ -3670,7 +3677,7 @@ class PlotWidget(qt.QMainWindow):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
-        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
+        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom', 'dynamic_colormap'.
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
@@ -3722,7 +3729,7 @@ class PlotWidget(qt.QMainWindow):
         finally:
             self.__isInteractionSignalForwarded = True
 
-        if mode in ["pan", "zoom"]:
+        if mode in ["pan", "zoom", "dynamic_colormap"]:
             self._previousDefaultMode = mode, zoomOnWheel
 
         self.notify("interactiveModeChanged", source=source)

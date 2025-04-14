@@ -137,3 +137,37 @@ class PanModeAction(PlotAction):
         plot = self.plot
         if plot is not None:
             plot.setInteractiveMode("pan", source=self)
+
+
+class DynamicColormapAction(PlotAction):
+    """
+    TODO
+    """
+
+    def __init__(self, plot, parent=None):
+        super().__init__(
+            plot,
+            icon="dynamic_colormap",  # TODO: add a dedicated icon
+            text="Colormap dynamic mode",
+            tooltip="Update the colormap according to the mouse position in the plot",
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent,
+        )
+        # Listen to mode change
+        self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
+        # Init the state
+        self._modeChanged(None)
+
+    def _modeChanged(self, source):
+        modeDict = self.plot.getInteractiveMode()
+        old = self.blockSignals(True)
+        self.setChecked(modeDict["mode"] == "dynamic_colormap")
+        self.blockSignals(old)
+
+    def _actionTriggered(self, checked=False):
+        print("triggered")
+        plot = self.plot
+        if plot is not None:
+            print("set dynamic_colormap")
+            plot.setInteractiveMode("dynamic_colormap", source=self)

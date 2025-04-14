@@ -1643,6 +1643,39 @@ class PanAndSelect(ItemsInteraction):
             return super(PanAndSelect, self).endDrag(startPos, endPos, btn)
 
 
+class DynamicColormapMode(ItemsInteraction):
+    def handleEvent(self, eventName, *args, **kwargs):
+        print("eventName is", eventName)
+        super().handleEvent(eventName, *args, **kwargs)
+        try:
+            x, y = args[:2]
+        except ValueError:
+            return
+
+        print("mouse positon is", x, y)
+        result = self.plot._pickTopMost(x, y)
+        item = result.getItem()
+        print(type(item))
+        print("data is", item.getData())
+        colormap = item.getColormap()
+        print("colormap is", colormap)
+        dataPos = self.plot.pixelToData(x, y)
+        data = item.getData()
+        try:
+            data_value = data[int(dataPos[0]), int(dataPos[1])]
+        except IndexError as e:
+            print(e)
+            pass
+        else:
+            colormap.setVRange(data_value - 2, data_value + 2)
+            print("new v min and v max", colormap.vmin, colormap.vmax)
+            # colormap.vmax = data_value + 2
+            item.setColormap(colormap)
+            item.update()
+
+        print("data pos is", dataPos)
+
+
 # Interaction mode control ####################################################
 
 # Mapping of draw modes: event handler
@@ -1824,8 +1857,14 @@ class PlotInteraction(qt.QObject):
         :param str label: Only for 'draw' mode.
         :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ("draw", "pan", "select", "select-draw", "zoom")
-
+        assert mode in (
+            "draw",
+            "pan",
+            "select",
+            "select-draw",
+            "zoom",
+            "dynamic_colormap",
+        )
         plotWidget = self.parent()
         assert plotWidget is not None
 
@@ -1847,6 +1886,10 @@ class PlotInteraction(qt.QObject):
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plotWidget, color)
             self._eventHandler.zoomEnabledAxes = self.getZoomEnabledAxes()
+
+        elif mode == "dynamic_colormap":
+            self._eventHandler.cancel()
+            self._eventHandler = DynamicColormapMode(plotWidget)
 
         else:  # Default mode: interaction with plot objects
             # Ignores color, shape and label
