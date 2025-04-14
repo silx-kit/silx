@@ -733,10 +733,10 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.addAction(self.rectAction)
 
         self.ellipseAction = qt.QAction(
-            icons.getQIcon("shape-ellipse"), "Circle selection", self
+            icons.getQIcon("shape-ellipse"), "Elipse selection", self
         )
         self.ellipseAction.setToolTip(
-            "Rectangle selection tool: (Un)Mask a circle region <b>R</b>"
+            "Elipse selection tool: (Un)Mask a elipse region <b>R</b>"
         )
         self.ellipseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
         self.ellipseAction.setCheckable(True)
