@@ -62,7 +62,7 @@ ctypedef fused _floating:
 
 
 class _MinMaxResult(object):
-    """Object storing result from :func:`min_max`"""
+    """Result from :func:`min_max`"""
 
     def __init__(self, minimum, min_pos, maximum,
                  argmin, argmin_pos, argmax):
