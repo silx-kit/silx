@@ -1026,6 +1026,17 @@ class ColormapDialog(qt.QDialog):
             self._handleScaleToSelectionToggled, type=qt.Qt.QueuedConnection
         )
 
+        # dynamic colormap
+        self._dynamicColormap = qt.QPushButton(self)
+        self._dynamicColormap.setCheckable(True)
+        self._dynamicColormap.setEnabled(False)
+        self._dynamicColormap.setText("Dynamic colormap")
+        self._dynamicColormap.setIcon(icons.getQIcon("add-shape-rectangle"))
+        self._dynamicColormap.setCheckable(True)
+        self._dynamicColormap.toggled.connect(
+            self._handleDynamicColormap, type=qt.Qt.QueuedConnection
+        )
+
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
         self._buttonsModal = qt.QDialogButtonBox(parent=self)
