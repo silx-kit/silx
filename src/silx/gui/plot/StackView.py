@@ -545,17 +545,11 @@ class StackView(qt.QMainWindow):
         self._plot.setGraphTitle(self._titleCallback(frame_idx))
 
     def _defaultTitleCallback(self, index):
-        return f"{self._stack_name} z={self._getImageZ(index):g}"
+        title = self._stack_name or "Image"
+        return f"{title} z={self._getImageZ(index):g}"
 
     # public API, stack specific methods
-    def setStack(
-        self,
-        stack,
-        stack_name: str | None = None,
-        perspective=None,
-        reset=True,
-        calibrations=None,
-    ):
+    def setStack(self, stack, perspective=None, reset=True, calibrations=None):
         """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -566,7 +560,6 @@ class StackView(qt.QMainWindow):
         :param stack: 3D stack, or `None` to clear plot.
         :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
             numpy arrays, or None.
-        :param str stack_name: Name of the 3D stack.
         :param int perspective: Dimension for the frame index: 0, 1 or 2.
             Use ``None`` to keep the current perspective (default).
         :param bool reset: Whether to reset zoom or not.
@@ -599,7 +592,6 @@ class StackView(qt.QMainWindow):
         assert len(stack.shape) == 3, "data must be 3D"
 
         self._stack = stack
-        self._stack_name = stack_name or "Image"
         self.__createTransposedView()
 
         perspective_changed = False
@@ -674,6 +666,13 @@ class StackView(qt.QMainWindow):
             return self._stack.images, params
 
         return self._stack, params
+
+    def setStackName(self, name: str | None):
+        """Set the 3D stack name.
+
+        :param name: Name of the 3D stack.
+        """
+        self._stack_name = name
 
     def getCurrentView(self, copy=True, returnNumpyArray=False):
         """Get the stack, as it is currently displayed.

@@ -989,7 +989,6 @@ class ArrayStackPlot(qt.QWidget):
         """Update displayed stack according to the current axes selector
         data."""
         stack = self._axesSelector.selectedData()
-        stack_name = self.__signal_name
         x_axis = self.__x_axis
         y_axis = self.__y_axis
         z_axis = self.__z_axis
@@ -1014,9 +1013,8 @@ class ArrayStackPlot(qt.QWidget):
         legend = legend[:-2] + "]"
         self._legend.setText("Displayed data: " + legend)
 
-        self._stack_view.setStack(
-            stack, stack_name=stack_name, calibrations=calibrations
-        )
+        self._stack_view.setStack(stack, calibrations=calibrations)
+        self._stack_view.setStackName(self.__signal_name)
         self._stack_view.setLabels(
             labels=[self.__z_axis_name, self.__y_axis_name, self.__x_axis_name]
         )
