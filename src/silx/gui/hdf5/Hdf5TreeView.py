@@ -27,6 +27,7 @@ __license__ = "MIT"
 __date__ = "30/04/2018"
 
 
+import os
 import logging
 from .. import qt
 from ...utils import weakref as silxweakref
@@ -35,6 +36,7 @@ from .Hdf5HeaderView import Hdf5HeaderView
 from .NexusSortFilterProxyModel import NexusSortFilterProxyModel
 from .Hdf5Item import Hdf5Item
 from . import _utils
+from silx.io.url import DataUrl
 
 _logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ class Hdf5TreeView(qt.QTreeView):
     Context menu is managed by the :meth:`setContextMenuPolicy` with the value
     Qt.CustomContextMenu. This policy must not be changed, otherwise context
     menus will not work anymore. You can use :meth:`addContextMenuCallback` and
-    :meth:`removeContextMenuCallback` to add your custum actions according
+    :meth:`removeContextMenuCallback` to add your custom actions according
     to the selected objects.
     """
 
@@ -277,3 +279,48 @@ class Hdf5TreeView(qt.QTreeView):
         if event.button() != qt.Qt.LeftButton:
             qindex = self.indexAt(event.pos())
             self.clicked.emit(qindex)
+
+    def findHdf5Object(self, url: DataUrl) -> Hdf5Item | None:
+        """Return the Hdf5Object matching the url if exists in the model. Else None"""
+        model = self.findHdf5TreeModel()
+        # model.findNode(url=url)
+
+        file_name = url.file_path()
+
+        def find_node(start_index: qt.QModelIndex, name: str) -> qt.QModelIndex:
+            matching_items = model.match(
+                start_index,
+                qt.Qt.DisplayRole,
+                name,
+            )
+            if len(matching_items) == 0:
+                return None
+            if len(matching_items) > 0:
+                _logger.warning(
+                    f"More than one item found matching {name}. Pick the first one"
+                )
+
+            return matching_items[0]
+
+        start_index = find_node(
+            start_index=model.index(0, 0), name=os.path.basename(file_name)
+        )
+        node = model.nodeFromIndex(start_index)
+
+        # find file name
+        node_names = filter(None, url.data_path().split("/"))
+
+        def find_children(
+            parent_node: Hdf5Item, child_node_name: str
+        ) -> Hdf5Item | None:
+            # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
+            "cannot use the default 'search' function as the item is not inheriting from the default QTreeItem..."
+            for i in range(parent_node.childCount()):
+                if parent_node.child(i).basename == child_node_name:
+                    return node.child(i)
+
+        for node_name in node_names:
+            # find file name
+            node = find_children(parent_node=node, child_node_name=node_name)
+
+        return node
