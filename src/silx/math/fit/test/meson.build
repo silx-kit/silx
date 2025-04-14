@@ -7,7 +7,7 @@ py.install_sources([
     'test_fitmanager.py',
     'test_functions.py',
     'test_peaks.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/math/fit/test',  # Folder relative to site-packages to install to
 )

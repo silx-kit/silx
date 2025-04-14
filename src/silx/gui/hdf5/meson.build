@@ -1,5 +1,6 @@
 subdir('test')
 
+
 py.install_sources([
     'Hdf5Formatter.py',
     'Hdf5HeaderView.py',
@@ -11,7 +12,7 @@ py.install_sources([
     'NexusSortFilterProxyModel.py',
     '__init__.py',
     '_utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/hdf5',  # Folder relative to site-packages to install to
 )

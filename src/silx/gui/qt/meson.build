@@ -6,7 +6,7 @@ py.install_sources([
     '_qt.py',
     '_utils.py',
     'inspect.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/qt',  # Folder relative to site-packages to install to
 )

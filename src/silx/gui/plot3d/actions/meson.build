@@ -5,7 +5,7 @@ py.install_sources([
     'io.py',
     'mode.py',
     'viewpoint.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot3d/actions',  # Folder relative to site-packages to install to
 )

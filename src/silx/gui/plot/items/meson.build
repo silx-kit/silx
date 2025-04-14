@@ -16,7 +16,7 @@ py.install_sources([
     'roi.py',
     'scatter.py',
     'shape.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/items',  # Folder relative to site-packages to install to
 )

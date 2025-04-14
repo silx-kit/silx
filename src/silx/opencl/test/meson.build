@@ -14,7 +14,7 @@ py.install_sources([
     'test_projection.py',
     'test_sparse.py',
     'test_stats.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/opencl/test',  # Folder relative to site-packages to install to
 )

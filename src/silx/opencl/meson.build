@@ -2,6 +2,7 @@ subdir('codec')
 subdir('sift')
 subdir('test')
 
+
 py.install_sources([
     '__init__.py',
     'atomic.py',
@@ -19,7 +20,7 @@ py.install_sources([
     'sparse.py',
     'statistics.py',
     'utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/opencl',  # Folder relative to site-packages to install to
 )

@@ -13,7 +13,7 @@ py.install_sources([
     'test_preproc.py',
     'test_reductions.py',
     'test_transform.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/opencl/sift/test',  # Folder relative to site-packages to install to
 )

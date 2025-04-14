@@ -1,6 +1,7 @@
 subdir('marchingsquares')
 subdir('test')
 
+
 py.install_sources([
     '__init__.py',
     '_boundingbox.py',
@@ -12,7 +13,7 @@ py.install_sources([
     'sift.py',
     'tomography.py',
     'utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/image',  # Folder relative to site-packages to install to
 )

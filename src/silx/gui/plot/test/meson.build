@@ -31,7 +31,7 @@ py.install_sources([
     'test_stats.py',
     'test_utilsaxis.py',
     'utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/test',  # Folder relative to site-packages to install to
 )

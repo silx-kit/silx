@@ -1,5 +1,6 @@
 subdir('test')
 
+
 py.install_sources([
     'Context.py',
     'FramebufferTexture.py',
@@ -11,7 +12,7 @@ py.install_sources([
     'font.py',
     'gl.py',
     'utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/_glutils',  # Folder relative to site-packages to install to
 )

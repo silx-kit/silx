@@ -7,6 +7,7 @@ subdir('backends')
 subdir('actions')
 subdir('test')
 
+
 py.install_sources([
     'AlphaSlider.py',
     'ColorBar.py',
@@ -34,7 +35,7 @@ py.install_sources([
     'StatsWidget.py',
     '_BaseMaskToolsWidget.py',
     '__init__.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot',  # Folder relative to site-packages to install to
 )

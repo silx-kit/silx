@@ -18,7 +18,7 @@ py.install_sources([
     'test_url.py',
     'test_utils.py',
     'test_write_to_h5.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/io/test',  # Folder relative to site-packages to install to
 )

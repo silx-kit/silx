@@ -1,6 +1,7 @@
 subdir('include')
 subdir('test')
 
+
 py.install_sources([
     'ExternalResources.py',
     '__init__.py',
@@ -17,7 +18,7 @@ py.install_sources([
     'retry.py',
     'testutils.py',
     'weakref.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/utils',  # Folder relative to site-packages to install to
 )

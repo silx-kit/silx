@@ -2,6 +2,7 @@ subdir('nxdata')
 subdir('specfile')
 subdir('test')
 
+
 py.install_sources([
     '__init__.py',
     '_sliceh5.py',
@@ -19,7 +20,7 @@ py.install_sources([
     'spech5.py',
     'url.py',
     'utils.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/io',  # Folder relative to site-packages to install to
 )

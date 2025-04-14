@@ -1,10 +1,95 @@
-[build-system]
-requires = [
-    "wheel",
-    "setuptools",
-    "Cython>=0.29.31"
+[project]
+name = 'silx'
+dynamic = ['version',]
+license = {file = 'copyright'}
+requires-python = '>=3.10'
+readme = 'README.rst'
+description = 'Silx tool-kit: collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities'
+authors = [
+  { name = 'Data Analysis unit, ISDD, ESRF', email = 'silx@esrf.fr'},
+  { name = 'Data automation unit, ISDD, ESRF', email = 'silx@esrf.fr'},
+  { name = 'Algorithms & Data Analysis, ExpD, ESRF', email = 'silx@esrf.fr'},
 ]
-build-backend = "setuptools.build_meta"
+
+# double check classifiers on https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = ["Development Status :: 5 - Production/Stable",
+               "Environment :: Console",
+               "Environment :: MacOS X",
+               "Environment :: Win32 (MS Windows)",
+               "Environment :: X11 Applications :: Qt",
+               "Intended Audience :: Education",
+               "Intended Audience :: Science/Research",
+               "License :: OSI Approved :: MIT License",
+               "Natural Language :: English",
+               "Operating System :: MacOS",
+               "Operating System :: Microsoft :: Windows",
+               "Operating System :: POSIX",
+               "Programming Language :: Cython",
+               "Programming Language :: Python :: 3",
+               "Programming Language :: Python :: Implementation :: CPython",
+               "Topic :: Scientific/Engineering :: Physics",
+               "Topic :: Software Development :: Libraries :: Python Modules",
+               ]
+
+dependencies = [
+   'numpy>=1.10',
+   'packaging',
+   'h5py',
+   'fabio>0.9',
+]
+
+[build-system]
+build-backend = 'mesonpy'
+requires = [
+    'meson-python>=0.11',
+    "meson>=1.1",
+    'ninja',
+    'wheel',
+    'oldest-supported-numpy',
+    'Cython>=0.29.31',
+    'pyproject-metadata>=0.5.0',
+    "tomli>=1.0.0; python_version < '3.12'"
+]
+
+[project.optional-dependencies]
+gui = [ "PySide6Q" ]
+opencl = [ "pyopencl" ]
+all = ["PySide6", "pyopencl", "hdf5plugin"]
+
+[project.urls]
+homepage = 'http://www.silx.org'
+documentation = 'http://www.silx.org/doc/pyFAI/latest/'
+source = 'https://github.com/silx-kit/silx'
+download = 'https://github.com/silx-kit/silx/releases'
+tracker = 'https://github.com/silx-kit/silx/issues'
+
+[project.scripts]
+check_calib = 'pyFAI.app.check_calib:main'
+detector2nexus = 'pyFAI.app.detector2nexus:main'
+diff_map = 'pyFAI.app.diff_map:main'
+diff_tomo = 'pyFAI.app.diff_tomo:main'
+eiger-mask = 'pyFAI.app.eiger_mask:main'
+MX-calibrate = 'pyFAI.app.mx_calibrate:main'
+pyFAI-average = 'pyFAI.app.average:main'
+pyFAI-benchmark = 'pyFAI.app.benchmark:main'
+pyFAI-calib = 'pyFAI.app.calib:main'
+pyFAI-recalib = 'pyFAI.app.recalib:main'
+pyFAI-saxs = 'pyFAI.app.saxs:main'
+pyFAI-waxs = 'pyFAI.app.waxs:main'
+sparsify-Bragg = 'pyFAI.app.sparsify:main'
+peakfinder = 'pyFAI.app.peakfinder:main'
+
+[project.gui-scripts]
+pyFAI-calib2 = 'pyFAI.app.calib2:main'
+pyFAI-drawmask = 'pyFAI.app.drawmask:main'
+pyFAI-diffmap = 'pyFAI.app.diff_map:main'
+pyFAI-integrate = 'pyFAI.app.integrate:main'
+pyFAI-diffmap-view = 'pyFAI.app.pilx:main'
+
+[tool.cibuildwheel]
+# Skip 32-bit builds and PyPy
+skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
+
 
 [tool.black]
 required-version = 25

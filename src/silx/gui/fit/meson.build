@@ -1,5 +1,6 @@
 subdir('test')
 
+
 py.install_sources([
     'BackgroundWidget.py',
     'FitConfig.py',
@@ -7,7 +8,7 @@ py.install_sources([
     'FitWidgets.py',
     'Parameters.py',
     '__init__.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/fit',  # Folder relative to site-packages to install to
 )

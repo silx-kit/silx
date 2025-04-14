@@ -16,7 +16,7 @@ py.install_sources([
     'test_threadpoolpushbutton.py',
     'test_urlselectiontable.py',
     'test_waitingoverlay.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/widgets/test',  # Folder relative to site-packages to install to
 )

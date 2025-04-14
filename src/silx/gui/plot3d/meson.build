@@ -6,6 +6,7 @@ subdir('scene')
 subdir('actions')
 subdir('test')
 
+
 py.install_sources([
     'ParamTreeView.py',
     'Plot3DWidget.py',
@@ -16,7 +17,7 @@ py.install_sources([
     'SceneWindow.py',
     '__init__.py',
     'conftest.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot3d',  # Folder relative to site-packages to install to
 )

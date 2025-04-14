@@ -9,7 +9,7 @@ py.install_sources([
     'mixins.py',
     'scatter.py',
     'volume.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot3d/items',  # Folder relative to site-packages to install to
 )

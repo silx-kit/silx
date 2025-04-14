@@ -1,5 +1,6 @@
 subdir('test')
 
+
 py.install_sources([
     'ArrayTableModel.py',
     'ArrayTableWidget.py',
@@ -16,7 +17,7 @@ py.install_sources([
     '_RecordPlot.py',
     '_VolumeWindow.py',
     '__init__.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/data',  # Folder relative to site-packages to install to
 )

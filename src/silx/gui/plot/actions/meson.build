@@ -10,7 +10,7 @@ py.install_sources([
     'io.py',
     'medfilt.py',
     'mode.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/actions',  # Folder relative to site-packages to install to
 )

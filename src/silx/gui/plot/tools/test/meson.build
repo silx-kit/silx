@@ -7,7 +7,7 @@ py.install_sources([
     'test_roiitems.py',
     'test_scatterprofiletoolbar.py',
     'test_tools.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/tools/test',  # Folder relative to site-packages to install to
 )

@@ -5,7 +5,7 @@ py.install_sources([
     'profile.py',
     'statusbar.py',
     'toolbar.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/tools/compare',  # Folder relative to site-packages to install to
 )

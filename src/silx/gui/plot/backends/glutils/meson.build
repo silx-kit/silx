@@ -10,7 +10,7 @@ py.install_sources([
     'GLTexture.py',
     'PlotImageFile.py',
     '__init__.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot/backends/glutils',  # Folder relative to site-packages to install to
 )

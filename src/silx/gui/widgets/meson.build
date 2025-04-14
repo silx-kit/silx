@@ -1,5 +1,6 @@
 subdir('test')
 
+
 py.install_sources([
     'BoxLayoutDockWidget.py',
     'ColormapNameComboBox.py',
@@ -24,7 +25,7 @@ py.install_sources([
     'WaitingOverlay.py',
     'WaitingPushButton.py',
     '__init__.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/widgets',  # Folder relative to site-packages to install to
 )

@@ -13,7 +13,7 @@ py.install_sources([
     'test_retry.py',
     'test_testutils.py',
     'test_weakref.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/utils/test',  # Folder relative to site-packages to install to
 )

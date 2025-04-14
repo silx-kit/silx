@@ -7,7 +7,7 @@ py.install_sources([
     'test_scenewidgetpicking.py',
     'test_scenewindow.py',
     'test_statswidget.py',
-]
+],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/gui/plot3d/test',  # Folder relative to site-packages to install to
 )
