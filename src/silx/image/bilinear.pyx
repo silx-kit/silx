@@ -193,16 +193,18 @@ cdef class BilinearImage:
                         res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
                             + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
                             + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
-                            + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))                    
+                            + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
                     else:
                         res = (m0 * self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
                             + (m1 * self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
                             + (m2 * self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
                             + (m3 * self.data[i1, j1] * (d0 - x0) * (d1 - y0))
-                        scale = ((m0 * (x1 - d0) * (y1 - d1)) 
-                               + (m1 * (d0 - x0) * (y1 - d1))
-                               + (m2 * (x1 - d0) * (d1 - y0))
-                               + (m3 * (d0 - x0) * (d1 - y0)))
+                        scale = (
+                            (m0 * (x1 - d0) * (y1 - d1))
+                            + (m1 * (d0 - x0) * (y1 - d1))
+                            + (m2 * (x1 - d0) * (d1 - y0))
+                            + (m3 * (d0 - x0) * (d1 - y0))
+                        )
                         res /= scale
             else:
                 res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
