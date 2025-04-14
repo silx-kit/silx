@@ -67,7 +67,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 cimport cython
-cimport silx.math.fit.filters_wrapper as filters_wrapper
+cimport filters_wrapper
 
 
 def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
