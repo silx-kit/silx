@@ -36,7 +36,7 @@ from silx.gui.plot.ComplexImageView import ComplexImageView
 from silx.gui.plot.items.image_aggregated import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
 from silx.gui.colors import Colormap
-from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+from silx.gui.widgets.SignalSelector import SignalSelector
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -159,8 +159,8 @@ class ArrayCurvePlot(qt.QWidget):
             self.__axes_selector_is_connected = True
 
     def _updateCurve(self):
-        selection = self._axesSelector.selection()
-        ys = [sig[selection] for sig in self.__signals]
+        axes_selection = self._axesSelector.selection()
+        ys = [sig[axes_selection] for sig in self.__signals]
         y0 = ys[0]
         len_y = len(y0)
         x = self.__axis
@@ -246,20 +246,17 @@ class XYVScatterPlot(qt.QWidget):
             )
         )
 
-        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
-        self._auxSigSlider.setMinimum(0)
-        self._auxSigSlider.setValue(0)
-        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
-        self._auxSigSlider.setToolTip("Select auxiliary signals")
+        self._signalSelector = SignalSelector(parent=self)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0)
-        layout.addWidget(self._auxSigSlider, 1, 0)
+        layout.addWidget(self._signalSelector, 1, 0)
 
         self.setLayout(layout)
 
-    def _sliderIdxChanged(self, value):
+    def _signalChanges(self, value):
         self._updateScatter()
 
     def getScatterView(self):
@@ -292,7 +289,7 @@ class XYVScatterPlot(qt.QWidget):
     ):
         """
 
-        :param ndarray y: 1D array  for y (vertical) coordinates.
+        :param ndarray y: 1D array for y (vertical) coordinates.
         :param ndarray x: 1D array for x coordinates.
         :param List[ndarray] values: List of 1D arrays of values.
             This will be used to compute the color map and assign colors
@@ -318,14 +315,14 @@ class XYVScatterPlot(qt.QWidget):
         self.__graph_title = title or ""
         self.__scatter_titles = scatter_titles
 
-        self._auxSigSlider.valueChanged[int].disconnect(self._sliderIdxChanged)
-        self._auxSigSlider.setMaximum(len(values) - 1)
-        if len(values) > 1:
-            self._auxSigSlider.show()
+        self._signalSelector.selectionChanged.disconnect(self._signalChanges)
+        self._signalSelector.setSignalNames(scatter_titles)
+        if len(scatter_titles) > 1:
+            self._signalSelector.show()
         else:
-            self._auxSigSlider.hide()
-        self._auxSigSlider.setValue(0)
-        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
+            self._signalSelector.hide()
+        self._signalSelector.setSignalIndex(0)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         if xscale is not None:
             self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
@@ -338,7 +335,7 @@ class XYVScatterPlot(qt.QWidget):
         x = self.__x_axis
         y = self.__y_axis
 
-        idx = self._auxSigSlider.value()
+        idx = self._signalSelector.getSignalIndex()
 
         if self.__graph_title:
             title = self.__graph_title  # main NXdata @title
@@ -411,16 +408,13 @@ class ArrayImagePlot(qt.QWidget):
         self._axesSelector.setNamedAxesSelectorVisibility(False)
         self._axesSelector.selectionChanged.connect(self._updateImage)
 
-        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
-        self._auxSigSlider.setMinimum(0)
-        self._auxSigSlider.setValue(0)
-        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
-        self._auxSigSlider.setToolTip("Select auxiliary signals")
+        self._signalSelector = SignalSelector(parent=self)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
         layout.addWidget(self._axesSelector)
-        layout.addWidget(self._auxSigSlider)
+        layout.addWidget(self._signalSelector)
 
         self.setLayout(layout)
 
@@ -445,7 +439,7 @@ class ArrayImagePlot(qt.QWidget):
                 self.getAggregationModeAction().getAggregationMode()
             )
 
-    def _sliderIdxChanged(self, value):
+    def _signalChanges(self, value):
         self._updateImage()
 
     def getPlot(self):
@@ -489,7 +483,7 @@ class ArrayImagePlot(qt.QWidget):
         :param keep_ratio: Toggle plot keep aspect ratio
         """
         self._axesSelector.selectionChanged.disconnect(self._updateImage)
-        self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
+        self._signalSelector.selectionChanged.disconnect(self._signalChanges)
 
         self.__signals = signals
         self.__signals_names = signals_names
@@ -513,30 +507,30 @@ class ArrayImagePlot(qt.QWidget):
         else:
             self._axesSelector.show()
 
-        self._auxSigSlider.setMaximum(len(signals) - 1)
+        self._signalSelector.setSignalNames(signals_names)
         if len(signals) > 1:
-            self._auxSigSlider.show()
+            self._signalSelector.show()
         else:
-            self._auxSigSlider.hide()
-        self._auxSigSlider.setValue(0)
+            self._signalSelector.hide()
+        self._signalSelector.setSignalIndex(0)
 
         self._axis_scales = xscale, yscale
 
         self._axesSelector.selectionChanged.connect(self._updateImage)
-        self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         self._updateImage()
         self._plot.setKeepDataAspectRatio(keep_ratio)
         self._plot.resetZoom()
 
     def _updateImage(self):
-        selection = self._axesSelector.selection()
-        auxSigIdx = self._auxSigSlider.value()
+        axes_selection = self._axesSelector.selection()
+        signal_index = self._signalSelector.getSignalIndex()
 
-        legend = self.__signals_names[auxSigIdx]
+        legend = self.__signals_names[signal_index]
 
-        images = [img[selection] for img in self.__signals]
-        image = images[auxSigIdx]
+        images = [img[axes_selection] for img in self.__signals]
+        image = images[signal_index]
 
         x_axis = self.__x_axis
         y_axis = self.__y_axis
@@ -624,9 +618,9 @@ class ArrayImagePlot(qt.QWidget):
             title = self.__title
             if len(self.__signals_names) > 1:
                 # Append dataset name only when there is many datasets
-                title += "\n" + self.__signals_names[auxSigIdx]
+                title += "\n" + self.__signals_names[signal_index]
         else:
-            title = self.__signals_names[auxSigIdx]
+            title = self.__signals_names[signal_index]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
@@ -689,20 +683,17 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._axesSelector.setNamedAxesSelectorVisibility(False)
         self._axesSelector.selectionChanged.connect(self._updateImage)
 
-        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
-        self._auxSigSlider.setMinimum(0)
-        self._auxSigSlider.setValue(0)
-        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
-        self._auxSigSlider.setToolTip("Select auxiliary signals")
+        self._signalSelector = SignalSelector(parent=self)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
         layout.addWidget(self._axesSelector)
-        layout.addWidget(self._auxSigSlider)
+        layout.addWidget(self._signalSelector)
 
         self.setLayout(layout)
 
-    def _sliderIdxChanged(self, value):
+    def _signalChanges(self, value):
         self._updateImage()
 
     def getPlot(self):
@@ -740,7 +731,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         :param keep_ratio: Toggle plot keep aspect ratio
         """
         self._axesSelector.selectionChanged.disconnect(self._updateImage)
-        self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
+        self._signalSelector.selectionChanged.disconnect(self._signalChanges)
 
         self.__signals = signals
         self.__signals_names = signals_names
@@ -759,26 +750,26 @@ class ArrayComplexImagePlot(qt.QWidget):
         else:
             self._axesSelector.show()
 
-        self._auxSigSlider.setMaximum(len(signals) - 1)
+        self._signalSelector.setSignalNames(signals_names)
         if len(signals) > 1:
-            self._auxSigSlider.show()
+            self._signalSelector.show()
         else:
-            self._auxSigSlider.hide()
-        self._auxSigSlider.setValue(0)
+            self._signalSelector.hide()
+        self._signalSelector.setSignalIndex(0)
 
         self._updateImage()
         self._plot.setKeepDataAspectRatio(keep_ratio)
         self._plot.getPlot().resetZoom()
 
         self._axesSelector.selectionChanged.connect(self._updateImage)
-        self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
+        self._signalSelector.selectionChanged.connect(self._signalChanges)
 
     def _updateImage(self):
-        selection = self._axesSelector.selection()
-        auxSigIdx = self._auxSigSlider.value()
+        axes_selection = self._axesSelector.selection()
+        signal_index = self._signalSelector.getSignalIndex()
 
-        images = [img[selection] for img in self.__signals]
-        image = images[auxSigIdx]
+        images = [img[axes_selection] for img in self.__signals]
+        image = images[signal_index]
 
         x_axis = self.__x_axis
         y_axis = self.__y_axis
@@ -833,9 +824,9 @@ class ArrayComplexImagePlot(qt.QWidget):
             title = self.__title
             if len(self.__signals_names) > 1:
                 # Append dataset name only when there is many datasets
-                title += "\n" + self.__signals_names[auxSigIdx]
+                title += "\n" + self.__signals_names[signal_index]
         else:
-            title = self.__signals_names[auxSigIdx]
+            title = self.__signals_names[signal_index]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
