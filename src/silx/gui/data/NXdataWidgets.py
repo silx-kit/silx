@@ -79,16 +79,16 @@ class ArrayCurvePlot(qt.QWidget):
         self._plot = Plot1D(self)
         self._plot.setGraphGrid(True)
 
-        self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
-        self.__selector_is_connected = False
+        self._axesSelector = NumpyAxesSelector(self)
+        self._axesSelector.setNamedAxesSelectorVisibility(False)
+        self.__axes_selector_is_connected = False
 
         self._plot.sigActiveCurveChanged.connect(self._setYLabelFromActiveLegend)
 
         layout = qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot)
-        layout.addWidget(self._selector)
+        layout.addWidget(self._axesSelector)
 
         self.setLayout(layout)
 
@@ -136,16 +136,16 @@ class ArrayCurvePlot(qt.QWidget):
         self.__axis_name = xlabel
         self.__x_axis_errors = xerror
 
-        if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._updateCurve)
-            self.__selector_is_connected = False
-        self._selector.setData(ys[0])
-        self._selector.setAxisNames(["Y"])
+        if self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.disconnect(self._updateCurve)
+            self.__axes_selector_is_connected = False
+        self._axesSelector.setData(ys[0])
+        self._axesSelector.setAxisNames(["Y"])
 
         if len(ys[0].shape) < 2:
-            self._selector.hide()
+            self._axesSelector.hide()
         else:
-            self._selector.show()
+            self._axesSelector.show()
 
         self._plot.setGraphTitle(title or "")
         if xscale is not None:
@@ -154,12 +154,12 @@ class ArrayCurvePlot(qt.QWidget):
             self._plot.getYAxis().setScale("log" if yscale == "log" else "linear")
         self._updateCurve()
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateCurve)
-            self.__selector_is_connected = True
+        if not self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.connect(self._updateCurve)
+            self.__axes_selector_is_connected = True
 
     def _updateCurve(self):
-        selection = self._selector.selection()
+        selection = self._axesSelector.selection()
         ys = [sig[selection] for sig in self.__signals]
         y0 = ys[0]
         len_y = len(y0)
@@ -188,7 +188,7 @@ class ArrayCurvePlot(qt.QWidget):
             # errors only supported for primary signal in NXdata
             y_errors = None
             if i == 0 and self.__signal_errors is not None:
-                y_errors = self.__signal_errors[self._selector.selection()]
+                y_errors = self.__signal_errors[self._axesSelector.selection()]
             self._plot.addCurve(
                 x, ys[i], legend=legend, xerror=self.__x_axis_errors, yerror=y_errors
             )
@@ -206,9 +206,9 @@ class ArrayCurvePlot(qt.QWidget):
                 break
 
     def clear(self):
-        old = self._selector.blockSignals(True)
-        self._selector.clear()
-        self._selector.blockSignals(old)
+        old = self._axesSelector.blockSignals(True)
+        self._axesSelector.clear()
+        self._axesSelector.blockSignals(old)
         self._plot.clear()
 
 
@@ -407,9 +407,9 @@ class ArrayImagePlot(qt.QWidget):
         maskToolWidget.setItemMaskUpdated(True)
 
         # not closable
-        self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
-        self._selector.selectionChanged.connect(self._updateImage)
+        self._axesSelector = NumpyAxesSelector(self)
+        self._axesSelector.setNamedAxesSelectorVisibility(False)
+        self._axesSelector.selectionChanged.connect(self._updateImage)
 
         self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
         self._auxSigSlider.setMinimum(0)
@@ -419,7 +419,7 @@ class ArrayImagePlot(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
-        layout.addWidget(self._selector)
+        layout.addWidget(self._axesSelector)
         layout.addWidget(self._auxSigSlider)
 
         self.setLayout(layout)
@@ -488,7 +488,7 @@ class ArrayImagePlot(qt.QWidget):
         :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         :param keep_ratio: Toggle plot keep aspect ratio
         """
-        self._selector.selectionChanged.disconnect(self._updateImage)
+        self._axesSelector.selectionChanged.disconnect(self._updateImage)
         self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
 
         self.__signals = signals
@@ -499,19 +499,19 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
         self.__title = title
 
-        self._selector.clear()
+        self._axesSelector.clear()
         if not isRgba:
-            self._selector.setAxisNames(["Y", "X"])
+            self._axesSelector.setAxisNames(["Y", "X"])
             img_ndim = 2
         else:
-            self._selector.setAxisNames(["Y", "X", "RGB(A) channel"])
+            self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
             img_ndim = 3
-        self._selector.setData(signals[0])
+        self._axesSelector.setData(signals[0])
 
         if len(signals[0].shape) <= img_ndim:
-            self._selector.hide()
+            self._axesSelector.hide()
         else:
-            self._selector.show()
+            self._axesSelector.show()
 
         self._auxSigSlider.setMaximum(len(signals) - 1)
         if len(signals) > 1:
@@ -522,7 +522,7 @@ class ArrayImagePlot(qt.QWidget):
 
         self._axis_scales = xscale, yscale
 
-        self._selector.selectionChanged.connect(self._updateImage)
+        self._axesSelector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
 
         self._updateImage()
@@ -530,7 +530,7 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.resetZoom()
 
     def _updateImage(self):
-        selection = self._selector.selection()
+        selection = self._axesSelector.selection()
         auxSigIdx = self._auxSigSlider.value()
 
         legend = self.__signals_names[auxSigIdx]
@@ -632,9 +632,9 @@ class ArrayImagePlot(qt.QWidget):
         self._plot.getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
-        old = self._selector.blockSignals(True)
-        self._selector.clear()
-        self._selector.blockSignals(old)
+        old = self._axesSelector.blockSignals(True)
+        self._axesSelector.clear()
+        self._axesSelector.blockSignals(old)
         self._plot.clear()
 
 
@@ -685,9 +685,9 @@ class ArrayComplexImagePlot(qt.QWidget):
         maskToolWidget.setItemMaskUpdated(True)
 
         # not closable
-        self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
-        self._selector.selectionChanged.connect(self._updateImage)
+        self._axesSelector = NumpyAxesSelector(self)
+        self._axesSelector.setNamedAxesSelectorVisibility(False)
+        self._axesSelector.selectionChanged.connect(self._updateImage)
 
         self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
         self._auxSigSlider.setMinimum(0)
@@ -697,7 +697,7 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
-        layout.addWidget(self._selector)
+        layout.addWidget(self._axesSelector)
         layout.addWidget(self._auxSigSlider)
 
         self.setLayout(layout)
@@ -739,7 +739,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         :param title: Graph title
         :param keep_ratio: Toggle plot keep aspect ratio
         """
-        self._selector.selectionChanged.disconnect(self._updateImage)
+        self._axesSelector.selectionChanged.disconnect(self._updateImage)
         self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
 
         self.__signals = signals
@@ -750,14 +750,14 @@ class ArrayComplexImagePlot(qt.QWidget):
         self.__y_axis_name = ylabel
         self.__title = title
 
-        self._selector.clear()
-        self._selector.setAxisNames(["Y", "X"])
-        self._selector.setData(signals[0])
+        self._axesSelector.clear()
+        self._axesSelector.setAxisNames(["Y", "X"])
+        self._axesSelector.setData(signals[0])
 
         if len(signals[0].shape) <= 2:
-            self._selector.hide()
+            self._axesSelector.hide()
         else:
-            self._selector.show()
+            self._axesSelector.show()
 
         self._auxSigSlider.setMaximum(len(signals) - 1)
         if len(signals) > 1:
@@ -770,11 +770,11 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setKeepDataAspectRatio(keep_ratio)
         self._plot.getPlot().resetZoom()
 
-        self._selector.selectionChanged.connect(self._updateImage)
+        self._axesSelector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
 
     def _updateImage(self):
-        selection = self._selector.selection()
+        selection = self._axesSelector.selection()
         auxSigIdx = self._auxSigSlider.value()
 
         images = [img[selection] for img in self.__signals]
@@ -841,9 +841,9 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.getYAxis().setLabel(self.__y_axis_name)
 
     def clear(self):
-        old = self._selector.blockSignals(True)
-        self._selector.clear()
-        self._selector.blockSignals(old)
+        old = self._axesSelector.blockSignals(True)
+        self._axesSelector.clear()
+        self._axesSelector.blockSignals(old)
         self._plot.setData(None)
 
 
@@ -889,15 +889,15 @@ class ArrayStackPlot(qt.QWidget):
         self._hline.setFrameStyle(qt.QFrame.HLine)
         self._hline.setFrameShadow(qt.QFrame.Sunken)
         self._legend = qt.QLabel(self)
-        self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
-        self.__selector_is_connected = False
+        self._axesSelector = NumpyAxesSelector(self)
+        self._axesSelector.setNamedAxesSelectorVisibility(False)
+        self.__axes_selector_is_connected = False
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._stack_view)
         layout.addWidget(self._hline)
         layout.addWidget(self._legend)
-        layout.addWidget(self._selector)
+        layout.addWidget(self._axesSelector)
 
         self.setLayout(layout)
 
@@ -939,9 +939,9 @@ class ArrayStackPlot(qt.QWidget):
         :param zlabel: Label for Z axis
         :param title: Graph title
         """
-        if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._updateStack)
-            self.__selector_is_connected = False
+        if self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.disconnect(self._updateStack)
+            self.__axes_selector_is_connected = False
 
         self.__signal = signal
         self.__signal_name = signal_name or ""
@@ -952,8 +952,8 @@ class ArrayStackPlot(qt.QWidget):
         self.__z_axis = z_axis
         self.__z_axis_name = zlabel
 
-        self._selector.setData(signal)
-        self._selector.setAxisNames(["Y", "X", "Z"])
+        self._axesSelector.setData(signal)
+        self._axesSelector.setAxisNames(["Y", "X", "Z"])
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)
@@ -968,17 +968,17 @@ class ArrayStackPlot(qt.QWidget):
         # the legend label shows the selection slice producing the volume
         # (only interesting for ndim > 3)
         if ndims > 3:
-            self._selector.setVisible(True)
+            self._axesSelector.setVisible(True)
             self._legend.setVisible(True)
             self._hline.setVisible(True)
         else:
-            self._selector.setVisible(False)
+            self._axesSelector.setVisible(False)
             self._legend.setVisible(False)
             self._hline.setVisible(False)
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateStack)
-            self.__selector_is_connected = True
+        if not self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.connect(self._updateStack)
+            self.__axes_selector_is_connected = True
 
     @staticmethod
     def _get_origin_scale(axis):
@@ -994,7 +994,7 @@ class ArrayStackPlot(qt.QWidget):
     def _updateStack(self):
         """Update displayed stack according to the current axes selector
         data."""
-        stk = self._selector.selectedData()
+        stk = self._axesSelector.selectedData()
         x_axis = self.__x_axis
         y_axis = self.__y_axis
         z_axis = self.__z_axis
@@ -1011,7 +1011,7 @@ class ArrayStackPlot(qt.QWidget):
                 calibrations.append(ArrayCalibration(axis))
 
         legend = self.__signal_name + "["
-        for sl in self._selector.selection():
+        for sl in self._axesSelector.selection():
             if sl == slice(None):
                 legend += ":, "
             else:
@@ -1025,9 +1025,9 @@ class ArrayStackPlot(qt.QWidget):
         )
 
     def clear(self):
-        old = self._selector.blockSignals(True)
-        self._selector.clear()
-        self._selector.blockSignals(old)
+        old = self._axesSelector.blockSignals(True)
+        self._axesSelector.clear()
+        self._axesSelector.blockSignals(old)
         self._stack_view.clear()
 
 
@@ -1071,15 +1071,15 @@ class ArrayVolumePlot(qt.QWidget):
         self._hline.setFrameStyle(qt.QFrame.HLine)
         self._hline.setFrameShadow(qt.QFrame.Sunken)
         self._legend = qt.QLabel(self)
-        self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
-        self.__selector_is_connected = False
+        self._axesSelector = NumpyAxesSelector(self)
+        self._axesSelector.setNamedAxesSelectorVisibility(False)
+        self.__axes_selector_is_connected = False
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._view)
         layout.addWidget(self._hline)
         layout.addWidget(self._legend)
-        layout.addWidget(self._selector)
+        layout.addWidget(self._axesSelector)
 
         self.setLayout(layout)
 
@@ -1121,9 +1121,9 @@ class ArrayVolumePlot(qt.QWidget):
         :param zlabel: Label for Z axis
         :param title: Graph title
         """
-        if self.__selector_is_connected:
-            self._selector.selectionChanged.disconnect(self._updateVolume)
-            self.__selector_is_connected = False
+        if self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.disconnect(self._updateVolume)
+            self.__axes_selector_is_connected = False
 
         self.__signal = signal
         self.__signal_name = signal_name or ""
@@ -1134,25 +1134,25 @@ class ArrayVolumePlot(qt.QWidget):
         self.__z_axis = z_axis
         self.__z_axis_name = zlabel
 
-        self._selector.setData(signal)
-        self._selector.setAxisNames(["Y", "X", "Z"])
+        self._axesSelector.setData(signal)
+        self._axesSelector.setAxisNames(["Y", "X", "Z"])
 
         self._updateVolume()
 
         # the legend label shows the selection slice producing the volume
         # (only interesting for ndim > 3)
         if signal.ndim > 3:
-            self._selector.setVisible(True)
+            self._axesSelector.setVisible(True)
             self._legend.setVisible(True)
             self._hline.setVisible(True)
         else:
-            self._selector.setVisible(False)
+            self._axesSelector.setVisible(False)
             self._legend.setVisible(False)
             self._hline.setVisible(False)
 
-        if not self.__selector_is_connected:
-            self._selector.selectionChanged.connect(self._updateVolume)
-            self.__selector_is_connected = True
+        if not self.__axes_selector_is_connected:
+            self._axesSelector.selectionChanged.connect(self._updateVolume)
+            self.__axes_selector_is_connected = True
 
     def _updateVolume(self):
         """Update displayed stack according to the current axes selector
@@ -1179,7 +1179,7 @@ class ArrayVolumePlot(qt.QWidget):
                 scale.append(calibration.get_slope())
 
         legend = self.__signal_name + "["
-        for sl in self._selector.selection():
+        for sl in self._axesSelector.selection():
             if sl == slice(None):
                 legend += ":, "
             else:
@@ -1188,7 +1188,7 @@ class ArrayVolumePlot(qt.QWidget):
         self._legend.setText("Displayed data: " + legend)
 
         # Update SceneWidget
-        data = self._selector.selectedData()
+        data = self._axesSelector.selectedData()
 
         volumeView = self.getVolumeView()
         volumeView.setData(data, offset=offset, scale=scale)
@@ -1197,7 +1197,7 @@ class ArrayVolumePlot(qt.QWidget):
         )
 
     def clear(self):
-        old = self._selector.blockSignals(True)
-        self._selector.clear()
-        self._selector.blockSignals(old)
+        old = self._axesSelector.blockSignals(True)
+        self._axesSelector.clear()
+        self._axesSelector.blockSignals(old)
         self.getVolumeView().clear()
