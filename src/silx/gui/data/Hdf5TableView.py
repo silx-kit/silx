@@ -581,6 +581,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         self.setModel(Hdf5TableModel(self))
         self.setItemDelegate(Hdf5TableItemDelegate(self))
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
+        self.setHorizontalScrollMode(qt.QAbstractItemView.ScrollPerPixel)
 
     def isSupportedData(self, data):
         """
