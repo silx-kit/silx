@@ -55,7 +55,6 @@ from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
-from ...utils.deprecation import deprecated
 from ...utils.enum import Enum
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
@@ -695,11 +694,6 @@ class ImageView(PlotWindow):
         :rtype: silx.gui.plot.PlotTools.ProfileToolBar
         """
         return self.__profile
-
-    @property
-    @deprecated(replacement="getProfileToolBar()")
-    def profile(self):
-        return self.getProfileToolBar()
 
     def getHistogram(self, axis):
         """Return the histogram and corresponding row or column extent.
