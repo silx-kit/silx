@@ -1033,9 +1033,9 @@ class ColormapDialog(qt.QDialog):
         self._dynamicColormap.setText("Dynamic colormap")
         self._dynamicColormap.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._dynamicColormap.setCheckable(True)
-        self._dynamicColormap.toggled.connect(
-            self._handleDynamicColormap, type=qt.Qt.QueuedConnection
-        )
+        #self._dynamicColormap.toggled.connect(
+        #    self._handleDynamicColormap, type=qt.Qt.QueuedConnection
+        #)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel

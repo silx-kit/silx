@@ -37,6 +37,8 @@ import weakref
 from typing import NamedTuple
 
 from silx.gui import qt
+from silx.math.combo import  min_max
+        
 from .. import colors
 from . import items
 from .Interaction import (
@@ -1644,38 +1646,40 @@ class PanAndSelect(ItemsInteraction):
 
 
 class DynamicColormapMode(ItemsInteraction):
+    """This mode automatically adjusts the colormap range of the image
+    based on a 20x20 ROI centered on the current cursor position.
+
+    :param plot: The Plot to which this interaction is attached
+    """
+
     ROI_SIZE = (10, 10) #(y,x)
     
     def handleEvent(self, eventName, *args, **kwargs):
         
-        print("eventName is", eventName)
         super().handleEvent(eventName, *args, **kwargs)
         try:
             x, y = args[:2]
         except ValueError:
             return
 
-        print("mouse positon is", x, y)
+        # Get data
         result = self.plot._pickTopMost(x, y, lambda i: isinstance(i, items.ImageBase))
         if result is None:
-            print("Result is none")
-            raise RuntimeError("No item found at the given position")
+            return
         else:
             item = result.getItem()
-        print(type(item))
-        print("data is", item.getData())
         colormap = item.getColormap()
-        print("colormap is", colormap)
         dataPos = self.plot.pixelToData(x, y)
         data = item.getData()
 
         # Extract ROI min and max
         idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
         x_start = numpy.max((0,idx_x - self.ROI_SIZE[1]))
-        x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[0]))
+        x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[1]))
         y_start = numpy.max((0,idx_y - self.ROI_SIZE[0]))
-        y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[1]))
+        y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[0]))
 
+        # Add a blue rectangle that shows the ROI
         self.plot.addShape(
             (x_start, x_start, x_end, x_end),
             (y_start, y_end, y_end, y_start),
@@ -1688,11 +1692,10 @@ class DynamicColormapMode(ItemsInteraction):
             overlay=True,
             z=1,
         )
-
-
-        data_value = data[y_start:y_end,x_start:x_end]
-        vmin = data_value.min()
-        vmax = data_value.max()
+        data_values = data[y_start:y_end,x_start:x_end]
+        vmin, vmax = min_max(data_values)
+        #vmin = data_values.min()
+        #vmax = data_values.max()
 
         # Set new min and max
         colormap.setVRange(vmin, vmax)
