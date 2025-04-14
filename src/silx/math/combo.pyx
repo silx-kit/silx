@@ -273,7 +273,7 @@ def _finite_min_max(_floating[::1] data, bint min_positive=False):
                          max_index if isfinite(maximum) else None)
 
 
-def min_max(data not None, bint min_positive=False, bint finite=False):
+def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMaxResult:
     """Returns min, max and optionally strictly positive min of data.
 
     It also computes the indices of first occurrence of min/max.
