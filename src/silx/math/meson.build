@@ -23,3 +23,15 @@ py.extension_module('_colormap', '_colormap.pyx',
         install: true, 
         )
 
+py.extension_module('combo', 'combo.pyx',
+        subdir: 'silx/math',
+        dependencies : [py_dep],
+        include_directories: ['include'], 
+        install: true, 
+        )
+
+py.extension_module('interpolate', 'interpolate.pyx',
+        subdir: 'silx/math',
+        dependencies : [py_dep, omp],
+        install: true, 
+        )
