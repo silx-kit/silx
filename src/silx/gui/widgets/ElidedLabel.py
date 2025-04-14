@@ -28,7 +28,6 @@ __date__ = "07/12/2018"
 
 
 from packaging.version import Version
-from ...utils.deprecation import deprecated
 from silx.gui import qt
 
 
