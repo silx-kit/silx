@@ -41,5 +41,5 @@ class SignalSelector(qt.QWidget):
     def setSignalIndex(self, index) -> None:
         self._combobox.setCurrentIndex(index)
 
-    def getSignalIndex(self) -> None:
+    def getSignalIndex(self) -> int:
         return self._combobox.currentIndex()
