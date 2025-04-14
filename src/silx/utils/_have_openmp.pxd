@@ -34,6 +34,12 @@ You have to patch the setup module like that:
                          include_dirs=[silx_include],
                          ...)
 
+or in meson-python::
+
+    py.extension_module( ...
+        include_directories: ['../../utils/include/'],
+    )
+    
 Then you can include it like that in your Cython module:
 
 .. code-block:: python
