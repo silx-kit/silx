@@ -89,7 +89,7 @@ class CurvesROIWidget(qt.QWidget):
         if name is not None:
             self.setWindowTitle(name)
         self.__lastSigROISignal = None
-        """Store the last value emitted for the sigRoiSignal. In the case the
+        """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
         This come from the fact sigROISignal is connected to the 
@@ -1530,11 +1530,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
     :param name: See :class:`QDockWidget`
     """
 
-    sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
-
     def __init__(self, parent=None, plot=None, name=None):
         super().__init__(name, parent)
 
@@ -1550,17 +1545,11 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.setRois = self.roiWidget.setRois
         self.getRois = self.roiWidget.getRois
 
-        self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
-
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
         self.setAreaVisible = self.roiWidget.roiTable.setAreaVisible
         self.setCountsVisible = self.roiWidget.roiTable.setCountsVisible
-
-    def _forwardSigROISignal(self, ddict):
-        # emit deprecated signal for backward compatibility (silx < 0.7)
-        self.sigROISignal.emit(ddict)
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
