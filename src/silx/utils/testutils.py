@@ -39,7 +39,6 @@ import functools
 import logging
 import sys
 import unittest
-from . import deprecation
 
 
 _logger = logging.getLogger(__name__)
@@ -310,23 +309,6 @@ def validate_logging(
         return wrapper
 
     return decorator
-
-
-# Backward compatibility
-class TestLogging(LoggingValidator):
-    def __init__(self, *args, **kwargs):
-        deprecation.deprecated_warning(
-            "Class",
-            "TestLogging",
-            since_version="1.0.0",
-            replacement="LoggingValidator",
-        )
-        super().__init__(*args, **kwargs)
-
-
-@deprecation.deprecated(since_version="1.0.0", replacement="validate_logging")
-def test_logging(*args, **kwargs):
-    return validate_logging(*args, **kwargs)
 
 
 # Simulate missing library context
