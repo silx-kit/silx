@@ -36,7 +36,7 @@ from silx.gui.plot.ComplexImageView import ComplexImageView
 from silx.gui.plot.items.image_aggregated import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
 from silx.gui.colors import Colormap
-from silx.gui.widgets.SignalSelector import SignalSelector
+from silx.gui.data._SignalSelector import SignalSelector
 
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 

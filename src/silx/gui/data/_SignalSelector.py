@@ -1,8 +1,4 @@
-"""This module provides a :class:`SignalSelector` widget.
-
-.. image:: img/SignalSelector.png
-   :align: center
-"""
+"""This module provides a :class:`SignalSelector` widget."""
 
 from silx.gui import qt
 
@@ -10,20 +6,19 @@ from silx.gui import qt
 class SignalSelector(qt.QWidget):
     selectionChanged = qt.Signal(int)
 
-    def __init__(self, label_text: str | None = None, parent: qt.QWidget | None = None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
 
         self._layout = qt.QHBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(2)
 
-        self._label = None
-        if label_text:
-            self._label = qt.QLabel(label_text)
-            self._layout.addWidget(self._label)
+        self._label = qt.QLabel("Select signal:")
+        self._layout.addWidget(self._label)
 
         self._combobox = qt.QComboBox()
         self._layout.addWidget(self._combobox)
+        self._layout.addStretch(1)
 
         self._combobox.currentIndexChanged.connect(self._comboboxSlot)
 
