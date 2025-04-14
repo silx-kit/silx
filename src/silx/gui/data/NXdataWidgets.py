@@ -248,6 +248,7 @@ class XYVScatterPlot(qt.QWidget):
 
         self._signalSelector = SignalSelector(parent=self)
         self._signalSelector.selectionChanged.connect(self._signalChanges)
+        self._signalSelector.setToolTip("Select signal")
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -410,6 +411,7 @@ class ArrayImagePlot(qt.QWidget):
 
         self._signalSelector = SignalSelector(parent=self)
         self._signalSelector.selectionChanged.connect(self._signalChanges)
+        self._signalSelector.setToolTip("Select signal")
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
@@ -685,6 +687,7 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         self._signalSelector = SignalSelector(parent=self)
         self._signalSelector.selectionChanged.connect(self._signalChanges)
+        self._signalSelector.setToolTip("Select signal")
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
