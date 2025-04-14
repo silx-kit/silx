@@ -54,6 +54,7 @@ from ..colors import Colormap
 from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
+from ...utils.deprecation import deprecated_warning
 from ...utils.proxy import docstring
 from ...utils.enum import Enum
 from .tools.RadarView import RadarView
@@ -860,6 +861,12 @@ class ImageView(PlotWindow):
         self._dirtyCache()
 
         if reset is not None:
+            deprecated_warning(
+                type_="Argument",
+                name="reset",
+                replacement="resetzoom",
+                since_version="2.2.2",
+            )
             resetzoom = reset
 
         assert len(origin) == 2

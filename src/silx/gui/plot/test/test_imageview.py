@@ -47,29 +47,29 @@ class TestImageView(PlotWidgetTestCase):
         """Test setImage"""
         image = numpy.arange(100).reshape(10, 10)
 
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
 
-        # With reset=False
-        self.plot.setImage(image[::2, ::2], reset=False)
+        # With resetzoom=False
+        self.plot.setImage(image[::2, ::2], resetzoom=False)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
 
-        self.plot.setImage(image, origin=(10, 20), scale=(2, 4), reset=False)
+        self.plot.setImage(image, origin=(10, 20), scale=(2, 4), resetzoom=False)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
 
-        # With reset=True
-        self.plot.setImage(image, origin=(1, 2), scale=(1, 0.5), reset=True)
+        # With resetzoom=True
+        self.plot.setImage(image, origin=(1, 2), scale=(1, 0.5), resetzoom=True)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (1, 11))
         self.assertEqual(self.plot.getYAxis().getLimits(), (2, 7))
 
-        self.plot.setImage(image[::2, ::2], reset=True)
+        self.plot.setImage(image[::2, ::2], resetzoom=True)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 5))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 5))
@@ -139,7 +139,7 @@ class TestImageView(PlotWidgetTestCase):
         """Test setImage"""
         image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
 
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
@@ -148,7 +148,7 @@ class TestImageView(PlotWidgetTestCase):
         """Test setImage"""
         image = numpy.arange(100 * 4, dtype=numpy.uint8).reshape(10, 10, 4)
 
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
@@ -156,7 +156,7 @@ class TestImageView(PlotWidgetTestCase):
     def testImageAggregationMode(self):
         """Test setImage"""
         image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.plot.getAggregationModeAction().setAggregationMode(
             items.ImageDataAggregated.Aggregation.MAX
@@ -166,7 +166,7 @@ class TestImageView(PlotWidgetTestCase):
     def testImageAggregationModeBackToNormalMode(self):
         """Test setImage"""
         image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.plot.getAggregationModeAction().setAggregationMode(
             items.ImageDataAggregated.Aggregation.MAX
@@ -181,7 +181,7 @@ class TestImageView(PlotWidgetTestCase):
         """Test setImage"""
         image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
 
-        self.plot.setImage(image, reset=True)
+        self.plot.setImage(image, resetzoom=True)
         self.qWait(100)
         self.plot.getAggregationModeAction().setAggregationMode(
             items.ImageDataAggregated.Aggregation.MAX

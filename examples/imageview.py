@@ -210,7 +210,7 @@ def main(argv=None):
                 image.get_frame(index).data,
                 origin=args.origin,
                 scale=args.scale,
-                reset=False,
+                resetzoom=False,
             )
 
         spinBox.valueChanged[int].connect(updateImage)
