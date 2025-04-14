@@ -52,6 +52,7 @@ import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from . import items
 from .items.roi import _RegionOfInterestBase
+from silx.utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -1538,13 +1539,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
 
-        # convenience methods to offer a simpler API allowing to ignore
-        # the details of the underlying implementation
-        # (ALL DEPRECATED)
-        self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
-        self.setRois = self.roiWidget.setRois
-        self.getRois = self.roiWidget.getRois
-
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
@@ -1563,3 +1557,19 @@ class CurvesROIDockWidget(qt.QDockWidget):
     @property
     def currentROI(self):
         return self.roiWidget.currentRoi
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateROIs(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateRois(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.getRois")
+    def getRois(self, order=None):
+        return self.roiWidget.getRois(order)
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.setRois")
+    def setRois(self, rois, order=None):
+        return self.roiWidget.setRois(rois, order)
