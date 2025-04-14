@@ -1699,7 +1699,6 @@ class DynamicColormapMode(ItemsInteraction):
 
         # Set new min and max
         colormap.setVRange(vmin, vmax)
-        print("new v min and v max", colormap._vmin, colormap._vmax)
         item.setColormap(colormap)
 
 # Interaction mode control ####################################################
