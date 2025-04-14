@@ -565,11 +565,12 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
 
     def eventFilter(self, watched, event):
         eventType = event.type()
-        if eventType == qt.QEvent.FocusIn:
-            watched.selectAll()
-            qt.QTimer.singleShot(0, watched.selectAll)
-        elif eventType == qt.QEvent.FocusOut:
-            watched.deselect()
+        if isinstance(watched, qt.QLineEdit):
+            if eventType == qt.QEvent.FocusIn:
+                watched.selectAll()
+                qt.QTimer.singleShot(0, watched.selectAll)
+            elif eventType == qt.QEvent.FocusOut:
+                watched.deselect()
         return super().eventFilter(watched, event)
 
 
