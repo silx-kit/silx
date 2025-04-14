@@ -61,7 +61,7 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 cimport cython
-cimport silx.math.fit.functions_wrapper as functions_wrapper
+cimport functions_wrapper
 
 
 def erf(x):

@@ -38,7 +38,7 @@ _logger = logging.getLogger(__name__)
 cimport cython
 from libc.stdlib cimport free
 
-cimport silx.math.fit.peaks_wrapper as peaks_wrapper
+cimport peaks_wrapper
 
 
 def peak_search(y, fwhm, sensitivity=3.5,
