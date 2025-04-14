@@ -1,0 +1,37 @@
+
+py.install_sources([
+    '__init__.py',
+    'conftest.py',
+    'test_alphaslider.py',
+    'test_axis.py',
+    'test_colorbar.py',
+    'test_compareimages.py',
+    'test_compleximageview.py',
+    'test_curvesroiwidget.py',
+    'test_imagestack.py',
+    'test_imageview.py',
+    'test_interaction.py',
+    'test_item.py',
+    'test_legendselector.py',
+    'test_limitconstraints.py',
+    'test_masktoolswidget.py',
+    'test_pixelintensityhistoaction.py',
+    'test_plotactions.py',
+    'test_plotinteraction.py',
+    'test_plotwidget.py',
+    'test_plotwidgetactiveitem.py',
+    'test_plotwidgetdatamargins.py',
+    'test_plotwidgetnobackend.py',
+    'test_plotwindow.py',
+    'test_roistatswidget.py',
+    'test_saveaction.py',
+    'test_scattermasktoolswidget.py',
+    'test_scatterview.py',
+    'test_stackview.py',
+    'test_stats.py',
+    'test_utilsaxis.py',
+    'utils.py',
+]
+pure: false,    # Will be installed next to binaries
+subdir: 'silx/gui/plot/test',  # Folder relative to site-packages to install to
+)
