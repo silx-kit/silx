@@ -94,10 +94,6 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__text
 
-    @deprecated(replacement="text", since_version="1.1.0")
-    def getText(self):
-        return self.text()
-
     def setText(self, text):
         self.__text = text
         self.__updateText()
@@ -109,10 +105,6 @@ class ElidedLabel(qt.QLabel):
         set to true.
         """
         return self.__toolTip
-
-    @deprecated(replacement="toolTip", since_version="1.1.0")
-    def getToolTip(self):
-        return self.toolTip()
 
     def setToolTip(self, toolTip):
         self.__toolTip = toolTip
