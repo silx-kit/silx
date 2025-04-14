@@ -20,10 +20,7 @@ class SignalSelector(qt.QWidget):
         self._layout.addWidget(self._combobox)
         self._layout.addStretch(1)
 
-        self._combobox.currentIndexChanged.connect(self._comboboxSlot)
-
-    def _comboboxSlot(self, index: int) -> None:
-        self.selectionChanged.emit(index)
+        self._combobox.currentIndexChanged.connect(self.selectionChanged)
 
     def setSignalNames(self, names: list[str]) -> None:
         self._combobox.clear()
