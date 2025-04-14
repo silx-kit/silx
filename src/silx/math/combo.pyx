@@ -74,34 +74,46 @@ class _MinMaxResult(object):
         self._argmin_positive = argmin_pos
         self._argmax = argmax
 
-    minimum = property(
-        lambda self: self._minimum,
-        doc="Minimum value of the array")
-    maximum = property(
-        lambda self: self._maximum,
-        doc="Maximum value of the array")
+    @property
+    def  minimum(self) -> float:
+        """Minimum value of the array"""
+        return self._minimum
 
-    argmin = property(
-        lambda self: self._argmin,
-        doc="Index of the first occurrence of the minimum value")
-    argmax = property(
-        lambda self: self._argmax,
-        doc="Index of the first occurrence of the maximum value")
+    @property
+    def maximum(self) -> float:
+        """Maximum value of the array"""
+        return self._maximum
 
-    min_positive = property(
-        lambda self: self._min_positive,
-        doc="""Strictly positive minimum value
+    @property
+    def argmin(self) -> int:
+        """Index of the first occurrence of the minimum value"""
+        return self._argmin
+
+    @property
+    def argmax(self) -> int:
+        """Index of the first occurrence of the maximum value"""
+        return self._argmax
+
+    @property
+    def min_positive(self) -> float | None:
+        """
+        Strictly positive minimum value
 
         It is None if no value is strictly positive.
-        """)
-    argmin_positive = property(
-        lambda self: self._argmin_positive,
-        doc="""Index of the strictly positive minimum value.
+        """
+        return self._min_positive
+
+    @property
+    def argmin_positive(self) -> int | None:
+        """
+        Index of the strictly positive minimum value.
 
         It is None if no value is strictly positive.
-        It is the index of the first occurrence.""")
+        It is the index of the first occurrence.
+        """
+        return self._argmin_positive
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int):
         if key == 0:
             return self.minimum
         elif key == 1:
