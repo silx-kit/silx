@@ -90,24 +90,6 @@ class VolumeWindow(SceneWindow):
         :param List[float] offset: (tx, ty, tz) coordinates of the origin
         :param List[float] scale: (sx, sy, sz) scale for each dimension
         """
-
-        n_elements = data.size
-        # Show a warning message box before proceeding
-        if n_elements > 512**3 :
-            warning_box = qt.QMessageBox(self)
-            warning_box.setIcon(qt.QMessageBox.Warning)
-            warning_box.setWindowTitle("Warning")
-            warning_box.setText(f"The number of elements {n_elements} is larger than {512**3}.")
-            warning_box.setInformativeText("This may take some time. Do you want to continue?")
-            warning_box.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
-            warning_box.setDefaultButton(qt.QMessageBox.Yes)
-
-        response = warning_box.exec_()
-
-        if response == qt.QMessageBox.No:
-            # User chose not to proceed
-            return
-        
         sceneWidget = self.getSceneWidget()
         dataMaxCoords = numpy.array(list(reversed(data.shape))) - 1
 
