@@ -22,11 +22,14 @@
 #
 # ###########################################################################*/
 
-import os
 import logging
+import os
+from pathlib import Path
 
 import h5py
 import numpy
+
+from ._utils import Interpretation
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -36,25 +39,25 @@ __date__ = "17/04/2018"
 _logger = logging.getLogger(__name__)
 
 
-def _str_to_utf8(text):
+def _str_to_utf8(text: str):
     return numpy.array(text, dtype=h5py.special_dtype(vlen=str))
 
 
 def save_NXdata(
-    filename,
-    signal,
-    axes=None,
-    signal_name="data",
-    axes_names=None,
-    signal_long_name=None,
-    axes_long_names=None,
-    signal_errors=None,
-    axes_errors=None,
-    title=None,
-    interpretation=None,
-    nxentry_name="entry",
-    nxdata_name=None,
-):
+    filename: str | Path,
+    signal: numpy.ndarray,
+    axes: list[numpy.ndarray] | None = None,
+    signal_name: str = "data",
+    axes_names: list[str] | None = None,
+    signal_long_name: str | None = None,
+    axes_long_names: list[str] | None = None,
+    signal_errors: list[numpy.ndarray] | None = None,
+    axes_errors: list[numpy.ndarray] | None = None,
+    title: str | None = None,
+    interpretation: Interpretation | None = None,
+    nxentry_name: str = "entry",
+    nxdata_name: str | None = None,
+) -> bool:
     """Write data to an NXdata group.
 
     .. note::
