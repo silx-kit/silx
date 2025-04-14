@@ -246,16 +246,16 @@ class XYVScatterPlot(qt.QWidget):
             )
         )
 
-        self._slider = HorizontalSliderWithBrowser(parent=self)
-        self._slider.setMinimum(0)
-        self._slider.setValue(0)
-        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
-        self._slider.setToolTip("Select auxiliary signals")
+        self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
+        self._auxSigSlider.setMinimum(0)
+        self._auxSigSlider.setValue(0)
+        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
+        self._auxSigSlider.setToolTip("Select auxiliary signals")
 
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0)
-        layout.addWidget(self._slider, 1, 0)
+        layout.addWidget(self._auxSigSlider, 1, 0)
 
         self.setLayout(layout)
 
@@ -318,14 +318,14 @@ class XYVScatterPlot(qt.QWidget):
         self.__graph_title = title or ""
         self.__scatter_titles = scatter_titles
 
-        self._slider.valueChanged[int].disconnect(self._sliderIdxChanged)
-        self._slider.setMaximum(len(values) - 1)
+        self._auxSigSlider.valueChanged[int].disconnect(self._sliderIdxChanged)
+        self._auxSigSlider.setMaximum(len(values) - 1)
         if len(values) > 1:
-            self._slider.show()
+            self._auxSigSlider.show()
         else:
-            self._slider.hide()
-        self._slider.setValue(0)
-        self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+            self._auxSigSlider.hide()
+        self._auxSigSlider.setValue(0)
+        self._auxSigSlider.valueChanged[int].connect(self._sliderIdxChanged)
 
         if xscale is not None:
             self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
@@ -338,7 +338,7 @@ class XYVScatterPlot(qt.QWidget):
         x = self.__x_axis
         y = self.__y_axis
 
-        idx = self._slider.value()
+        idx = self._auxSigSlider.value()
 
         if self.__graph_title:
             title = self.__graph_title  # main NXdata @title
