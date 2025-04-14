@@ -64,8 +64,10 @@ ctypedef fused _floating:
 class _MinMaxResult(object):
     """Result from :func:`min_max`"""
 
-    def __init__(self, minimum, min_pos, maximum,
-                 argmin, argmin_pos, argmax):
+    def __init__(
+        self, minimum, min_pos, maximum,
+        argmin, argmin_pos, argmax
+    ):
         self._minimum = minimum
         self._min_positive = min_pos
         self._maximum = maximum
@@ -205,12 +207,13 @@ def _min_max(_number[::1] data, bint min_positive=False):
                         min_pos = value
                         min_pos_index = index
 
-    return _MinMaxResult(minimum,
-                         min_pos if min_pos > 0 else None,
-                         maximum,
-                         min_index,
-                         min_pos_index if min_pos > 0 else None,
-                         max_index)
+    return _MinMaxResult(
+        minimum,
+        min_pos if min_pos > 0 else None,
+        maximum,
+        min_index,
+        min_pos_index if min_pos > 0 else None,
+        max_index)
 
 
 @cython.initializedcheck(False)
@@ -265,12 +268,13 @@ def _finite_min_max(_floating[::1] data, bint min_positive=False):
                         min_pos = value
                         min_pos_index = index
 
-    return _MinMaxResult(minimum if isfinite(minimum) else None,
-                         min_pos if isfinite(min_pos) else None,
-                         maximum if isfinite(maximum) else None,
-                         min_index if isfinite(minimum) else None,
-                         min_pos_index if isfinite(min_pos) else None,
-                         max_index if isfinite(maximum) else None)
+    return _MinMaxResult(
+        minimum if isfinite(minimum) else None,
+        min_pos if isfinite(min_pos) else None,
+        maximum if isfinite(maximum) else None,
+        min_index if isfinite(minimum) else None,
+        min_pos_index if isfinite(min_pos) else None,
+        max_index if isfinite(maximum) else None)
 
 
 def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMaxResult:
@@ -317,14 +321,14 @@ def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMa
 
     :param data: Array-like dataset
     :param bool min_positive: True to compute the positive min and argmin
-                              Default: False.
+        Default: False.
     :param bool finite: True to compute min/max from finite data only
-                        Default: False.
+        Default: False.
     :returns: An object with minimum, maximum and min_positive attributes
-              and the indices of first occurrence in the flattened data:
-              argmin, argmax and argmin_positive attributes.
-              If all data is <= 0 or min_positive argument is False, then
-              min_positive and argmin_positive are None.
+        and the indices of first occurrence in the flattened data:
+        argmin, argmax and argmin_positive attributes.
+        If all data is <= 0 or min_positive argument is False, then
+        min_positive and argmin_positive are None.
     :raises: ValueError if data is empty
     """
     data = numpy.asarray(data)
