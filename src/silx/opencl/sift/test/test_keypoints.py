@@ -78,7 +78,7 @@ class _TestKeypoints(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(_TestKeypoints, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -100,7 +100,7 @@ class _TestKeypoints(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(_TestKeypoints, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 

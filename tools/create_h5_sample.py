@@ -83,7 +83,7 @@ def store_subdimensions(group, data, dtype, prefix=None):
         try:
             group[basename] = h5py.Empty(dtype=numpy.dtype(dtype))
         except (RuntimeError, ValueError) as e:
-            logger.error("Error while creating %s in %s" % (basename, str(group)))
+            logger.error(f"Error while creating {basename} in {str(group)}")
             logger.error(e)
     else:
         logger.warning("h5py.Empty not available")
@@ -94,7 +94,7 @@ def store_subdimensions(group, data, dtype, prefix=None):
     try:
         group[basename] = data[0]
     except RuntimeError as e:
-        logger.error("Error while creating %s in %s" % (basename, str(group)))
+        logger.error(f"Error while creating {basename} in {str(group)}")
         logger.error(e)
 
     shapes = [10, 4, 4, 4]
@@ -108,7 +108,7 @@ def store_subdimensions(group, data, dtype, prefix=None):
         try:
             group[basename] = data
         except RuntimeError as e:
-            logger.error("Error while creating %s in %s" % (basename, str(group)))
+            logger.error(f"Error while creating {basename} in {str(group)}")
             logger.error(e)
 
 
@@ -166,7 +166,7 @@ def create_hdf5_types(group):
     group = main_group.create_group("text")
     group.create_dataset("ascii_vlen", data=b"abcd", dtype=h5py.string_dtype("ascii"))
     group.create_dataset(
-        "bad_ascii_vlen", data=b"ab\xEFcd\xFF", dtype=h5py.string_dtype("ascii")
+        "bad_ascii_vlen", data=b"ab\xefcd\xff", dtype=h5py.string_dtype("ascii")
     )
     group.create_dataset(
         "ascii_fixed", data=b"Fixed ascii", dtype=h5py.string_dtype("ascii", 20)
@@ -187,7 +187,7 @@ def create_hdf5_types(group):
     )
     group.create_dataset(
         "utf8_fixed",
-        data="me \u2661 tu".encode("utf-8"),
+        data="me \u2661 tu".encode(),
         dtype=h5py.string_dtype("utf-8", 20),
     )
     group.create_dataset(
@@ -208,11 +208,11 @@ def create_hdf5_types(group):
     group = main_group.create_group("opaque")
 
     main_group["opaque/ascii"] = numpy.void(b"abcd")
-    main_group["opaque/utf8"] = numpy.void("i \u2661 my mother".encode("utf-8"))
-    main_group["opaque/thing"] = numpy.void(b"\x10\x20\x30\x40\xF0")
-    main_group["opaque/big_thing"] = numpy.void(b"\x10\x20\x30\x40\xF0" * 100000)
+    main_group["opaque/utf8"] = numpy.void("i \u2661 my mother".encode())
+    main_group["opaque/thing"] = numpy.void(b"\x10\x20\x30\x40\xf0")
+    main_group["opaque/big_thing"] = numpy.void(b"\x10\x20\x30\x40\xf0" * 100000)
 
-    data = numpy.void(b"\x10\x20\x30\x40\xFF" * 20)
+    data = numpy.void(b"\x10\x20\x30\x40\xff" * 20)
     data = numpy.array([data] * 10 * 4 * 4 * 4, numpy.void)
     store_subdimensions(group, data, "void")
 
@@ -539,12 +539,12 @@ encoded_data = [
             "compression": FILTER_BITSHUFFLE,
             "compression_opts": (0, FILTER_BITSHUFFLE_COMPRESS_LZ4),
         },
-        b"\xFF\x01\x00\x01" * 10,
+        b"\xff\x01\x00\x01" * 10,
     ),
     (
         "corrupted_datasets/unavailable_filter",
         {"compression": FILTER_USER + 100},
-        b"\xFF\x01\x00\x01" * 10,
+        b"\xff\x01\x00\x01" * 10,
     ),
 ]
 

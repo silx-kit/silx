@@ -94,12 +94,12 @@ class TestPeriodicCombo(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
 
     def setUp(self):
-        super(TestPeriodicCombo, self).setUp()
+        super().setUp()
         self.pc = PeriodicTable.PeriodicCombo()
 
     def tearDown(self):
         del self.pc
-        super(TestPeriodicCombo, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         """basic test (instantiation done in setUp)"""
@@ -119,12 +119,12 @@ class TestPeriodicList(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
 
     def setUp(self):
-        super(TestPeriodicList, self).setUp()
+        super().setUp()
         self.pl = PeriodicTable.PeriodicList()
 
     def tearDown(self):
         del self.pl
-        super(TestPeriodicList, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         """basic test (instantiation done in setUp)"""

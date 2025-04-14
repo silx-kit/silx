@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides 2D data and RGB(A) image item class.
-"""
+"""This module provides 2D data and RGB(A) image item class."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

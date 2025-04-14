@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This provides profile ROIs.
-"""
+"""This provides profile ROIs."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

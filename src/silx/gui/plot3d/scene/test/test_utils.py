@@ -86,7 +86,7 @@ class TestAngleBetweenVectors(ParametricTestCase):
 # Plane #######################################################################
 
 
-class AssertNotificationContext(object):
+class AssertNotificationContext:
     """Context that checks if an event.Notifier is sending events."""
 
     def __init__(self, notifier, count=1):

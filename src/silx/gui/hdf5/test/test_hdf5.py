@@ -70,7 +70,7 @@ def create_NXentry(group, name):
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
     def setUp(self):
-        super(TestHdf5TreeModel, self).setUp()
+        super().setUp()
 
     def waitForPendingOperations(self, model):
         for _ in range(20):
@@ -1058,7 +1058,7 @@ class TestHdf5TreeView(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
-        super(TestHdf5TreeView, self).setUp()
+        super().setUp()
 
     def testCreate(self):
         view = hdf5.Hdf5TreeView()

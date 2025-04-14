@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides markers item of the :class:`Plot`.
-"""
+"""This module provides markers item of the :class:`Plot`."""
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
@@ -31,7 +30,6 @@ __date__ = "06/03/2017"
 
 
 import logging
-import numpy
 
 from ....utils.proxy import docstring
 from .core import (
@@ -87,7 +85,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self,
         backend,
         symbol=None,
-        symbolsize=10.,
+        symbolsize=10.0,
         linestyle="-",
         linewidth=1,
     ):
@@ -285,7 +283,7 @@ class Marker(MarkerBase, SymbolMixIn):
         elif constraint == "vertical":
             constraint = self._verticalConstraint
 
-        super(Marker, self)._setConstraint(constraint)
+        super()._setConstraint(constraint)
 
     def _horizontalConstraint(self, _, y):
         return self.getXPosition(), y

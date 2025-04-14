@@ -123,9 +123,7 @@ def local_maxmin_setup():
         # sift.cpp : for a given "i", we have : increase = initsigma*(sigmaratio)^(i-1)*sqrt(sigmaratio**2 -1)
         for i in range(1, 6):
             sigma = (
-                initsigma
-                * (sigmaratio) ** (i - 1.0)
-                * numpy.sqrt(sigmaratio**2 - 1.0)
+                initsigma * (sigmaratio) ** (i - 1.0) * numpy.sqrt(sigmaratio**2 - 1.0)
             )  # sift.cpp "increase"
             g[i] = my_blur(g[i - 1], sigma)  # blur[i]
 

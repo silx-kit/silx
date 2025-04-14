@@ -170,7 +170,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
         return self._kind_name_to_item[(kind, item_name)]
 
 
-class ROIStatsItemHelper(object):
+class ROIStatsItemHelper:
     """Item utils to associate a plot item and a roi
 
     Display on one row statistics regarding the couple

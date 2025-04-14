@@ -40,7 +40,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     """Tests for RegionOfInterestManager class"""
 
     def setUp(self):
-        super(TestRegionOfInterestManager, self).setUp()
+        super().setUp()
         self.plot = PlotWindow()
 
         self.roiTableWidget = roi.RegionOfInterestTableWidget()
@@ -57,7 +57,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestRegionOfInterestManager, self).tearDown()
+        super().tearDown()
 
     def test(self):
         """Test ROI of different shapes"""

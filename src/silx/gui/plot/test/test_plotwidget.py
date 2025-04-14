@@ -238,7 +238,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addImage"""
 
     def setUp(self):
-        super(TestPlotImage, self).setUp()
+        super().setUp()
 
         self.plot.getYAxis().setLabel("Rows")
         self.plot.getXAxis().setLabel("Columns")
@@ -467,7 +467,7 @@ class TestPlotCurve(PlotWidgetTestCase):
     yData2 = xData - 1000 + 200 * numpy.random.random(1000)
 
     def setUp(self):
-        super(TestPlotCurve, self).setUp()
+        super().setUp()
         self.plot.setGraphTitle("Curve")
         self.plot.getYAxis().setLabel("Rows")
         self.plot.getXAxis().setLabel("Columns")
@@ -653,7 +653,7 @@ class TestPlotHistogram(PlotWidgetTestCase):
     """Basic tests for add Histogram"""
 
     def setUp(self):
-        super(TestPlotHistogram, self).setUp()
+        super().setUp()
         self.edges = numpy.arange(0, 10, step=1)
         self.histogram = numpy.random.random(len(self.edges))
 
@@ -834,7 +834,7 @@ class TestPlotMarker(PlotWidgetTestCase):
     """Basic tests for add*Marker"""
 
     def setUp(self):
-        super(TestPlotMarker, self).setUp()
+        super().setUp()
         self.plot.getYAxis().setLabel("Rows")
         self.plot.getXAxis().setLabel("Columns")
 
@@ -894,7 +894,7 @@ class TestPlotMarker(PlotWidgetTestCase):
             (70.0, 50.0, "black", False, True),
         ]
         for x, y, color, select, drag in markers:
-            name = "{0},{1}".format(x, y)
+            name = f"{x},{y}"
             if select:
                 name += " sel."
             if drag:
@@ -1021,7 +1021,7 @@ class TestPlotItem(PlotWidgetTestCase):
     SCALES = Axis.LINEAR, Axis.LOGARITHMIC
 
     def setUp(self):
-        super(TestPlotItem, self).setUp()
+        super().setUp()
 
         self.plot.getYAxis().setLabel("Rows")
         self.plot.getXAxis().setLabel("Columns")
@@ -1140,7 +1140,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.__backend = backend
 
     def setUp(self):
-        super(TestPlotAxes, self).setUp()
+        super().setUp()
         self.plot = PlotWidget(backend=self.__backend)
         # It is not needed to display the plot
         # It saves a lot of time
@@ -1152,7 +1152,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-        super(TestPlotAxes, self).tearDown()
+        super().tearDown()
 
     def testDefaultAxes(self):
         axis = self.plot.getXAxis()
@@ -1530,7 +1530,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         with self.assertRaises(Exception):
             item.setBounds((-1000, 1000, 2000, -2000))
 
-    @pytest.mark.filterwarnings("ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning")
+    @pytest.mark.filterwarnings(
+        "ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning"
+    )
     def testBoundingRectWithLog(self):
         item = BoundingRect()
         self.plot.addItem(item)
@@ -1550,7 +1552,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis()._setLogarithmic(False)
         self.assertIsNone(item.getBounds())
 
-    @pytest.mark.filterwarnings("ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning")
+    @pytest.mark.filterwarnings(
+        "ignore:Attempting to set identical low and high ylims makes transformation singular; automatically expanding.:UserWarning"
+    )
     def testAxisExtent(self):
         """Test XAxisExtent and yAxisExtent"""
         for cls, axis in (
@@ -1818,7 +1822,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
     """Basic tests for addImage with log scale axes."""
 
     def setUp(self):
-        super(TestPlotImageLog, self).setUp()
+        super().setUp()
 
         self.plot.getXAxis().setLabel("Columns")
         self.plot.getYAxis().setLabel("Rows")
@@ -1913,7 +1917,7 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
     ]
 
     def setUp(self):
-        super(TestPlotMarkerLog, self).setUp()
+        super().setUp()
 
         self.plot.getYAxis().setLabel("Rows")
         self.plot.getXAxis().setLabel("Columns")
@@ -1952,7 +1956,7 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.setGraphTitle("Markers Pt, Log axes")
 
         for x, y, color, select, drag in self.markers:
-            name = "{0},{1}".format(x, y)
+            name = f"{x},{y}"
             if select:
                 name += " sel."
             if drag:

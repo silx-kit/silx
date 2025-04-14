@@ -83,7 +83,7 @@ class BaseMask(qt.QObject):
         if dataItem is not None:
             self.setDataItem(dataItem)
             self.reset(self.getDataValues().shape)
-        super(BaseMask, self).__init__()
+        super().__init__()
 
     def setDataItem(self, item):
         """Set a data item
@@ -135,7 +135,9 @@ class BaseMask(qt.QObject):
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         """
-        self._mask = numpy.array(mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8)
+        self._mask = numpy.array(
+            mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8
+        )
         self._notify()
 
     # History control
@@ -387,7 +389,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         :param mask: Instance of subclass of :class:`BaseMask`
             (e.g. :class:`ImageMask`)
         """
-        super(BaseMaskToolsWidget, self).__init__(parent)
+        super().__init__(parent)
         # register if the user as force a color for the corresponding mask level
         self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=bool)
         # overlays colors set by the user
@@ -1241,7 +1243,7 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
     sigMaskChanged = qt.Signal()
 
     def __init__(self, parent=None, name="Mask", widget=None):
-        super(BaseMaskToolsDockWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle(name)
 
         if not isinstance(widget, BaseMaskToolsWidget):
@@ -1293,7 +1295,7 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
 
         See :class:`QMainWindow`.
         """
-        action = super(BaseMaskToolsDockWidget, self).toggleViewAction()
+        action = super().toggleViewAction()
         action.setIcon(icons.getQIcon("image-mask"))
         action.setToolTip("Display/hide mask tools")
         return action

@@ -58,7 +58,7 @@ def buildFillMaskIndices(nIndices, dtype=None):
     return indices
 
 
-class FilledShape2D(object):
+class FilledShape2D:
     _NO_HATCH = 0
     _HATCH_STEP = 20
 

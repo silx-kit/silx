@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a widget that displays data values of a SceneWidget.
-"""
+"""This module provides a widget that displays data values of a SceneWidget."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -49,7 +48,7 @@ class PositionInfoWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(PositionInfoWidget, self).__init__(parent)
+        super().__init__(parent)
         self._sceneWidgetRef = None
 
         self.setToolTip("Double-click on a data point to show its value")

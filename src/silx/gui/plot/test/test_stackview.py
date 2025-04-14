@@ -43,7 +43,7 @@ class TestStackView(TestCaseQt):
     """Base class for tests of StackView."""
 
     def setUp(self):
-        super(TestStackView, self).setUp()
+        super().setUp()
         self.stackview = StackView()
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
@@ -58,7 +58,7 @@ class TestStackView(TestCaseQt):
         self.stackview.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.stackview.close()
         del self.stackview
-        super(TestStackView, self).tearDown()
+        super().tearDown()
 
     def testScaleColormapRangeToStack(self):
         """Test scaleColormapRangeToStack"""
@@ -226,7 +226,7 @@ class TestStackViewMainWindow(TestCaseQt):
     """Base class for tests of StackView."""
 
     def setUp(self):
-        super(TestStackViewMainWindow, self).setUp()
+        super().setUp()
         self.stackview = StackViewMainWindow()
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
@@ -241,7 +241,7 @@ class TestStackViewMainWindow(TestCaseQt):
         self.stackview.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.stackview.close()
         del self.stackview
-        super(TestStackViewMainWindow, self).tearDown()
+        super().tearDown()
 
     def testSetStack(self):
         self.stackview.setStack(self.mystack)

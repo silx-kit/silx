@@ -21,15 +21,13 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Histogram` item of the :class:`Plot`.
-"""
+"""This module provides the :class:`Histogram` item of the :class:`Plot`."""
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "28/08/2018"
 
 import logging
-import typing
 
 import numpy
 from collections import abc
@@ -244,9 +242,7 @@ class Histogram(
                 max(0, numpy.nanmax(values)),
             )
 
-    def __pickFilledHistogram(
-        self, x: float, y: float
-    ) -> typing.Optional[PickingResult]:
+    def __pickFilledHistogram(self, x: float, y: float) -> PickingResult | None:
         """Picking implementation for filled histogram
 
         :param x: X position in pixels

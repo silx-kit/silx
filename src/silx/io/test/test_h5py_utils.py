@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,9 @@ import logging
 import tempfile
 import multiprocessing
 from contextlib import contextmanager
+
+import h5py
+import pytest
 
 from .. import h5py_utils
 from ...utils.retry import RetryError, RetryTimeoutError
@@ -108,7 +111,7 @@ def _cause_segfault():
 def _top_level_names_test(txtfilename, *args, **kw):
     sys.stderr = open(os.devnull, "w")
 
-    with open(txtfilename, mode="r") as f:
+    with open(txtfilename) as f:
         failcounter = int(f.readline().strip())
 
     ncausefailure = kw.pop("ncausefailure")
@@ -157,7 +160,7 @@ class TestH5pyUtils(unittest.TestCase):
     def _filenames(self):
         i = 1
         while True:
-            filename = os.path.join(self.test_dir, "file{}.h5".format(i))
+            filename = os.path.join(self.test_dir, f"file{i}.h5")
             with self._open_context(filename):
                 pass
             yield filename
@@ -486,3 +489,30 @@ class TestH5pyUtils(unittest.TestCase):
         kw = {"retry_timeout": insufficient_timeout}
         with self.assertRaises(RetryTimeoutError):
             list(iter_data(filename, "/check", **kw))
+
+
+def test_retry_timeout(tmp_path):
+    filepath = tmp_path / "test.h5"
+    with h5py.File(filepath, "w"):
+        pass
+
+    @h5py_utils.retry(retry_timeout=1, retry_period=0.1)
+    def read():
+        with h5py.File(filepath, locking=False) as f:
+            group = f["group"]
+            return group["data"][()]
+
+    with pytest.raises(RetryTimeoutError):
+        read()
+
+    with h5py.File(filepath, "w") as f:
+        f.create_group("group")
+
+    with pytest.raises(RetryTimeoutError):
+        read()
+
+    with h5py.File(filepath, "w") as f:
+        f["group/data"] = 1
+
+    data = read()
+    assert data == 1

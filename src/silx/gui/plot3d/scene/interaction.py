@@ -93,7 +93,7 @@ class ClickOrDrag(StateMachine):
             "clickOrDrag": ClickOrDrag.ClickOrDrag,
             "drag": ClickOrDrag.Drag,
         }
-        super(ClickOrDrag, self).__init__(states, "idle")
+        super().__init__(states, "idle")
 
     def click(self, x, y):
         """Called upon a left or right button click.
@@ -132,7 +132,7 @@ class CameraSelectRotate(ClickOrDrag):
         self._orbitAroundCenter = orbitAroundCenter
         self._selectCB = selectCB
         self._reset()
-        super(CameraSelectRotate, self).__init__(button)
+        super().__init__(button)
 
     def _reset(self):
         self._origin, self._center = None, None
@@ -213,7 +213,7 @@ class CameraSelectPan(ClickOrDrag):
         self._viewport = viewport
         self._selectCB = selectCB
         self._lastPosNdc = None
-        super(CameraSelectPan, self).__init__(button)
+        super().__init__(button)
 
     def click(self, x, y):
         if self._selectCB is not None:
@@ -262,7 +262,7 @@ class CameraSelectPan(ClickOrDrag):
         self._lastPosNdc = None
 
 
-class CameraWheel(object):
+class CameraWheel:
     """StateMachine like class, just handling wheel events."""
 
     # TODO choose scale of motion? Translation or Scale?
@@ -431,7 +431,7 @@ class FocusManager(StateMachine):
         self.currentEventHandler = self.defaultEventHandlers
 
         states = {"idle": FocusManager.Idle, "focus": FocusManager.Focus}
-        super(FocusManager, self).__init__(states, "idle")
+        super().__init__(states, "idle")
 
     def onKeyPress(self, key):
         if key == qt.Qt.Key_Control and self.ctrlEventHandlers is not None:
@@ -467,7 +467,7 @@ class RotateCameraControl(FocusManager):
             CameraWheel(viewport, mode, scaleTransform),
             CameraSelectPan(viewport, LEFT_BTN, selectCB),
         )
-        super(RotateCameraControl, self).__init__(handlers, ctrlHandlers)
+        super().__init__(handlers, ctrlHandlers)
 
 
 class PanCameraControl(FocusManager):
@@ -490,7 +490,7 @@ class PanCameraControl(FocusManager):
             CameraWheel(viewport, mode, scaleTransform),
             CameraSelectRotate(viewport, orbitAroundCenter, LEFT_BTN, selectCB),
         )
-        super(PanCameraControl, self).__init__(handlers, ctrlHandlers)
+        super().__init__(handlers, ctrlHandlers)
 
 
 class CameraControl(FocusManager):
@@ -509,7 +509,7 @@ class CameraControl(FocusManager):
             CameraSelectPan(viewport, LEFT_BTN, selectCB),
             CameraSelectRotate(viewport, orbitAroundCenter, RIGHT_BTN, selectCB),
         )
-        super(CameraControl, self).__init__(handlers)
+        super().__init__(handlers)
 
 
 class PlaneRotate(ClickOrDrag):
@@ -524,7 +524,7 @@ class PlaneRotate(ClickOrDrag):
         self._viewport = viewport
         self._plane = plane
         self._reset()
-        super(PlaneRotate, self).__init__(button)
+        super().__init__(button)
 
     def _reset(self):
         self._beginNormal, self._beginCenter = None, None
@@ -629,7 +629,7 @@ class PlanePan(ClickOrDrag):
         self._beginPlanePoint = None
         self._beginPos = None
         self._dragNdcZ = 0.0
-        super(PlanePan, self).__init__(button)
+        super().__init__(button)
 
     def click(self, x, y):
         pass
@@ -695,7 +695,7 @@ class PlaneControl(FocusManager):
             PlanePan(viewport, plane, LEFT_BTN),
             PlaneRotate(viewport, plane, RIGHT_BTN),
         )
-        super(PlaneControl, self).__init__(handlers)
+        super().__init__(handlers)
 
 
 class PanPlaneRotateCameraControl(FocusManager):
@@ -707,7 +707,7 @@ class PanPlaneRotateCameraControl(FocusManager):
             PlanePan(viewport, plane, LEFT_BTN),
             CameraSelectRotate(viewport, orbitAroundCenter=False, button=RIGHT_BTN),
         )
-        super(PanPlaneRotateCameraControl, self).__init__(handlers)
+        super().__init__(handlers)
 
 
 class PanPlaneZoomOnWheelControl(FocusManager):
@@ -729,4 +729,4 @@ class PanPlaneZoomOnWheelControl(FocusManager):
             CameraWheel(viewport, mode, scaleTransform),
             CameraSelectRotate(viewport, orbitAroundCenter, LEFT_BTN),
         )
-        super(PanPlaneZoomOnWheelControl, self).__init__(handlers, ctrlHandlers)
+        super().__init__(handlers, ctrlHandlers)

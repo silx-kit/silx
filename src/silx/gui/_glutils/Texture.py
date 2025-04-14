@@ -41,7 +41,7 @@ from . import gl, utils
 _logger = logging.getLogger(__name__)
 
 
-class Texture(object):
+class Texture:
     """Base class to wrap OpenGL 2D and 3D texture
 
     :param internalFormat: OpenGL texture internal format

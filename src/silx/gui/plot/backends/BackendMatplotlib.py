@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ __date__ = "21/12/2018"
 
 import logging
 import datetime as dt
-from typing import Tuple, Union
 import numpy
 
 from packaging.version import Version
@@ -169,7 +168,7 @@ class NiceDateLocator(Locator):
         :param numTicks: target number of ticks
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
-        super(NiceDateLocator, self).__init__()
+        super().__init__()
         self.numTicks = numTicks
 
         self._spacing = None
@@ -222,7 +221,7 @@ class NiceAutoDateFormatter(Formatter):
         :param niceDateLocator: a NiceDateLocator object
         :param datetime.tzinfo tz: optional time zone. None is local time.
         """
-        super(NiceAutoDateFormatter, self).__init__()
+        super().__init__()
         self.locator = locator
         self.tz = tz
 
@@ -327,8 +326,8 @@ class _TextWithOffset(Text):
             yoffset = 0
 
         trans = self.get_transform()
-        x = super(_TextWithOffset, self).convert_xunits(self._x)
-        y = super(_TextWithOffset, self).convert_xunits(self._y)
+        x = super().convert_xunits(self._x)
+        y = super().convert_xunits(self._y)
         pos = x, y
 
         try:
@@ -502,10 +501,10 @@ class Image(AxesImage):
         """Overridden to add a fast path for RGBA unit8 images"""
         A = numpy.asarray(A)
         if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
-            super(Image, self).set_data(A)
+            super().set_data(A)
         else:
             # Call AxesImage.set_data with small data to set attributes
-            super(Image, self).set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
+            super().set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
             self._A = A  # Override stored data
 
 
@@ -518,7 +517,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     """
 
     def __init__(self, plot, parent=None):
-        super(BackendMatplotlib, self).__init__(plot, parent)
+        super().__init__(plot, parent)
 
         # matplotlib is handling keep aspect ratio at draw time
         # When keep aspect ratio is on, and one changes the limits and
@@ -552,7 +551,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
             axis.set_major_formatter(DefaultTickFormatter())
 
-        self.ax2.set_autoscaley_on(True)
+        self.ax.set_autoscaley_on(False)
+        self.ax2.set_autoscaley_on(False)
 
         # this works but the figure color is left
         if self._matplotlibVersion < Version("2"):
@@ -659,7 +659,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             assert parameter is not None
         assert yaxis in ("left", "right")
 
-        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+        if len(color) == 4 and type(color[3]) in [int, numpy.uint8, numpy.int8]:
             color = numpy.array(color, dtype=numpy.float64) / 255.0
 
         if yaxis == "right":
@@ -1192,17 +1192,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._dirtyLimits = True
         self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
-        keepRatio = self.isKeepDataAspectRatio()
         if y2min is not None and y2max is not None:
-            if not self.isYAxisInverted():
-                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max), auto=keepRatio)
-            else:
-                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max), auto=keepRatio)
+            self.ax2.set_ybound(min(y2min, y2max), max(y2min, y2max))
 
-        if not self.isYAxisInverted():
-            self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax), auto=keepRatio)
-        else:
-            self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax), auto=keepRatio)
+        self.ax.set_ybound(min(ymin, ymax), max(ymin, ymax))
 
         self._updateMarkers()
 
@@ -1251,11 +1244,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             xcenter = 0.5 * (xmin + xmax)
             ax.set_xlim(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
 
-        keepRatio = self.isKeepDataAspectRatio()
-        if not self.isYAxisInverted():
-            ax.set_ylim(ymin, ymax, auto=keepRatio)
-        else:
-            ax.set_ylim(ymax, ymin, auto=keepRatio)
+        ax.set_ybound(ymin, ymax)
 
         self._updateMarkers()
 
@@ -1279,7 +1268,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         )
 
     def setXAxisTimeZone(self, tz):
-        super(BackendMatplotlib, self).setXAxisTimeZone(tz)
+        super().setXAxisTimeZone(tz)
 
         # Make new formatter and locator with the time zone.
         self.setXAxisTimeSeries(self.isXAxisTimeSeries())
@@ -1317,7 +1306,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     dataRange = self._plot.getDataRange()[dataRangeIndex]
                     if dataRange is None:
                         dataRange = 1, 100  # Fallback
-                    axis.set_ylim(*dataRange, auto=self.isKeepDataAspectRatio())
+                    axis.set_ybound(*dataRange)
                     redraw = True
             if redraw:
                 self.draw()
@@ -1362,15 +1351,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return 1.0
 
     def _mplToQtPosition(
-        self, x: Union[float, numpy.ndarray], y: Union[float, numpy.ndarray]
-    ) -> Tuple[Union[float, numpy.ndarray], Union[float, numpy.ndarray]]:
+        self, x: float | numpy.ndarray, y: float | numpy.ndarray
+    ) -> tuple[float | numpy.ndarray, float | numpy.ndarray]:
         """Convert matplotlib "display" space coord to Qt widget logical pixel"""
         ratio = self._getDevicePixelRatio()
         # Convert from matplotlib origin (bottom) to Qt origin (top)
         # and apply device pixel ratio
         return x / ratio, (self.fig.get_window_extent().height - y) / ratio
 
-    def _qtToMplPosition(self, x: float, y: float) -> Tuple[float, float]:
+    def _qtToMplPosition(self, x: float, y: float) -> tuple[float, float]:
         """Convert Qt widget logical pixel to matplotlib "display" space coord"""
         ratio = self._getDevicePixelRatio()
         # Apply device pixel ration and
@@ -1623,6 +1612,8 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self.ax.get_ybound(),
             self.ax2.get_ybound(),
         )
+        self.ax.set_autoscaley_on(True)
+        self.ax2.set_autoscaley_on(True)
 
         FigureCanvasQTAgg.resizeEvent(self, event)
         if self.isKeepDataAspectRatio() or self._hasOverlays():
@@ -1672,6 +1663,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
             if xLimits != self.ax.get_xbound() or yLimits != self.ax.get_ybound():
                 self._updateMarkers()
+
+            self.ax.set_autoscaley_on(False)
+            self.ax2.set_autoscaley_on(False)
 
             if xLimits != self.ax.get_xbound():
                 self._plot.getXAxis()._emitLimitsChanged()

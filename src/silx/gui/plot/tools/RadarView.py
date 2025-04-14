@@ -43,7 +43,7 @@ class _DraggableRectItem(qt.QGraphicsRectItem):
     """RectItem which signals its change through visibleRectDragged."""
 
     def __init__(self, *args, **kwargs):
-        super(_DraggableRectItem, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._previousCursor = None
         self.setFlag(qt.QGraphicsItem.ItemIsMovable)
@@ -70,13 +70,13 @@ class _DraggableRectItem(qt.QGraphicsRectItem):
     def setPos(self, *args, **kwargs):
         """Overridden to ignore changes from API in itemChange."""
         self._ignoreChange = True
-        super(_DraggableRectItem, self).setPos(*args, **kwargs)
+        super().setPos(*args, **kwargs)
         self._ignoreChange = False
 
     def moveBy(self, *args, **kwargs):
         """Overridden to ignore changes from API in itemChange."""
         self._ignoreChange = True
-        super(_DraggableRectItem, self).moveBy(*args, **kwargs)
+        super().moveBy(*args, **kwargs)
         self._ignoreChange = False
 
     def itemChange(self, change, value):
@@ -122,7 +122,7 @@ class _DraggableRectItem(qt.QGraphicsRectItem):
 
             return value
 
-        return super(_DraggableRectItem, self).itemChange(change, value)
+        return super().itemChange(change, value)
 
     def hoverEnterEvent(self, event):
         """Called when the mouse enters the rectangle area"""
@@ -197,7 +197,7 @@ class RadarView(qt.QGraphicsView):
         self._visibleRect.setBrush(self._VISIBLE_BRUSH)
         self._scene.addItem(self._visibleRect)
 
-        super(RadarView, self).__init__(self._scene, parent)
+        super().__init__(self._scene, parent)
         self.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
         self.setFocusPolicy(qt.Qt.NoFocus)
@@ -221,7 +221,7 @@ class RadarView(qt.QGraphicsView):
     def resizeEvent(self, event):
         # """Overridden to fit current content to new size."""
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
-        super(RadarView, self).resizeEvent(event)
+        super().resizeEvent(event)
 
     def setDataRect(self, left, top, width, height):
         """Set the bounds of the data rectangular area.

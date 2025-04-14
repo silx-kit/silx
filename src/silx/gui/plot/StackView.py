@@ -291,18 +291,21 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._profileToolBar.clearProfile
         )
-        
+
         self.__aggregationModeAction = AggregationModeAction(parent=self)
         self._plot.toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
 
     def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action
-        """
+        """Action toggling the aggregation mode action"""
         return self.__aggregationModeAction
 
     def _aggregationModeChanged(self):
-        self._stackItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+        self._stackItem.setAggregationMode(
+            self.getAggregationModeAction().getAggregationMode()
+        )
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
@@ -398,9 +401,7 @@ class StackView(qt.QMainWindow):
         y, x = (
             (1, 2)
             if self._perspective == 0
-            else (0, 2)
-            if self._perspective == 1
-            else (0, 1)
+            else (0, 2) if self._perspective == 1 else (0, 1)
         )
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])
@@ -706,7 +707,10 @@ class StackView(qt.QMainWindow):
             "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
-            return numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY), params
+            return (
+                numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY),
+                params,
+            )
         return self.__transposed_view, params
 
     def setFrameNumber(self, number):
@@ -1092,7 +1096,7 @@ class PlanesWidget(qt.QWidget):
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(PlanesWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
         layout0 = qt.QHBoxLayout()
@@ -1177,7 +1181,7 @@ class StackViewMainWindow(StackView):
 
     def __init__(self, parent=None):
         self._dataInfo = None
-        super(StackViewMainWindow, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowFlags(qt.Qt.Window)
 
         # Add toolbars and status bar
@@ -1259,5 +1263,5 @@ class StackViewMainWindow(StackView):
             self._dataInfo = None
 
         # Set the new stack in StackView widget
-        super(StackViewMainWindow, self).setStack(stack, *args, **kwargs)
+        super().setStack(stack, *args, **kwargs)
         self.setStatusBar(None)

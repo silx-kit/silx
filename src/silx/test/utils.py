@@ -50,7 +50,7 @@ utilstest = ExternalResources(
 "This is the instance to be used. Singleton-like feature provided by module"
 
 
-class _TestOptions(object):
+class _TestOptions:
     def __init__(self):
         self.WITH_QT_TEST = True
         """Qt tests are included"""

@@ -22,14 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Example demonstrating the use of the widget CompareImages
-"""
+"""Example demonstrating the use of the widget CompareImages"""
 
 import sys
 import logging
 import numpy
 import argparse
-import os
 
 import silx.io
 from silx.gui import qt

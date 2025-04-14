@@ -43,8 +43,8 @@ non-commercial research applications.
 
 This algorithm is patented: U.S. Patent 6,711,293:
 "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image",
-David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999. 
-It is due to expire in March 2019. 
+David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999.
+It is due to expire in March 2019.
 """
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
@@ -263,9 +263,7 @@ class SiftPlan(OpenclProcessing):
         for _ in range(par.Scales + 2):
             increase = prevSigma * math.sqrt(self.sigmaRatio**2 - 1.0)
             size = kernel_size(increase, True)
-            logger.debug(
-                "pre-Allocating %s float for blur sigma: %s" % (size, increase)
-            )
+            logger.debug(f"pre-Allocating {size} float for blur sigma: {increase}")
             memory += size * size_of_float
             prevSigma *= self.sigmaRatio
         # self.memory = memory
@@ -688,8 +686,8 @@ class SiftPlan(OpenclProcessing):
 
         if self.profile:
             self.events += [
-                ("Blur sigma %s octave %s" % (sigma, octave), k1),
-                ("Blur sigma %s octave %s" % (sigma, octave), k2),
+                (f"Blur sigma {sigma} octave {octave}", k1),
+                (f"Blur sigma {sigma} octave {octave}", k2),
             ]
 
     def _one_octave(self, octave):
@@ -735,7 +733,7 @@ class SiftPlan(OpenclProcessing):
                 *self.scales[octave],
             )
             if self.profile:
-                self.events.append(("DoG %s %s" % (octave, scale), evt))
+                self.events.append((f"DoG {octave} {scale}", evt))
         for scale in range(1, par.Scales + 1):
             evt = self.kernels.get_kernel("local_maxmin")(
                 self.queue,
@@ -754,7 +752,7 @@ class SiftPlan(OpenclProcessing):
                 *self.scales[octave],
             )  # int width, int height)
             if self.profile:
-                self.events.append(("local_maxmin %s %s" % (octave, scale), evt))
+                self.events.append((f"local_maxmin {octave} {scale}", evt))
             procsize = calc_size((self.kpsize,), wgsize)
             cp_evt = pyopencl.enqueue_copy(
                 self.queue, self.cnt, self.cl_mem["cnt"].data
@@ -775,7 +773,7 @@ class SiftPlan(OpenclProcessing):
             if self.profile:
                 self.events += [
                     ("get cnt", cp_evt),
-                    ("interp_keypoint %s %s" % (octave, scale), evt),
+                    (f"interp_keypoint {octave} {scale}", evt),
                 ]
 
             newcnt = self._compact(last_start)
@@ -790,7 +788,7 @@ class SiftPlan(OpenclProcessing):
             )  # int width,int height
             if self.profile:
                 self.events.append(
-                    ("compute_gradient_orientation %s %s" % (octave, scale), evt)
+                    (f"compute_gradient_orientation {octave} {scale}", evt)
                 )
 
             #           Orientation assignement: 1D kernel, rather heavy kernel
@@ -904,9 +902,9 @@ class SiftPlan(OpenclProcessing):
                         break
                 if self.profile:
                     self.events += [
-                        ("%s %s %s" % (orientation_name, octave, scale), evt),
+                        (f"{orientation_name} {octave} {scale}", evt),
                         ("copy cnt D->H", evt_cp),
-                        ("%s %s %s" % (descriptor_name, octave, scale), evt2),
+                        (f"{descriptor_name} {octave} {scale}", evt2),
                     ]
             evt_cp = pyopencl.enqueue_copy(
                 self.queue, self.cnt, self.cl_mem["cnt"].data
@@ -967,7 +965,7 @@ class SiftPlan(OpenclProcessing):
                 "Keypoint counter overflow risk: counted %s / %s"
                 % (kp_counter, self.kpsize)
             )
-        logger.info("Compact %s -> %s / %s" % (start, kp_counter, self.kpsize))
+        logger.info(f"Compact {start} -> {kp_counter} / {self.kpsize}")
         self.cnt[0] = start
         cp1_evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["cnt"].data, self.cnt)
         evt = self.kernels.get_kernel("compact")(
@@ -1063,6 +1061,7 @@ class SiftPlan(OpenclProcessing):
 def demo():
     # Prepare debugging
     from scipy.datasets import ascent
+
     img = ascent()
 
     s = SiftPlan(template=img)

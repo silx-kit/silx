@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This module provides convenient classes for the OpenGL rendering backend.
-"""
+"""This module provides convenient classes for the OpenGL rendering backend."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

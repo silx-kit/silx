@@ -461,7 +461,7 @@ class PrintPreviewDialog(qt.QDialog):
             self._clearAll()
         self.ensurePrinterIsSet()
 
-        return super(PrintPreviewDialog, self).showEvent(event)
+        return super().showEvent(event)
 
     # button callbacks
     def _print(self):

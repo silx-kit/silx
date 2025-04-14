@@ -33,7 +33,7 @@ import traceback
 
 depreclog = logging.getLogger("silx.DEPRECATION")
 
-deprecache = set([])
+deprecache = set()
 
 FORCE = False
 """If true, deprecation using only_once are also generated.

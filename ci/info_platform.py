@@ -11,7 +11,7 @@ import subprocess
 
 
 print("Python %s bits" % (tuple.__itemsize__ * 8))
-print("       maxsize: %s\t maxunicode: %s" % (sys.maxsize, sys.maxunicode))
+print(f"       maxsize: {sys.maxsize}\t maxunicode: {sys.maxunicode}")
 print(sys.version)
 print(" ")
 
@@ -47,7 +47,7 @@ else:
         for p in cl_platforms:
             print("  %s" % p)
             for d in p.get_devices():
-                print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+                print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
 try:
     from silx.opencl import ocl
 except Exception:
@@ -58,7 +58,7 @@ else:
         for p in ocl.platforms:
             print("  %s:" % p)
             for d in p.devices:
-                print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+                print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
 
 
 for binding_name in ("PyQt5", "PySide6", "PyQt6"):
@@ -71,6 +71,6 @@ for binding_name in ("PyQt5", "PySide6", "PyQt6"):
     try:
         version = subprocess.check_output(cmd, timeout=4).decode("ascii").rstrip("\n")
     except subprocess.CalledProcessError:
-        print("{0}: Not available".format(binding_name))
+        print(f"{binding_name}: Not available")
     else:
-        print("{0}: Qt version {1}".format(binding_name, version))
+        print(f"{binding_name}: Qt version {version}")

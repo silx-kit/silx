@@ -179,7 +179,7 @@ def mainQt(options):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(url.path())
-        except IOError as e:
+        except OSError as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
 

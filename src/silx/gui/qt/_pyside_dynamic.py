@@ -85,7 +85,7 @@ class _Line(QFrame):
     """Widget to use as 'Line' Qt designer"""
 
     def __init__(self, parent=None):
-        super(_Line, self).__init__(parent)
+        super().__init__(parent)
         self.setFrameShape(QFrame.HLine)
         self.setFrameShadow(QFrame.Sunken)
 
@@ -194,7 +194,6 @@ def _get_custom_widgets(ui_file):
     section, then automatically load all the custom widget classes.
     """
 
-    import sys
     import importlib
     from xml.etree.ElementTree import ElementTree
 

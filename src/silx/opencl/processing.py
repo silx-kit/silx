@@ -67,7 +67,7 @@ ProfileDescription = namedtuple("ProfileDescription", ["name", "start", "stop"])
 logger = logging.getLogger(__name__)
 
 
-class KernelContainer(object):
+class KernelContainer:
     """Those object holds a copy of all kernels accessible as attributes"""
 
     def __init__(self, program):
@@ -111,7 +111,7 @@ class KernelContainer(object):
         )
 
 
-class OpenclProcessing(object):
+class OpenclProcessing:
     """Abstract class for different types of OpenCL processing.
 
     This class provides:
@@ -489,9 +489,9 @@ class OpenclProcessing(object):
 
     @property
     def x87_volatile_option(self):
-        """This enforces float32/64 operations to be performed actually with 32/64 bit precision 
+        """This enforces float32/64 operations to be performed actually with 32/64 bit precision
         and not larger (80 bits) as the x87 unit is capable of. This unit is used only with POCL
-        driver when running on a 32 bits platform x86""" 
+        driver when running on a 32 bits platform x86"""
         if self._X87_VOLATILE is None:
             if (
                 platform.machine() in ("i386", "i686", "x86_64", "AMD64")
@@ -505,27 +505,28 @@ class OpenclProcessing(object):
 
     @property
     def apple_gpu_option(self):
-        """This overwrites the preprocessor variable `cl_khr_fp64` with the proper value, 0 or 1. 
-        On Apple GPU driver, this variable is wrongly set to `1` while the driver has no support 
-        for double precision and crashes the compilation. The value obtained from the driver is 
+        """This overwrites the preprocessor variable `cl_khr_fp64` with the proper value, 0 or 1.
+        On Apple GPU driver, this variable is wrongly set to `1` while the driver has no support
+        for double precision and crashes the compilation. The value obtained from the driver is
         apparently correct"""
         if self._APPLE_GPU is None:
-            if (platform.machine() == "arm64" and  
-                platform.system() == 'Darwin' and 
-                self.ctx.devices[0].type == pyopencl.device_type.GPU # check "gpu"
-            ): 
-                fp64_support = 1 if "cl_khr_fp64" in self.ctx.devices[0].extensions else 0
+            if (
+                platform.machine() == "arm64"
+                and platform.system() == "Darwin"
+                and self.ctx.devices[0].type == pyopencl.device_type.GPU  # check "gpu"
+            ):
+                fp64_support = (
+                    1 if "cl_khr_fp64" in self.ctx.devices[0].extensions else 0
+                )
                 self._APPLE_GPU = f"-Dcl_khr_fp64={fp64_support}"
             else:
                 self._APPLE_GPU = ""
         return self._APPLE_GPU
-                 
-    
 
     def get_compiler_options(self, x87_volatile=False, apple_gpu=False):
         """Provide the default OpenCL compiler options
 
-        :param x87_volatile: needed for Kahan summation 
+        :param x87_volatile: needed for Kahan summation
         :param apple_gpu: work around for bug on AppleSilicon GPU compiler
         :return: string with compiler option
         """

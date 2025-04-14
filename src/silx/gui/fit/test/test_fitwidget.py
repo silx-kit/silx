@@ -40,7 +40,7 @@ class TestFitWidget(TestCaseQt):
     """Basic test for FitWidget"""
 
     def setUp(self):
-        super(TestFitWidget, self).setUp()
+        super().setUp()
         self.fit_widget = FitWidget()
         self.fit_widget.show()
         self.qWaitForWindowExposed(self.fit_widget)
@@ -49,7 +49,7 @@ class TestFitWidget(TestCaseQt):
         self.fit_widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.fit_widget.close()
         del self.fit_widget
-        super(TestFitWidget, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         pass

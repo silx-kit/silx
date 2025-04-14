@@ -228,7 +228,7 @@ class TestNXdata(unittest.TestCase):
             for subgroup in self.h5f[group]:
                 self.assertTrue(
                     nxdata.is_valid_nxdata(self.h5f[group][subgroup]),
-                    "%s/%s not found to be a valid NXdata group" % (group, subgroup),
+                    f"{group}/{subgroup} not found to be a valid NXdata group",
                 )
 
     def testScalars(self):

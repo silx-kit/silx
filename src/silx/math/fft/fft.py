@@ -86,7 +86,7 @@ def FFT(
 
         fft_cls = CUFFT
     else:
-        raise ValueError("Unknown backend %s, available are %s" % (backend, backends))
+        raise ValueError(f"Unknown backend {backend}, available are {backends}")
     F = fft_cls(
         shape=shape,
         dtype=dtype,

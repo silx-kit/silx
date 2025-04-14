@@ -47,7 +47,7 @@ class MaskScatterWidget(qt.QMainWindow):
     """
 
     def __init__(self, parent=None):
-        super(MaskScatterWidget, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._activeScatterLegend = "active scatter"
         self._bgImageLegend = "background image"
 
@@ -104,7 +104,7 @@ class MaskScatterWidget(qt.QMainWindow):
         :param image: 2D image, array of shape (nrows, ncolumns)
             or (nrows, ncolumns, 3) or (nrows, ncolumns, 4) RGB(A) pixmap
         :param xscale: Factors for polynomial scaling  for x-axis,
-            *(a, b)* such as :math:`x \mapsto a + bx`
+            *(a, b)* such as :math:`x \\mapsto a + bx`
         :param yscale: Factors for polynomial scaling  for y-axis
         """
         self._plot.addImage(

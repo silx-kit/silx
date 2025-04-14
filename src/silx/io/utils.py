@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-""" I/O utility functions"""
+"""I/O utility functions"""
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
@@ -32,14 +32,12 @@ import os
 import sys
 import time
 import logging
-from typing import Generator, Union, Optional
-import urllib.parse
+from collections.abc import Generator
 
 import numpy
 
 from silx.utils.proxy import Proxy
 from .url import DataUrl
-from . import h5py_utils
 from .._version import calc_hexversion
 
 import h5py
@@ -87,9 +85,9 @@ def supported_extensions(flat_formats=True):
     :rtype: Dict[str, Set[str]]
     """
     formats = {}
-    formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
-    formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
-    formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
+    formats["HDF5 files"] = {"*.h5", "*.hdf", "*.hdf5"}
+    formats["NeXus files"] = {"*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"}
+    formats["NeXus layout from spec files"] = {"*.dat", "*.spec", "*.mca"}
     if flat_formats:
         try:
             from silx.io import fabioh5
@@ -105,8 +103,8 @@ def supported_extensions(flat_formats=True):
         extensions.append("*.npy")
 
     formats["Numpy binary files"] = set(extensions)
-    formats["Coherent X-Ray Imaging files"] = set(["*.cxi"])
-    formats["FIO files"] = set(["*.fio"])
+    formats["Coherent X-Ray Imaging files"] = {"*.cxi"}
+    formats["FIO files"] = {"*.fio"}
     return formats
 
 
@@ -189,7 +187,7 @@ def save1D(
         if fileext in exttypes:
             filetype = exttypes[fileext]
         else:
-            raise IOError(
+            raise OSError(
                 "File type unspecified and could not be "
                 + "inferred from file extension (not in "
                 + "txt, dat, csv, npy)"
@@ -198,7 +196,7 @@ def save1D(
         filetype = filetype.lower()
 
     if filetype not in available_formats:
-        raise IOError("File type %s is not supported" % (filetype))
+        raise OSError("File type %s is not supported" % (filetype))
 
     # default column headers
     if xlabel is None:
@@ -534,7 +532,7 @@ def _open_local_file(filename):
     :rtype: h5py.File
     """
     if not os.path.isfile(filename):
-        raise IOError("Filename '%s' must be a file path" % filename)
+        raise OSError("Filename '%s' must be a file path" % filename)
 
     debugging_info = []
     try:
@@ -545,7 +543,7 @@ def _open_local_file(filename):
                 from . import rawh5
 
                 return rawh5.NumpyFile(filename)
-            except (IOError, ValueError) as e:
+            except (OSError, ValueError) as e:
                 debugging_info.append(
                     (
                         sys.exc_info(),
@@ -557,7 +555,7 @@ def _open_local_file(filename):
             try:
                 return h5py.File(filename, "r")
             except OSError:
-                return h5py.File(filename, "r", libver='latest', swmr=True)
+                return h5py.File(filename, "r", libver="latest", swmr=True)
 
         try:
             from . import fabioh5
@@ -576,7 +574,7 @@ def _open_local_file(filename):
             return spech5.SpecH5(filename)
         except ImportError:
             debugging_info.append((sys.exc_info(), "spech5 can't be loaded."))
-        except IOError:
+        except OSError:
             debugging_info.append(
                 (sys.exc_info(), "File '%s' can't be read as spec file." % filename)
             )
@@ -585,7 +583,7 @@ def _open_local_file(filename):
             from . import fioh5
 
             return fioh5.FioH5(filename)
-        except IOError:
+        except OSError:
             debugging_info.append(
                 (sys.exc_info(), "File '%s' can't be read as fio file." % filename)
             )
@@ -594,7 +592,7 @@ def _open_local_file(filename):
         for exc_info, message in debugging_info:
             logger.debug(message, exc_info=exc_info)
 
-    raise IOError("File '%s' can't be read as HDF5" % filename)
+    raise OSError("File '%s' can't be read as HDF5" % filename)
 
 
 def _open_url_with_h5pyd(url: str):
@@ -604,7 +602,7 @@ def _open_url_with_h5pyd(url: str):
     :returns: h5pyd.File instance
     """
     if h5pyd is None:
-        raise IOError(f"URL '{url}' unsupported. Try to install h5pyd.")
+        raise OSError(f"URL '{url}' unsupported. Try to install h5pyd.")
 
     # Retrieve configured HSDS endpoint if any
     default_endpoint = os.environ.get("H5SERV_ENDPOINT", None)
@@ -613,12 +611,12 @@ def _open_url_with_h5pyd(url: str):
         if "hs_endpoint" in cfg:
             default_endpoint = cfg["hs_endpoint"].rstrip("/")
     else:
-        default_endpoint = default_endpoint.rstrip("/") 
+        default_endpoint = default_endpoint.rstrip("/")
 
     # Remove endpoint prefix from the URL:
     # Needed for HSDS servers not exposed as the url netloc, e.g., example.com/hsds/
     if default_endpoint and url.startswith(default_endpoint):
-        return h5pyd.File(url[len(default_endpoint):], "r")
+        return h5pyd.File(url[len(default_endpoint) :], "r")
 
     return h5pyd.File(url, "r")
 
@@ -635,7 +633,7 @@ class _MainNode(Proxy):
     """
 
     def __init__(self, h5_node, h5_file):
-        super(_MainNode, self).__init__(h5_node)
+        super().__init__(h5_node)
         self.__node = h5_node
         self.__file = h5_file
         self.__class = get_h5_class(h5_node)
@@ -696,22 +694,22 @@ def open(filename):  # pylint:disable=redefined-builtin
     if url.scheme() in [None, "file", "silx"]:
         # That's a local file
         if not url.is_valid():
-            raise IOError("URL '%s' is not valid" % filename)
+            raise OSError("URL '%s' is not valid" % filename)
         h5_file = _open_local_file(url.file_path())
     elif url.scheme() in ("http", "https"):
         return _open_url_with_h5pyd(filename)
     else:
-        raise IOError(f"Unsupported URL scheme {url.scheme}: {filename}")
+        raise OSError(f"Unsupported URL scheme {url.scheme}: {filename}")
 
     if url.data_path() in [None, "/", ""]:  # The full file is requested
         if url.data_slice():
-            raise IOError(f"URL '{filename}' containing slicing is not supported")
+            raise OSError(f"URL '{filename}' containing slicing is not supported")
         return h5_file
     else:
         # Only a children is requested
         if url.data_path() not in h5_file:
-            msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
-            raise IOError(msg)
+            msg = f"File '{filename}' does not contain path '{url.data_path()}'."
+            raise OSError(msg)
         node = h5_file[url.data_path()]
 
         if url.data_slice() is not None:
@@ -720,7 +718,7 @@ def open(filename):  # pylint:disable=redefined-builtin
             try:
                 return _sliceh5.DatasetSlice(node, url.data_slice(), attrs=node.attrs)
             except ValueError:
-                raise IOError(
+                raise OSError(
                     f"URL {filename} contains slicing, but it is not a dataset"
                 )
 
@@ -958,7 +956,7 @@ def match(group, path_pattern: str) -> Generator[str, None, None]:
                 yield f"{matching_path}/{matching_subpath}"
 
 
-def get_data(url: Union[str, DataUrl]):
+def get_data(url: str | DataUrl):
     """Returns a numpy data from an URL.
 
     Examples:
@@ -999,7 +997,7 @@ def get_data(url: Union[str, DataUrl]):
         raise ValueError("URL '%s' is not valid" % url.path())
 
     if not os.path.exists(url.file_path()):
-        raise IOError("File '%s' not found" % url.file_path())
+        raise OSError("File '%s' not found" % url.file_path())
 
     if url.scheme() == "silx":
         data_path = url.data_path()
@@ -1043,7 +1041,7 @@ def get_data(url: Union[str, DataUrl]):
             logger.debug(
                 "Error while opening %s with fabio", url.file_path(), exc_info=True
             )
-            raise IOError(
+            raise OSError(
                 "Error while opening %s with fabio (use debug for more information)"
                 % url.path()
             )
@@ -1098,7 +1096,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype, overwrite
     """
     assert isinstance(output_url, DataUrl)
     assert isinstance(shape, (tuple, list))
-    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split(".")[:3]]
+    v_majeur, v_mineur, v_micro = (int(i) for i in h5py.version.version.split(".")[:3])
     if calc_hexversion(v_majeur, v_mineur, v_micro) < calc_hexversion(2, 9, 0):
         raise Exception(
             "h5py >= 2.9 should be installed to access the " "external feature."
@@ -1120,7 +1118,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype, overwrite
 def vol_to_h5_external_dataset(
     vol_file,
     output_url: DataUrl,
-    info_file: Optional[str] = None,
+    info_file: str | None = None,
     vol_dtype=numpy.float32,
     overwrite=False,
 ):

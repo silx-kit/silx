@@ -38,7 +38,7 @@ from silx.utils.testutils import LoggingValidator
 
 class TestThreadPoolPushButton(TestCaseQt):
     def setUp(self):
-        super(TestThreadPoolPushButton, self).setUp()
+        super().setUp()
         self._result = []
 
     def waitForPendingOperations(self, object):

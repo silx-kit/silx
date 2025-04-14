@@ -401,8 +401,8 @@ class ParametersTab(qt.QTabWidget):
         if name is None:
             name = self.latest_view
         table = self.tables[name]
-        lemon = ("#%x%x%x" % (255, 250, 205)).upper()
-        hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
+        lemon = (f"#{255:x}{250:x}{205:x}").upper()
+        hcolor = (f"#{230:x}{240:x}{249:x}").upper()
         text = ""
         text += "<nobr>"
         text += "<table>"
@@ -429,7 +429,7 @@ class ParametersTab(qt.QTabWidget):
             try:
                 # MyQTable item has color defined
                 cc = table.item(r, 0).color
-                cc = ("#%x%x%x" % (cc.red(), cc.green(), cc.blue())).upper()
+                cc = (f"#{cc.red():x}{cc.green():x}{cc.blue():x}").upper()
                 color = cc
             except:
                 pass
@@ -443,9 +443,9 @@ class ParametersTab(qt.QTabWidget):
                 else:
                     finalcolor = "white"
                 if c < 2:
-                    text += '<td align="left" bgcolor="%s">%s' % (finalcolor, b)
+                    text += f'<td align="left" bgcolor="{finalcolor}">{b}'
                 else:
-                    text += '<td align="right" bgcolor="%s">%s' % (finalcolor, b)
+                    text += f'<td align="right" bgcolor="{finalcolor}">{b}'
                 text += newtext
                 if len(b):
                     text += "</td>"

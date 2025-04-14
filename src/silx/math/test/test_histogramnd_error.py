@@ -55,7 +55,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         """ """
 
         for err_w_shape in self.err_weights_shapes:
-            test_msg = "Testing invalid weights shape : {0}" "".format(err_w_shape)
+            test_msg = f"Testing invalid weights shape : {err_w_shape}"
 
             err_weights = np.random.randint(0, high=10, size=err_w_shape)
             err_weights = err_weights.astype(np.double)
@@ -87,9 +87,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         )
 
         for err_histo_range in self.err_histo_range_shapes:
-            test_msg = "Testing invalid histo_range shape : {0}" "".format(
-                err_histo_range
-            )
+            test_msg = f"Testing invalid histo_range shape : {err_histo_range}"
 
             expected_txt = expected_txt_tpl.format(
                 histo_range=err_histo_range, n_dims=n_dims
@@ -117,7 +115,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         )
 
         for err_n_bins in self.err_n_bins_shapes:
-            test_msg = "Testing invalid n_bins shape : {0}" "".format(err_n_bins)
+            test_msg = f"Testing invalid n_bins shape : {err_n_bins}"
 
             ex_str = None
             try:
@@ -135,7 +133,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         expected_txt = "<n_bins> : only positive values allowed."
 
         for err_n_bins in self.err_n_bins_values:
-            test_msg = "Testing invalid n_bins value : {0}" "".format(err_n_bins)
+            test_msg = f"Testing invalid n_bins value : {err_n_bins}"
 
             ex_str = None
             try:
@@ -151,13 +149,12 @@ class _Test_chistogramnd_errors(unittest.TestCase):
     def test_histo_shape(self):
         """ """
         for err_h_shape in self.err_histo_shapes:
-            test_msg = "Testing invalid histo shape : {0}" "".format(err_h_shape)
+            test_msg = f"Testing invalid histo shape : {err_h_shape}"
 
             expected_txt = (
                 "Provided <histo> array doesn't have "
                 "a shape compatible with <n_bins> "
-                ": should be {0} instead of {1}."
-                "".format(self.h_shape, err_h_shape)
+                f": should be {self.h_shape} instead of {err_h_shape}."
             )
 
             histo = np.zeros(shape=err_h_shape, dtype=np.uint32)
@@ -180,15 +177,14 @@ class _Test_chistogramnd_errors(unittest.TestCase):
     def test_histo_dtype(self):
         """ """
         for err_h_dtype in self.err_histo_dtypes:
-            test_msg = "Testing invalid histo dtype : {0}" "".format(err_h_dtype)
+            test_msg = f"Testing invalid histo dtype : {err_h_dtype}"
 
             histo = np.zeros(shape=self.h_shape, dtype=err_h_dtype)
 
             expected_txt = (
                 "Provided <histo> array doesn't have "
                 "the expected type "
-                ": should be {0} instead of {1}."
-                "".format(np.uint32, histo.dtype)
+                f": should be {np.uint32} instead of {histo.dtype}."
             )
 
             ex_str = None
@@ -210,15 +206,12 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         """ """
         # using the same values as histo
         for err_h_shape in self.err_histo_shapes:
-            test_msg = "Testing invalid weighted_histo shape : {0}" "".format(
-                err_h_shape
-            )
+            test_msg = f"Testing invalid weighted_histo shape : {err_h_shape}"
 
             expected_txt = (
                 "Provided <weighted_histo> array doesn't have "
                 "a shape compatible with <n_bins> "
-                ": should be {0} instead of {1}."
-                "".format(self.h_shape, err_h_shape)
+                f": should be {self.h_shape} instead of {err_h_shape}."
             )
 
             cumul = np.zeros(shape=err_h_shape, dtype=np.double)
@@ -242,17 +235,14 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         """ """
         # using the same values as histo
         for err_h_dtype in self.err_histo_dtypes:
-            test_msg = "Testing invalid weighted_histo dtype : {0}" "".format(
-                err_h_dtype
-            )
+            test_msg = f"Testing invalid weighted_histo dtype : {err_h_dtype}"
 
             cumul = np.zeros(shape=self.h_shape, dtype=err_h_dtype)
 
             expected_txt = (
                 "Provided <weighted_histo> array doesn't have "
                 "the expected type "
-                ": should be {0} or {1} instead of {2}."
-                "".format(np.float64, np.float32, cumul.dtype)
+                f": should be {np.float64} or {np.float32} instead of {cumul.dtype}."
             )
 
             ex_str = None
@@ -274,9 +264,9 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         """ """
         # using the same values as histo
         for err_h_dtype in self.err_histo_dtypes:
-            test_msg = "Testing invalid wh_dtype dtype : {0}" "".format(err_h_dtype)
+            test_msg = f"Testing invalid wh_dtype dtype : {err_h_dtype}"
 
-            expected_txt = "<wh_dtype> type not supported : {0}." "".format(err_h_dtype)
+            expected_txt = f"<wh_dtype> type not supported : {err_h_dtype}."
 
             ex_str = None
             try:
@@ -296,15 +286,14 @@ class _Test_chistogramnd_errors(unittest.TestCase):
     def test_unmanaged_dtypes(self):
         """ """
         for err_unmanaged_dtype in self.err_unmanaged_dtypes:
-            test_msg = "Testing unmanaged dtypes : {0}" "".format(err_unmanaged_dtype)
+            test_msg = f"Testing unmanaged dtypes : {err_unmanaged_dtype}"
 
             sample = self.sample.astype(err_unmanaged_dtype[0])
             weights = self.weights.astype(err_unmanaged_dtype[1])
 
             expected_txt = (
-                "Case not supported - sample:{0} "
-                "and weights:{1}."
-                "".format(sample.dtype, weights.dtype)
+                f"Case not supported - sample:{sample.dtype} "
+                f"and weights:{weights.dtype}."
             )
 
             ex_str = None

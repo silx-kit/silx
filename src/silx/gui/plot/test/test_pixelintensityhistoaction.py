@@ -44,7 +44,7 @@ class TestPixelIntensitiesHisto(PlotWidgetTestCase, ParametricTestCase):
         return Plot2D()
 
     def setUp(self):
-        super(TestPixelIntensitiesHisto, self).setUp()
+        super().setUp()
         self.image = numpy.random.rand(10, 10)
         self.plot.getIntensityHistogramAction().setVisible(True)
 

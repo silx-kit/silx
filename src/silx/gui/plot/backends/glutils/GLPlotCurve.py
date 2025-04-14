@@ -76,7 +76,7 @@ def _notNaNSlices(array, length=1):
 # fill ########################################################################
 
 
-class _Fill2D(object):
+class _Fill2D:
     """Object rendering curve filling as polygons
 
     :param numpy.ndarray xData: X coordinates of points
@@ -279,7 +279,7 @@ class _Fill2D(object):
 # line ########################################################################
 
 
-class GLLines2D(object):
+class GLLines2D:
     """Object rendering curve as a polyline
 
     :param xVboData: X coordinates VBO
@@ -547,7 +547,7 @@ def distancesFromArrays(xData, yData, ratio: float = 1.0):
                     numpy.ediff1d(xData[begin:end], to_begin=numpy.float32(0.0)),
                     numpy.ediff1d(
                         (yData[begin:end] * ratio).astype(numpy.float32),
-                        to_begin=numpy.float32(0.0)
+                        to_begin=numpy.float32(0.0),
                     ),
                 )
             )[0]
@@ -580,7 +580,7 @@ CARET_UP = "caretup"
 CARET_DOWN = "caretdown"
 
 
-class Points2D(object):
+class Points2D:
     """Object rendering curve markers
 
     :param xVboData: X coordinates VBO
@@ -967,7 +967,7 @@ class Points2D(object):
 # error bars ##################################################################
 
 
-class _ErrorBars(object):
+class _ErrorBars:
     """Display errors bars.
 
     This is using its own VBO as opposed to fill/points/lines.

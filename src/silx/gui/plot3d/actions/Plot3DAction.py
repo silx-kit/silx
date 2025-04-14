@@ -46,7 +46,7 @@ class Plot3DAction(qt.QAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(Plot3DAction, self).__init__(parent)
+        super().__init__(parent)
         self._plot3d = None
         self.setPlot3DWidget(plot3d)
 

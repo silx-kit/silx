@@ -115,13 +115,12 @@ def histogramnd_get_lut(sample,
         err_histo_range = True
 
     if err_histo_range:
-        raise ValueError('<histo_range> error : expected {n_dims} sets of '
+        raise ValueError(f'<histo_range> error : expected {n_dims} sets of '
                          'lower and upper bin edges, '
-                         'got the following instead : {histo_range}. '
+                         f'got the following instead : {i_histo_range}. '
                          '(provided <sample> contains '
-                         '{n_dims}D values)'
-                         ''.format(histo_range=i_histo_range,
-                                   n_dims=n_dims))
+                         f'{n_dims}D values)'
+        )
 
     histo_range = np.double(histo_range)
 
@@ -183,12 +182,10 @@ def histogramnd_get_lut(sample,
                                         histo_c,
                                         last_bin_closed)
     except TypeError as ex:
-        raise TypeError('Type not supported - sample : {0}'
-                        ''.format(sample_type))
+        raise TypeError(f'Type not supported - sample : {sample_type}')
 
     if rc != 0:
-        raise Exception('histogramnd returned an error : {0}'
-                        ''.format(rc))
+        raise Exception(f'histogramnd returned an error : {rc}')
 
     edges = []
     histo_range = histo_range.reshape(-1)
@@ -245,8 +242,8 @@ def histogramnd_from_lut(weights,
         if histo.dtype != np.uint32:
             raise ValueError('Provided <histo> array doesn\'t have '
                              'the expected type '
-                             ': should be {0} instead of {1}.'
-                             ''.format(np.uint32, histo.dtype))
+                             f': should be {np.uint32} instead of {histo.dtype}.'
+            )
 
         if weighted_histo is not None:
             if histo.shape != weighted_histo.shape:
@@ -313,9 +310,8 @@ def histogramnd_from_lut(weights,
                                     w_dtype.type(weight_max))
     except TypeError as ex:
         print(ex)
-        raise TypeError('Case not supported - weights:{0} '
-                        'and histo:{1}.'
-                        ''.format(weights.dtype, histo.dtype))
+        raise TypeError(f'Case not supported - weights:{weights.dtype} '
+                        'and histo:{histo.dtype}.')
 
     return histo, weighted_histo
 

@@ -34,7 +34,7 @@ __date__ = "25/07/2016"
 import contextlib
 
 
-class _DEFAULT_CONTEXT(object):
+class _DEFAULT_CONTEXT:
     """The default value for OpenGL context"""
 
     pass

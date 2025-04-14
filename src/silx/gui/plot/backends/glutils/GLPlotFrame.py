@@ -41,7 +41,6 @@ import math
 import weakref
 import logging
 import numbers
-from typing import Optional, Union
 from collections import namedtuple
 
 import numpy
@@ -67,7 +66,7 @@ _logger = logging.getLogger(__name__)
 # PlotAxis ####################################################################
 
 
-class PlotAxis(object):
+class PlotAxis:
     """Represents a 1D axis of the plot.
     This class is intended to be used with :class:`GLPlotFrame`.
     """
@@ -241,9 +240,9 @@ class PlotAxis(object):
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, "foregroundColor must have length 4, got {}".format(
-            len(self._foregroundColor)
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._foregroundColor = color
             self._dirtyTicks()
@@ -460,7 +459,7 @@ class PlotAxis(object):
 # GLPlotFrame #################################################################
 
 
-class GLPlotFrame(object):
+class GLPlotFrame:
     """Base class for rendering a 2D frame surrounded by axes."""
 
     _TICK_LENGTH_IN_PIXELS = 5
@@ -541,9 +540,9 @@ class GLPlotFrame(object):
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, "foregroundColor must have length 4, got {}".format(
-            len(self._foregroundColor)
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._foregroundColor = color
             for axis in self.axes:
@@ -558,9 +557,9 @@ class GLPlotFrame(object):
     @gridColor.setter
     def gridColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, "gridColor must have length 4, got {}".format(
-            len(self._gridColor)
-        )
+        assert (
+            len(color) == 4
+        ), f"gridColor must have length 4, got {len(self._gridColor)}"
         if self._gridColor != color:
             self._gridColor = color
             self._dirty()
@@ -829,9 +828,7 @@ class GLPlotFrame2D(GLPlotFrame):
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
         :param font: Font used by the axes label
         """
-        super(GLPlotFrame2D, self).__init__(
-            marginRatios, foregroundColor, gridColor, font
-        )
+        super().__init__(marginRatios, foregroundColor, gridColor, font)
         self._font = font
 
         self.axes.append(
@@ -893,7 +890,7 @@ class GLPlotFrame2D(GLPlotFrame):
         self._transformedDataY2ProjMat = None
 
     def _dirty(self):
-        super(GLPlotFrame2D, self)._dirty()
+        super()._dirty()
         self._transformedDataRanges = None
         self._transformedDataProjMat = None
         self._transformedDataY2ProjMat = None
@@ -902,7 +899,7 @@ class GLPlotFrame2D(GLPlotFrame):
     def isDirty(self):
         """True if it need to refresh graphic rendering, False otherwise."""
         return (
-            super(GLPlotFrame2D, self).isDirty
+            super().isDirty
             or self._transformedDataRanges is None
             or self._transformedDataProjMat is None
             or self._transformedDataY2ProjMat is None
@@ -1126,8 +1123,8 @@ class GLPlotFrame2D(GLPlotFrame):
 
     @staticmethod
     def __applyLog(
-        data: Union[float, numpy.ndarray], isLog: bool
-    ) -> Optional[Union[float, numpy.ndarray]]:
+        data: float | numpy.ndarray, isLog: bool
+    ) -> float | numpy.ndarray | None:
         """Apply log to data filtering out"""
         if not isLog:
             return data
@@ -1180,12 +1177,16 @@ class GLPlotFrame2D(GLPlotFrame):
             yPixel = self.size[1] - self.margins.bottom - yOffset
 
         return (
-            int(xPixel)
-            if isinstance(xPixel, numbers.Real)
-            else xPixel.astype(numpy.int64),
-            int(yPixel)
-            if isinstance(yPixel, numbers.Real)
-            else yPixel.astype(numpy.int64),
+            (
+                int(xPixel)
+                if isinstance(xPixel, numbers.Real)
+                else xPixel.astype(numpy.int64)
+            ),
+            (
+                int(yPixel)
+                if isinstance(yPixel, numbers.Real)
+                else yPixel.astype(numpy.int64)
+            ),
         )
 
     def pixelToData(self, x, y, axis="left"):
@@ -1368,7 +1369,7 @@ class GLPlotFrame2D(GLPlotFrame):
             (xCoords[1], yCoords[1]),
         )
 
-        super(GLPlotFrame2D, self)._buildVerticesAndLabels()
+        super()._buildVerticesAndLabels()
 
         vertices, gridVertices, labels = self._renderResources
 
@@ -1391,9 +1392,9 @@ class GLPlotFrame2D(GLPlotFrame):
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, "foregroundColor must have length 4, got {}".format(
-            len(self._foregroundColor)
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._y2Axis.foregroundColor = color
             GLPlotFrame.foregroundColor.fset(self, color)  # call parent property

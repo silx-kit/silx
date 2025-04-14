@@ -32,10 +32,11 @@ This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/12/2020"
+__date__ = "02/04/2025"
 
 import os
 import sys
+import warnings
 import numpy
 import logging
 import h5py
@@ -122,7 +123,7 @@ class ImageMask(BaseMask):
         elif kind == "npy":
             try:
                 numpy.save(filename, self.getMask(copy=False))
-            except IOError:
+            except OSError:
                 raise RuntimeError("Mask file can't be written")
 
         elif ("." + kind) in NEXUS_HDF5_EXT:
@@ -279,7 +280,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
-        super(MaskToolsWidget, self).__init__(parent, plot, mask=ImageMask())
+        super().__init__(parent, plot, mask=ImageMask())
         self._origin = (0.0, 0.0)  # Mask origin in plot
         self._scale = (1.0, 1.0)  # Mask scale in plot
         self._z = 1  # Mask layer in plot
@@ -404,10 +405,12 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        try:
-            self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-        except (RuntimeError, TypeError, SystemError):
-            pass
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+            except (RuntimeError, TypeError, SystemError):
+                pass
 
         image = self.getMaskedItem()
         if image is not None:
@@ -604,7 +607,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if extension == "npy":
             try:
                 mask = numpy.load(filename)
-            except IOError:
+            except OSError:
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
                 raise RuntimeError('File "%s" is not a numpy file.', filename)
@@ -618,7 +621,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         elif ("." + extension) in NEXUS_HDF5_EXT:
             mask = self._loadFromHdf5(filename)
             if mask is None:
-                raise IOError("Could not load mask from HDF5 dataset")
+                raise OSError("Could not load mask from HDF5 dataset")
         else:
             msg = "Extension '%s' is not supported."
             raise RuntimeError(msg % extension)
@@ -649,7 +652,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         filters = []
         filters.append("All supported files (%s)" % " ".join(extensions.values()))
         for name, extension in extensions.items():
-            filters.append("%s (%s)" % (name, extension))
+            filters.append(f"{name} ({extension})")
         filters.append("All files (*)")
 
         dialog.setNameFilters(filters)
@@ -695,7 +698,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         with h5py.File(filename, "r") as h5f:
             dataset = h5f.get(dataPath)
             if not is_dataset(dataset):
-                raise IOError("%s is not a dataset" % dataPath)
+                raise OSError(f"{dataPath} is not a dataset")
             mask = dataset[()]
         return mask
 
@@ -758,7 +761,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if os.path.exists(filename) and "HDF5" not in nameFilter:
             try:
                 os.remove(filename)
-            except IOError as e:
+            except OSError as e:
                 msg = qt.QMessageBox(self)
                 msg.setWindowTitle("Removing existing file")
                 msg.setIcon(qt.QMessageBox.Critical)
@@ -785,7 +788,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 strerror = e.strerror
             else:
                 strerror = sys.exc_info()[1]
-            msg.setText("Cannot save file %s\n%s" % (filename, strerror))
+            msg.setText(f"Cannot save file {filename}\n{strerror}")
             msg.exec()
 
     def resetSelectionMask(self):
@@ -911,4 +914,4 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
 
     def __init__(self, parent=None, plot=None, name="Mask"):
         widget = MaskToolsWidget(plot=plot)
-        super(MaskToolsDockWidget, self).__init__(parent, name, widget)
+        super().__init__(parent, name, widget)

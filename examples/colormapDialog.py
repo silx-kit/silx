@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`.
-"""
+"""This script shows the features of a :mod:`~silx.gui.dialog.ColormapDialog`."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -46,7 +45,7 @@ class ColormapDialogExample(qt.QMainWindow):
     """PlotWidget with an ad hoc toolbar and a colorbar"""
 
     def __init__(self, parent=None):
-        super(ColormapDialogExample, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle("Colormap dialog example")
 
         self.colormap1 = Colormap("viridis")

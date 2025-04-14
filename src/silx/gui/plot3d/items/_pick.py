@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides classes supporting item picking.
-"""
+"""This module provides classes supporting item picking."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -39,7 +38,7 @@ from silx._utils import NP_OPTIONAL_COPY
 _logger = logging.getLogger(__name__)
 
 
-class PickContext(object):
+class PickContext:
     """Store information related to current picking
 
     :param int x: Widget coordinate
@@ -189,7 +188,7 @@ class PickingResult(_PickingResult):
             to provide an alternative function to access item data.
             Default is to use `item.getData`.
         """
-        super(PickingResult, self).__init__(item, indices)
+        super().__init__(item, indices)
 
         self._objectPositions = numpy.asarray(positions, dtype=numpy.float64)
 

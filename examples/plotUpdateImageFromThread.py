@@ -64,12 +64,12 @@ class UpdateThread(threading.Thread):
         self.plot2d = plot2d
         self.running = False
         self.future_result = None
-        super(UpdateThread, self).__init__()
+        super().__init__()
 
     def start(self):
         """Start the update thread"""
         self.running = True
-        super(UpdateThread, self).start()
+        super().start()
 
     def run(self, pos={"x0": 0, "y0": 0}):
         """Method implementing thread loop that updates the plot

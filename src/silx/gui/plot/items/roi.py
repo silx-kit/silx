@@ -35,7 +35,6 @@ __date__ = "28/06/2018"
 
 import logging
 import numpy
-from typing import Tuple
 
 from ... import utils
 from .. import items
@@ -93,7 +92,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
-        super(PointROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updateText(self, text: str):
         self._marker.setText(text)
@@ -101,7 +100,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _updatedStyle(self, event, style):
         self._marker.setColor(style.getColor())
 
-    def getPosition(self) -> Tuple[float, float]:
+    def getPosition(self) -> tuple[float, float]:
         """Returns the position of this ROI"""
         return self._marker.getPosition()
 
@@ -124,7 +123,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
     def __str__(self):
         params = "%f %f" % self.getPosition()
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class CrossROI(HandleBasedROI, items.LineMixIn):
@@ -157,13 +156,13 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         if event in [items.ItemChangedType.VISIBLE]:
             markers = (self._vmarker, self._hmarker)
             self._updateItemProperty(event, self, markers)
-        super(CrossROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
 
     def _updatedStyle(self, event, style):
-        super(CrossROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         for marker in [self._vmarker, self._hmarker]:
             marker.setColor(style.getColor())
             marker.setLineStyle(style.getLineStyle())
@@ -173,11 +172,11 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         pos = points[0]
         self.setPosition(pos)
 
-    def getPosition(self) -> Tuple[float, float]:
+    def getPosition(self) -> tuple[float, float]:
         """Returns the position of this ROI"""
         return self._handle.getPosition()
 
-    def setPosition(self, pos: Tuple[float, float]):
+    def setPosition(self, pos: tuple[float, float]):
         """Set the position of this ROI
 
         :param pos: 2d-coordinate of this point
@@ -235,10 +234,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
-        super(LineROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style: items.CurveStyle):
-        super(LineROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -352,7 +351,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
         params = "start: %f %f; end: %f %f" % params
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
@@ -380,7 +379,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
-        super(HorizontalLineROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updateText(self, text: str):
         self._marker.setText(text)
@@ -419,7 +418,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
     def __str__(self):
         params = "y: %f" % self.getPosition()
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class VerticalLineROI(RegionOfInterest, items.LineMixIn):
@@ -447,7 +446,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
-        super(VerticalLineROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updateText(self, text: str):
         self._marker.setText(text)
@@ -484,7 +483,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     def __str__(self):
         params = "x: %f" % self.getPosition()
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class RectangleROI(HandleBasedROI, items.LineMixIn):
@@ -525,10 +524,10 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
             self._updateItemProperty(event, self, self.__shape)
-        super(RectangleROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(RectangleROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -705,7 +704,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         w, h = self.getSize()
         params = origin[0], origin[1], w, h
         params = "origin: %f %f; width: %f; height: %f" % params
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class CircleROI(HandleBasedROI, items.LineMixIn):
@@ -749,10 +748,10 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
-        super(CircleROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(CircleROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -848,7 +847,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         radius = self.getRadius()
         params = center[0], center[1], radius
         params = "center: %f %f; radius: %f;" % params
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class EllipseROI(HandleBasedROI, items.LineMixIn):
@@ -894,10 +893,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
-        super(EllipseROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(EllipseROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -1138,7 +1137,7 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             "center: %f %f; major radius: %f: minor radius: %f; orientation: %f"
             % params
         )
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"
 
 
 class PolygonROI(HandleBasedROI, items.LineMixIn):
@@ -1172,10 +1171,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
             self._updateItemProperty(event, self, self.__shape)
-        super(PolygonROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(PolygonROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -1321,8 +1320,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 
     def __str__(self):
         points = self._points
-        params = "; ".join("%f %f" % (pt[0], pt[1]) for pt in points)
-        return "%s(%s)" % (self.__class__.__name__, params)
+        params = "; ".join(f"{pt[0]:f} {pt[1]:f}" for pt in points)
+        return f"{self.__class__.__name__}({params})"
 
     @docstring(HandleBasedROI)
     def contains(self, position):
@@ -1386,7 +1385,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             markers = [self._markerMin, self._markerMax, self._markerCen]
             self._updateItemProperty(event, self, markers)
-        super(HorizontalRangeROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
         markers = [self._markerMin, self._markerMax, self._markerCen]
@@ -1558,4 +1557,4 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def __str__(self):
         vrange = self.getRange()
         params = "min: %f; max: %f" % vrange
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"

@@ -72,7 +72,7 @@ if pyopencl is not None:
     mf = pyopencl.mem_flags
 else:
     # Define default mem flags
-    class mf(object):
+    class mf:
         WRITE_ONLY = 1
         READ_ONLY = 1
         READ_WRITE = 1
@@ -111,7 +111,45 @@ NVIDIA_FLOP_PER_CORE = {
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
 
 
-class Device(object):
+def get_pyopencl_ctx_tuple(pyopencl_ctx_str, cache=None):
+    """
+    Converts a PYOPENCL_CTX environment variable into a tuple (platform, device)
+
+    :param cache: dict with the already created contexts
+    """
+
+    def _convert_to_int(val, default_val=0):
+        try:
+            ret = int(val)
+        except ValueError:
+            ret = default_val
+        return ret
+
+    if pyopencl_ctx_str in ["", ":"]:
+        return (0, 0)
+    if ":" in pyopencl_ctx_str:
+        platform, device = pyopencl_ctx_str.split(":")
+        platform_id = _convert_to_int(platform)
+        device_id = _convert_to_int(device)
+    elif pyopencl_ctx_str.isdigit():
+        platform_id = _convert_to_int(pyopencl_ctx_str)
+        device_id = 0
+    else:
+        if "choose_devices" in dir(pyopencl):
+            device = pyopencl.choose_devices(interactive=False)
+            device_id = device_instance.platform.get_devices().index(device_instance)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+        else:  # Fallback for elder PyOpenCL
+            ctx = pyopencl.create_some_context(interactive=False)
+            device = device_instance = ctx.devices[0]
+            device_id = device_instance.platform.get_devices().index(device_instance)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            if cache is not None:
+                cache[(platform_id, device_id)] = ctx
+    return (platform_id, device_id)
+
+
+class Device:
     """
     Simple class that contains the structure of an OpenCL device
     """
@@ -217,7 +255,7 @@ class Device(object):
         return self._atomic64
 
 
-class Platform(object):
+class Platform:
     """
     Simple class that contains the structure of an OpenCL platform
     """
@@ -324,7 +362,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
     try:
         d_data_1.fill(numpy.float32(1.0))
     except Exception as err:
-        logger.error("Unable to execute any element-wise kernel! %s: %s", type(err), err)
+        logger.error(
+            "Unable to execute any element-wise kernel! %s: %s", type(err), err
+        )
         return max_valid_wg
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
@@ -372,7 +412,7 @@ def _is_nvidia_gpu(vendor, devtype):
     return (vendor == "NVIDIA Corporation") and (devtype == "GPU")
 
 
-class OpenCL(object):
+class OpenCL:
     """
     Simple class that wraps the structure ocl_tools_extended.h
 
@@ -603,25 +643,9 @@ class OpenCL(object):
             platformid = int(platformid)
             deviceid = int(deviceid)
         elif "PYOPENCL_CTX" in os.environ:
-            ctx = pyopencl.create_some_context()
-            # try:
-            device = ctx.devices[0]
-            platforms = [
-                i
-                for i, p in enumerate(self.platforms)
-                if device.platform.name == p.name
-            ]
-            if platforms:
-                platformid = platforms[0]
-                devices = [
-                    i
-                    for i, d in enumerate(self.platforms[platformid].devices)
-                    if device.name == d.name
-                ]
-                if devices:
-                    deviceid = devices[0]
-                    if cached:
-                        self.context_cache[(platformid, deviceid)] = ctx
+            platformid, deviceid = get_pyopencl_ctx_tuple(
+                os.environ["PYOPENCL_CTX"], cache=self.context_cache if cached else None
+            )
         else:
             ids = self.select_device(type=devicetype, extensions=extensions)
             if ids:
@@ -632,18 +656,14 @@ class OpenCL(object):
                 ctx = self.context_cache[(platformid, deviceid)]
             else:
                 try:
-                    ctx = pyopencl.Context(
-                        devices=[
-                            pyopencl.get_platforms()[platformid].get_devices()[deviceid]
-                        ]
-                    )
+                    device = pyopencl.get_platforms()[platformid].get_devices()[
+                        deviceid
+                    ]
+                    ctx = pyopencl.Context(devices=[device])
                 except pyopencl._cl.LogicError as error:
                     self.platforms[platformid].devices[deviceid].set_unavailable()
                     logger.warning(
-                        "Unable to create context on %s/%s: %s",
-                        platformid,
-                        deviceid,
-                        error,
+                        f"Unable to create context for ({platformid}:{deviceid}): {error}"
                     )
                     ctx = None
                 else:
@@ -780,6 +800,7 @@ def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
         ),
         hostbuf=hostbuf,
     )
+
 
 def check_textures_availability(ctx):
     """

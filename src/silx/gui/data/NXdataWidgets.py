@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines widgets used by _NXdataView.
-"""
+"""This module defines widgets used by _NXdataView."""
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/11/2018"
@@ -67,7 +66,7 @@ class ArrayCurvePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayCurvePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -224,7 +223,7 @@ class XYVScatterPlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(XYVScatterPlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__y_axis = None
         """1D array"""
@@ -387,7 +386,7 @@ class ArrayImagePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayImagePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -424,14 +423,15 @@ class ArrayImagePlot(qt.QWidget):
         layout.addWidget(self._auxSigSlider)
 
         self.setLayout(layout)
-        
+
         self.__aggregationModeAction = AggregationModeAction(parent=self)
         self.getPlot().toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
 
     def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action
-        """
+        """Action toggling the aggregation mode action"""
         return self.__aggregationModeAction
 
     def _aggregationModeChanged(self):
@@ -439,10 +439,12 @@ class ArrayImagePlot(qt.QWidget):
 
         if item is None:
             return
-        
+
         if isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
-            
+            item.setAggregationMode(
+                self.getAggregationModeAction().getAggregationMode()
+            )
+
     def _sliderIdxChanged(self, value):
         self._updateImage()
 
@@ -585,14 +587,16 @@ class ArrayImagePlot(qt.QWidget):
 
             self._plot.getXAxis().setScale("linear")
             self._plot.getYAxis().setScale("linear")
-            
+
             imageItem = ImageDataAggregated()
             imageItem.setName(legend)
             imageItem.setData(image)
             imageItem.setOrigin(origin)
             imageItem.setScale(scale)
             imageItem.setColormap(self._plot.getDefaultColormap())
-            imageItem.setAggregationMode(self.getAggregationModeAction().getAggregationMode())
+            imageItem.setAggregationMode(
+                self.getAggregationModeAction().getAggregationMode()
+            )
             self._plot.addItem(imageItem)
             self._plot.setActiveImage(imageItem)
         else:
@@ -656,7 +660,7 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayComplexImagePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signals = None
         self.__signals_names = None
@@ -862,7 +866,7 @@ class ArrayStackPlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayStackPlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signal = None
         self.__signal_name = None
@@ -1046,7 +1050,7 @@ class ArrayVolumePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
-        super(ArrayVolumePlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.__signal = None
         self.__signal_name = None

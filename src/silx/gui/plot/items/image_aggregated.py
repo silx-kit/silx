@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`ImageDataAggregated` items of the :class:`Plot`.
-"""
+"""This module provides the :class:`ImageDataAggregated` items of the :class:`Plot`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -30,7 +29,6 @@ __date__ = "07/07/2021"
 
 import enum
 import logging
-from typing import Tuple, Union
 import warnings
 
 import numpy
@@ -69,7 +67,7 @@ class ImageDataAggregated(ImageDataBase):
         self.__currentLOD = 0, 0
         self.__aggregationMode = self.Aggregation.NONE
 
-    def setAggregationMode(self, mode: Union[str, Aggregation]):
+    def setAggregationMode(self, mode: str | Aggregation):
         """Set the aggregation method used to reduce the data to screen resolution.
 
         :param Aggregation mode: The aggregation method
@@ -167,7 +165,7 @@ class ImageDataAggregated(ImageDataBase):
         else:
             return (xmax - xmin) / width, (ymax - ymin) / height
 
-    def _getLevelOfDetails(self) -> Tuple[int, int]:
+    def _getLevelOfDetails(self) -> tuple[int, int]:
         """Return current level of details the image is displayed with."""
         plot = self.getPlot()
         if plot is None or not self._isPlotLinear(plot):

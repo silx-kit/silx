@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 class TestReduction(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestReduction, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -86,7 +86,7 @@ class TestReduction(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestReduction, cls).tearDownClass()
+        super().tearDownClass()
         cls.program = None
         cls.ctx = None
         cls.queue = None
@@ -104,7 +104,7 @@ class TestReduction(unittest.TestCase):
         """
 
         if data is None:
-            logger.debug("values: %s -> %s" % (val_min, val_max))
+            logger.debug(f"values: {val_min} -> {val_max}")
             data = ((val_max - val_min) * numpy.random.random(shape) + val_min).astype(
                 numpy.float32
             )
@@ -125,7 +125,7 @@ class TestReduction(unittest.TestCase):
         #        max_min_gpu = pyopencl.array.empty(self.queue, (wg, 2), dtype=numpy.float32, order="C")
         max_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")
         min_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")
-        logger.debug("workgroup: %s, size: %s" % (wg, size))
+        logger.debug(f"workgroup: {wg}, size: {size}")
         t = time.time()
         nmin = data.min()
         nmax = data.max()
@@ -190,7 +190,7 @@ class TestReduction(unittest.TestCase):
         """
 
         if data is None:
-            logger.debug("values: %s -> %s" % (val_min, val_max))
+            logger.debug(f"values: {val_min} -> {val_max}")
             data = ((val_max - val_min) * numpy.random.random(shape) + val_min).astype(
                 numpy.float32
             )
@@ -248,7 +248,7 @@ class TestReduction(unittest.TestCase):
         """
 
         if data is None:
-            logger.debug("values: %s -> %s" % (val_min, val_max))
+            logger.debug(f"values: {val_min} -> {val_max}")
             data = ((val_max - val_min) * numpy.random.random(shape) + val_min).astype(
                 numpy.float32
             )

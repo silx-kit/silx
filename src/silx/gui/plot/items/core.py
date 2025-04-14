@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the base class for items of the :class:`Plot`.
-"""
+"""This module provides the base class for items of the :class:`Plot`."""
 from __future__ import annotations
 
 
@@ -35,7 +34,7 @@ from copy import deepcopy
 import logging
 import enum
 import numbers
-from typing import Optional, Tuple, Union
+from typing import Union
 import weakref
 
 import numpy
@@ -321,7 +320,7 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> Optional[Tuple[float, float, float, float]]:
+    def getVisibleBounds(self) -> tuple[float, float, float, float] | None:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
@@ -515,7 +514,7 @@ class DataItem(Item):
 # Mix-in classes ##############################################################
 
 
-class ItemMixInBase(object):
+class ItemMixInBase:
     """Base class for Item mix-in"""
 
     def _updated(self, event=None, checkVisibility=True):
@@ -651,7 +650,9 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
             Minimum of strictly positive values of the data
         :param Union[None,float] max_: Maximum value of the data
         """
-        self.__data = None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
+        self.__data = (
+            None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
+        )
         self.__cacheColormapRange = {}  # Reset cache
 
         # Fill-up colormap range cache if values are provided
@@ -840,11 +841,11 @@ class SymbolMixIn(ItemMixInBase):
 
 LineStyleType = Union[
     str,
-    Tuple[Union[float, int], None],
-    Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int]]],
-    Tuple[
+    tuple[Union[float, int], None],
+    tuple[Union[float, int], tuple[Union[float, int], Union[float, int]]],
+    tuple[
         Union[float, int],
-        Tuple[
+        tuple[
             Union[float, int], Union[float, int], Union[float, int], Union[float, int]
         ],
     ],
@@ -1311,12 +1312,12 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
-        self.__parameters = dict(  # Init parameters to None
-            (parameter, None) for parameter in self.VisualizationParameter
+        self.__parameters = {  # Init parameters to None
+            parameter: None for parameter in self.VisualizationParameter
+        }
+        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = (
+            "mean"
         )
-        self.__parameters[
-            self.VisualizationParameter.BINNED_STATISTIC_FUNCTION
-        ] = "mean"
 
     @classmethod
     def supportedVisualizations(cls):
@@ -1592,9 +1593,9 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     def __minMaxDataWithError(
         cls,
         data: numpy.ndarray,
-        error: Optional[Union[float, numpy.ndarray]],
+        error: float | numpy.ndarray | None,
         positiveOnly: bool,
-    ) -> Tuple[float]:
+    ) -> tuple[float]:
         if error is None:
             min_, max_ = min_max(data, finite=True)
             return min_, max_
@@ -1796,7 +1797,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         self._updated(ItemChangedType.DATA)
 
 
-class BaselineMixIn(object):
+class BaselineMixIn:
     """Base class for Baseline mix-in"""
 
     def __init__(self, baseline=None):

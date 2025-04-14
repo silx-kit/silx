@@ -58,7 +58,7 @@ class _OverviewViewport(scene.Viewport):
     """Size in pixels of the overview square"""
 
     def __init__(self, camera=None):
-        super(_OverviewViewport, self).__init__()
+        super().__init__()
         self.size = self._SIZE, self._SIZE
         self.background = None  # Disable clear
 
@@ -125,7 +125,7 @@ class Plot3DWidget(glu.OpenGLWidget):
     def __init__(self, parent=None, f=qt.Qt.Widget):
         self._firstRender = True
 
-        super(Plot3DWidget, self).__init__(
+        super().__init__(
             parent,
             alphaBufferSize=8,
             depthBufferSize=0,
@@ -423,7 +423,7 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self.eventHandler.handleEvent("keyPress", keyCode)
 
             # Key not handled, call base class implementation
-            super(Plot3DWidget, self).keyPressEvent(event)
+            super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
         """Catch Ctrl key release"""
@@ -434,7 +434,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             and self.isValid()
         ):
             self.eventHandler.handleEvent("keyRelease", keyCode)
-        super(Plot3DWidget, self).keyReleaseEvent(event)
+        super().keyReleaseEvent(event)
 
     # Mouse events #
     _MOUSE_BTNS = {

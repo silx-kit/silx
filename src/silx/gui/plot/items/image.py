@@ -595,7 +595,9 @@ class MaskImageData(ImageData):
 
     pass
 
+
 from .image_aggregated import ImageDataAggregated
+
 
 class ImageStack(ImageDataAggregated):
     """Item to store a stack of images and to show it in the plot as one

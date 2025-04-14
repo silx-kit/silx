@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module contains an elidable label
-"""
+"""Module contains an elidable label"""
 
 __license__ = "MIT"
 __date__ = "07/12/2018"
@@ -45,7 +44,7 @@ class ElidedLabel(qt.QLabel):
     """
 
     def __init__(self, parent=None):
-        super(ElidedLabel, self).__init__(parent)
+        super().__init__(parent)
         self.__text = ""
         self.__toolTip = ""
         self.__textAsToolTip = True

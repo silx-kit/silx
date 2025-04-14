@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Helper to access to external resources.
-"""
+"""Helper to access to external resources."""
 
 __authors__ = ["Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
@@ -46,7 +45,7 @@ import zipfile
 logger = logging.getLogger(__name__)
 
 
-class ExternalResources(object):
+class ExternalResources:
     """Utility class which allows to download test-data from www.silx.org
     and manage the temporary data during the tests.
 
@@ -100,7 +99,7 @@ class ExternalResources(object):
                 else:
                     name = "uid" + str(os.getuid())
 
-            basename = "%s_testdata_%s" % (self.project, name)
+            basename = f"{self.project}_testdata_{name}"
             data_home = os.path.join(tempfile.gettempdir(), basename)
         if not os.path.exists(data_home):
             os.makedirs(data_home)
@@ -177,7 +176,7 @@ class ExternalResources(object):
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener(
-                    "%s/%s" % (self.url_base, filename), data=None, timeout=self.timeout
+                    f"{self.url_base}/{filename}", data=None, timeout=self.timeout
                 ).read()
                 logger.info("Image %s successfully downloaded.", filename)
             except urllib.error.URLError:
@@ -190,8 +189,8 @@ class ExternalResources(object):
             try:
                 with open(fullfilename, mode="wb") as outfile:
                     outfile.write(data)
-            except IOError:
-                raise IOError(
+            except OSError:
+                raise OSError(
                     "unable to write downloaded \
                     data to disk at %s"
                     % self.data_home
@@ -225,11 +224,11 @@ class ExternalResources(object):
     def save_json(self):
         image_list = list(self.all_data.keys())
         image_list.sort()
-        dico = dict([(i, self.all_data[i]) for i in image_list])
+        dico = {i: self.all_data[i] for i in image_list}
         try:
             with open(self.testdata, "w") as fp:
                 json.dump(dico, fp, indent=4)
-        except IOError:
+        except OSError:
             logger.info("Unable to save JSON dict")
 
     def getdir(self, dirname):
@@ -330,8 +329,8 @@ class ExternalResources(object):
                 try:
                     with open(fullimagename_raw, "wb") as fullimage:
                         fullimage.write(decompressed)
-                except IOError:
-                    raise IOError(
+                except OSError:
+                    raise OSError(
                         "unable to write decompressed \
                     data to disk at %s"
                         % self.data_home
@@ -342,8 +341,8 @@ class ExternalResources(object):
                     raise RuntimeError("gzip library is expected to recompress data")
                 try:
                     gzip.open(fullimagename_gz, "wb").write(decompressed)
-                except IOError:
-                    raise IOError(
+                except OSError:
+                    raise OSError(
                         "unable to write gzipped \
                     data to disk at %s"
                         % self.data_home

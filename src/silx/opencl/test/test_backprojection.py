@@ -194,7 +194,7 @@ class TestFBP(unittest.TestCase):
             r_f = np.fft.fft(np.fft.fftshift(r[0])).real / 2.0  # filter factor
             ref_filter_f = compute_fourier_filter(dw, filter_name)
             errmax = np.max(np.abs(r_f - ref_filter_f))
-            logger.info("FBP filter %s: max error=%e" % (filter_name, errmax))
+            logger.info(f"FBP filter {filter_name}: max error={errmax:e}")
             self.assertTrue(
                 errmax < 1.0e-3, "Something wrong with FBP(filter=%s)" % filter_name
             )

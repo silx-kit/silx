@@ -2,7 +2,6 @@ import pytest
 from silx.gui import qt
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
 from silx.gui.plot import Plot2D
-from silx.gui.plot.PlotWidget import PlotWidget
 
 
 @pytest.mark.parametrize("widget_parent", (Plot2D, qt.QFrame))

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a QMainWindow with a 3D SceneWidget and toolbars.
-"""
+"""This module provides a QMainWindow with a 3D SceneWidget and toolbars."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -56,7 +55,7 @@ class _PanPlaneAction(InteractiveModeAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(_PanPlaneAction, self).__init__(parent, "panSelectedPlane", plot3d)
+        super().__init__(parent, "panSelectedPlane", plot3d)
         self.setIcon(icons.getQIcon("3d-plane-pan"))
         self.setText("Pan plane")
         self.setCheckable(True)
@@ -92,7 +91,7 @@ class _PanPlaneAction(InteractiveModeAction):
             previous.selection().sigCurrentChanged.disconnect(self._selectionChanged)
             self._selectionChanged(None, previous.selection().getCurrentItem())
 
-        super(_PanPlaneAction, self).setPlot3DWidget(widget)
+        super().setPlot3DWidget(widget)
 
         if isinstance(widget, SceneWidget):
             self._selectionChanged(widget.selection().getCurrentItem(), None)
@@ -103,7 +102,7 @@ class SceneWindow(qt.QMainWindow):
     """OpenGL 3D scene widget with toolbars."""
 
     def __init__(self, parent=None):
-        super(SceneWindow, self).__init__(parent)
+        super().__init__(parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)

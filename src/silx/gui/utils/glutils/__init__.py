@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :func:`isOpenGLAvailable` utility function.
-"""
+"""This module provides the :func:`isOpenGLAvailable` utility function."""
 from __future__ import annotations
 
 
@@ -178,7 +177,7 @@ if __name__ == "__main__":
         """
 
         def __init__(self, version: tuple[int, int]):
-            super(_TestOpenGLWidget, self).__init__(
+            super().__init__(
                 alphaBufferSize=0,
                 depthBufferSize=0,
                 stencilBufferSize=0,
@@ -186,7 +185,7 @@ if __name__ == "__main__":
             )
 
         def paintEvent(self, event):
-            super(_TestOpenGLWidget, self).paintEvent(event)
+            super().paintEvent(event)
 
             # Check once paint has been done
             app = qt.QApplication.instance()

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides API to manage colors.
-"""
+"""This module provides API to manage colors."""
 
 from __future__ import annotations
 
@@ -36,7 +35,8 @@ import logging
 import numbers
 import re
 from collections.abc import Iterable
-from typing import Any, Sequence, Tuple, Union
+from typing import Any, Union
+from collections.abc import Sequence
 
 import silx
 from silx._utils import NP_OPTIONAL_COPY
@@ -109,7 +109,7 @@ ColorType = Union[str, Sequence[numbers.Real], qt.QColor]
 """Type of :func:`rgba`'s color argument"""
 
 
-RGBAColorType = Tuple[float, float, float, float]
+RGBAColorType = tuple[float, float, float, float]
 """Type of :func:`rgba` return value"""
 
 

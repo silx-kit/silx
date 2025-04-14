@@ -37,7 +37,7 @@ __license__ = "MIT"
 __date__ = "23/05/2018"
 
 
-class _VoidConnector(object):
+class _VoidConnector:
     """Byte connector to a numpy.void data.
 
     It uses a cache of 32 x 1KB and a direct read access API from HDF5.

@@ -41,4 +41,3 @@ def test_enum_methods():
     assert Success.members() == (Success.A, Success.B)
     assert Success.names() == ("A", "B")
     assert Success.values() == (1, "B")
-

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Association of a texture and a framebuffer object for off-screen rendering.
-"""
+"""Association of a texture and a framebuffer object for off-screen rendering."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -38,7 +37,7 @@ from .Texture import Texture
 _logger = logging.getLogger(__name__)
 
 
-class FramebufferTexture(object):
+class FramebufferTexture:
     """Framebuffer with a texture.
 
     Aimed at off-screen rendering to texture.

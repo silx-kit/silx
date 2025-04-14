@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides convenient functions related to Qt.
-"""
+"""This module provides convenient functions related to Qt."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -49,7 +48,7 @@ def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
     formats = _qt.QImageReader.supportedImageFormats()
-    return set([str(data, "ascii") for data in formats])
+    return {str(data, "ascii") for data in formats}
 
 
 __globalThreadPoolInstance = None

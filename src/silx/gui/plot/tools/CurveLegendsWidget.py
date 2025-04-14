@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a widget to display :class:`PlotWidget` curve legends.
-"""
+"""This module provides a widget to display :class:`PlotWidget` curve legends."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -50,7 +49,7 @@ class _LegendWidget(qt.QWidget):
     """
 
     def __init__(self, parent, curve):
-        super(_LegendWidget, self).__init__(parent)
+        super().__init__(parent)
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 10, 0)
 
@@ -115,13 +114,13 @@ class CurveLegendsWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(CurveLegendsWidget, self).__init__(parent)
+        super().__init__(parent)
         self._clicked = None
         self._legends = {}
         self._plotRef = None
 
     def layout(self):
-        layout = super(CurveLegendsWidget, self).layout()
+        layout = super().layout()
         if layout is None:
             # Lazy layout initialization to allow overloading
             layout = _FlowLayout()

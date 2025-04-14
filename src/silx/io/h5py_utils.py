@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 #
 # ############################################################################*/
 from __future__ import annotations
+
 """
 This module provides utility methods on top of h5py, mainly to handle
 parallel writing and reading.
@@ -35,7 +36,7 @@ import os
 import sys
 import traceback
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 import h5py
 
 from .._version import calc_hexversion
@@ -82,12 +83,12 @@ def _libver_low_bound_is_v108(libver) -> bool:
 
 
 def _hdf5_file_locking(
-        mode: str | None = "r",
-        locking: bool | str | None = None,
-        swmr: bool | None = None,
-        libver: str | Sequence[str] | None = None,
-        **_
-    ) -> str | bool | None:
+    mode: str | None = "r",
+    locking: bool | str | None = None,
+    swmr: bool | None = None,
+    libver: str | Sequence[str] | None = None,
+    **_,
+) -> str | bool | None:
     """Concurrent access by disabling file locking is not supported
     in these cases:
 
@@ -146,7 +147,11 @@ def retry_h5py_error(e):
         elif isinstance(e, KeyError):
             # For example this needs to be retried:
             # KeyError: 'Unable to open object (bad object header version number)'
-            return "Unable to open object" in str(e)
+            message = str(e)
+            return (
+                "Unable to open object" in message
+                or "Unable to synchronously open object" in message
+            )
     elif isinstance(e, retry_mod.RetryError):
         return True
     return False
@@ -383,7 +388,7 @@ class File(h5py.File):
         if mode is None:
             mode = "r"
         elif mode not in ("r", "w", "w-", "x", "a", "r+"):
-            raise ValueError("invalid mode {}".format(mode))
+            raise ValueError(f"invalid mode {mode}")
         if not HAS_SWMR:
             swmr = False
         if swmr and libver is None:

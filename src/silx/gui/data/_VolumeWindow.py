@@ -42,7 +42,7 @@ class VolumeWindow(SceneWindow):
     """
 
     def __init__(self, parent):
-        super(VolumeWindow, self).__init__(parent)
+        super().__init__(parent)
         self.__firstData = True
         # Hide global parameter dock
         self.getGroupResetWidget().parent().setVisible(False)

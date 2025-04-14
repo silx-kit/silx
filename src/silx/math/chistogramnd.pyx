@@ -153,7 +153,7 @@ def chistogramnd(sample,
     if wh_dtype is None:
         wh_dtype = np.double
     elif wh_dtype not in (np.double, np.float32):
-        raise ValueError('<wh_dtype> type not supported : {0}.'.format(wh_dtype))
+        raise ValueError(f'<wh_dtype> type not supported : {wh_dtype}.')
 
     if (weighted_histo is not None and
         weighted_histo.flags['C_CONTIGUOUS'] is False):
@@ -197,13 +197,12 @@ def chistogramnd(sample,
         err_histo_range = True
 
     if err_histo_range:
-        raise ValueError('<histo_range> error : expected {n_dims} sets of '
+        raise ValueError(f'<histo_range> error : expected {n_dims} sets of '
                          'lower and upper bin edges, '
-                         'got the following instead : {histo_range}. '
+                         f'got the following instead : {i_histo_range}. '
                          '(provided <sample> contains '
-                         '{n_dims}D values)'
-                         ''.format(histo_range=i_histo_range,
-                                   n_dims=n_dims))
+                         f'{n_dims}D values)'
+        )
 
     # check range value
     if np.inf in histo_range:
@@ -236,13 +235,14 @@ def chistogramnd(sample,
         if histo.shape != output_shape:
             raise ValueError('Provided <histo> array doesn\'t have '
                              'a shape compatible with <n_bins> '
-                             ': should be {0} instead of {1}.'
-                             ''.format(output_shape, histo.shape))
+                             f': should be {output_shape} instead of {histo.shape}.'
+            )
         if histo.dtype != np.uint32:
-            raise ValueError('Provided <histo> array doesn\'t have '
-                             'the expected type '
-                             ': should be {0} instead of {1}.'
-                             ''.format(np.uint32, histo.dtype))
+            raise ValueError(
+                'Provided <histo> array doesn\'t have '
+                'the expected type '
+                f': should be {np.uint32} instead of {histo.dtype}.'
+            )
 
     # checking the weighted_histo array, if provided
     if weights_type is None:
@@ -256,18 +256,18 @@ def chistogramnd(sample,
     else:
         # weighted_histo provided, checking shape/dtype
         if weighted_histo.shape != output_shape:
-            raise ValueError('Provided <weighted_histo> array doesn\'t have '
-                             'a shape compatible with <n_bins> '
-                             ': should be {0} instead of {1}.'
-                             ''.format(output_shape, weighted_histo.shape))
+            raise ValueError(
+                'Provided <weighted_histo> array doesn\'t have '
+                'a shape compatible with <n_bins> '
+                f': should be {output_shape} instead of {weighted_histo.shape}.'
+            )
         if (weighted_histo.dtype != np.float64 and
             weighted_histo.dtype != np.float32):
-            raise ValueError('Provided <weighted_histo> array doesn\'t have '
-                             'the expected type '
-                             ': should be {0} or {1} instead of {2}.'
-                             ''.format(np.double,
-                                       np.float32,
-                                       weighted_histo.dtype))
+            raise ValueError(
+                'Provided <weighted_histo> array doesn\'t have '
+                'the expected type '
+                f': should be {np.double} or {np.float32} instead of {weighted_histo.dtype}.'
+            )
 
     option_flags = 0
 
@@ -296,9 +296,8 @@ def chistogramnd(sample,
     # functions. so I have to explicitly list them all...
 
     def raise_unsupported_type():
-        raise TypeError('Case not supported - sample:{0} '
-                        'and weights:{1}.'
-                        ''.format(sample_type, weights_type))
+        raise TypeError(f'Case not supported - sample:{sample_type} '
+                        f'and weights:{weights_type}.')
 
     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
                                     dtype=sample_type)
@@ -651,8 +650,7 @@ def chistogramnd(sample,
         if rc == histogramnd_c.HISTO_ERR_ALLOC:
             raise MemoryError('histogramnd failed to allocate memory.')
         else:
-            raise Exception('histogramnd returned an error : {0}'
-                            ''.format(rc))
+            raise Exception(f'histogramnd returned an error : {rc}')
 
     edges = []
     offset = 0

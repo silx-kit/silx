@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 class TestTransform(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestTransform, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -91,7 +91,7 @@ class TestTransform(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestTransform, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 

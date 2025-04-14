@@ -287,14 +287,14 @@ class Transform(event.Notifier):
         :param bool static: False (default) to reset cache when changed,
                             True for static matrices.
         """
-        super(Transform, self).__init__()
+        super().__init__()
         self._matrix = None
         self._inverse = None
         if not static:
             self.addListener(self._changed)  # Listening self for changes
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__init__, repr(self.getMatrix(copy=False)))
+        return f"{self.__class__.__init__}({repr(self.getMatrix(copy=False))})"
 
     def inverse(self):
         """Return the Transform of the inverse.
@@ -507,7 +507,7 @@ class Inverse(Transform):
         :param Transform transform: The transform to invert.
         """
 
-        super(Inverse, self).__init__(static=True)
+        super().__init__(static=True)
         self._matrix = transform.getInverseMatrix(copy=True)
         self._inverse = transform.getMatrix(copy=True)
 
@@ -549,7 +549,7 @@ class StaticTransformList(Transform):
     """
 
     def __init__(self, iterable=()):
-        super(StaticTransformList, self).__init__(static=True)
+        super().__init__(static=True)
         matrix = numpy.identity(4, dtype=numpy.float32)
         for transform in iterable:
             matrix = numpy.dot(matrix, transform.getMatrix(copy=False))
@@ -565,7 +565,7 @@ class Matrix(Transform):
 
         :param matrix: 4x4 array-like matrix or None for identity matrix.
         """
-        super(Matrix, self).__init__(static=True)
+        super().__init__(static=True)
         self.setMatrix(matrix)
 
     def setMatrix(self, matrix=None):
@@ -593,7 +593,7 @@ class Translate(Transform):
     """4x4 translation matrix."""
 
     def __init__(self, tx=0.0, ty=0.0, tz=0.0):
-        super(Translate, self).__init__()
+        super().__init__()
         self._tx, self._ty, self._tz = 0.0, 0.0, 0.0
         self.setTranslate(tx, ty, tz)
 
@@ -650,7 +650,7 @@ class Scale(Transform):
     """4x4 scale matrix."""
 
     def __init__(self, sx=1.0, sy=1.0, sz=1.0):
-        super(Scale, self).__init__()
+        super().__init__()
         self._sx, self._sy, self._sz = 0.0, 0.0, 0.0
         self.setScale(sx, sy, sz)
 
@@ -715,7 +715,7 @@ class Rotate(Transform):
         :param float ay: The y coordinate of the rotation axis.
         :param float az: The z coordinate of the rotation axis.
         """
-        super(Rotate, self).__init__()
+        super().__init__()
         self._angle = 0.0
         self._axis = None
         self.setAngleAxis(angle, (ax, ay, az))
@@ -815,7 +815,7 @@ class Shear(Transform):
         :param float sz: The shear factor for the z axis.
         """
         assert axis in ("x", "y", "z")
-        super(Shear, self).__init__()
+        super().__init__()
         self._axis = axis
         self._factors = sx, sy, sz
 
@@ -855,7 +855,7 @@ class _Projection(Transform):
     """
 
     def __init__(self, near, far, checkDepthExtent=False, size=(1.0, 1.0)):
-        super(_Projection, self).__init__()
+        super().__init__()
         self._checkDepthExtent = checkDepthExtent
         self._depthExtent = 1, 10
         self.setDepthExtent(near, far)  # set _depthExtent
@@ -947,7 +947,7 @@ class Orthographic(_Projection):
         self._left, self._right = left, right
         self._bottom, self._top = bottom, top
         self._keepaspect = bool(keepaspect)
-        super(Orthographic, self).__init__(near, far, checkDepthExtent=False, size=size)
+        super().__init__(near, far, checkDepthExtent=False, size=size)
         # _update called when setting size
 
     def _makeMatrix(self):
@@ -1047,7 +1047,7 @@ class Ortho2DWidget(_Projection):
     """
 
     def __init__(self, near=-1.0, far=1.0, size=(1.0, 1.0)):
-        super(Ortho2DWidget, self).__init__(near, far, size)
+        super().__init__(near, far, size)
 
     def _makeMatrix(self):
         width, height = self.size
@@ -1066,7 +1066,7 @@ class Perspective(_Projection):
     """
 
     def __init__(self, fovy=90.0, near=0.1, far=1.0, size=(1.0, 1.0)):
-        super(Perspective, self).__init__(near, far, checkDepthExtent=True)
+        super().__init__(near, far, checkDepthExtent=True)
         self._fovy = 90.0
         self.fovy = fovy  # Set _fovy
         self.size = size  # Set _ size

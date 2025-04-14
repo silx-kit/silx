@@ -166,7 +166,8 @@ dtypeConverter = {
     "BOOLEAN": "?",
 }
 
-def _bytestobool (val):
+
+def _bytestobool(val):
     """Convert bytes of a truth value to bool.
 
     Raises ValueError if 'val' is not supported.
@@ -174,9 +175,9 @@ def _bytestobool (val):
     if isinstance(val, bytes):
         val = val.decode()
     val.lower()
-    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+    if val in ("y", "yes", "t", "true", "on", "1"):
         return True
-    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+    elif val in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
         raise ValueError("Invalid truth value %r" % val)
@@ -208,7 +209,7 @@ def is_fiofile(filename):
     return False
 
 
-class FioFile(object):
+class FioFile:
     """This class opens a FIO file and reads the data."""
 
     def __init__(self, filepath):
@@ -221,7 +222,7 @@ class FioFile(object):
             self.scanno = None
             logger1.warning("Cannot parse scan number of file %s", filename)
 
-        with open(filepath, "r") as fiof:
+        with open(filepath) as fiof:
             prev = 0
             line_counter = 0
 
@@ -267,16 +268,17 @@ class FioFile(object):
 
                 line_counter += 1
                 if line_counter > ABORTLINENO:
-                    raise IOError(
+                    raise OSError(
                         "Invalid fio file: Found no data "
                         "after %s lines" % ABORTLINENO
                     )
-            np_datatype = \
-                numpy.dtype([(n, t) for (n,t) in zip(self.names, self.dtypes)])
+            np_datatype = numpy.dtype(
+                [(n, t) for (n, t) in zip(self.names, self.dtypes)]
+            )
 
             converter = {}
             for i, t in enumerate(self.dtypes):
-                if t == dtypeConverter['BOOLEAN']:
+                if t == dtypeConverter["BOOLEAN"]:
                     converter[i] = _bytestobool
 
             self.data = numpy.genfromtxt(
@@ -285,8 +287,8 @@ class FioFile(object):
                 comments="!",
                 invalid_raise=True,
                 names=None,
-                deletechars='',
-                converters=converter
+                deletechars="",
+                converters=converter,
             )
 
             # ToDo: read only last line of file,
@@ -380,12 +382,12 @@ class FioH5(commonh5.File):
             filename = filename.name
 
         if not is_fiofile(filename):
-            raise IOError("File %s is not a FIO file." % filename)
+            raise OSError("File %s is not a FIO file." % filename)
 
         try:
             fiof = FioFile(filename)  # reads complete file
         except Exception as e:
-            raise IOError("FIO file %s cannot be read." % filename) from e
+            raise OSError("FIO file %s cannot be read." % filename) from e
 
         attrs = {
             "NX_class": to_h5py_utf8("NXroot"),
@@ -396,7 +398,7 @@ class FioH5(commonh5.File):
         commonh5.File.__init__(self, filename, attrs=attrs)
 
         if fiof.scanno is not None:
-            scan_key = "%s.%s" % (fiof.scanno, int(order))
+            scan_key = f"{fiof.scanno}.{int(order)}"
         else:
             scan_key = os.path.splitext(os.path.basename(filename))[0]
 

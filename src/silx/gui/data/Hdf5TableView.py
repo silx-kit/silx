@@ -49,7 +49,7 @@ from ..hdf5._utils import htmlFromDict
 _logger = logging.getLogger(__name__)
 
 
-class _CellData(object):
+class _CellData:
     """Store a table item"""
 
     def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
@@ -100,7 +100,7 @@ class _CellData(object):
         return None
 
 
-class _TableData(object):
+class _TableData:
     """Modelize a table with header, row and column span.
 
     It is mostly defined as a row based table.
@@ -239,7 +239,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         :param qt.QObject parent: Parent object
         :param object data: An h5py-like object (file, group or dataset)
         """
-        super(Hdf5TableModel, self).__init__(parent)
+        super().__init__(parent)
 
         self.__obj = None
         self.__data = _TableData(columnCount=5)
@@ -347,16 +347,16 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return self.__hdf5Formatter.humanReadableShape(dataset)
         size = dataset.size
         shape = self.__hdf5Formatter.humanReadableShape(dataset)
-        return "%s = %s" % (shape, size)
+        return f"{shape} = {size}"
 
     def __formatChunks(self, dataset):
         """Format the shape"""
         chunks = dataset.chunks
         if chunks is None:
             return ""
-        shape = " \u00D7 ".join([str(i) for i in chunks])
+        shape = " \u00d7 ".join([str(i) for i in chunks])
         sizes = numpy.prod(chunks)
-        text = "%s = %s" % (shape, sizes)
+        text = f"{shape} = {sizes}"
         return text
 
     def __initProperties(self):
@@ -577,7 +577,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
     """A widget to display metadata about a HDF5 node using a table."""
 
     def __init__(self, parent=None):
-        super(Hdf5TableView, self).__init__(parent)
+        super().__init__(parent)
         self.setModel(Hdf5TableModel(self))
         self.setItemDelegate(Hdf5TableItemDelegate(self))
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)

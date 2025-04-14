@@ -32,7 +32,7 @@ import unittest
 from .. import weakref
 
 
-class Dummy(object):
+class Dummy:
     """Dummy class to use it as geanie pig"""
 
     def inc(self, a):
@@ -133,7 +133,7 @@ class TestWeakMethod(unittest.TestCase):
         self.assertEqual(callable1, callable2)
 
     def testInSet(self):
-        callable_set = set([])
+        callable_set = set()
         dummy = Dummy()
         callable_set.add(weakref.WeakMethod(dummy.inc))
         callable_ = weakref.WeakMethod(dummy.inc)
