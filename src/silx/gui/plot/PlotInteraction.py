@@ -1654,9 +1654,25 @@ class DynamicColormapMode(ItemsInteraction):
 
     ROI_SIZE = (10, 10) #(y,x)
     
+    @staticmethod
+    def compute_vmin_vmax(data, dataPos):
+        """Compute the min and max values of the data in a ROI centered on (x,y)"""
+        idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
+        x_start = numpy.max((0, idx_x - DynamicColormapMode.ROI_SIZE[1]))
+        x_end = numpy.min((idx_x + DynamicColormapMode.ROI_SIZE[1], data.shape[1]))
+        y_start = numpy.max((0, idx_y - DynamicColormapMode.ROI_SIZE[0]))
+        y_end = numpy.min((idx_y + DynamicColormapMode.ROI_SIZE[0], data.shape[0]))
+
+        data_values = data[y_start:y_end, x_start:x_end]
+        vmin, vmax = min_max(data_values)
+        bb_x = (x_start, x_start, x_end, x_end)
+        bb_y = (y_start, y_end, y_end, y_start)
+        return vmin, vmax, bb_x, bb_y
+
     def handleEvent(self, eventName, *args, **kwargs):
         
         super().handleEvent(eventName, *args, **kwargs)
+
         try:
             x, y = args[:2]
         except ValueError:
@@ -1673,16 +1689,17 @@ class DynamicColormapMode(ItemsInteraction):
         data = item.getData()
 
         # Extract ROI min and max
-        idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
-        x_start = numpy.max((0,idx_x - self.ROI_SIZE[1]))
-        x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[1]))
-        y_start = numpy.max((0,idx_y - self.ROI_SIZE[0]))
-        y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[0]))
+        vmin, vmax, bb_x, bb_y = self.compute_vmin_vmax(data, dataPos)
+        #idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
+        #x_start = numpy.max((0,idx_x - self.ROI_SIZE[1]))
+        #x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[1]))
+        #y_start = numpy.max((0,idx_y - self.ROI_SIZE[0]))
+        #y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[0]))
 
         # Add a blue rectangle that shows the ROI
         self.plot.addShape(
-            (x_start, x_start, x_end, x_end),
-            (y_start, y_end, y_end, y_start),
+            bb_x,
+            bb_y,
             legend="ColorMap reference",
             replace=False,
             fill=False,
@@ -1692,8 +1709,8 @@ class DynamicColormapMode(ItemsInteraction):
             overlay=True,
             z=1,
         )
-        data_values = data[y_start:y_end,x_start:x_end]
-        vmin, vmax = min_max(data_values)
+        #data_values = data[y_start:y_end,x_start:x_end]
+        #vmin, vmax = min_max(data_values)
         #vmin = data_values.min()
         #vmax = data_values.max()
 
