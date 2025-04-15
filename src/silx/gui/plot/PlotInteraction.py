@@ -37,8 +37,8 @@ import weakref
 from typing import NamedTuple
 
 from silx.gui import qt
-from silx.math.combo import  min_max
-        
+from silx.math.combo import min_max
+
 from .. import colors
 from . import items
 from .Interaction import (
@@ -1652,8 +1652,8 @@ class DynamicColormapMode(ItemsInteraction):
     :param plot: The Plot to which this interaction is attached
     """
 
-    ROI_SIZE = (10, 10) #(y,x). The ROI <<radius>>
-    
+    ROI_SIZE = (10, 10)  # (y,x). The ROI <<radius>>
+
     @staticmethod
     def compute_vmin_vmax(data, dataPos):
         roi_size = DynamicColormapMode.ROI_SIZE
@@ -1671,7 +1671,7 @@ class DynamicColormapMode(ItemsInteraction):
         return vmin, vmax, bb_x, bb_y
 
     def handleEvent(self, eventName, *args, **kwargs):
-        
+
         super().handleEvent(eventName, *args, **kwargs)
 
         try:
@@ -1699,7 +1699,7 @@ class DynamicColormapMode(ItemsInteraction):
             legend="ColorMap reference",
             replace=False,
             fill=False,
-            color='blue',
+            color="blue",
             gapcolor=None,
             linestyle="--",
             overlay=True,
@@ -1709,6 +1709,7 @@ class DynamicColormapMode(ItemsInteraction):
         # Set new min and max
         colormap.setVRange(vmin, vmax)
         item.setColormap(colormap)
+
 
 # Interaction mode control ####################################################
 
@@ -1864,7 +1865,7 @@ class PlotInteraction(qt.QObject):
 
         elif isinstance(self._eventHandler, DynamicColormapMode):
             return {"mode": "dynamic_colormap"}
-        
+
         else:
             return {"mode": "select"}
 
