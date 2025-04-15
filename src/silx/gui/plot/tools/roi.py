@@ -661,13 +661,16 @@ class RegionOfInterestManager(qt.QObject):
         :rtype: bool
         """
         if self.getRois():  # Something to reset
-            for roi in self._rois:
-                roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
-                roi.setParent(None)
-            self._rois = []
-            self._roisUpdated()
-            return True
-
+            try:
+                for roi in self._rois:
+                    roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
+                    roi.setParent(None)
+                self._rois = []
+                self._roisUpdated()
+                return True
+            finally:
+                # make sure ROI draw is dropped as it can be invalid (fixes #4229 )
+                self._drawnROI = None
         else:
             return False
 
