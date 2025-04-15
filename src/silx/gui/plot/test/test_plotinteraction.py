@@ -28,10 +28,12 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 import pytest
-
+import numpy
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from .utils import PlotWidgetTestCase
+from silx.gui.plot.PlotInteraction import  DynamicColormapMode
+
 
 
 class _SignalDump:
@@ -47,6 +49,31 @@ class _SignalDump:
     def received(self):
         """Return a shallow copy of the list of received arguments"""
         return list(self._received)
+
+
+class TestSelectDynamicColormap():
+    
+    def test_evaluate_roi(self):
+        """Test evaluate_roi() method"""
+        plot = PlotWidget()
+        plot.setInteractiveMode("dynamic_colormap", shape="rectangle", label="test")
+
+        interaction = plot.getInteractiveMode()
+        assert interaction["mode"] == "dynamic_colormap"
+        assert isinstance(plot.interaction()._eventHandler, DynamicColormapMode)
+        
+        # Test with a rectangle
+        roi = numpy.arange(484).reshape((22,22))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(11,11))
+        assert vmin == 23 and vmax == 460 and bb_x == (1,1,21,21) and bb_y == (1,21,21,1)
+
+        roi = numpy.arange(484).reshape((22,22))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(0,0))
+        assert vmin == 0 and vmax == 207 and bb_x == (0,0,10,10) and bb_y == (0,10,10,0)
+
+        roi = numpy.arange(484).reshape((22,22))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(21,21))
+        assert vmin == 253 and vmax == 483 and bb_x == (11,11,22,22) and bb_y == (11,22,22,11)
 
 
 class TestSelectPolygon(PlotWidgetTestCase):
