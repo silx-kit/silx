@@ -3794,6 +3794,10 @@ class PlotWidget(qt.QMainWindow):
             self.__simulateMouseMove()
         elif key == qt.Qt.Key_W:
             self.setInteractiveMode("dynamic_colormap")
+        elif key == qt.Qt.Key_P:
+            self.setInteractiveMode("pan")
+        elif key == qt.Qt.Key_Z:
+            self.setInteractiveMode("zoom")
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
