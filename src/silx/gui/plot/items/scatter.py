@@ -32,6 +32,7 @@ from collections import namedtuple
 import logging
 import threading
 import numpy
+import typing
 from matplotlib.tri import LinearTriInterpolator, Triangulation
 
 from collections import defaultdict
@@ -128,10 +129,10 @@ def _guess_z_grid_shape(x, y):
     return None
 
 
-def is_monotonic(array):
+def is_monotonic(array: numpy.ndarray) -> typing.Literal[-1, 0, 1]:
     """Returns whether array is monotonic (increasing or decreasing).
 
-    :param numpy.ndarray array: 1D array-like container.
+    :param array: 1D array-like container.
     :returns: 1 if array is monotonically increasing,
        -1 if array is monotonically decreasing,
        0 if array is not monotonic
@@ -147,16 +148,17 @@ def is_monotonic(array):
             return 0
 
 
-def _guess_grid(x, y):
+def _guess_grid(
+    x: numpy.ndarray, y: numpy.ndarray
+) -> tuple[str, tuple[int, int]] | None:
     """Guess a regular grid from the points.
 
     Result convention is (x, y)
 
-    :param numpy.ndarray x: X coordinates of the points
-    :param numpy.ndarray y: Y coordinates of the points
+    :param x: X coordinates of the points
+    :param y: Y coordinates of the points
     :returns: (order, (height, width)
         order is 'row' or 'column'
-    :rtype: Union[List[str,List[int]],None]
     """
     x, y = numpy.ravel(x), numpy.ravel(y)
 
@@ -263,14 +265,21 @@ def _quadrilateral_grid_as_triangles(points):
     return coords, indices
 
 
-_RegularGridInfo = namedtuple(
-    "_RegularGridInfo", ["bounds", "origin", "scale", "shape", "order"]
-)
+class _RegularGridInfo(typing.NamedTuple):
+    bounds: tuple[float, float, float, float]
+    origin: tuple[float, float]
+    scale: tuple[float, float]
+    shape: tuple[int, int]
+    order: int
 
 
-_HistogramInfo = namedtuple(
-    "_HistogramInfo", ["mean", "count", "sum", "origin", "scale", "shape"]
-)
+class _HistogramInfo(typing.NamedTuple):
+    mean: float
+    count: int
+    sum: float
+    origin: tuple[float, float]
+    scale: tuple[float, float]
+    shape: tuple[int, int]
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -794,7 +803,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 return None
 
     @docstring(PointsBase)
-    def pick(self, x, y):
+    def pick(self, x: float, y: float) -> PickingResult | None:
         result = super().pick(x, y)
 
         if result is not None:
@@ -946,35 +955,36 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         return x, y, value, xerror, yerror
 
-    def getValueData(self, copy=True):
+    def getValueData(self, copy=True) -> numpy.ndarray:
         """Returns the value assigned to the scatter data points.
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
         """
         return numpy.array(self._value, copy=copy or NP_OPTIONAL_COPY)
 
-    def getAlphaData(self, copy=True):
+    def getAlphaData(self, copy=True) -> numpy.ndarray:
         """Returns the alpha (transparency) assigned to the scatter data points.
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
         """
         return numpy.array(self.__alpha, copy=copy or NP_OPTIONAL_COPY)
 
-    def getData(self, copy=True, displayed=False):
+    def getData(
+        self, copy=True, displayed=False
+    ) -> tuple[
+        numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray
+    ]:
         """Returns the x, y coordinates and the value of the data points
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :param bool displayed: True to only get curve points that are displayed
-                               in the plot. Default: False.
-                               Note: If plot has log scale, negative points
-                               are not displayed.
+        :param displayed: True to only get curve points that are displayed
+                          in the plot. Default: False.
+                          Note: If plot has log scale, negative points
+                          are not displayed.
         :returns: (x, y, value, xerror, yerror)
-        :rtype: 5-tuple of numpy.ndarray
         """
         if displayed:
             data = self._getCachedData()
@@ -991,24 +1001,30 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         )
 
     # reimplemented from PointsBase to handle `value`
-    def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
+    def setData(
+        self,
+        x: numpy.ndarray,
+        y: numpy.ndarray,
+        value: numpy.ndarray,
+        xerror: float | numpy.ndarray | numpy.float32 | None = None,
+        yerror: float | numpy.ndarray | numpy.float32 | None = None,
+        alpha: float | numpy.ndarray | numpy.float32 | None = None,
+        copy=True,
+    ):
         """Set the data of the scatter.
 
-        :param numpy.ndarray x: The data corresponding to the x coordinates.
-        :param numpy.ndarray y: The data corresponding to the y coordinates.
-        :param numpy.ndarray value: The data corresponding to the value of
-                                    the data points.
+        :param x: The data corresponding to the x coordinates.
+        :param y: The data corresponding to the y coordinates.
+        :param value: The data corresponding to the value of
+                      the data points.
         :param xerror: Values with the uncertainties on the x values
-        :type xerror: A float, or a numpy.ndarray of float32.
-                      If it is an array, it can either be a 1D array of
-                      same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for lower errors,
-                      row 1 for upper errors.
+                       If it is an array, it can either be a 1D array of
+                       same length as the data or a 2D array with 2 rows
+                       of same length as the data: row 0 for lower errors,
+                       row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
-        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param alpha: Values with the transparency (between 0 and 1)
-        :type alpha: A float, or a numpy.ndarray of float32
-        :param bool copy: True make a copy of the data (default),
+        :param copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
         value = numpy.array(value, copy=copy or NP_OPTIONAL_COPY)

@@ -84,6 +84,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         self.setPosition(points[0])
 
@@ -104,7 +105,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         """Returns the position of this ROI"""
         return self._marker.getPosition()
 
-    def setPosition(self, pos):
+    def setPosition(self, pos: tuple[float, float]):
         """Set the position of this ROI
 
         :param pos: 2d-coordinate of this point
@@ -168,6 +169,7 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
             marker.setLineStyle(style.getLineStyle())
             marker.setLineWidth(style.getLineWidth())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         pos = points[0]
         self.setPosition(pos)
@@ -243,6 +245,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setLineWidth(style.getLineWidth())
         self.__shape.setLineGapColor(style.getLineGapColor())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         assert len(points) == 2
         self.setEndPoints(points[0], points[1])
@@ -282,7 +285,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(line)
         self.sigRegionChanged.emit()
 
-    def getEndPoints(self):
+    def getEndPoints(self) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Returns bounding points of this ROI.
 
         :rtype: Tuple(numpy.ndarray,numpy.ndarray)
@@ -347,7 +350,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             )
         ) is not None
 
-    def __str__(self):
+    def __str__(self) -> str:
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
         params = "start: %f %f; end: %f %f" % params
@@ -389,6 +392,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.setLineStyle(style.getLineStyle())
         self._marker.setLineWidth(style.getLineWidth())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         pos = points[0, 1]
         if pos == self.getPosition():
@@ -456,6 +460,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.setLineStyle(style.getLineStyle())
         self._marker.setLineWidth(style.getLineWidth())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         pos = points[0, 0]
         self.setPosition(pos)
@@ -533,6 +538,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setLineWidth(style.getLineWidth())
         self.__shape.setLineGapColor(style.getLineGapColor())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         assert len(points) == 2
         self._setBound(points)
@@ -757,6 +763,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setLineWidth(style.getLineWidth())
         self.__shape.setLineGapColor(style.getLineGapColor())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         assert len(points) == 2
         self._setRay(points)
@@ -902,6 +909,7 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setLineWidth(style.getLineWidth())
         self.__shape.setLineGapColor(style.getLineGapColor())
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         assert len(points) == 2
         self._setRay(points)
@@ -1195,6 +1203,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         shape.setColor(rgba(style.getColor()))
         return shape
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         if self._handleClose is not None:
             self._handleClose.setPosition(*points[0])
@@ -1217,7 +1226,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(self._points)
         self.addItem(self.__shape)
 
-    def isBeingCreated(self):
+    def isBeingCreated(self) -> bool:
         """Returns true if the ROI is in creation step"""
         return self._handleClose is not None
 
@@ -1237,14 +1246,11 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
     def _updateText(self, text):
         self._handleLabel.setText(text)
 
-    def getPoints(self):
-        """Returns the list of the points of this polygon.
-
-        :rtype: numpy.ndarray
-        """
+    def getPoints(self) -> numpy.ndarray:
+        """Returns the list of the points of this polygon."""
         return self._points.copy()
 
-    def setPoints(self, points):
+    def setPoints(self, points: numpy.ndarray):
         """Set the position of this ROI
 
         :param numpy.ndarray pos: 2d-coordinate of this point
@@ -1291,7 +1297,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(self._points)
         self.sigRegionChanged.emit()
 
-    def translate(self, x, y):
+    def translate(self, x: float, y: float):
         points = self.getPoints()
         delta = numpy.array([x, y])
         self.setPoints(points)
@@ -1370,6 +1376,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._markerMax)
         self.__filterReentrant = utils.LockReentrant()
 
+    @docstring(RegionOfInterest)
     def setFirstShapePoints(self, points):
         vmin = min(points[:, 0])
         vmax = max(points[:, 0])
@@ -1438,11 +1445,11 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
                 self._markerMax.setPosition(vmax, 0)
         self.sigRegionChanged.emit()
 
-    def setRange(self, vmin, vmax):
+    def setRange(self, vmin: float, vmax: float):
         """Set the range of this ROI.
 
-        :param float vmin: Staring location of the range
-        :param float vmax: Ending location of the range
+        :param vmin: Staring location of the range
+        :param vmax: Ending location of the range
         """
         if vmin is None or vmax is None:
             err = "Can't set vmin or vmax to None"
@@ -1455,46 +1462,37 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             raise ValueError(err)
         self._updatePos(vmin, vmax)
 
-    def getRange(self):
-        """Returns the range of this ROI.
-
-        :rtype: Tuple[float,float]
-        """
+    def getRange(self) -> tuple[float, float]:
+        """Returns the range of this ROI."""
         vmin = self.getMin()
         vmax = self.getMax()
         return vmin, vmax
 
-    def setMin(self, vmin):
+    def setMin(self, vmin: float):
         """Set the min of this ROI.
 
-        :param float vmin: New min
+        :param vmin: New min
         """
         vmax = self.getMax()
         self._updatePos(vmin, vmax)
 
-    def getMin(self):
-        """Returns the min value of this ROI.
-
-        :rtype: float
-        """
+    def getMin(self) -> float:
+        """Returns the min value of this ROI."""
         return self._markerMin.getPosition()[0]
 
-    def setMax(self, vmax):
+    def setMax(self, vmax: float):
         """Set the max of this ROI.
 
-        :param float vmax: New max
+        :param vmax: New max
         """
         vmin = self.getMin()
         self._updatePos(vmin, vmax)
 
-    def getMax(self):
-        """Returns the max value of this ROI.
-
-        :rtype: float
-        """
+    def getMax(self) -> float:
+        """Returns the max value of this ROI."""
         return self._markerMax.getPosition()[0]
 
-    def setCenter(self, center):
+    def setCenter(self, center: numpy.ndarray):
         """Set the center of this ROI.
 
         :param float center: New center
@@ -1504,7 +1502,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         delta = center - previousCenter
         self._updatePos(vmin + delta, vmax + delta)
 
-    def getCenter(self):
+    def getCenter(self) -> numpy.ndarray:
         """Returns the center location of this ROI.
 
         :rtype: float
@@ -1554,7 +1552,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def contains(self, position):
         return self.getMin() <= position[0] <= self.getMax()
 
-    def __str__(self):
+    def __str__(self) -> str:
         vrange = self.getRange()
         params = "min: %f; max: %f" % vrange
         return f"{self.__class__.__name__}({params})"

@@ -72,7 +72,7 @@ class _RegionOfInterestBase(qt.QObject):
             self.setParent(parent)
         self.__name = ""
 
-    def getName(self):
+    def getName(self) -> str:
         """Returns the name of the ROI
 
         :return: name of the region of interest
@@ -80,7 +80,7 @@ class _RegionOfInterestBase(qt.QObject):
         """
         return self.__name
 
-    def setName(self, name):
+    def setName(self, name: str):
         """Set the name of the ROI
 
         :param str name: name of the region of interest
@@ -97,7 +97,7 @@ class _RegionOfInterestBase(qt.QObject):
         """
         self.sigItemChanged.emit(event)
 
-    def contains(self, position):
+    def contains(self, position: tuple[float, float]) -> bool:
         """Returns True if the `position` is in this ROI.
 
         :param tuple[float,float] position: position to check
@@ -489,26 +489,22 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         pass
 
     @classmethod
-    def showFirstInteractionShape(cls):
+    def showFirstInteractionShape(cls) -> bool:
         """Returns True if the shape created by the first interaction and
         managed by the plot have to be visible.
-
-        :rtype: bool
         """
         return False
 
     @classmethod
-    def getFirstInteractionShape(cls):
+    def getFirstInteractionShape(cls) -> str:
         """Returns the shape kind which will be used by the very first
         interaction with the plot.
 
         This interactions are hardcoded inside the plot
-
-        :rtype: str
         """
         return cls._plotShape
 
-    def setFirstShapePoints(self, points):
+    def setFirstShapePoints(self, points: numpy.ndarray | list[tuple[float, float]]):
         """Initialize the ROI using the points from the first interaction.
 
         This interaction is constrained by the plot API and only supports few
@@ -677,20 +673,19 @@ class HandleBasedROI(RegionOfInterest):
         self._posOrigin = None
         self._posPrevious = None
 
-    def addUserHandle(self, item=None):
+    def addUserHandle(self, item: items.Marker | None = None) -> items.Marker:
         """
         Add a new free handle to the ROI.
 
         This handle do nothing. It have to be managed by the ROI
         implementing this class.
 
-        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+        :param item: The new marker to
             add, else None to create a default marker.
-        :rtype: silx.gui.plot.items.Marker
         """
         return self.addHandle(item, role="user")
 
-    def addLabelHandle(self, item=None):
+    def addLabelHandle(self, item: items.Marker | None = None) -> items.Marker:
         """
         Add a new label handle to the ROI.
 
@@ -699,35 +694,34 @@ class HandleBasedROI(RegionOfInterest):
         It is displayed without symbol, but it is always visible anyway
         the ROI is editable, in order to display text.
 
-        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+        :param item: The new marker to
             add, else None to create a default marker.
-        :rtype: silx.gui.plot.items.Marker
         """
         return self.addHandle(item, role="label")
 
-    def addTranslateHandle(self, item=None):
+    def addTranslateHandle(self, item: items.Marker | None = None) -> items.Marker:
         """
         Add a new translate handle to the ROI.
 
         Dragging translate handles affect the position position of the ROI
         but not the shape itself.
 
-        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+        :param item: The new marker to
             add, else None to create a default marker.
-        :rtype: silx.gui.plot.items.Marker
         """
         return self.addHandle(item, role="translate")
 
-    def addHandle(self, item=None, role="default"):
+    def addHandle(
+        self, item: items.Marker | None = None, role: str = "default"
+    ) -> items.Marker:
         """
         Add a new handle to the ROI.
 
         Dragging handles while affect the position or the shape of the
         ROI.
 
-        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+        :param item: The new marker to
             add, else None to create a default marker.
-        :rtype: silx.gui.plot.items.Marker
         """
         if item is None:
             item = items.Marker()
@@ -757,7 +751,7 @@ class HandleBasedROI(RegionOfInterest):
         self.addItem(item)
         return item
 
-    def removeHandle(self, handle):
+    def removeHandle(self, handle: items.Marker):
         data = [d for d in self._handles if d[0] is handle][0]
         self._handles.remove(data)
         role = data[1]
@@ -766,11 +760,8 @@ class HandleBasedROI(RegionOfInterest):
                 self.__updateEditable(handle, False)
         self.removeItem(handle)
 
-    def getHandles(self):
-        """Returns the list of handles of this HandleBasedROI.
-
-        :rtype: List[~silx.gui.plot.items.Marker]
-        """
+    def getHandles(self) -> list[items.Marker]:
+        """Returns the list of handles of this HandleBasedROI."""
         return tuple(data[0] for data in self._handles)
 
     def _updated(self, event=None, checkVisibility=True):
@@ -845,11 +836,8 @@ class HandleBasedROI(RegionOfInterest):
         self._posOrigin = None
         super()._editingFinished()
 
-    def isHandleBeingDragged(self):
-        """Returns True if one of the handles is currently being dragged.
-
-        :rtype: bool
-        """
+    def isHandleBeingDragged(self) -> bool:
+        """Returns True if one of the handles is currently being dragged."""
         return self._posOrigin is not None
 
     def handleDragStarted(self, handle, origin):

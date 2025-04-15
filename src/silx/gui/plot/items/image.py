@@ -180,19 +180,18 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         origin = self.getOrigin()
         self.setOrigin((origin[0] + to[0] - from_[0], origin[1] + to[1] - from_[1]))
 
-    def getData(self, copy=True):
+    def getData(self, copy: bool = True) -> numpy.ndarray:
         """Returns the image data
 
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         """
         return numpy.array(self._data, copy=copy or NP_OPTIONAL_COPY)
 
-    def setData(self, data):
+    def setData(self, data: numpy.ndarray):
         """Set the image data
 
-        :param numpy.ndarray data:
+        :param data:
         """
         previousShape = self._data.shape
         self._data = data
@@ -208,12 +207,11 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             # Send event, mask is lazily updated in getMaskData
             self._updated(ItemChangedType.MASK)
 
-    def getMaskData(self, copy=True):
+    def getMaskData(self, copy: bool = True) -> numpy.ndarray | None:
         """Returns the mask data
 
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
-        :rtype: Union[None,numpy.ndarray]
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         """
         if self._mask is None:
             return None
@@ -230,12 +228,12 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         return numpy.array(self._mask, copy=copy or NP_OPTIONAL_COPY)
 
-    def setMaskData(self, mask, copy=True):
+    def setMaskData(self, mask: numpy.ndarray | None, copy: bool = True):
         """Set the image data
 
-        :param numpy.ndarray data:
-        :param bool copy: True (Default) to make a copy,
-                          False to use as is (do not modify!)
+        :param mask: Mark for the data. It must have the same shape of the data.
+        :param copy: True (Default) to make a copy,
+                     False to use as is (do not modify!)
         """
         if mask is not None:
             mask = numpy.array(mask, copy=copy or NP_OPTIONAL_COPY)
@@ -265,14 +263,13 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         """
         return self.getData(copy=copy)
 
-    def getValueData(self, copy=True):
+    def getValueData(self, copy: bool = True) -> numpy.ndarray:
         """Return data (converted to int or float) with mask applied.
 
         Masked values are set to Not-A-Number.
         It returns a 2D array of values (int or float).
 
-        :param bool copy:
-        :rtype: numpy.ndarray
+        :param copy:
         """
         if self.__valueDataCache is None:
             data = self._getValueData(copy=False)
@@ -287,23 +284,23 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             self.__valueDataCache = data
         return numpy.array(self.__valueDataCache, copy=copy or NP_OPTIONAL_COPY)
 
-    def getRgbaImageData(self, copy=True):
+    def getRgbaImageData(self, copy: bool = True) -> numpy.ndarray:
         """Get the displayed RGB(A) image
 
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
         raise NotImplementedError("This MUST be implemented in sub-class")
 
-    def getOrigin(self):
+    def getOrigin(self) -> tuple[float, float]:
         """Returns the offset from origin at which to display the image.
 
         :rtype: 2-tuple of float
         """
         return self._origin
 
-    def setOrigin(self, origin):
+    def setOrigin(self, origin: tuple[float, float]):
         """Set the offset from origin at which to display the image.
 
         :param origin: (ox, oy) Offset from origin
@@ -318,14 +315,14 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             self._boundsChanged()
             self._updated(ItemChangedType.POSITION)
 
-    def getScale(self):
+    def getScale(self) -> tuple[float, float]:
         """Returns the scale of the image in data coordinates.
 
         :rtype: 2-tuple of float
         """
         return self._scale
 
-    def setScale(self, scale):
+    def setScale(self, scale: tuple[float, float]):
         """Set the scale of the image
 
         :param scale: (sx, sy) Scale of the image
@@ -359,20 +356,19 @@ class ImageDataBase(ImageBase, ColormapMixIn):
             colormap.setVRange(*vrange)
         return colormap
 
-    def getRgbaImageData(self, copy=True):
+    def getRgbaImageData(self, copy=True) -> numpy.ndarray:
         """Get the displayed RGB(A) image
 
         :returns: Array of uint8 of shape (height, width, 4)
-        :rtype: numpy.ndarray
         """
         return self.getColormap().applyToData(self)
 
-    def setData(self, data, copy=True):
+    def setData(self, data: numpy.ndarray, copy: bool = True):
         """Set the image data
 
-        :param numpy.ndarray data: Data array with 2 dimensions (h, w)
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
+        :param data: Data array with 2 dimensions (h, w)
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         """
         data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
@@ -443,11 +439,10 @@ class ImageData(ImageDataBase):
 
         return params
 
-    def getRgbaImageData(self, copy=True):
+    def getRgbaImageData(self, copy: bool = True) -> numpy.ndarray:
         """Get the displayed RGB(A) image
 
         :returns: Array of uint8 of shape (height, width, 4)
-        :rtype: numpy.ndarray
         """
         alternative = self.getAlternativeImageData(copy=False)
         if alternative is not None:
@@ -460,19 +455,18 @@ class ImageData(ImageDataBase):
                 image[:, :, 3] = image[:, :, 3] * alphaImage
             return image
 
-    def getAlternativeImageData(self, copy=True):
+    def getAlternativeImageData(self, copy: bool = True) -> numpy.ndarray | None:
         """Get the optional RGBA image that is displayed instead of the data
 
         :param bool copy: True (Default) to get a copy,
             False to use internal representation (do not modify!)
-        :rtype: Union[None,numpy.ndarray]
         """
         if self._alternativeImage is None:
             return None
         else:
             return numpy.array(self._alternativeImage, copy=copy or NP_OPTIONAL_COPY)
 
-    def getAlphaData(self, copy=True):
+    def getAlphaData(self, copy: bool = True) -> numpy.ndarray | None:
         """Get the optional transparency image applied on the data
 
         :param bool copy: True (Default) to get a copy,
@@ -484,18 +478,22 @@ class ImageData(ImageDataBase):
         else:
             return numpy.array(self.__alpha, copy=copy or NP_OPTIONAL_COPY)
 
-    def setData(self, data, alternative=None, alpha=None, copy=True):
+    def setData(
+        self,
+        data: numpy.ndarray,
+        alternative: numpy.ndarray | None = None,
+        alpha: numpy.ndarray | None = None,
+        copy: bool = True,
+    ):
         """Set the image data and optionally an alternative RGB(A) representation
 
-        :param numpy.ndarray data: Data array with 2 dimensions (h, w)
+        :param data: Data array with 2 dimensions (h, w)
         :param alternative: RGB(A) image to display instead of data,
                             shape: (h, w, 3 or 4)
-        :type alternative: Union[None,numpy.ndarray]
         :param alpha: An array of transparency value in [0, 1] to use for
                       display with shape: (h, w)
-        :type alpha: Union[None,numpy.ndarray]
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         """
         data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
@@ -546,19 +544,19 @@ class ImageRgba(ImageBase):
             alpha=self.getAlpha(),
         )
 
-    def getRgbaImageData(self, copy=True):
+    def getRgbaImageData(self, copy: bool = True) -> numpy.ndarray:
         """Get the displayed RGB(A) image
 
         :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
         return _convertImageToRgba32(self.getData(copy=False), copy=copy)
 
-    def setData(self, data, copy=True):
+    def setData(self, data: numpy.array, copy: bool = True):
         """Set the image data
 
         :param data: RGB(A) image data to set
-        :param bool copy: True (Default) to get a copy,
-                          False to use internal representation (do not modify!)
+        :param copy: True (Default) to get a copy,
+                     False to use internal representation (do not modify!)
         """
         data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         if data.ndim != 3:
@@ -614,7 +612,9 @@ class ImageStack(ImageDataAggregated):
         self.__stackPosition = None
         """Displayed position in the cube"""
 
-    def setStackData(self, stack, position=None, copy=True):
+    def setStackData(
+        self, stack: numpy.ndarray, position: int | None = None, copy=True
+    ):
         """Set the stack data
 
         :param stack: A 3D numpy array like
@@ -634,7 +634,7 @@ class ImageStack(ImageDataAggregated):
             self.__stackPosition = 0
         self.__updateDisplayedData()
 
-    def getStackData(self, copy=True):
+    def getStackData(self, copy: bool = True) -> numpy.ndarray:
         """Get the stored stack array.
 
         :param bool copy: True (Default) to get a copy,
@@ -646,7 +646,7 @@ class ImageStack(ImageDataAggregated):
         else:
             return self.__stack
 
-    def setStackPosition(self, pos):
+    def setStackPosition(self, pos: int):
         """Set the displayed position on the stack.
 
         This function will clamp the stack position according to
@@ -659,7 +659,7 @@ class ImageStack(ImageDataAggregated):
         self.__stackPosition = pos
         self.__updateDisplayedData()
 
-    def getStackPosition(self):
+    def getStackPosition(self) -> int:
         """Get the displayed position of the stack.
 
         :rtype: int

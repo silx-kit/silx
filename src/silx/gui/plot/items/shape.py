@@ -31,6 +31,7 @@ __date__ = "21/12/2018"
 import logging
 
 import numpy
+import typing
 
 from .core import (
     Item,
@@ -44,6 +45,7 @@ from .core import (
     YAxisMixIn,
 )
 from ....utils.deprecation import deprecated
+from ... import colors
 from silx._utils import NP_OPTIONAL_COPY
 
 
@@ -80,11 +82,11 @@ class _TwoColorsLineMixIn(LineMixIn, LineGapColorMixIn):
         LineGapColorMixIn.__init__(self)
 
     @deprecated(replacement="getLineGapColor", since_version="2.0.0")
-    def getLineBgColor(self):
+    def getLineBgColor(self) -> colors.RGBAColorType | None:
         return self.getLineGapColor()
 
     @deprecated(replacement="setLineGapColor", since_version="2.0.0")
-    def setLineBgColor(self, color, copy: bool = True):
+    def setLineBgColor(self, color: colors.ColorType, copy: bool = True):
         self.setLineGapColor(color)
         self._updated(ItemChangedType.LINE_BG_COLOR)
 
@@ -124,16 +126,14 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
             gapcolor=self.getLineGapColor(),
         )
 
-    def getType(self):
+    def getType(self) -> str:
         """Returns the type of shape to draw.
 
         One of: 'hline', 'polygon', 'rectangle', 'vline', 'polylines'
-
-        :rtype: str
         """
         return self._type
 
-    def getPoints(self, copy=True):
+    def getPoints(self, copy=True) -> numpy.ndarray:
         """Get the control points of the shape.
 
         :param bool copy: True (Default) to get a copy,
@@ -171,10 +171,10 @@ class BoundingRect(DataItem, YAxisMixIn):
         YAxisMixIn.__init__(self)
         self.__bounds = None
 
-    def setBounds(self, rect):
+    def setBounds(self, rect: typing.Annotated[list[float], 4] | None):
         """Set the bounding box of this item in data coordinates
 
-        :param Union[None,List[float]] rect: (xmin, xmax, ymin, ymax) or None
+        :param rect: (xmin, xmax, ymin, ymax) or None
         """
         if rect is not None:
             rect = float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])
@@ -220,11 +220,11 @@ class _BaseExtent(DataItem):
         self.__axis = axis
         self.__range = 1.0, 100.0
 
-    def setRange(self, min_, max_):
+    def setRange(self, min_: float, max_: float):
         """Set the range of the extent of this item in data coordinates.
 
-        :param float min_: Lower bound of the extent
-        :param float max_: Upper bound of the extent
+        :param min_: Lower bound of the extent
+        :param max_: Upper bound of the extent
         :raises ValueError: If min > max or not finite bounds
         """
         range_ = float(min_), float(max_)
@@ -238,10 +238,9 @@ class _BaseExtent(DataItem):
             self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
-    def getRange(self):
-        """Returns the range (min, max) of the extent in data coordinates.
-
-        :rtype: List[float]
+    def getRange(self) -> tuple[float, float]:
+        """
+        Returns the range (min, max) of the extent in data coordinates.
         """
         return self.__range
 
@@ -363,7 +362,9 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
     def getIntercept(self) -> float:
         return self.__intercept
 
-    def setSlopeInterceptFromPoints(self, point0, point1):
+    def setSlopeInterceptFromPoints(
+        self, point0: tuple[float, float], point1: tuple[float, float]
+    ):
         """Set slope and intercept from 2 (x, y) points"""
         x0, y0 = point0
         x1, y1 = point1
