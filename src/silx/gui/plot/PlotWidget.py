@@ -3799,7 +3799,7 @@ class PlotWidget(qt.QMainWindow):
         """Switch the interactive mode.
 
         :param mode: The name of the interactive mode.
-                     In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
+                     In 'draw', 'pan', 'select', 'select-draw', 'zoom', 'dynamic_colormap'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
         :type color: Color description: The name as a str or
@@ -3818,8 +3818,10 @@ class PlotWidget(qt.QMainWindow):
         """
         self.__isInteractionSignalForwarded = False
         try:
+            print("titi")
             self._eventHandler._setInteractiveMode(mode, color, shape, label, width)
             self._eventHandler.setZoomOnWheelEnabled(zoomOnWheel)
+            print("toto")
         finally:
             self.__isInteractionSignalForwarded = True
 
