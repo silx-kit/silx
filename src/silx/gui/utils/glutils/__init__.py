@@ -31,7 +31,7 @@ import subprocess
 from silx.gui import qt
 
 
-class _isOpenGLAvailableResult:
+class _IsOpenGLAvailableResult:
     """Store result of checking OpenGL availability.
 
     It provides a `status` boolean attribute storing the result of the check and
@@ -49,13 +49,13 @@ class _isOpenGLAvailableResult:
         return self.status
 
     def __repr__(self):
-        return f'<_isOpenGLAvailableResult: {self.status}, "{self.error}">'
+        return f'<_IsOpenGLAvailableResult: {self.status}, "{self.error}">'
 
 
 def _runtimeOpenGLCheck(
     version: tuple[int, int],
     shareOpenGLContexts: bool,
-) -> _isOpenGLAvailableResult:
+) -> _IsOpenGLAvailableResult:
     """Run OpenGL check in a subprocess.
 
     This is done by starting a subprocess that displays a Qt OpenGL widget.
@@ -80,13 +80,13 @@ def _runtimeOpenGLCheck(
         error = "Qt OpenGL widget hang"
         if sys.platform.startswith("linux"):
             error += ":\nIf connected remotely, GLX forwarding might be disabled."
-        return _isOpenGLAvailableResult(error)
+        return _IsOpenGLAvailableResult(error)
     except subprocess.CalledProcessError as e:
-        return _isOpenGLAvailableResult(
+        return _IsOpenGLAvailableResult(
             f"Qt OpenGL widget error: retcode={e.returncode}, error={e.output}"
         )
 
-    return _isOpenGLAvailableResult(output.decode(), status=True)
+    return _IsOpenGLAvailableResult(output.decode(), status=True)
 
 
 _runtimeCheckCache = {}  # Cache runtime check results: {version: result}
@@ -96,7 +96,7 @@ def isOpenGLAvailable(
     version: tuple[int, int] = (2, 1),
     runtimeCheck: bool = True,
     shareOpenGLContexts: bool = False,
-) -> _isOpenGLAvailableResult:
+) -> _IsOpenGLAvailableResult:
     """Check if OpenGL is available through Qt and actually working.
 
     After some basic tests, this is done by starting a subprocess that
@@ -118,20 +118,20 @@ def isOpenGLAvailable(
     """
     if sys.platform.startswith("linux") and not os.environ.get("DISPLAY", ""):
         # On Linux and no DISPLAY available (e.g., ssh without -X)
-        return _isOpenGLAvailableResult("DISPLAY environment variable not set")
+        return _IsOpenGLAvailableResult("DISPLAY environment variable not set")
 
     # Check pyopengl availability
     try:
         from silx.gui._glutils import gl
     except ImportError:
-        return _isOpenGLAvailableResult(
+        return _IsOpenGLAvailableResult(
             "Cannot import OpenGL wrapper: pyopengl is not installed"
         )
 
     # Pre checks for Qt < 5.4
     if not hasattr(qt, "QOpenGLWidget"):
         if not qt.HAS_OPENGL:
-            return _isOpenGLAvailableResult(f"{qt.BINDING}.QtOpenGL not available")
+            return _IsOpenGLAvailableResult(f"{qt.BINDING}.QtOpenGL not available")
 
         if (
             qt.BINDING == "PyQt5"
@@ -140,7 +140,7 @@ def isOpenGLAvailable(
         ):
             # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
             # so this is only checked if the QApplication is already created
-            return _isOpenGLAvailableResult("Qt reports OpenGL not available")
+            return _IsOpenGLAvailableResult("Qt reports OpenGL not available")
 
     # Check compatibility between Qt platform and pyopengl selected platform
     qt_qpa_platform = qt.QGuiApplication.platformName()
@@ -148,7 +148,7 @@ def isOpenGLAvailable(
     if (qt_qpa_platform == "wayland" and pyopengl_platform != "EGLPlatform") or (
         qt_qpa_platform == "xcb" and pyopengl_platform != "GLXPlatform"
     ):
-        return _isOpenGLAvailableResult(
+        return _IsOpenGLAvailableResult(
             f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
         )
 
@@ -157,7 +157,7 @@ def isOpenGLAvailable(
         return _runtimeCheckCache[keyCache]
 
     if not runtimeCheck:
-        return _isOpenGLAvailableResult(status=True)
+        return _IsOpenGLAvailableResult(status=True)
 
     # Run test in subprocess
     result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
