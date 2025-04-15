@@ -1030,12 +1030,7 @@ class ProfileManager(qt.QObject):
 
         window = self.getPlotWidget().window()
         winGeom = window.frameGeometry()
-        if qt.BINDING == "PyQt5":
-            qapp = qt.QApplication.instance()
-            desktop = qapp.desktop()
-            screenGeom = desktop.availableGeometry(window)
-        else:  # Qt6 (and also Qt>=5.14)
-            screenGeom = window.screen().availableGeometry()
+        screenGeom = window.screen().availableGeometry()
         spaceOnLeftSide = winGeom.left()
         spaceOnRightSide = screenGeom.width() - winGeom.right()
 
