@@ -1,4 +1,3 @@
-subdir('include')
 subdir('test')
 
 
