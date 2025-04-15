@@ -42,10 +42,17 @@ class _IsOpenGLAvailableResult:
         self.__error = str(error)
         self.__status = bool(status)
 
-    status = property(lambda self: self.__status, doc="True if OpenGL is working")
-    error = property(lambda self: self.__error, doc="Error message")
+    @property
+    def status(self) -> bool:
+        """True if OpenGL is working"""
+        return self.__status
 
-    def __bool__(self):
+    @property
+    def error(self) -> str:
+        """Error message"""
+        return self.__error
+
+    def __bool__(self) -> bool:
         return self.status
 
     def __repr__(self):
