@@ -29,6 +29,7 @@ Demonstration window that displays a wait icon until the plot is updated
 import numpy.random
 from silx.gui import qt
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
+from silx.gui.widgets.ButtonOverlay import ButtonOverlay
 from silx.gui.plot import Plot2D
 
 
@@ -44,14 +45,7 @@ class MyMainWindow(qt.QMainWindow):
         self.setCentralWidget(self._plot)
 
         # button to trigger image generation
-        self._rightPanel = qt.QWidget(self)
-        self._rightPanel.setLayout(qt.QVBoxLayout())
-        self._button = qt.QPushButton("generate image", self)
-        self._rightPanel.layout().addWidget(self._button)
-
-        self._dockWidget = qt.QDockWidget()
-        self._dockWidget.setWidget(self._rightPanel)
-        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._dockWidget)
+        self._button = ButtonOverlay(text="generate image", parent=self._plot)
 
         # set up
         self._waitingOverlay.hide()
@@ -61,7 +55,7 @@ class MyMainWindow(qt.QMainWindow):
 
     def _generateRandomData(self):
         self.setData(numpy.random.random(1000 * 500).reshape((1000, 500)))
-        self._button.setEnabled(True)
+        self._button.hide()
 
     def setData(self, data):
         self._plot.addImage(data)
