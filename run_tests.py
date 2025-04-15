@@ -250,9 +250,8 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
     print(test_module)
-    sys.exit(0)
-    #     test_module.run_tests(
-    #         module=None,
-    #         args=[normalize_option(p) for p in sys.argv[1:] if p != "--installed"],
-    #     )
-    # )
+    test_module.run_tests(
+             module=None,
+             args=[normalize_option(p) for p in sys.argv[1:] if p != "--installed"],
+         )
+    

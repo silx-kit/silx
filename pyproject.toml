@@ -52,39 +52,21 @@ requires = [
 ]
 
 [project.optional-dependencies]
-gui = [ "PySide6Q" ]
+gui = [ "PySide6" ]
 opencl = [ "pyopencl" ]
 all = ["PySide6", "pyopencl", "hdf5plugin"]
 
 [project.urls]
 homepage = 'http://www.silx.org'
-documentation = 'http://www.silx.org/doc/pyFAI/latest/'
+documentation = 'http://www.silx.org/doc/silx/latest/'
 source = 'https://github.com/silx-kit/silx'
 download = 'https://github.com/silx-kit/silx/releases'
 tracker = 'https://github.com/silx-kit/silx/issues'
 
-[project.scripts]
-check_calib = 'pyFAI.app.check_calib:main'
-detector2nexus = 'pyFAI.app.detector2nexus:main'
-diff_map = 'pyFAI.app.diff_map:main'
-diff_tomo = 'pyFAI.app.diff_tomo:main'
-eiger-mask = 'pyFAI.app.eiger_mask:main'
-MX-calibrate = 'pyFAI.app.mx_calibrate:main'
-pyFAI-average = 'pyFAI.app.average:main'
-pyFAI-benchmark = 'pyFAI.app.benchmark:main'
-pyFAI-calib = 'pyFAI.app.calib:main'
-pyFAI-recalib = 'pyFAI.app.recalib:main'
-pyFAI-saxs = 'pyFAI.app.saxs:main'
-pyFAI-waxs = 'pyFAI.app.waxs:main'
-sparsify-Bragg = 'pyFAI.app.sparsify:main'
-peakfinder = 'pyFAI.app.peakfinder:main'
 
-[project.gui-scripts]
-pyFAI-calib2 = 'pyFAI.app.calib2:main'
-pyFAI-drawmask = 'pyFAI.app.drawmask:main'
-pyFAI-diffmap = 'pyFAI.app.diff_map:main'
-pyFAI-integrate = 'pyFAI.app.integrate:main'
-pyFAI-diffmap-view = 'pyFAI.app.pilx:main'
+[project.scripts]
+silx = 'silx.__main__:main'
+
 
 [tool.cibuildwheel]
 # Skip 32-bit builds and PyPy
