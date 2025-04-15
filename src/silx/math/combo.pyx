@@ -33,6 +33,7 @@ __date__ = "24/04/2018"
 
 cimport cython
 from .math_compatibility cimport isnan, isfinite, INFINITY
+from typing import TypeVar, Generic
 
 import numpy
 
@@ -61,7 +62,10 @@ ctypedef fused _floating:
     long double
 
 
-class _MinMaxResult(object):
+T = TypeVar('T')
+
+
+class _MinMaxResult(Generic[T]):
     """Result from :func:`min_max`"""
 
     def __init__(
@@ -77,12 +81,12 @@ class _MinMaxResult(object):
         self._argmax = argmax
 
     @property
-    def  minimum(self) -> float:
+    def  minimum(self) -> T:
         """Minimum value of the array"""
         return self._minimum
 
     @property
-    def maximum(self) -> float:
+    def maximum(self) -> T:
         """Maximum value of the array"""
         return self._maximum
 
@@ -97,7 +101,7 @@ class _MinMaxResult(object):
         return self._argmax
 
     @property
-    def min_positive(self) -> float | None:
+    def min_positive(self) -> T | None:
         """
         Strictly positive minimum value
 
@@ -277,7 +281,7 @@ def _finite_min_max(_floating[::1] data, bint min_positive=False):
         max_index if isfinite(maximum) else None)
 
 
-def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMaxResult:
+def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMaxResult[int] | _MinMaxResult[float]:
     """Returns min, max and optionally strictly positive min of data.
 
     It also computes the indices of first occurrence of min/max.

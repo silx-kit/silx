@@ -1,19 +1,23 @@
 import numpy
+from typing import TypeVar, Generic
 
 
-class _MinMaxResult(object):
+T = TypeVar('T')
+
+
+class _MinMaxResult(object, Generic[T]):
     """Result from :func:`min_max`"""
 
     def __init__(self, minimum, min_pos, maximum, argmin, argmin_pos, argmax):
         ...
 
     @property
-    def minimum(self) -> float:
+    def minimum(self) -> T:
         """Minimum value of the array"""
         ...
 
     @property
-    def maximum(self) -> float:
+    def maximum(self) -> T:
         """Maximum value of the array"""
         ...
 
@@ -28,7 +32,7 @@ class _MinMaxResult(object):
         ...
 
     @property
-    def min_positive(self) -> float | None:
+    def min_positive(self) -> T | None:
         """
         Strictly positive minimum value
 
@@ -50,7 +54,7 @@ class _MinMaxResult(object):
         ...
 
 
-def min_max(data: numpy.ndarray, min_positive: bint = False) -> _MinMaxResult:
+def min_max(data: numpy.ndarray, min_positive: bint = False) -> _MinMaxResult[int] | _MinMaxResult[float]:
     """:func:`min_max` implementation for floats skipping infinite values
 
     See :func:`min_max` for documentation.
