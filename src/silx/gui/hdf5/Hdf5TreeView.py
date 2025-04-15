@@ -283,11 +283,11 @@ class Hdf5TreeView(qt.QTreeView):
     def findHdf5Object(self, url: DataUrl) -> Hdf5Item | None:
         """Return the Hdf5Object matching the url if exists in the model. Else None"""
         model = self.findHdf5TreeModel()
-        # model.findNode(url=url)
 
+        # 1.0 find file name
         file_name = url.file_path()
 
-        def find_node(start_index: qt.QModelIndex, name: str) -> qt.QModelIndex:
+        def find_node(start_index: qt.QModelIndex, name: str) -> qt.QModelIndex | None:
             matching_items = model.match(
                 start_index,
                 qt.Qt.DisplayRole,
@@ -305,9 +305,11 @@ class Hdf5TreeView(qt.QTreeView):
         start_index = find_node(
             start_index=model.index(0, 0), name=os.path.basename(file_name)
         )
+        if start_index is None:
+            return None
         node = model.nodeFromIndex(start_index)
 
-        # find file name
+        # 2.0 find data path node
         node_names = filter(None, url.data_path().split("/"))
 
         def find_children(
@@ -321,8 +323,8 @@ class Hdf5TreeView(qt.QTreeView):
 
         for node_name in node_names:
             # find file name
-            node = find_children(parent_node=node, child_node_name=node_name)
             if node is None:
-                return
+                return None
+            node = find_children(parent_node=node, child_node_name=node_name)
 
         return node
