@@ -1652,17 +1652,17 @@ class DynamicColormapMode(ItemsInteraction):
     :param plot: The Plot to which this interaction is attached
     """
 
-    ROI_SIZE = (10, 10) #(y,x)
+    ROI_SIZE = (10, 10) #(y,x). The ROI <<radius>>
     
     @staticmethod
     def compute_vmin_vmax(data, dataPos):
         roi_size = DynamicColormapMode.ROI_SIZE
         """Compute the min and max values of the data in a ROI centered on (x,y)"""
         idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
-        x_start = numpy.max((0, idx_x - roi_size[1]))
-        x_end = numpy.min((idx_x + roi_size[1], data.shape[1]))
-        y_start = numpy.max((0, idx_y - roi_size[0]))
-        y_end = numpy.min((idx_y + roi_size[0], data.shape[0]))
+        x_start = max((0, idx_x - roi_size[1]))
+        x_end = min((idx_x + roi_size[1], data.shape[1]))
+        y_start = max((0, idx_y - roi_size[0]))
+        y_end = min((idx_y + roi_size[0], data.shape[0]))
 
         data_values = data[y_start:y_end, x_start:x_end]
         vmin, vmax = min_max(data_values)
