@@ -30,7 +30,7 @@ __date__ = "25/08/2021"
 
 import collections
 import numbers
-from typing import NamedTuple
+from typing import NamedTuple, Literal
 import warnings
 import numpy
 
@@ -38,42 +38,42 @@ from ..resources import resource_filename as _resource_filename
 from .combo import min_max as _min_max
 from . import _colormap
 from ._colormap import cmap  # noqa
+from ..utils.proxy import docstring
 
 
 __all__ = ["apply_colormap", "cmap"]
 
 
-_LUT_DESCRIPTION = collections.namedtuple(
-    "_LUT_DESCRIPTION", ["source", "cursor_color"]
-)
-"""Description of a LUT for internal purpose."""
+class _LUT_DESCRIPTION(NamedTuple):
+    """Description of a LUT for internal purpose."""
+
+    source: str
+    cursor_color: str
 
 
-_AVAILABLE_LUTS = dict(
-    [
-        ("gray", _LUT_DESCRIPTION("builtin", "#ff66ff")),
-        ("reversed gray", _LUT_DESCRIPTION("builtin", "#ff66ff")),
-        ("red", _LUT_DESCRIPTION("builtin", "#00ff00")),
-        ("green", _LUT_DESCRIPTION("builtin", "#ff66ff")),
-        ("blue", _LUT_DESCRIPTION("builtin", "#ffff00")),
-        ("viridis", _LUT_DESCRIPTION("resource", "#ff66ff")),
-        ("cividis", _LUT_DESCRIPTION("resource", "#ff66ff")),
-        ("magma", _LUT_DESCRIPTION("resource", "#00ff00")),
-        ("inferno", _LUT_DESCRIPTION("resource", "#00ff00")),
-        ("plasma", _LUT_DESCRIPTION("resource", "#00ff00")),
-        ("temperature", _LUT_DESCRIPTION("builtin", "#ff66ff")),
-    ]
-)
+_AVAILABLE_LUTS: dict[str, _LUT_DESCRIPTION] = {
+    "gray": _LUT_DESCRIPTION("builtin", "#ff66ff"),
+    "reversed gray": _LUT_DESCRIPTION("builtin", "#ff66ff"),
+    "red": _LUT_DESCRIPTION("builtin", "#00ff00"),
+    "green": _LUT_DESCRIPTION("builtin", "#ff66ff"),
+    "blue": _LUT_DESCRIPTION("builtin", "#ffff00"),
+    "viridis": _LUT_DESCRIPTION("resource", "#ff66ff"),
+    "cividis": _LUT_DESCRIPTION("resource", "#ff66ff"),
+    "magma": _LUT_DESCRIPTION("resource", "#00ff00"),
+    "inferno": _LUT_DESCRIPTION("resource", "#00ff00"),
+    "plasma": _LUT_DESCRIPTION("resource", "#00ff00"),
+    "temperature": _LUT_DESCRIPTION("builtin", "#ff66ff"),
+}
 """Description for internal porpose of all the default LUT provided by the library."""
 
 
 # Colormap loader
 
-_COLORMAP_CACHE = {}
+_COLORMAP_CACHE: dict[str, numpy.ndarray] = {}
 """Cache already used colormaps as name: color LUT"""
 
 
-def array_to_rgba8888(colors):
+def array_to_rgba8888(colors: numpy.ndarray) -> numpy.ndarray:
     """Convert colors from a numpy array using float (0..1) int or uint
     (0..255) to uint8 RGBA.
 
@@ -103,12 +103,11 @@ def array_to_rgba8888(colors):
     return colors
 
 
-def _create_colormap_lut(name):
+def _create_colormap_lut(name: str) -> numpy.ndarray:
     """Returns the color LUT corresponding to a colormap name
 
-    :param str name: Name of the colormap to load
+    :param name: Name of the colormap to load
     :returns: Corresponding table of colors
-    :rtype: numpy.ndarray
     :raise ValueError: If no colormap corresponds to name
     """
     description = _AVAILABLE_LUTS.get(name)
@@ -158,16 +157,16 @@ def _create_colormap_lut(name):
     raise ValueError("Unknown colormap '%s'" % name)
 
 
-def register_colormap(name, lut, cursor_color="#000000"):
+def register_colormap(name: str, lut: numpy.ndarray, cursor_color: str = "#000000"):
     """Register a custom colormap LUT
 
     It can override existing LUT names.
 
-    :param str name: Name of the LUT as defined to configure colormaps
-    :param numpy.ndarray lut: The custom LUT to register.
-            Nx3 or Nx4 numpy array of RGB(A) colors,
-            either uint8 or float in [0, 1].
-    :param str cursor_color: Color used to display overlay over images using
+    :param name: Name of the LUT as defined to configure colormaps
+    :param lut: The custom LUT to register.
+                Nx3 or Nx4 numpy array of RGB(A) colors,
+                either uint8 or float in [0, 1].
+    :param cursor_color: Color used to display overlay over images using
         colormap with this LUT.
     """
     description = _LUT_DESCRIPTION("user", cursor_color)
@@ -178,17 +177,16 @@ def register_colormap(name, lut, cursor_color="#000000"):
     _COLORMAP_CACHE[name] = colors
 
 
-def get_registered_colormaps():
+def get_registered_colormaps() -> tuple[str, ...]:
     """Returns currently registered colormap names"""
     return tuple(_AVAILABLE_LUTS.keys())
 
 
-def get_colormap_cursor_color(name):
+def get_colormap_cursor_color(name: str) -> str:
     """Get a color suitable for overlay over a colormap.
 
-    :param str name: The name of the colormap.
+    :param name: The name of the colormap.
     :return: Name of the color.
-    :rtype: str
     """
     description = _AVAILABLE_LUTS.get(name, None)
     if description is not None:
@@ -198,7 +196,7 @@ def get_colormap_cursor_color(name):
     return "black"
 
 
-def get_colormap_lut(name):
+def get_colormap_lut(name: str) -> numpy.ndarray:
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -213,35 +211,40 @@ def get_colormap_lut(name):
     return _COLORMAP_CACHE[name]
 
 
+AutoScaleModeType = Literal["minmax", "stddev3", "percentile_1_99"]
+
+
 # Normalizations
 
 
 class _NormalizationMixIn:
     """Colormap normalization mix-in class"""
 
-    DEFAULT_RANGE = 0, 1
+    DEFAULT_RANGE: tuple[float, float] = 0, 1
     """Fallback for (vmin, vmax)"""
 
-    def is_valid(self, value):
+    def is_valid(
+        self, value: float | numpy.ndarray | collections.abc.Iterable
+    ) -> bool | numpy.ndarray:
         """Check if a value is in the valid range for this normalization.
 
         Override in subclass.
 
-        :param Union[float,numpy.ndarray] value:
-        :rtype: Union[bool,numpy.ndarray]
+        :param value: The value to check
         """
         if isinstance(value, collections.abc.Iterable):
             return numpy.ones_like(value, dtype=numpy.bool_)
         else:
             return True
 
-    def autoscale(self, data, mode):
+    def autoscale(
+        self, data: numpy.ndarray | None, mode: AutoScaleModeType
+    ) -> tuple[float, float]:
         """Returns range for given data and autoscale mode.
 
-        :param Union[None,numpy.ndarray] data:
-        :param str mode: Autoscale mode: 'minmax' or 'stddev3'
+        :param data: The data to process
+        :param mode: Autoscale mode ('minmax' or 'stddev3')
         :returns: Range as (min, max)
-        :rtype: Tuple[float,float]
         """
         data = None if data is None else numpy.asarray(data)
         if data is None or data.size == 0:
@@ -280,12 +283,11 @@ class _NormalizationMixIn:
             vmax = vmin
         return float(vmin), float(vmax)
 
-    def autoscale_minmax(self, data):
+    def autoscale_minmax(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using min/max
 
-        :param numpy.ndarray data:
+        :param data: The data to process
         :returns: (vmin, vmax)
-        :rtype: Tuple[float,float]
         """
         data = data[self.is_valid(data)]
         if data.size == 0:
@@ -293,16 +295,15 @@ class _NormalizationMixIn:
         result = _min_max(data, min_positive=False, finite=True)
         return result.minimum, result.maximum
 
-    def autoscale_mean3std(self, data):
+    def autoscale_mean3std(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using mean+/-3std
 
         This implementation only works for normalization that do NOT
         use the data range.
         Override this method for normalization using the range.
 
-        :param numpy.ndarray data:
+        :param data: The data to process
         :returns: (vmin, vmax)
-        :rtype: Tuple[float,float]
         """
         # Use [0, 1] as data range for normalization not using range
         normdata = self.apply(data, 0.0, 1.0)
@@ -321,8 +322,12 @@ class _NormalizationMixIn:
             mean + 3 * std, 0.0, 1.0
         )
 
-    def autoscale_percentile_1_99(self, data):
-        """Autoscale using [1st, 99th] percentiles"""
+    def autoscale_percentile_1_99(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
+        """Autoscale using [1st, 99th] percentiles
+
+        :param data: The data to process
+        :returns: (vmin, vmax)
+        """
         data = data[self.is_valid(data)]
         if data.dtype.kind == "f":  # Strip +/-inf
             data = data[numpy.isfinite(data)]
@@ -334,7 +339,7 @@ class _NormalizationMixIn:
 class _LinearNormalizationMixIn(_NormalizationMixIn):
     """Colormap normalization mix-in class specific to autoscale taken from initial range"""
 
-    def autoscale_mean3std(self, data):
+    def autoscale_mean3std(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using mean+/-3std
 
         Do the autoscale on the data itself, not the normalized data.
@@ -373,9 +378,11 @@ class LogarithmicNormalization(_colormap.LogarithmicNormalization, _Normalizatio
         _colormap.LogarithmicNormalization.__init__(self)
         _NormalizationMixIn.__init__(self)
 
+    @docstring(_NormalizationMixIn)
     def is_valid(self, value):
         return value > 0.0
 
+    @docstring(_NormalizationMixIn)
     def autoscale_minmax(self, data):
         result = _min_max(data, min_positive=True, finite=True)
         return result.min_positive, result.maximum
@@ -390,6 +397,7 @@ class SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
         _colormap.SqrtNormalization.__init__(self)
         _NormalizationMixIn.__init__(self)
 
+    @docstring(_NormalizationMixIn)
     def is_valid(self, value):
         return value >= 0.0
 
@@ -402,7 +410,7 @@ class GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn
     :param gamma: Gamma correction factor
     """
 
-    def __init__(self, gamma):
+    def __init__(self, gamma: float):
         _colormap.PowerNormalization.__init__(self, gamma)
         _LinearNormalizationMixIn.__init__(self)
 
@@ -421,7 +429,7 @@ class ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
 
 # Colormap function
 
-_BASIC_NORMALIZATIONS = {
+_BASIC_NORMALIZATIONS: dict[str, _NormalizationMixIn] = {
     "linear": LinearNormalization(),
     "log": LogarithmicNormalization(),
     "sqrt": SqrtNormalization(),
@@ -429,14 +437,20 @@ _BASIC_NORMALIZATIONS = {
 }
 
 
-def _get_normalizer(norm, gamma):
+def _get_normalizer(norm: str, gamma: float) -> _NormalizationMixIn:
     """Returns corresponding Normalization instance"""
     if norm == "gamma":
         return GammaNormalization(gamma)
     return _BASIC_NORMALIZATIONS[norm]
 
 
-def _get_range(normalizer, data, autoscale, vmin, vmax):
+def _get_range(
+    normalizer,
+    data: numpy.ndarray,
+    autoscale: AutoScaleModeType,
+    vmin: float | None,
+    vmax: float | None,
+) -> tuple[float, float]:
     """Returns effective range"""
     if vmin is None or vmax is None:
         auto_vmin, auto_vmax = normalizer.autoscale(data, autoscale)
@@ -454,17 +468,17 @@ def apply_colormap(
     data,
     colormap: str,
     norm: str = "linear",
-    autoscale: str = "minmax",
-    vmin=None,
-    vmax=None,
-    gamma=1.0,
+    autoscale: AutoScaleModeType = "minmax",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    gamma: float = 1.0,
 ):
     """Apply colormap to data with given normalization and autoscale.
 
     :param numpy.ndarray data: Data on which to apply the colormap
-    :param str colormap: Name of the colormap to use
-    :param str norm: Normalization to use
-    :param str autoscale: Autoscale mode: "minmax" (default) or "stddev3"
+    :param colormap: Name of the colormap to use
+    :param norm: Normalization to use
+    :param autoscale: Autoscale mode: "minmax" (default) or "stddev3"
     :param vmin: Lower bound, None (default) to autoscale
     :param vmax: Upper bound, None (default) to autoscale
     :param float gamma:
@@ -489,18 +503,18 @@ _UINT8_LUT = numpy.arange(256, dtype=numpy.uint8).reshape(-1, 1)
 
 class NormalizeResult(NamedTuple):
     data: numpy.ndarray
-    vmin: numbers.Number
-    vmax: numbers.Number
+    vmin: float
+    vmax: float
 
 
 def normalize(
-    data,
+    data: numpy.ndarray,
     norm: str = "linear",
-    autoscale: str = "minmax",
-    vmin=None,
-    vmax=None,
-    gamma=1.0,
-):
+    autoscale: AutoScaleModeType = "minmax",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    gamma: float = 1.0,
+) -> NormalizeResult:
     """Normalize data to an array of uint8.
 
     :param numpy.ndarray data: Data to normalize
