@@ -39,6 +39,14 @@ class _OverlayMixIn:
         super().setParent(parent)
         self._registerParent(parent)
 
+    def showEvent(self, event: qt.QShowEvent):
+        super().showEvent(event)
+        self.setVisible(True)
+
+    def hideEvent(self, event: qt.QHideEvent):
+        super().hideEvent(event)
+        self.setVisible(False)
+
     def _resize(self):
         if not qt_inspect.isValid(self):
             return  # For _resizeLater in case the widget has been deleted
