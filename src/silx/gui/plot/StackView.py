@@ -193,6 +193,7 @@ class StackView(qt.QMainWindow):
             self.setWindowTitle("StackView")
 
         self._stack = None
+        self._stack_name = None
         """Loaded stack, as a 3D array, a 3D dataset or a list of 2D arrays."""
         self.__transposed_view = None
         """View on :attr:`_stack` with the axes sorted, to have
@@ -544,7 +545,8 @@ class StackView(qt.QMainWindow):
         self._plot.setGraphTitle(self._titleCallback(frame_idx))
 
     def _defaultTitleCallback(self, index):
-        return "Image z=%g" % self._getImageZ(index)
+        title = self._stack_name or "Image"
+        return f"{title} z={self._getImageZ(index):g}"
 
     # public API, stack specific methods
     def setStack(self, stack, perspective=None, reset=True, calibrations=None):
@@ -665,6 +667,13 @@ class StackView(qt.QMainWindow):
 
         return self._stack, params
 
+    def setStackName(self, name: str | None):
+        """Set the 3D stack name.
+
+        :param name: Name of the 3D stack.
+        """
+        self._stack_name = name
+
     def getCurrentView(self, copy=True, returnNumpyArray=False):
         """Get the stack, as it is currently displayed.
 
@@ -780,6 +789,7 @@ class StackView(qt.QMainWindow):
         - clear the loaded data volume
         """
         self._stack = None
+        self._stack_name = None
         self.__transposed_view = None
         self._perspective = 0
         self._browser.setEnabled(False)
