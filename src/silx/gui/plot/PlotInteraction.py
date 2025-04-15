@@ -1690,11 +1690,6 @@ class DynamicColormapMode(ItemsInteraction):
 
         # Extract ROI min and max
         vmin, vmax, bb_x, bb_y = self.compute_vmin_vmax(data, dataPos)
-        #idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
-        #x_start = numpy.max((0,idx_x - self.ROI_SIZE[1]))
-        #x_end = numpy.min((idx_x + self.ROI_SIZE[1],data.shape[1]))
-        #y_start = numpy.max((0,idx_y - self.ROI_SIZE[0]))
-        #y_end = numpy.min((idx_y + self.ROI_SIZE[0],data.shape[0]))
 
         # Add a blue rectangle that shows the ROI
         self.plot.addShape(
@@ -1709,10 +1704,6 @@ class DynamicColormapMode(ItemsInteraction):
             overlay=True,
             z=1,
         )
-        #data_values = data[y_start:y_end,x_start:x_end]
-        #vmin, vmax = min_max(data_values)
-        #vmin = data_values.min()
-        #vmax = data_values.max()
 
         # Set new min and max
         colormap.setVRange(vmin, vmax)
