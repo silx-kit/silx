@@ -431,6 +431,8 @@ class TestObjectAPI(ParametricTestCase):
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
         colormap.setAutoscaleMode(Colormap.PERCENTILE_1_99)
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.PERCENTILE_1_99)
+        colormap.setAutoscaleMode(Colormap.CONTRAST_ENHANCER)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.CONTRAST_ENHANCER)
 
     def testStoreRestore(self):
         colormaps = [Colormap(name="viridis"), Colormap(normalization=Colormap.SQRT)]

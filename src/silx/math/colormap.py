@@ -267,6 +267,8 @@ class _NormalizationMixIn:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile_1_99":
             vmin, vmax = self.autoscale_percentile_1_99(data)
+        elif mode == "contrast_enhancer":
+            vmin, vmax = self.autoscale_contrast_enhancer(data)
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
@@ -329,6 +331,17 @@ class _NormalizationMixIn:
         if data.size == 0:
             return None, None
         return numpy.nanpercentile(data, (1, 99))
+
+    def autoscale_contrast_enhancer(self, data: numpy.ndarray):
+        """Autoscale using pixel saturation"""
+        from silx.image.ContrastEnhancer import _ContrastEnhancer
+
+        data = data[self.is_valid(data)]
+        if data.dtype.kind == "f":  # Strip +/-inf
+            data = data[numpy.isfinite(data)]
+        if data.size == 0:
+            return None, None
+        return _ContrastEnhancer().get_min_max(image=data)
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):

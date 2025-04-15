@@ -237,6 +237,10 @@ class _AutoscaleModeComboBox(qt.QComboBox):
             "Percentile 1-99",
             "Use 1st to 99th percentile of data",
         ),
+        Colormap.CONTRAST_ENHANCER: (
+            "Contrast enhancer",
+            "Contrast enhancer by minimal saturation",
+        ),
     }
 
     def __init__(self, parent: qt.QWidget):
