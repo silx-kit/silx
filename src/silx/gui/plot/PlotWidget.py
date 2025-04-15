@@ -3818,10 +3818,8 @@ class PlotWidget(qt.QMainWindow):
         """
         self.__isInteractionSignalForwarded = False
         try:
-            print("titi")
             self._eventHandler._setInteractiveMode(mode, color, shape, label, width)
             self._eventHandler.setZoomOnWheelEnabled(zoomOnWheel)
-            print("toto")
         finally:
             self.__isInteractionSignalForwarded = True
 
@@ -3891,6 +3889,8 @@ class PlotWidget(qt.QMainWindow):
             # that even if mouse didn't move on the screen, it moved relative
             # to the plotted data.
             self.__simulateMouseMove()
+        elif key == qt.Qt.Key_W:
+            self.setInteractiveMode("dynamic_colormap")
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
