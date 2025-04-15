@@ -322,5 +322,7 @@ class Hdf5TreeView(qt.QTreeView):
         for node_name in node_names:
             # find file name
             node = find_children(parent_node=node, child_node_name=node_name)
+            if node is None:
+                return
 
         return node
