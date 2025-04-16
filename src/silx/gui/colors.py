@@ -887,10 +887,12 @@ class Colormap(qt.QObject):
         vmin, vmax = self.getColormapRange(reference)
 
         if isinstance(data, _Colormappable):  # Use item's data
-            data = data.getColormappedData(copy=False)
+            array = data.getColormappedData(copy=False)
+        else:
+            array = data
 
         return _colormap.cmap(
-            data, self._colors, vmin, vmax, self._getNormalizer(), self.__nanColor
+            array, self._colors, vmin, vmax, self._getNormalizer(), self.__nanColor
         )
 
     @staticmethod
