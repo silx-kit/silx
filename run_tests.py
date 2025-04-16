@@ -31,7 +31,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "14/04/2025"
+__date__ = "16/04/2025"
 __license__ = "MIT"
 
 import sys
@@ -112,7 +112,7 @@ if os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0]):
 
 def get_test_options(project_module):
     """Returns the test options if available, else None"""
-    module_name = project_module.__name__ + '.test.utilstest'
+    module_name = project_module.__name__ + '.test.utils'
     logger.info('Import %s', module_name)
     try:
         test_utils = importer(module_name)
@@ -161,17 +161,30 @@ parser.add_argument("test_name", nargs='*',
                     default=tuple(),
                     help="Test names to run (Default: all)")
 
-parser.add_argument("--installed",
+parser.add_argument("-i", "--installed",
                     action="store_true", dest="installed", default=False,
-                    help=("Test the installed version instead of" +
-                          "building from the source"))
-parser.add_argument("-c", "--coverage", dest="coverage",
-                    action="store_true", default=False,
-                    help=("Report code coverage" +
-                          "(requires 'coverage' and 'lxml' module)"))
-parser.add_argument("-m", "--memprofile", dest="memprofile",
-                    action="store_true", default=False,
-                    help="Report memory profiling")
+                    help="Test the installed version instead of"
+                          "building from the source")
+parser.add_argument("--no-gui",
+                    action="store_false", dest="gui", default=True,
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("--no-opengl",
+                    action="store_false", dest="opengl", default=True,
+                    help="Disable tests using OpenGL")
+parser.add_argument("--no-opencl",
+                    action="store_false", dest="opencl", default=True,
+                    help="Disable tests using OpenCL")
+parser.add_argument("--high-mem",
+                    action="store_false", dest="low_mem", default=True,
+                    help="Enable tests requiring large amounts of data (>100Mb)")
+
+# parser.add_argument("-c", "--coverage", dest="coverage",
+#                     action="store_true", default=False,
+#                     help=("Report code coverage" +
+#                           "(requires 'coverage' and 'lxml' module)"))
+# parser.add_argument("-m", "--memprofile", dest="memprofile",
+#                     action="store_true", default=False,
+#                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity. Option -v prints additional " +
@@ -195,35 +208,32 @@ elif options.verbose > 1:
     test_verbosity = 2
     use_buffer = False
 
-if options.coverage:
-    logger.info("Running test-coverage")
-    import coverage
-    omits = ["*test*", "*third_party*", "*/setup.py",
-             # temporary test modules (silx.math.fit.test.test_fitmanager)
-             "*customfun.py", ]
-    try:
-        coverage_class = coverage.Coverage
-    except AttributeError:
-        coverage_class = coverage.coverage
-    print(f"|{PROJECT_NAME}|")
-    cov = coverage_class(include=[f"*/{PROJECT_NAME}/*"],
-                         omit=omits)
-    cov.start()
+# if options.coverage:
+#     logger.info("Running test-coverage")
+#     import coverage
+#     omits = ["*test*", "*third_party*", "*/setup.py",
+#              # temporary test modules (silx.math.fit.test.test_fitmanager)
+#              "*customfun.py", ]
+#     try:
+#         coverage_class = coverage.Coverage
+#     except AttributeError:
+#         coverage_class = coverage.coverage
+#     print(f"|{PROJECT_NAME}|")
+#     cov = coverage_class(include=[f"*/{PROJECT_NAME}/*"],
+#                          omit=omits)
+#     cov.start()
 
 if options.qt_binding:
     binding = options.qt_binding.lower()
-    if binding == "pyqt4":
-        logger.info("Force using PyQt4")
-        import PyQt4.QtCore  # noqa
-    elif binding == "pyqt5":
+    if binding == "pyqt5":
         logger.info("Force using PyQt5")
         import PyQt5.QtCore  # noqa
-    elif binding == "pyside":
-        logger.info("Force using PySide")
-        import PySide.QtCore  # noqa
-    elif binding == "pyside2":
-        logger.info("Force using PySide2")
-        import PySide2.QtCore  # noqa
+    if binding == "pyqt6":
+        logger.info("Force using PyQt6")
+        import PyQt6.QtCore  # noqa
+    elif binding == "pyside6":
+        logger.info("Force using PySide6")
+        import PySide6.QtCore  # noqa
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
@@ -238,6 +248,21 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     print("PROJECT_PATH:", PROJECT_PATH)
     sys.path.insert(0, PROJECT_PATH)
 
+    # corresponds to options to pass back to pytest ...
+    pytest_options = []
+    if options.qt_binding:
+        pytest_options.append(f"--qt-binding={options.qt_binding}")
+    if options.gui is False:
+        pytest_options.append("--no-gui")
+    if options.opencl is False:
+        pytest_options.append("--no-opencl")
+    if options.opengl is False:
+        pytest_options.append("--no-opengl")
+    if options.low_mem is True:
+        pytest_options.append("--low-mem")
+
+    
+    
     def normalize_option(option):
         option_parts = option.split(os.path.sep)
         if option_parts == ["src", "silx"]:
@@ -248,11 +273,19 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
             return os.path.join(PROJECT_PATH,*option_parts[1:])
         return option
 
+    args=[normalize_option(p) for p in options.test_name]
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
-    print(test_module)
-    print(sys.argv[1:])
-    test_module.run_tests(
-             module=None if options.test_name else "silx",
-             args=[normalize_option(p) for p in options.test_name],
-         )
+
+    try:
+        rc = test_module.run_tests(
+                module=None if options.test_name else "silx",
+                args=[normalize_option(p) for p in options.test_name],
+                options=pytest_options
+            )
+    except TypeError:
+        rc = test_module.run_tests(
+                module=None if options.test_name else "silx",
+                args=pytest_options+args)
+    finally:
+        sys.exit(rc)
 

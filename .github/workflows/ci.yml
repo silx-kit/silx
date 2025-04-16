@@ -94,4 +94,4 @@ jobs:
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
           pip install --upgrade -r requirements-dev.txt
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
+          python run-test.py --installed --qt-binding=${{ matrix.QT_API }}
