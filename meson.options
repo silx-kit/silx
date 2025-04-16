@@ -1,2 +1,8 @@
-option('use_openmp', type : 'feature', value : 'auto',
+option('use_openmp', 
+       type : 'feature', 
+       value : 'auto',
        description : 'force enable/disable the usage of OpenMP')
+#option('SPECFILE_use_GNU_source', 
+#       type : 'feature', 
+#       value : 'disabled',
+#       description : 'force specfile to use the `strtod_l` from gcc')
