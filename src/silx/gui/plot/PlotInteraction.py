@@ -1661,7 +1661,6 @@ class DynamicColormapMode(ItemsInteraction):
         return vmin, vmax, bb_x, bb_y
 
     def handleEvent(self, eventName, *args, **kwargs):
-
         super().handleEvent(eventName, *args, **kwargs)
 
         try:
