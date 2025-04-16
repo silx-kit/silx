@@ -1037,7 +1037,7 @@ class Colormap(qt.QObject):
         return data
 
 
-_PREFERRED_COLORMAPS = None
+_PREFERRED_COLORMAPS: list[str] | None = None
 """
 Tuple of preferred colormap names accessed with :meth:`preferredColormaps`.
 """
