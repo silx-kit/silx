@@ -157,10 +157,9 @@ test_options = get_test_options(module)
 if test_options is not None:
     test_options.add_parser_argument(parser)
 
-default_test_name = f"{PROJECT_NAME}.test.suite"
 parser.add_argument("test_name", nargs='*',
-                    default=(default_test_name,),
-                    help="Test names to run (Default: %s)" % default_test_name)
+                    default=tuple(),
+                    help="Test names to run (Default: all)")
 
 parser.add_argument("--installed",
                     action="store_true", dest="installed", default=False,
@@ -182,7 +181,6 @@ parser.add_argument("--qt-binding", dest="qt_binding", default=None,
                     help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
 
 options = parser.parse_args()
-sys.argv = [sys.argv[0]]
 
 test_verbosity = 1
 use_buffer = True
@@ -246,12 +244,15 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
             return PROJECT_PATH
         if option_parts[:2] == ["src", "silx"]:
             return os.path.join(PROJECT_PATH, *option_parts[2:])
+        if option_parts[:1] == "silx":
+            return os.path.join(PROJECT_PATH,*option_parts[1:])
         return option
 
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
     print(test_module)
+    print(sys.argv[1:])
     test_module.run_tests(
-             module=None,
-             args=[normalize_option(p) for p in sys.argv[1:] if p != "--installed"],
+             module=None if options.test_name else "silx",
+             args=[normalize_option(p) for p in options.test_name],
          )
-    
+

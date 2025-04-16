@@ -30,6 +30,7 @@ import importlib
 import logging
 import subprocess
 import sys
+from os.path import dirname
 
 
 try:
@@ -39,9 +40,6 @@ except ImportError:
         "pytest is required to run the tests, please install it."
     )
     raise
-
-
-import silx
 
 
 def run_tests(
@@ -59,7 +57,7 @@ def run_tests(
         sys.executable,
         "-m",
         "pytest",
-        f"--rootdir={silx.__path__[0]}",
+        f"--rootdir={dirname(__path__[0])}",
         "--verbosity",
         str(verbosity),
         # Handle warning as errors unless explicitly skipped
@@ -70,9 +68,11 @@ def run_tests(
         "-Wignore:Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.:UserWarning",
         # Remove __array__ ignore once h5py v3.12 is released
         "-Wignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
-    ] + list(args)
+    ]
 
-    if module is not None:
+    if args:
+        cmd += list(args)
+    elif module is not None:
         # Retrieve folder for packages and file for modules
         imported_module = importlib.import_module(module)
         cmd.append(
@@ -80,5 +80,4 @@ def run_tests(
             if hasattr(imported_module, "__path__")
             else imported_module.__file__
         )
-
     return subprocess.run(cmd, check=False).returncode
