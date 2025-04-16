@@ -70,8 +70,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build cython meson-python wheel
-          pip list
+          pip install --upgrade --pre build cython meson-python wheel ninja oldest-supported-numpy
 
       - name: Build
         env:
