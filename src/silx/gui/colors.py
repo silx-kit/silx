@@ -406,7 +406,10 @@ class Colormap(qt.QObject):
             if name is not None:
                 self.setName(name)
             else:
-                self.setColormapLUT(other.getColormapLUT())
+                colors = other.getColormapLUT()
+                # There is no name so there is a color
+                assert colors is not None
+                self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
@@ -838,6 +841,8 @@ class Colormap(qt.QObject):
         if name is not None:
             self.setName(name)
         else:
+            # if name is None => colors is not None
+            assert colors is not None
             self.setColormapLUT(colors)
         self._vmin = vmin
         self._vmax = vmax
@@ -1071,6 +1076,10 @@ def preferredColormaps() -> tuple[str, ...]:
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
         setPreferredColormaps(_DEFAULT_PREFERRED_COLORMAPS)
+
+    # setPreferredColormaps initialize _PREFERRED_COLORMAPS
+    assert _PREFERRED_COLORMAPS is not None
+
     return tuple(_PREFERRED_COLORMAPS)
 
 
