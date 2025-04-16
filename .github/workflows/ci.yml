@@ -70,7 +70,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build cython setuptools wheel
+          pip install --upgrade --pre build cython meson-python wheel
           pip list
 
       - name: Build
