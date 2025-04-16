@@ -162,26 +162,28 @@ def rgba(
         return rgba(color.getRgb(), colorDict, colors)
 
     # From array
-    values = numpy.asarray(color).ravel()
+    varray = numpy.asarray(color).ravel()
 
-    if values.dtype.kind not in "iuf":
+    if varray.dtype.kind not in "iuf":
         raise ValueError(
-            f"The array color must be integer/unsigned or float. Found '{values.dtype.kind}'"
+            f"The array color must be integer/unsigned or float. Found '{varray.dtype.kind}'"
         )
-    if len(values) not in (3, 4):
+    if len(varray) not in (3, 4):
         raise ValueError(
-            f"The array color must have 3 or 4 compound. Found '{len(values)}'"
+            f"The array color must have 3 or 4 compound. Found '{len(varray)}'"
         )
 
     # Convert from integers in [0, 255] to float in [0, 1]
-    if values.dtype.kind in "iu":
-        values = values / 255.0
+    if varray.dtype.kind in "iu":
+        farray = varray / 255.0
+    else:
+        farray = varray
 
-    values = numpy.clip(values, 0.0, 1.0)
+    farray = numpy.clip(farray, 0.0, 1.0)
 
-    if len(values) == 3:
-        return values[0], values[1], values[2], 1.0
-    return tuple(values)
+    if len(farray) == 3:
+        return farray[0], farray[1], farray[2], 1.0
+    return farray[0], farray[1], farray[2], farray[3]
 
 
 def greyed(
