@@ -277,7 +277,7 @@ class _Colormappable:
         """
         raise NotImplementedError("This method must be implemented in subclass")
 
-    def getColormappedData(copy: bool = False) -> numpy.ndarray | None:
+    def getColormappedData(self, copy: bool = False) -> numpy.ndarray | None:
         """Returns the data used to compute the displayed colors
 
         :param copy: True to get a copy, False to get internal data (do not modify!).
@@ -347,7 +347,7 @@ class Colormap(qt.QObject):
     def __init__(
         self,
         name: str | None = None,
-        colors: numpy.ndarray | None = None,
+        colors: numpy.ndarray | list[RGBAColorType] | None = None,
         normalization: str = LINEAR,
         vmin: float | None = None,
         vmax: float | None = None,
@@ -371,8 +371,8 @@ class Colormap(qt.QObject):
                 vmin = None
                 vmax = None
 
-        self._name = None
-        self._colors = None
+        self._name: str | None = None
+        self._colors: numpy.ndarray | None = None
 
         if colors is not None and name is not None:
             raise ValueError("name and colors arguments can't be set at the same time")
@@ -470,7 +470,7 @@ class Colormap(qt.QObject):
             return numpy.array(self._colors, copy=copy or NP_OPTIONAL_COPY)
         return None
 
-    def setColormapLUT(self, colors: numpy.ndarray):
+    def setColormapLUT(self, colors: numpy.ndarray | list[RGBAColorType]):
         """Set the colors of the colormap.
 
         :param colors: the colors of the LUT.
