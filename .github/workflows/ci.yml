@@ -70,13 +70,13 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build cython meson-python wheel ninja oldest-supported-numpy
+          pip install --upgrade --pre build wheel 
 
       - name: Build
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
-          python -m build --no-isolation
+          python -m build 
           ls dist
 
       - name: Install
@@ -93,4 +93,5 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
+          pip install --upgrade -r requirements-dev.txt
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
