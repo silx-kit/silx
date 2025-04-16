@@ -1647,7 +1647,7 @@ class PanAndSelect(ItemsInteraction):
 
 class DynamicColormapMode(ItemsInteraction):
     """This mode automatically adjusts the colormap range of the image
-    based on a 20x20 ROI centered on the current cursor position.
+    based on a NxM ROI centered on the current cursor position. N and M are defined in the ROI_SIZE class variable.
 
     :param plot: The Plot to which this interaction is attached
     """
