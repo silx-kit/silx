@@ -24,9 +24,11 @@
 """This script shows how to dyamically adjust the colormap to a small region 
 around the cursor position. The DynamicColormapMode can be activated either by
 the icon in the widget toolbar or by simply pressing the w-key.
-The image has 4 regions of different gaussian distribution. When activated, the 
+The image has 4 regions with different contrasts (but same levels =0). When activated, the 
 DynamicColormap mode will adjust the colormap to enhance the contrast in the 
 region close to the cursor.
+More precissely: it computes the min and max in the region surrounded by the blue 
+rectangle and applies these values to the current colormap.
 
 The pan and zoom modes (the two other interaction modes) can be activated either 
 by their respective icon or by pressing the P- and Z-key respectively.
