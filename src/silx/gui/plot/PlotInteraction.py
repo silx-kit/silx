@@ -1656,8 +1656,8 @@ class DynamicColormapMode(ItemsInteraction):
 
     @staticmethod
     def compute_vmin_vmax(data, dataPos):
-        roi_size = DynamicColormapMode.ROI_SIZE
         """Compute the min and max values of the data in a ROI centered on (x,y)"""
+        roi_size = DynamicColormapMode.ROI_SIZE
         idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
         x_start = max((0, idx_x - roi_size[1]))
         x_end = min((idx_x + roi_size[1], data.shape[1]))
