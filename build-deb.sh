@@ -34,7 +34,7 @@ deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
 # target system
 if [ -f /etc/debian_version ]
-then 
+then
     debian_version=$(cat /etc/debian_version | cut -d. -f1 | grep -o '[0-9]*')
     if [ -z $debian_version ]
     then
@@ -53,6 +53,12 @@ then
             bookworm)
                 debian_version=12
                 ;;
+	    trixie)
+		debian_version=13
+		;;
+	    sid)
+		debian_version=13
+		;;
         esac
     fi
 
@@ -76,6 +82,7 @@ debianversion=$(python3 -c"import sys; sys.path.insert(0, './src/${project}'); i
 if [ -d /usr/lib/ccache ];
 then
    export PATH=/usr/lib/ccache:$PATH
+   export CCACHE_DIR=${HOME}/.ccache
 fi
 
 usage="usage: $(basename "$0") [options]
@@ -173,8 +180,10 @@ clean_up()
 build_deb() {
     tarname=${project}_${debianversion}.orig.tar.gz
     clean_up
-    python3 setup.py sdist
-    cp -f dist/${project}-${strictversion}.tar.gz ${build_directory}/${tarname}
+    python3 -m build -s
+    ln -s ${source_project}-${strictversion}.tar.gz dist/${tarname}
+    directory=${source_project}-${strictversion}
+    cp -f dist/${tarname} ${build_directory}
     if [ -f dist/${project}-testimages.tar.gz ]
     then
       cp -f dist/${project}-testimages.tar.gz ${build_directory}
@@ -237,12 +246,12 @@ build_deb() {
             debian_name=bullseye
             ;;
         12)
-            debain_name=bookworm
+            debian_name=bookworm
             ;;
     esac
 
-    dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
-    dch -D ${debian_name}-backports -l~bpo${debian_version}+ "${project} snapshot ${version} built for ${target_system}"
+    dch --force-distribution -v ${debianversion}-1 "upstream development build of ${project} ${version}"
+    dch --force-distribution -D ${debian_name}-backports -l~bpo${debian_version}+ "${project} snapshot ${version} built for ${target_system}"
     #dch --bpo "${project} snapshot ${version} built for ${target_system}"
     dpkg-buildpackage -r
     rc=$?
