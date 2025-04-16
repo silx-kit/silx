@@ -25,11 +25,12 @@
 
 import copy
 import logging
+from typing import Literal
 
+import h5py
 import numpy
 
 from silx.io import is_dataset
-
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -38,8 +39,10 @@ __date__ = "17/04/2018"
 
 nxdata_logger = logging.getLogger("silx.io.nxdata")
 
+Interpretation = Literal["scalar", "spectrum", "image", "rgba-image", "vertex"]
 
-INTERPDIM = {
+
+INTERPDIM: dict[Interpretation, int] = {
     "scalar": 0,
     "spectrum": 1,
     "image": 2,
@@ -51,7 +54,11 @@ attribute.
 """
 
 
-def get_attr_as_unicode(item, attr_name, default=None):
+def get_attr_as_unicode(
+    item: h5py.Group | h5py.Dataset,
+    attr_name: str,
+    default: str | list[str] | None = None,
+) -> str | list[str] | None:
     """Return item.attrs[attr_name] as unicode or as a
     list of unicode.
 
@@ -83,10 +90,13 @@ def get_attr_as_unicode(item, attr_name, default=None):
             # other array, most likely unicode objects
             return [element for element in attr]
     else:
+        # TODO: Fix typing
         return copy.deepcopy(attr)
 
 
-def get_uncertainties_names(group, signal_name):
+def get_uncertainties_names(
+    group: h5py.Group, signal_name: str
+) -> list[str] | None:
     # Test consistency of @uncertainties
     uncertainties_names = get_attr_as_unicode(group, "uncertainties")
     if uncertainties_names is None:
@@ -96,7 +106,7 @@ def get_uncertainties_names(group, signal_name):
     return uncertainties_names
 
 
-def get_signal_name(group):
+def get_signal_name(group: h5py.Group) -> str | None:
     """Return the name of the (main) signal in a NXdata group.
     Return None if this info is missing (invalid NXdata).
 
@@ -115,21 +125,25 @@ def get_signal_name(group):
                 if signal_attr in [1, b"1", "1"]:
                     # This is the main (default) signal
                     break
+    # TODO: Fix typing
     return signal_name
 
 
-def get_auxiliary_signals_names(group):
+def get_auxiliary_signals_names(group: h5py.Group) -> list[str] | None:
     """Return list of auxiliary signals names"""
     auxiliary_signals_names = get_attr_as_unicode(
         group, "auxiliary_signals", default=[]
     )
+    # TODO: There should be no bytes here
     if isinstance(auxiliary_signals_names, (str, bytes)):
         auxiliary_signals_names = [auxiliary_signals_names]
     return auxiliary_signals_names
 
 
-def validate_auxiliary_signals(group, signal_name, auxiliary_signals_names):
-    """Check data dimensionality and size. Return False if invalid."""
+def validate_auxiliary_signals(
+    group: h5py.Group, signal_name: str, auxiliary_signals_names: list[str]
+) -> list[str]:
+    """Check data dimensionality and size."""
     issues = []
     for asn in auxiliary_signals_names:
         if asn not in group or not is_dataset(group[asn]):
@@ -142,7 +156,9 @@ def validate_auxiliary_signals(group, signal_name, auxiliary_signals_names):
     return issues
 
 
-def validate_number_of_axes(group, signal_name, num_axes):
+def validate_number_of_axes(
+    group: h5py.Group, signal_name: str, num_axes: int
+) -> list[str]:
     issues = []
     ndims = len(group[signal_name].shape)
     if 1 < ndims < num_axes:
@@ -160,13 +176,11 @@ def validate_number_of_axes(group, signal_name, num_axes):
         if interpretation is None:
             interpretation = get_attr_as_unicode(group, "interpretation")
         if interpretation is None:
-            issues.append("No @interpretation and not enough" + " @axes defined.")
+            issues.append("No @interpretation and not enough @axes defined.")
 
         elif interpretation not in INTERPDIM:
             issues.append(
-                "Unrecognized @interpretation="
-                + interpretation
-                + " for data with wrong number of defined @axes."
+                f"Unrecognized @interpretation={interpretation} for data with wrong number of defined @axes"
             )
         elif interpretation == "rgba-image":
             if ndims != 3 or group[signal_name].shape[-1] not in [3, 4]:

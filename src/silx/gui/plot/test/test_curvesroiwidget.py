@@ -486,7 +486,7 @@ class TestRoiWidgetSignals(TestCaseQt):
                 self.assertEqual(self.listener.callCount(), 1)
 
     def testSetActiveCurve(self):
-        """Test sigRoiSignal when set an active curve"""
+        """Test sigROISignal when set an active curve"""
         roi1 = CurvesROIWidget.ROI(name="linear", fromdata=2, todata=5)
         self.curves_roi_widget.roiTable.setActiveRoi(roi1)
         self.listener.clear()

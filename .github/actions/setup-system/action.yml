@@ -16,7 +16,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install ocl-icd-opencl-dev xvfb libegl1-mesa libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
+        sudo apt-get install ocl-icd-opencl-dev xvfb libegl1 libglx-mesa0 xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
 
     - name: Setup Intel OpenCL ICD
       if: runner.os == 'Linux'
