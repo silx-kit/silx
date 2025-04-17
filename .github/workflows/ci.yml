@@ -77,6 +77,7 @@ jobs:
         run: pip install pyinstaller --no-binary pyinstaller
       - name: Build the package with all dependencies
         env:
+          ACTIONS_STEP_DEBUG: true
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
