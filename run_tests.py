@@ -252,8 +252,8 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     modules = [path2module(p) for p in options.test_name]
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
-    print(modules)
-    print(pytest_options)
+    # print(modules)
+    # print(pytest_options)
     rc = test_module.run_tests(
             modules=modules,
             args=pytest_options)
