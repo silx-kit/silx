@@ -74,10 +74,11 @@ jobs:
           pip install --upgrade --pre build wheel 
 
       - name: Build Windows
+        shell: cmd
         if: runner.os == 'Windows'          
         run: |
           "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
-          echo $PATH
+          echo %PATH%
           python -m build 
           ls dist
 
