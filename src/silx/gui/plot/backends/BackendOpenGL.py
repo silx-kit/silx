@@ -154,7 +154,6 @@ _baseVertShd = """
     attribute vec2 position;
     uniform mat4 matrix;
     uniform bvec2 isLog;
-    uniform bvec2 isAsinh;
 
     const float oneOverLog10 = 0.43429448190325176;
 
@@ -165,9 +164,6 @@ _baseVertShd = """
         }
         if (isLog.y) {
             posTransformed.y = oneOverLog10 * log(position.y);
-        }
-        if (isAsinh.y) {
-            posTransformed.y = asinh(position.y);
         }
         gl_Position = matrix * vec4(posTransformed, 0.0, 1.0);
     }
@@ -1601,12 +1597,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.y2Axis.isLog = flag
 
     def setYAxisArcsinh(self, flag):
-        if flag != self._plotFrame.yAxis.isAsinh or flag != self._plotFrame.y2Axis.isAsinh:
-            if flag and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with asinh axes")
-                    
-            self._plotFrame.yAxis.isAsinh = flag
-            self._plotFrame.y2Axis.isAsinh = flag
+        ...
         
     def setYAxisInverted(self, flag):
         if flag != self._plotFrame.isYAxisInverted:
