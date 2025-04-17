@@ -269,9 +269,6 @@ class _NormalizationMixIn:
             vmin, vmax = self.autoscale_percentile(
                 data, percentile=(saturation / 2.0, 100 - saturation / 2.0)
             )
-        elif mode == "contrast_enhancer":
-            vmin, vmax = self.autoscale_contrast_enhancer(data)
-
         else:
             raise ValueError("Unsupported mode: %s" % mode)
 
