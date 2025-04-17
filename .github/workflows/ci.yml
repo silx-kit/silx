@@ -93,5 +93,6 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          pip install --upgrade -r requirements-dev.txt
+          pwd
+          ls
           python run-test.py --installed --qt-binding=${{ matrix.QT_API }}

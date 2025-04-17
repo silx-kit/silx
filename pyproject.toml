@@ -48,13 +48,43 @@ requires = [
     'oldest-supported-numpy',
     'Cython>=0.29.31',
     'pyproject-metadata>=0.5.0',
-    "tomli>=1.0.0; python_version < '3.12'"
+    "tomli>=1.0.0; python_version < '3.12'",
+    'h5py',
+    'fabio'
 ]
 
+
 [project.optional-dependencies]
-gui = [ "PySide6" ]
-opencl = [ "pyopencl" ]
-all = ["PySide6", "pyopencl", "hdf5plugin"]
+full = [ 'pyopencl; platform_machine in "i386, x86_64, AMD64"',  # For silx.opencl
+          'Mako',                                                # For pyopencl reduction
+          'qtconsole'                                            # For silx.gui.console
+          'matplotlib >= 3.1.0',                                 # For silx.gui.plot
+          'PyOpenGL',                                            # For silx.gui.plot3d
+          'python-dateutil',                                     # For silx.gui.plot
+          'scipy',                                               # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
+          'pooch',                                               # For scipy.datasets.ascent
+          'Pillow',                                              # For silx.opencl.image.test
+          'pint',                                                # For silx.io.dictdump
+          'PySide6 >= 6.4'                                       # PyQt6, PyQt5  # For silx.gui
+        ]
+test = ['build',                     # To build the project
+        'wheel',                     # To build wheels
+        'Sphinx',                    # To build the documentation in doc/
+        'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
+        'sphinx-design',             # For tabs and grid in documentation
+        'pillow',                    # For loading images in documentation generation
+        'pydata_sphinx_theme',       # Sphinx theme
+        'nbsphinx',                  # For converting ipynb in documentation
+        'pandoc',                    # For documentation Qt snapshot updates
+        'black[jupyter]',            # Formatting
+        'pytest',                    # For testing
+        'pytest-xvfb',               # For GUI testing
+        'pytest-cov',                # For coverage
+        'pytest-mock',
+        'hdf5plugin',                # For HDF5 compression filters handling
+        'pyinstaller>=6.0.0; sys_platform == "win32"',
+        ]
+opencl = [ "pyopencl", "Mako" ]
 
 [project.urls]
 homepage = 'http://www.silx.org'
