@@ -67,6 +67,7 @@ jobs:
           cache: "pip"
 
       - uses: ./.github/actions/setup-system
+      - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install build dependencies
         run: |
