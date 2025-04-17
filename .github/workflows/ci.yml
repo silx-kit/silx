@@ -57,6 +57,7 @@ jobs:
             python-version: "3.12"
             QT_API: PyQt5
             with_opencl: false
+            uses: ilammy/msvc-dev-cmd@v1.13.0
 
     steps:
       - uses: actions/checkout@v4        
@@ -72,7 +73,6 @@ jobs:
           pip install --upgrade --pre build wheel 
 
       - name: Build
-        uses: ilammy/msvc-dev-cmd@v1.13.0
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
