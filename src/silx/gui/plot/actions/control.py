@@ -293,7 +293,7 @@ class YAxisArcsinhAction(PlotAction):
     def __init__(self, plot, parent=None):
         super().__init__(
             plot,
-            icon="colormap-norm-arcsinh",
+            icon="plot-yasinh",
             text="Arcsinh scale",
             tooltip="Arcsinh y-axis when checked",
             triggered=self._actionTriggered,
