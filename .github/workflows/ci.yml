@@ -11,9 +11,53 @@ defaults:
     shell: bash
 
 jobs:
-  build_windows_installer:
-    name: Build the Windows installer
-    runs-on: windows-2022
+  # build_windows_installer:
+  #   name: Build the Windows installer
+  #   runs-on: windows-2022
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.11"
+  #         cache: "pip"
+  #     - name: Install silx
+  #       run: pip install .[full,test]
+  #     - name: Install pyinstaller
+  #       # Install PyInstaller from source and compile bootloader.
+  #       env:
+  #         PYINSTALLER_COMPILE_BOOTLOADER: "1"
+  #         PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
+  #       run: pip install pyinstaller --no-binary pyinstaller
+  #     - name: Build the package with all dependencies
+  #       run: |
+  #         cd package/windows
+  #         pyinstaller pyinstaller.spec
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: windows-installer
+  #         path: |
+  #           ./package/windows/artifacts/silx-*.exe
+  #           ./package/windows/artifacts/silx-*.zip
+
+  # test_windows_installer:
+  #   needs: [build_windows_installer]
+  #   name: Test the Windows installer
+  #   runs-on: windows-2022
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: windows-installer
+  #     - name: Unzip
+  #       run: 7z x silx-*.zip
+  #     - name: Test
+  #       run: |
+  #         cd silx
+  #         ./silx-view.exe --help
+  #         ./silx.exe --help
+
+  build_and_notarize_macos_app:
+    name: Build the macOS app
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,31 +70,19 @@ jobs:
         # Install PyInstaller from source and compile bootloader.
         env:
           PYINSTALLER_COMPILE_BOOTLOADER: "1"
-          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
+          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--osx_target=x86_64"
         run: pip install pyinstaller --no-binary pyinstaller
       - name: Build the package with all dependencies
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLICATION_CERTIFICATE_PASSWORD }}
+          CERTIFICATE_BASE64: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
         run: |
           cd package/windows
           pyinstaller pyinstaller.spec
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-installer
-          path: |
-            ./package/windows/artifacts/silx-*.exe
-            ./package/windows/artifacts/silx-*.zip
-
-  test_windows_installer:
-    needs: [build_windows_installer]
-    name: Test the Windows installer
-    runs-on: windows-2022
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-installer
-      - name: Unzip
-        run: 7z x silx-*.zip
-      - name: Test
-        run: |
-          cd silx
-          ./silx-view.exe --help
-          ./silx.exe --help
+          name: macos-app
