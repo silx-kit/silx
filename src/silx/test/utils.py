@@ -113,7 +113,7 @@ class _TestOptions:
             self.WITH_GL_TEST_REASON = "DISPLAY env variable not set"
         else:
             try:
-                import OpenGL
+                import OpenGL  # noqa: F401
             except ImportError:
                 self.WITH_GL_TEST = False
                 self.WITH_GL_TEST_REASON = "OpenGL package not available"
@@ -127,7 +127,7 @@ class _TestOptions:
 
         if self.WITH_QT_TEST:
             try:
-                from silx.gui import qt
+                from silx.gui import qt  # noqa: F401
             except ImportError:
                 self.WITH_QT_TEST = False
                 self.WITH_QT_TEST_REASON = "Qt is not installed"

@@ -233,11 +233,11 @@ class TestWeakList(unittest.TestCase):
 
     def testAdd(self):
         others = [Dummy()]
-        l = self.list + others
-        self.assertIs(l[0], self.object1)
-        self.assertEqual(len(l), 3)
+        test_list = self.list + others
+        self.assertIs(test_list[0], self.object1)
+        self.assertEqual(len(test_list), 3)
         others = None
-        self.assertEqual(len(l), 2)
+        self.assertEqual(len(test_list), 2)
 
     def testExtend(self):
         others = [Dummy()]
@@ -256,13 +256,13 @@ class TestWeakList(unittest.TestCase):
         self.assertEqual(len(self.list), 2)
 
     def testMul(self):
-        l = self.list * 2
-        self.assertIs(l[0], self.object1)
-        self.assertEqual(len(l), 4)
+        test_list = self.list * 2
+        self.assertIs(test_list[0], self.object1)
+        self.assertEqual(len(test_list), 4)
         self.object1 = None
-        self.assertEqual(len(l), 2)
-        self.assertIs(l[0], self.object2)
-        self.assertIs(l[1], self.object2)
+        self.assertEqual(len(test_list), 2)
+        self.assertIs(test_list[0], self.object2)
+        self.assertIs(test_list[1], self.object2)
 
     def testImul(self):
         self.list *= 2

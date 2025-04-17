@@ -283,9 +283,9 @@ class WeakList(list):
 
     def __add__(self, other):
         """Returns a WeakList containing this list an the other"""
-        l = WeakList(self)
-        l.extend(other)
-        return l
+        weak_list = WeakList(self)
+        weak_list.extend(other)
+        return weak_list
 
     def __iadd__(self, other):
         """Add objects to this list inplace"""
