@@ -282,6 +282,35 @@ class YAxisLogarithmicAction(PlotAction):
         scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
         self.axis.setScale(scale)
 
+    
+class YAxisArcsinhAction(PlotAction):
+    """QAction controlling Y axis arcsinh scale on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super().__init__(
+            plot,
+            icon="colormap-norm-arcsinh",
+            text="Arcsinh scale",
+            tooltip="Arcsinh y-axis when checked",
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent,
+        )
+        self.axis = plot.getYAxis()
+        self.setChecked(self.axis.getScale() == self.axis.ARCSINH)
+        self.axis.sigScaleChanged.connect(self._setCheckedIfArcsinhScale)
+
+    def _setCheckedIfArcsinhScale(self, scale):
+        self.setChecked(scale == self.axis.ARCSINH)
+
+    def _actionTriggered(self, checked=False):
+        scale = self.axis.ARCSINH if checked else self.axis.LINEAR
+        self.axis.setScale(scale)
+
 
 class GridAction(PlotAction):
     """QAction controlling grid mode on a :class:`.PlotWidget`.

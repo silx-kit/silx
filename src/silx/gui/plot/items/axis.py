@@ -63,7 +63,10 @@ class Axis(qt.QObject):
     LOGARITHMIC = "log"
     """Constant defining a logarithmic scale"""
 
-    _SCALES = {LINEAR, LOGARITHMIC}
+    ARCSINH = "arcsinh"
+    """Constant defining an arcsinh scale"""
+
+    _SCALES = {LINEAR, LOGARITHMIC, ARCSINH}
 
     sigInvertedChanged = qt.Signal(bool)
     """Signal emitted when axis orientation has changed"""
@@ -242,7 +245,6 @@ class Axis(qt.QObject):
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
-
         if scale == self.LOGARITHMIC:
             self._internalSetLogarithmic(True)
             if vmin <= 0:
@@ -254,6 +256,8 @@ class Axis(qt.QObject):
                         self.setLimits(dataRange[0], vmax)
                     else:
                         self.setLimits(*dataRange)
+        elif scale == self.ARCSINH:
+            self._internalSetArcsinh()
         elif scale == self.LINEAR:
             self._internalSetLogarithmic(False)
         else:
@@ -450,6 +454,9 @@ class YAxis(Axis):
 
     def _internalSetLogarithmic(self, flag):
         self._getBackend().setYAxisLogarithmic(flag)
+
+    def _internalSetArcsinh(self):
+        self._getBackend().setYAxisArcsinh()
 
     def setInverted(self, flag=True):
         """Set the axis orientation.
