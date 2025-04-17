@@ -257,7 +257,7 @@ class Axis(qt.QObject):
                     else:
                         self.setLimits(*dataRange)
         elif scale == self.ARCSINH:
-            self._internalSetArcsinh()
+            self._internalSetArcsinh(True)
         elif scale == self.LINEAR:
             self._internalSetLogarithmic(False)
         else:
@@ -455,8 +455,8 @@ class YAxis(Axis):
     def _internalSetLogarithmic(self, flag):
         self._getBackend().setYAxisLogarithmic(flag)
 
-    def _internalSetArcsinh(self):
-        self._getBackend().setYAxisArcsinh()
+    def _internalSetArcsinh(self, flag):
+        self._getBackend().setYAxisArcsinh(flag)
 
     def setInverted(self, flag=True):
         """Set the axis orientation.
