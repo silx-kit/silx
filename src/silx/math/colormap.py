@@ -77,9 +77,8 @@ def array_to_rgba8888(colors: numpy.ndarray) -> numpy.ndarray:
     """Convert colors from a numpy array using float (0..1) int or uint
     (0..255) to uint8 RGBA.
 
-    :param numpy.ndarray colors: Array of float int or uint  colors to convert
+    :param colors: Array of float int or uint  colors to convert
     :return: colors as uint8
-    :rtype: numpy.ndarray
     """
     assert len(colors.shape) == 2
     assert colors.shape[1] in (3, 4)
@@ -199,9 +198,8 @@ def get_colormap_cursor_color(name: str) -> str:
 def get_colormap_lut(name: str) -> numpy.ndarray:
     """Returns the color LUT corresponding to a colormap name
 
-    :param str name: Name of the colormap to load
+    :param name: Name of the colormap to load
     :returns: Corresponding table of colors
-    :rtype: numpy.ndarray
     :raise ValueError: If no colormap corresponds to name
     """
     name = str(name)
@@ -344,9 +342,8 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
 
         Do the autoscale on the data itself, not the normalized data.
 
-        :param numpy.ndarray data:
+        :param data:
         :returns: (vmin, vmax)
-        :rtype: Tuple[float,float]
         """
         if data.dtype.kind == "f":  # Replaces inf by NaN
             data = numpy.array(data, copy=True)  # Work on a copy
@@ -517,12 +514,12 @@ def normalize(
 ) -> NormalizeResult:
     """Normalize data to an array of uint8.
 
-    :param numpy.ndarray data: Data to normalize
-    :param str norm: Normalization to apply
-    :param str autoscale: Autoscale mode: "minmax" (default) or "stddev3"
+    :param data: Data to normalize
+    :param norm: Normalization to apply
+    :param autoscale: Autoscale mode: "minmax" (default) or "stddev3"
     :param vmin: Lower bound, None (default) to autoscale
     :param vmax: Upper bound, None (default) to autoscale
-    :param float gamma:
+    :param gamma:
         Gamma correction parameter (used only for "gamma" normalization)
     :returns: Array of normalized values, vmin, vmax
     """
