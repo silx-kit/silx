@@ -45,7 +45,8 @@ class MyMainWindow(qt.QMainWindow):
         self.setCentralWidget(self._plot)
 
         # button to trigger image generation
-        self._button = ButtonOverlay(text="generate image", parent=self._plot)
+        self._button = ButtonOverlay(parent=self._plot)
+        self._button.setText("generate image")
 
         # set up
         self._waitingOverlay.hide()
