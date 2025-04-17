@@ -109,7 +109,7 @@ def benchmark(
 
     if do_weights:
         weights = np.random.randint(
-            int_min, high=int_max, size=(ssetup.pyample_shape[0],)
+            int_min, high=int_max, size=(ssetup.pyample_shape[0],)  # flake8 F821 undefined name 'ssetup'
         )
         weights = weights.astype(np.double)
         weights = weights_rng[0] + (weights - int_min) * (
