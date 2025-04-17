@@ -34,7 +34,6 @@ The pan and zoom modes (the two other interaction modes) can be activated either
 by their respective icon or by pressing the P- and Z-key respectively.
 """
 
-
 import numpy
 from silx.gui import qt
 from silx.gui.plot import Plot2D

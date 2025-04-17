@@ -64,15 +64,15 @@ class TestSelectDynamicColormap():
         
         # Test with a rectangle
         roi = numpy.arange(484).reshape((22,22))
-        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(11,11))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode._compute_vmin_vmax(roi,(11,11))
         assert vmin == 23 and vmax == 460 and bb_x == (1,1,21,21) and bb_y == (1,21,21,1)
 
         roi = numpy.arange(484).reshape((22,22))
-        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(0,0))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode._compute_vmin_vmax(roi,(0,0))
         assert vmin == 0 and vmax == 207 and bb_x == (0,0,10,10) and bb_y == (0,10,10,0)
 
         roi = numpy.arange(484).reshape((22,22))
-        vmin, vmax, bb_x, bb_y = DynamicColormapMode.compute_vmin_vmax(roi,(21,21))
+        vmin, vmax, bb_x, bb_y = DynamicColormapMode._compute_vmin_vmax(roi,(21,21))
         assert vmin == 253 and vmax == 483 and bb_x == (11,11,22,22) and bb_y == (11,22,22,11)
 
 

@@ -1655,7 +1655,7 @@ class DynamicColormapMode(ItemsInteraction):
     ROI_SIZE = (10, 10)  # (y,x). The ROI <<radius>>
 
     @staticmethod
-    def compute_vmin_vmax(data: numpy.ndarray, dataPos: tuple[float, float]):
+    def _compute_vmin_vmax(data: numpy.ndarray, dataPos: tuple[float, float]):
         """Compute the min and max values of the data in a ROI centered on (x,y)"""
         roi_size = DynamicColormapMode.ROI_SIZE
         idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
@@ -1689,7 +1689,7 @@ class DynamicColormapMode(ItemsInteraction):
         data = item.getData()
 
         # Extract ROI min and max
-        vmin, vmax, bb_x, bb_y = self.compute_vmin_vmax(data, dataPos)
+        vmin, vmax, bb_x, bb_y = self._compute_vmin_vmax(data, dataPos)
 
         # Add a blue rectangle that shows the ROI
         self.plot.addShape(
