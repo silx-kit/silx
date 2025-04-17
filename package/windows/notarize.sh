@@ -8,7 +8,6 @@ echo "Setting the required environment variables."
 APP_NAME="silx-view"
 ROOT="${PWD}"
 APP_DMG="${ROOT}"/artifacts/${APP_NAME}.dmg
-APPLE_ID="marius.retegan@esrf.fr"
 
 echo "Submiting the application for notarization."
 xcrun notarytool submit --apple-id $APPLE_ID --team-id $APPLE_TEAM_ID --password $APP_SPECIFIC_PASSWORD  --wait "$APP_DMG"
