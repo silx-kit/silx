@@ -1,6 +1,8 @@
 import pytest
 from silx.gui import qt
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
+from silx.gui.widgets.LabelOverlay import LabelOverlay
+from silx.gui.widgets.ButtonOverlay import ButtonOverlay
 from silx.gui.plot import Plot2D
 
 
@@ -15,7 +17,7 @@ def test_show(qapp, qapp_utils, widget_parent):
 
     widget.show()
     qapp_utils.qWaitForWindowExposed(widget)
-    assert waitingOverlay._waitingButton.isWaiting()
+    assert waitingOverlay.isWaiting()
 
     waitingOverlay.setText("test")
     qapp.processEvents()
@@ -27,4 +29,20 @@ def test_show(qapp, qapp_utils, widget_parent):
 
     widget.close()
     waitingOverlay.close()
+    qapp.processEvents()
+
+
+@pytest.mark.parametrize("widget_parent", (Plot2D, qt.QFrame))
+@pytest.mark.parametrize("constructor", (LabelOverlay, ButtonOverlay))
+def test_overlay_widgets(qapp, qapp_utils, widget_parent, constructor):
+    widget = widget_parent()
+    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    overlayWidget = constructor(widget)
+    overlayWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    widget.show()
+    qapp_utils.qWaitForWindowExposed(widget)
+    widget.close()
+    overlayWidget.close()
     qapp.processEvents()

@@ -467,8 +467,8 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
      - .. image:: img/stackedprogressbar.png
          :width: 150px
      - This script illustrates the use of :class:`silx.gui.widgets.StackedProgressBar.StackedProgressBar`.
-   * - :download:`waiterOverlay.py <../../../examples/waiterOverlay.py>`
-     - .. image:: img/waiterOverlay.png
+   * - :download:`overlayWidgets.py <../../../examples/overlayWidgets.py>`
+     - .. image:: img/overlayWidgets.png
          :width: 150px
      - Demonstration window that displays a wait icon until the plot is updated.
 
