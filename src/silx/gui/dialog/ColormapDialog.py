@@ -974,6 +974,12 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
+        self._saturation = qt.QSlider(qt.Qt.Horizontal, self)
+        self._saturation.setRange(0, 100)
+        self._saturation.setValue(2) # 2 <=> 1-99 percentile mode
+        self._saturation.valueChanged.connect(self._saturationChanged)
+        self._saturation.setVisible(False)
+
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
         miniFont.setPixelSize(8)
@@ -1063,6 +1069,11 @@ class ColormapDialog(qt.QDialog):
         layoutScale.addWidget(self._autoScaleCombo)
         layoutScale.addStretch()
 
+        layoutSaturation = qt.QFormLayout()
+        self._saturationLabel = qt.QLabel("saturation")
+        self._saturationLabel.setVisible(False)
+        layoutSaturation.addRow(self._saturationLabel, self._saturation)
+
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
 
@@ -1080,6 +1091,7 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         )
         formLayout.addRow("Scale:", layoutScale)
+        formLayout.addRow("", layoutSaturation)
         formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
@@ -1524,7 +1536,9 @@ class ColormapDialog(qt.QDialog):
 
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
+        print("update _updateWidgetRange")
         xmin, xmax = self._getFiniteColormapRange()
+        print("xmin", xmin, "xmax", xmax)
         colormap = self.getColormap()
         if colormap is not None:
             vRange = colormap.getVRange()
@@ -1706,7 +1720,6 @@ class ColormapDialog(qt.QDialog):
             with self._colormapChange:
                 colormap.setNormalization(normalization)
                 self._histoWidget.updateNormalization()
-
         self._updateWidgetRange()
 
     def _gammaUpdated(self, value):
@@ -1722,10 +1735,26 @@ class ColormapDialog(qt.QDialog):
         mode = self._autoScaleCombo.currentMode()
 
         colormap = self.getColormap()
+        activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
         if colormap is not None:
             with self._colormapChange:
                 colormap.setAutoscaleMode(mode)
+                if activate_saturation:
+                    colormap.setSaturation(self._saturation.value)
+                else:
+                    colormap.setSaturation(0.0)
 
+        self._saturation.setVisible(activate_saturation)
+        self._saturationLabel.setVisible(activate_saturation)
+        self._updateWidgetRange()
+
+    def _saturationChanged(self, value):
+        """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
+        colormap = self.getColormap()
+        if colormap is not None:
+            with self._colormapChange:
+                colormap.setSaturation(value)
+        print("saturation  value is", value)
         self._updateWidgetRange()
 
     def _minAutoscaleUpdated(self, autoEnabled):

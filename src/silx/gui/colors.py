@@ -350,6 +350,7 @@ class Colormap(qt.QObject):
         vmin: float | None = None,
         vmax: float | None = None,
         autoscaleMode: str = MINMAX,
+        saturation: float = 0.0,
     ):
         qt.QObject.__init__(self)
         self._editable = True
@@ -389,6 +390,7 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
         self.__warnBadVmax = True
+        self._saturation: float = saturation
 
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
@@ -534,6 +536,13 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
+    def getSaturation(self) -> float:
+        """Colormap saturation in (0, 100)"""
+        return self._saturation
+
+    def setSaturation(self, saturation: float):
+        self._saturation = saturation
+
     def setGammaNormalizationParameter(self, gamma: float):
         """Set the gamma correction parameter.
 
@@ -560,6 +569,10 @@ class Colormap(qt.QObject):
 
         :param mode: the mode to set
         """
+        print("==============")
+        import traceback
+        traceback.print_stack(limit=5)
+        print("==============")
         if self.isEditable() is False:
             raise NotEditableError("Colormap is not editable")
         assert mode in self.AUTOSCALE_MODES
@@ -656,7 +669,9 @@ class Colormap(qt.QObject):
         :param data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
-        return self._getNormalizer().autoscale(data, mode=self.getAutoscaleMode())
+        return self._getNormalizer().autoscale(
+            data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+        )
 
     def getColormapRange(
         self,
@@ -694,7 +709,10 @@ class Colormap(qt.QObject):
                 min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
                 max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
-                min_, max_ = normalizer.autoscale(data, mode=self.getAutoscaleMode())
+                print("self.getSaturation()", self.getSaturation())
+                min_, max_ = normalizer.autoscale(
+                    data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+                )
 
             if vmin is None:  # Set vmin respecting provided vmax
                 vmin = min_ if vmax is None else min(min_, vmax)
