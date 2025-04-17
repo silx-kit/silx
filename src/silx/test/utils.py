@@ -131,9 +131,6 @@ class _TestOptions:
             except ImportError:
                 self.WITH_QT_TEST = False
                 self.WITH_QT_TEST_REASON = "Qt is not installed"
-            else:
-                if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-                    self.SKIP_TEST_FOR_ISSUE_936 = True
 
 
 # Temporary directory context #################################################
