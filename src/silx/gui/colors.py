@@ -395,7 +395,7 @@ class Colormap(qt.QObject):
         self._saturation: float = saturation
 
     @property
-    def getSaturation(self):
+    def getSaturation(self) -> float:
         return self._saturation
 
     def setFromColormap(self, other: Colormap):
