@@ -1,0 +1,10 @@
+<svg version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#00a14b" stroke-miterlimit="10" stroke-width="1.5">
+    <line x1="7.354" x2="7.311" y1="26.356" y2="7.414"/>
+    <polygon points="5.621 25.888 9.085 25.873 7.365 28.881"/>
+    <polygon points="5.579 7.406 7.313 4.407 9.042 7.41"/>
+  </g>
+  <g id="logGroup">
+  </g>
+  <text id="asinhText" x="8.0" y="19" font-weight="bold" font-family="sans-serif" font-size="0.56em">asinh</text>
+</svg>

@@ -1321,6 +1321,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_yscale("linear")
         self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
+    def setYAxisArcsinh(self, flag):
+        if flag:
+            self.ax2.set_yscale("asinh")
+            self.ax.set_yscale("asinh")
+            return
+        
+        self.ax2.set_yscale("linear")
+        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
+        self.ax.set_yscale("linear")
+        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
+        
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()

@@ -183,6 +183,12 @@ class PlotWindow(PlotWidget):
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
 
+        self.yAxisArcsinhAction = self.group.addAction(
+            actions.control.YAxisArcsinhAction(self, parent=self)
+        )
+        self.yAxisArcsinhAction.setVisible(logScale)
+        self.addAction(self.yAxisArcsinhAction)
+
         self.gridAction = self.group.addAction(
             actions.control.GridAction(self, gridMode="both", parent=self)
         )
