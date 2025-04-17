@@ -94,9 +94,7 @@ def get_attr_as_unicode(
         return copy.deepcopy(attr)
 
 
-def get_uncertainties_names(
-    group: h5py.Group, signal_name: str
-) -> list[str] | None:
+def get_uncertainties_names(group: h5py.Group, signal_name: str) -> list[str] | None:
     # Test consistency of @uncertainties
     uncertainties_names = get_attr_as_unicode(group, "uncertainties")
     if uncertainties_names is None:
@@ -201,3 +199,17 @@ def validate_number_of_axes(
                 + "must define %d or %d axes." % (ndims, INTERPDIM[interpretation])
             )
     return issues
+
+
+def get_dataset_name(nxdata_group: h5py.Group, dataset_name: str | None) -> str | None:
+    if dataset_name is None:
+        return None
+
+    dataset = nxdata_group[dataset_name]
+    if "long_name" in dataset.attrs:
+        return f"{get_attr_as_unicode(dataset, 'long_name')}"
+
+    if "units" in dataset.attrs:
+        return f"{dataset_name} ({get_attr_as_unicode(dataset, 'units')})"
+
+    return dataset_name
