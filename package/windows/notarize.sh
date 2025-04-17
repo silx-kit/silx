@@ -10,7 +10,7 @@ ROOT="${PWD}"
 APP_DMG="${ROOT}"/artifacts/${APP_NAME}.dmg
 
 echo "Submiting the application for notarization."
-xcrun notarytool submit --apple-id $APPLE_ID --team-id $APPLE_TEAM_ID --password $APP_SPECIFIC_PASSWORD  --wait "$APP_DMG"
+xcrun notarytool submit --apple-id $APPLE_ID --team-id $APPLE_TEAM_ID --password $APPLICATION_SPECIFIC_PASSWORD  --wait "$APP_DMG"
 
 echo "Stapling the notarization ticket to the application bundle."
 xcrun stapler staple "$APP_DMG"

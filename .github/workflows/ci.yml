@@ -65,21 +65,20 @@ jobs:
           python-version: "3.11"
           cache: "pip"
       - name: Install silx
-        run: pip install .[full,test]
+        run: pip install .[full]
       - name: Install pyinstaller
         # Install PyInstaller from source and compile bootloader.
         env:
           PYINSTALLER_COMPILE_BOOTLOADER: "1"
-          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--osx_target=x86_64"
         run: pip install pyinstaller --no-binary pyinstaller
       - name: Build the package with all dependencies
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          CERTIFICATE_PASSWORD: ${{ secrets.APPLICATION_CERTIFICATE_PASSWORD }}
-          CERTIFICATE_BASE64: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPPLICATION_SPECIFIC_PASSWORD }}
         run: |
           cd package/windows
           pyinstaller pyinstaller.spec
