@@ -29,7 +29,7 @@ __date__ = "25/08/2021"
 
 
 import collections
-import numbers
+import numbers  # noqa: F401
 from typing import NamedTuple, Literal
 import warnings
 import numpy
