@@ -65,10 +65,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
-
       - uses: ./.github/actions/setup-system
-      - uses: ilammy/msvc-dev-cmd@v1
-
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
@@ -76,6 +73,8 @@ jobs:
       - name: Build
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
+        if: runner.os == 'Windows'          
+        run: ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"' }}
         run: |
           python -m build 
           ls dist
