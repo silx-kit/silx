@@ -65,6 +65,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
       - uses: ./.github/actions/setup-system
+      - name: Set up MSVC environment if applicable
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64  # ou x86 selon vos besoins
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
