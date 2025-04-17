@@ -5,6 +5,7 @@ py.install_sources([
     'test_sx.py',
     'test_version.py',
     'utils.py',
+    'py.typed',
 ],
 pure: false,    # Will be installed next to binaries
 subdir: 'silx/test',  # Folder relative to site-packages to install to
