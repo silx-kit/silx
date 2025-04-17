@@ -191,7 +191,7 @@ parser.add_argument("-v", "--verbose", default=0,
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+                    help="Force using a Qt binding, from 'PyQt5', 'PyQt6', or 'PySide6'")
 
 options = parser.parse_args()
 
@@ -228,7 +228,7 @@ if options.qt_binding:
     if binding == "pyqt5":
         logger.info("Force using PyQt5")
         import PyQt5.QtCore  # noqa
-    if binding == "pyqt6":
+    elif binding == "pyqt6":
         logger.info("Force using PyQt6")
         import PyQt6.QtCore  # noqa
     elif binding == "pyside6":
@@ -245,7 +245,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     project_module = module
     PROJECT_PATH = str(Path(project_module.__path__[0]).resolve())
-    print("PROJECT_PATH:", PROJECT_PATH)
+    print(f"PROJECT_PATH: {PROJECT_PATH}")
     sys.path.insert(0, PROJECT_PATH)
 
     # corresponds to options to pass back to pytest ...
