@@ -8,7 +8,7 @@
 # Required dependencies
 # From pyproject.toml
 wheel
-setuptools
+meson-python
 numpy >= 1.14.5
 Cython >= 0.21.1
 # From setup.py install_requires

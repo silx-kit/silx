@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Bootstrap helps you to test scripts without installing them
 by patching your PYTHONPATH on the fly
@@ -9,15 +10,17 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "30/09/2020"
+__date__ = "14/04/2025"
 
-import argparse
-import logging
-import os
-import subprocess
 import sys
-import sysconfig
-
+import os
+import argparse
+import subprocess
+import logging
+if sys.version_info[:2] < (3, 11):
+    import tomli
+else:
+    import tomllib as tomli
 logging.basicConfig()
 logger = logging.getLogger("bootstrap")
 
@@ -29,39 +32,68 @@ def is_debug_python():
 
     return hasattr(sys, "gettotalrefcount")
 
+def get_project_name(root_dir):
+    """Retrieve project name by running python setup.py --name in root_dir.
 
-def _setuptools_dir_name(dname="lib"):
+    :param str root_dir: Directory where to run the command.
+    :return: The name of the project stored in root_dir
     """
-    Returns the name of a setuptools build directory
+    logger.debug("Getting project name in %s", root_dir)
+    with open("pyproject.toml") as f:
+        pyproject = tomli.loads(f.read())
+    return pyproject.get("project", {}).get("name")
+
+
+def build_project(name, root_dir):
+    """Build locally the project using meson
+
+    :param str name: Name of the project.
+    :param str root_dir: Root directory of the project
+    :return: The path to the directory were build was performed
     """
-    platform = sysconfig.get_platform()
-    architecture = "%s.%s-%i.%i" % (
-        dname,
-        platform,
-        sys.version_info[0],
-        sys.version_info[1],
-    )
-    if is_debug_python():
-        architecture += "-pydebug"
-    return architecture
+    extra = []
+    libdir = "lib"
+    if sys.platform == "win32":
+        libdir = "Lib"
 
+    build = os.path.join(root_dir, "build")
+    if not(os.path.isdir(build) and os.path.isdir(os.path.join(build, name))):
+        p = subprocess.Popen(["meson", "setup", "build"],
+                         shell=False, cwd=root_dir, env=os.environ)
+        p.wait()
+    p = subprocess.Popen(["meson", "configure", "--prefix", "/"] + extra,
+                     shell=False, cwd=build, env=os.environ)
+    p.wait()
+    p = subprocess.Popen(["meson", "install", "--destdir", "."],
+                     shell=False, cwd=build, env=os.environ)
+    logger.debug("meson install ended with rc= %s", p.wait())
 
-def _setuptools_scripts_name():
-    """Return the name of the distrutils scripts sirectory"""
-    f = "scripts-{version[0]}.{version[1]}"
-    return f.format(version=sys.version_info)
+    home = None
+    if os.environ.get("PYBUILD_NAME") == name:
+        # we are in the debian packaging way
+        home = os.environ.get("PYTHONPATH", "").split(os.pathsep)[-1]
+    if not home:
+        if os.environ.get("BUILDPYTHONPATH"):
+            home = os.path.abspath(os.environ.get("BUILDPYTHONPATH", ""))
+        else:
+            if sys.platform == "win32":
+                home = os.path.join(build, libdir, "site-packages")
+            else:
+                python_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
+                home = os.path.join(build, libdir, python_version, "site-packages")
+            home = os.path.abspath(home)
 
+    cnt = 0
+    while not os.path.isdir(home):
+        cnt += 1
+        home = os.path.split(home)[0]
+    for _ in range(cnt):
+        n = os.listdir(home)[0]
+        home = os.path.join(home, n)
 
-def _get_available_scripts(path):
-    res = []
-    try:
-        res = " ".join([s.rstrip(".py") for s in os.listdir(path)])
-    except OSError:
-        res = [
-            "no script available, did you ran "
-            "'python setup.py build' before bootstrapping ?"
-        ]
-    return res
+    logger.warning("Building %s to %s", name, home)
+
+    return home
 
 
 def execfile(fullpath, globals=None, locals=None):
@@ -71,7 +103,7 @@ def execfile(fullpath, globals=None, locals=None):
             data = f.read()
         except UnicodeDecodeError:
             raise SyntaxError("Not a Python script")
-        code = compile(data, fullpath, "exec")
+        code = compile(data, fullpath, 'exec')
         exec(code, globals, locals)
 
 
@@ -98,7 +130,7 @@ def run_file(filename, argv):
             logger.info("Executing %s.main()", filename)
             print("########### EXECFILE ###########")
             module_globals = globals().copy()
-            module_globals["__file__"] = filename
+            module_globals['__file__'] = filename
             execfile(filename, module_globals, module_globals)
         finally:
             sys.argv = old_argv
@@ -117,29 +149,20 @@ def run_file(filename, argv):
         run.wait()
 
 
-def run_entry_point(entry_point, argv):
+def run_entry_point(target_name, entry_point, argv):
     """
     Execute an entry_point using the current python context
-    (http://setuptools.readthedocs.io/en/latest/setuptools.html#automatic-script-creation)
 
     :param str entry_point: A string identifying a function from a module
-        (NAME = PACKAGE.MODULE:FUNCTION [EXTRA])
+        (NAME = PACKAGE.MODULE:FUNCTION)
+    :param argv: list of arguments
     """
     import importlib
-
-    elements = entry_point.split("=")
-    target_name = elements[0].strip()
-    elements = elements[1].split(":")
+    elements = entry_point.split(":")
     module_name = elements[0].strip()
-    # Take care of entry_point optional "extra" requirements declaration
-    function_name = elements[1].split()[0].strip()
+    function_name = elements[1].strip()
 
-    logger.info(
-        "Execute target %s (function %s from module %s) using importlib",
-        target_name,
-        function_name,
-        module_name,
-    )
+    logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
     full_args = [target_name]
     full_args.extend(argv)
     try:
@@ -164,35 +187,23 @@ def find_executable(target):
     - Then search the script from the PATH environment variable.
 
     :param str target: Name of the script
-    :returns: Returns a tuple: kind, name.
+    :returns: Returns a tuple: (kind, name) or (kind, name, entry_point).
     """
     if os.path.isfile(target):
         return ("path", os.path.abspath(target))
 
-    # search the file from setup.py
-    import setup
+    # search the executable in pyproject.toml
+    with open(os.path.join(PROJECT_DIR, "pyproject.toml")) as f:
+        pyproject = tomli.loads(f.read())
 
-    config = setup.get_project_configuration()
-    # scripts from project configuration
-    if "scripts" in config:
-        for script_name in config["scripts"]:
-            if os.path.basename(script) == target:
-                return ("path", os.path.abspath(script_name))
-    # entry-points from project configuration
-    if "entry_points" in config:
-        for kind in config["entry_points"]:
-            for entry_point in config["entry_points"][kind]:
-                elements = entry_point.split("=")
-                name = elements[0].strip()
-                if name == target:
-                    return ("entry_point", entry_point)
+    scripts = {}
+    scripts.update(pyproject.get("project", {}).get("scripts", {}))
+    scripts.update(pyproject.get("project", {}).get("gui-scripts", {}))
 
-    # search the file from env PATH
-    for dirname in os.environ.get("PATH", "").split(os.pathsep):
-        path = os.path.join(dirname, target)
-        if os.path.isfile(path):
-            return ("path", path)
-
+    for script, entry_point in scripts.items():
+        if script == target:
+            #print(script, entry_point)
+            return ("entry_point", target, entry_point)
     return None, None
 
 
@@ -208,33 +219,35 @@ def main(argv):
         dest="module",
         help="run library module as a script (terminates option list)",
     )
-    group.add_argument(
-        "-j",
-        "--jupyter",
-        action="store_true",
-        help="Start jupyter notebook rather than IPython console",
-    )
+    # group.add_argument(
+    #     "-j",
+    #     "--jupyter",
+    #     action="store_true",
+    #     help="Start jupyter notebook rather than IPython console",
+    # )
     options = parser.parse_args()
 
-    if options.jupyter:
-        if options.script:
-            logger.error("-j, --jupyter is mutually exclusive with other options")
-            parser.print_help()
-            return
+    # if options.jupyter:
+    #     if options.script:
+    #         logger.error("-j, --jupyter is mutually exclusive with other options")
+    #         parser.print_help()
+    #         return
 
-        logger.info("Start Jupyter notebook")
-        from notebook.notebookapp import main as notebook_main
+    #     logger.info("Start Jupyter notebook")
+    #     from notebook.notebookapp import main as notebook_main
 
-        os.environ["PYTHONPATH"] = (
-            LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
-        )
-        notebook_main(argv=[])
+    #     os.environ["PYTHONPATH"] = (
+    #         LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
+    #     )
+    #     notebook_main(argv=[])
 
-    elif options.script:
+    if options.script:
         logger.info("Executing %s from source checkout", options.script)
         script = options.script[0]
         argv = options.script[1:]
-        kind, target = find_executable(script)
+        res = find_executable(script)
+        kind = res[0]
+        # print(res)
         if kind == "path":
             run_file(target, argv)
         elif kind == "entry_point":
@@ -268,26 +281,15 @@ def main(argv):
             start_ipython(argv=[])
 
 
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info("Project name: %s", PROJECT_NAME)
+
+
 if __name__ == "__main__":
     home = os.path.dirname(os.path.abspath(__file__))
-    LIBPATH = os.path.join(home, "build", _setuptools_dir_name("lib"))
-    cwd = os.getcwd()
-    os.chdir(home)
-    build = subprocess.Popen(
-        [sys.executable, "setup.py", "build", "--build-lib", LIBPATH],
-        shell=False,
-    )
-    build_rc = build.wait()
-    if not os.path.exists(LIBPATH):
-        logger.warning("`lib` directory does not exist, trying common Python3 lib")
-        LIBPATH = os.path.join(os.path.split(LIBPATH)[0], "lib")
-    os.chdir(cwd)
+    LIBPATH = build_project(PROJECT_NAME, PROJECT_DIR)
 
-    if build_rc == 0:
-        logger.info("Build process ended.")
-    else:
-        logger.error("Build process ended with rc=%s", build_rc)
-        sys.exit(-1)
 
     sys.path.insert(0, LIBPATH)
     logger.info("Patched sys.path with %s", LIBPATH)
