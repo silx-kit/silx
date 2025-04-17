@@ -41,7 +41,7 @@ mkdir "${TEMPLATE}"/.fseventsd
 touch "${TEMPLATE}"/.fseventsd/no_log
 
 echo "Sleeping for a few seconds."
-sleep "${SLEEP_INTERVAL}
+sleep "${SLEEP_INTERVAL}"
 
 echo "Creating the temporary disk image."
 hdiutil create -verbose -format UDRW -volname ${APP_NAME} -fs APFS \
@@ -49,7 +49,7 @@ hdiutil create -verbose -format UDRW -volname ${APP_NAME} -fs APFS \
        "${TEMPLATE_DMG}"
 
 echo "Sleeping for a few seconds."
-sleep "${SLEEP_INTERVAL}
+sleep "${SLEEP_INTERVAL}"
 
 echo "Detaching the temporary disk image if still attached."
 hdiutil detach -verbose /Volumes/${APP_NAME} -force || true
@@ -99,13 +99,13 @@ end tell
 EOF
 
 echo "Sleeping for a few seconds."
-sleep "${SLEEP_INTERVAL}
+sleep "${SLEEP_INTERVAL}"
 
 echo "Detaching the temporary disk image"
 hdiutil detach "${DEV_NAME}" -force || true
 
 echo "Sleeping for a few seconds."
-sleep "${SLEEP_INTERVAL}
+sleep "${SLEEP_INTERVAL}"
 
 echo "Converting the temporary image to a compressed image."
 hdiutil convert "${TEMPLATE_DMG}" -format UDZO -imagekey zlib-level=9 -o "${APP_DMG}"
