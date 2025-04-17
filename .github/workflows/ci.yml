@@ -64,6 +64,10 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+      - name: Test secrets
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+        run: echo $APPLE_ID
       - name: Install silx
         run: pip install .[full]
       - name: Install pyinstaller

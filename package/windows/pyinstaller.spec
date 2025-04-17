@@ -87,49 +87,49 @@ silx_view_exe = EXE(
     console=False,
     icon=icon,
 )
+if sys.platform == "win32":
+    silx_coll = COLLECT(
+        silx_view_exe,
+        silx_view_a.binaries,
+        silx_view_a.zipfiles,
+        silx_view_a.datas,
+        silx_exe,
+        silx_a.binaries,
+        silx_a.zipfiles,
+        silx_a.datas,
+        strip=False,
+        upx=False,
+        name="silx",
+    )
+elif sys.platform == "darwin":
+    # macOS application-bundle only for silx-view.
+    silx_view_coll = COLLECT(
+        silx_view_exe,
+        silx_view_a.binaries,
+        silx_view_a.zipfiles,
+        silx_view_a.datas,
+        strip=False,
+        upx=False,
+        name="silx-view",
+    )
 
-silx_coll = COLLECT(
-    silx_view_exe,
-    silx_view_a.binaries,
-    silx_view_a.zipfiles,
-    silx_view_a.datas,
-    silx_exe,
-    silx_a.binaries,
-    silx_a.zipfiles,
-    silx_a.datas,
-    strip=False,
-    upx=False,
-    name="silx",
-)
-
-# macOS application-bundle only for silx-view.
-silx_view_coll = COLLECT(
-    silx_view_exe,
-    silx_view_a.binaries,
-    silx_view_a.zipfiles,
-    silx_view_a.datas,
-    strip=False,
-    upx=False,
-    name="silx-view",
-)
-
-app = BUNDLE(
-    silx_view_coll,
-    name="silx-view.app",
-    icon=icon,
-    bundle_identifier="org.silx.silxview",
-    info_plist={
-        "CFBundleIdentifier": "org.silx",
-        "CFBundleShortVersionString": strictversion,
-        "CFBundleVersion": "silx-view " + strictversion,
-        "LSTypeIsPackage": True,
-        "LSMinimumSystemVersion": "10.13.0",
-        "NSHumanReadableCopyright": "MIT",
-        "NSHighResolutionCapable": True,
-        "NSPrincipalClass": "NSApplication",
-        "NSAppleScriptEnabled": False,
-    },
-)
+    app = BUNDLE(
+        silx_view_coll,
+        name="silx-view.app",
+        icon=icon,
+        bundle_identifier="org.silx.silxview",
+        info_plist={
+            "CFBundleIdentifier": "org.silx",
+            "CFBundleShortVersionString": strictversion,
+            "CFBundleVersion": "silx-view " + strictversion,
+            "LSTypeIsPackage": True,
+            "LSMinimumSystemVersion": "10.13.0",
+            "NSHumanReadableCopyright": "MIT",
+            "NSHighResolutionCapable": True,
+            "NSPrincipalClass": "NSApplication",
+            "NSAppleScriptEnabled": False,
+        },
+    )
 
 
 # Generate license file from current Python env
