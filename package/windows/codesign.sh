@@ -25,7 +25,7 @@ security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs1
 security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
 echo "Codesigning the application bundle."
-codesign --force --deep --options=runtime --entitlements ./entitlements.plist --verbose --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${{ secrets.APPLE_TEAM_ID) }}" --keychain $KEYCHAIN_PATH --timestamp "$APP_PATH"
+codesign --force --deep --options=runtime --entitlements ./entitlements.plist --verbose --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${{ secrets.APPLE_TEAM_ID }})" --keychain $KEYCHAIN_PATH --timestamp "$APP_PATH"
 
 echo "Removing the certificate and keychain."
 rm $CERTIFICATE_PATH
