@@ -11,87 +11,46 @@ defaults:
     shell: bash
 
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-20.04
-            python-version: "3.10"
-            QT_API: PySide6
-            with_opencl: false
-          #- os: ubuntu-22.04
-          #  python-version: "3.11"
-          #  QT_API: PyQt6
-          #  with_opencl: true
-          #- os: ubuntu-22.04
-          #  python-version: "3.13"
-          #  QT_API: PySide6
-          #  with_opencl: true
-
-          #- os: macos-13
-          #  python-version: "3.12"
-          #  QT_API: PyQt5
-          #  with_opencl: true
-          - os: macos-13
-            python-version: "3.13"
-            QT_API: PyQt6
-            with_opencl: true
-          #- os: macos-13
-          #  python-version: "3.10"
-          #  QT_API: PySide6
-          #  with_opencl: true
-
-          #- os: windows-latest
-          #  python-version: "3.13"
-          #  QT_API: PyQt5
-          #  with_opencl: false
-          #- os: windows-latest
-          #  python-version: "3.10"
-          #  QT_API: PyQt6
-          #  with_opencl: false
-          - os: windows-latest
-            python-version: "3.12"
-            QT_API: PyQt5
-            with_opencl: false
-
+  build_windows_installer:
+    name: Build Windows "fat binary"
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
           cache: "pip"
-
-      - uses: ./.github/actions/setup-system
-
-      - name: Install build dependencies
-        run: |
-          pip install --upgrade --pre build cython setuptools wheel
-          pip list
-
-      - name: Build
+      - name: Install silx
+        run: pip install .[full,test]
+      - name: Install pyinstaller
+        # Install pyinstaller from source and compile bootloader
         env:
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+          PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
+        run: pip install pyinstaller --no-binary pyinstaller
+      - name: Build fat binary
         run: |
-          python -m build --no-isolation
-          ls dist
+          cd package/windows
+          pyinstaller pyinstaller.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            ./package/windows/artifacts/silx-*.exe
+            ./package/windows/artifacts/silx-*.zip
 
-      - name: Install
-        run: |
-          pip install -r ci/requirements-pinned.txt
-          pip install --pre "${{ matrix.QT_API }}"
-          pip install --pre "$(ls dist/silx*.whl)[full,test]"
-          python ./ci/info_platform.py
-          pip list
-
+  test_windows_installer:
+    needs: [build_windows_installer]
+    name: Test Windows "fat binary"
+    runs-on: windows-2022
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Unzip "fat binary"
+        run: 7z x silx-*.zip
       - name: Test
-        env:
-          QT_API: ${{ matrix.QT_API }}
-          SILX_TEST_LOW_MEM: "False"
-          SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
+          cd silx
+          ./silx-view.exe --help
+          ./silx.exe --help
