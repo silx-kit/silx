@@ -394,6 +394,10 @@ class Colormap(qt.QObject):
         self.__warnBadVmax = True
         self._saturation: float = saturation
 
+    @property
+    def getSaturation(self):
+        return self._saturation
+
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
 
@@ -546,7 +550,13 @@ class Colormap(qt.QObject):
         return self._saturation
 
     def setSaturation(self, saturation: float):
-        self._saturation = saturation
+        if not (0.0 <= saturation <= 100.0):
+            raise ValueError(
+                f"saturation should be a float in [0.0, 100.0]. Got {saturation}"
+            )
+        if saturation != self._saturation:
+            self._saturation = saturation
+            self.sigChanged.emit()
 
     def setGammaNormalizationParameter(self, gamma: float):
         """Set the gamma correction parameter.
@@ -574,10 +584,6 @@ class Colormap(qt.QObject):
 
         :param mode: the mode to set
         """
-        print("==============")
-        import traceback
-        traceback.print_stack(limit=5)
-        print("==============")
         if self.isEditable() is False:
             raise NotEditableError("Colormap is not editable")
         assert mode in self.AUTOSCALE_MODES
@@ -717,7 +723,6 @@ class Colormap(qt.QObject):
                 min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
                 max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
-                print("self.getSaturation()", self.getSaturation())
                 min_, max_ = normalizer.autoscale(
                     data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
                 )
