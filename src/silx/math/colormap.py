@@ -306,7 +306,7 @@ class _NormalizationMixIn:
         # Use [0, 1] as data range for normalization not using range
         normdata = self.apply(data, 0.0, 1.0)
         if normdata.dtype.kind == "f":  # Replaces inf by NaN
-            normdata[numpy.isfinite(normdata) == False] = numpy.nan
+            normdata[not numpy.isfinite(normdata)] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
 
@@ -335,7 +335,8 @@ class _NormalizationMixIn:
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
-    """Colormap normalization mix-in class specific to autoscale taken from initial range"""
+    """Colormap normalization mix-in class specific to autoscale taken from
+    initial range"""
 
     def autoscale_mean3std(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using mean+/-3std
@@ -347,7 +348,7 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
         """
         if data.dtype.kind == "f":  # Replaces inf by NaN
             data = numpy.array(data, copy=True)  # Work on a copy
-            data[numpy.isfinite(data) == False] = numpy.nan
+            data[not numpy.isfinite(data)] = numpy.nan
         if data.size == 0:  # Fallback
             return None, None
         with warnings.catch_warnings():
