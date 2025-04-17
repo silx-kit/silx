@@ -281,7 +281,9 @@ class _NormalizationMixIn:
             vmax = vmin
         return float(vmin), float(vmax)
 
-    def autoscale_minmax(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
+    def autoscale_minmax(
+        self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using min/max
 
         :param data: The data to process
@@ -293,7 +295,9 @@ class _NormalizationMixIn:
         result = _min_max(data, min_positive=False, finite=True)
         return result.minimum, result.maximum
 
-    def autoscale_mean3std(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
+    def autoscale_mean3std(
+        self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using mean+/-3std
 
         This implementation only works for normalization that do NOT
@@ -320,7 +324,9 @@ class _NormalizationMixIn:
             mean + 3 * std, 0.0, 1.0
         )
 
-    def autoscale_percentile_1_99(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
+    def autoscale_percentile_1_99(
+        self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using [1st, 99th] percentiles
 
         :param data: The data to process
@@ -337,7 +343,9 @@ class _NormalizationMixIn:
 class _LinearNormalizationMixIn(_NormalizationMixIn):
     """Colormap normalization mix-in class specific to autoscale taken from initial range"""
 
-    def autoscale_mean3std(self, data: numpy.ndarray) -> tuple[float, float] | tuple[None, None]:
+    def autoscale_mean3std(
+        self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using mean+/-3std
 
         Do the autoscale on the data itself, not the normalized data.
