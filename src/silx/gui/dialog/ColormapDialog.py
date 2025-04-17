@@ -976,7 +976,7 @@ class ColormapDialog(qt.QDialog):
 
         self._saturation = qt.QSlider(qt.Qt.Horizontal, self)
         self._saturation.setRange(0, 100)
-        self._saturation.setValue(2) # 2 <=> 1-99 percentile mode
+        self._saturation.setValue(2)  # 2 <=> 1-99 percentile mode
         self._saturation.valueChanged.connect(self._saturationChanged)
         self._saturation.setVisible(False)
 
@@ -1536,9 +1536,7 @@ class ColormapDialog(qt.QDialog):
 
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
-        print("update _updateWidgetRange")
         xmin, xmax = self._getFiniteColormapRange()
-        print("xmin", xmin, "xmax", xmax)
         colormap = self.getColormap()
         if colormap is not None:
             vRange = colormap.getVRange()
@@ -1738,11 +1736,11 @@ class ColormapDialog(qt.QDialog):
         activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
         if colormap is not None:
             with self._colormapChange:
-                colormap.setAutoscaleMode(mode)
                 if activate_saturation:
-                    colormap.setSaturation(self._saturation.value)
+                    colormap.setSaturation(self._saturation.value())
                 else:
                     colormap.setSaturation(0.0)
+                colormap.setAutoscaleMode(mode)
 
         self._saturation.setVisible(activate_saturation)
         self._saturationLabel.setVisible(activate_saturation)
@@ -1754,7 +1752,6 @@ class ColormapDialog(qt.QDialog):
         if colormap is not None:
             with self._colormapChange:
                 colormap.setSaturation(value)
-        print("saturation  value is", value)
         self._updateWidgetRange()
 
     def _minAutoscaleUpdated(self, autoEnabled):
