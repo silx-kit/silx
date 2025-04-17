@@ -31,6 +31,7 @@ __date__ = "22/11/2018"
 
 import datetime as dt
 import enum
+import typing
 
 import dateutil.tz
 
@@ -44,6 +45,9 @@ class TickMode(enum.Enum):
 
     DEFAULT = 0  # Ticks are regular numbers
     TIME_SERIES = 1  # Ticks are datetime objects
+
+
+AxisScaleType = typing.Literal["linear", "log"]
 
 
 class Axis(qt.QObject):
@@ -112,18 +116,18 @@ class Axis(qt.QObject):
         """
         return self._getPlot()._backend
 
-    def getLimits(self):
+    def getLimits(self) -> tuple[float, float]:
         """Get the limits of this axis.
 
         :return: Minimum and maximum values of this axis as tuple
         """
         return self._internalGetLimits()
 
-    def setLimits(self, vmin, vmax):
+    def setLimits(self, vmin: float, vmax: float):
         """Set this axis limits.
 
-        :param float vmin: minimum axis value
-        :param float vmax: maximum axis value
+        :param vmin: minimum axis value
+        :param vmax: maximum axis value
         """
         vmin, vmax = self._checkLimits(vmin, vmax)
         if self.getLimits() == (vmin, vmax):
@@ -140,13 +144,12 @@ class Axis(qt.QObject):
         self.sigLimitsChanged.emit(vmin, vmax)
         self._getPlot()._notifyLimitsChanged(emitSignal=False)
 
-    def _checkLimits(self, vmin, vmax):
+    def _checkLimits(self, vmin: float, vmax: float) -> tuple[float, float]:
         """Makes sure axis range is not empty and within supported range.
 
-        :param float vmin: Min axis value
-        :param float vmax: Max axis value
+        :param vmin: Min axis value
+        :param vmax: Max axis value
         :return: (min, max) making sure min < max
-        :rtype: 2-tuple of float
         """
         return _utils.checkAxisLimits(
             vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel
@@ -156,7 +159,7 @@ class Axis(qt.QObject):
         """Returns the range of data items over this axis as (vmin, vmax)"""
         raise NotImplementedError()
 
-    def isInverted(self):
+    def isInverted(self) -> bool:
         """Return True if the axis is inverted (top to bottom for the y-axis),
         False otherwise. It is always False for the X axis.
 
@@ -164,13 +167,13 @@ class Axis(qt.QObject):
         """
         return False
 
-    def setInverted(self, isInverted):
+    def setInverted(self, isInverted: bool):
         """Set the axis orientation.
 
         This is only available for the Y axis.
 
-        :param bool flag: True for Y axis going from top to bottom,
-                          False for Y axis going from bottom to top
+        :param flag: True for Y axis going from top to bottom,
+                     False for Y axis going from bottom to top
         """
         if isInverted == self.isInverted():
             return
@@ -180,21 +183,20 @@ class Axis(qt.QObject):
         """Returns whether the axis is displayed or not"""
         return True
 
-    def getLabel(self):
+    def getLabel(self) -> str:
         """Return the current displayed label of this axis.
 
         :param str axis: The Y axis for which to get the label (left or right)
-        :rtype: str
         """
         return self._currentLabel
 
-    def setLabel(self, label):
+    def setLabel(self, label: str):
         """Set the label displayed on the plot for this axis.
 
         The provided label can be temporarily replaced by the label of the
         active curve if any.
 
-        :param str label: The axis label
+        :param label: The axis label
         """
         self._defaultLabel = label
         self._setCurrentLabel(label)
@@ -214,17 +216,14 @@ class Axis(qt.QObject):
         self._currentLabel = label
         self._internalSetCurrentLabel(label)
 
-    def getScale(self):
-        """Return the name of the scale used by this axis.
-
-        :rtype: str
-        """
+    def getScale(self) -> AxisScaleType:
+        """Return the name of the scale used by this axis."""
         return self._scale
 
-    def setScale(self, scale):
+    def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
 
-        :param str scale: Name of the scale ("log", or "linear")
+        :param scale: Name of the scale ("log", or "linear")
         """
         assert scale in self._SCALES
         if self._scale == scale:
@@ -263,38 +262,33 @@ class Axis(qt.QObject):
         if emitLog:
             self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
-    def _isLogarithmic(self):
-        """Return True if this axis scale is logarithmic, False if linear.
-
-        :rtype: bool
-        """
+    def _isLogarithmic(self) -> bool:
+        """Return True if this axis scale is logarithmic, False if linear."""
         return self._scale == self.LOGARITHMIC
 
-    def _setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag: bool):
         """Set the scale of this axes (either linear or logarithmic).
 
-        :param bool flag: True to use a logarithmic scale, False for linear.
+        :param flag: True to use a logarithmic scale, False for linear.
         """
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
-    def getTimeZone(self):
+    def getTimeZone(self) -> datetime.tzinfo | None:
         """Sets tzinfo that is used if this axis plots date times.
 
         None means the datetimes are interpreted as local time.
-
-        :rtype: datetime.tzinfo of None.
         """
         raise NotImplementedError()
 
-    def setTimeZone(self, tz):
+    def setTimeZone(self, tz) -> datetime.tzinfo | typing.Literal["UTC"] | None:
         """Sets tzinfo that is used if this axis' tickMode is TIME_SERIES
 
         The tz must be a descendant of the datetime.tzinfo class, "UTC" or None.
         Use None to let the datetimes be interpreted as local time.
         Use the string "UTC" to let the date datetimes be in UTC time.
 
-        :param tz: datetime.tzinfo, "UTC" or None.
+        :param tz: A timezone, "UTC" or None.
         """
         raise NotImplementedError()
 
@@ -379,9 +373,11 @@ class XAxis(Axis):
     # TODO With some changes on the backend, it will be able to remove all this
     #      specialised implementations (prefixel by '_internal')
 
+    @docstring(Axis)
     def getTimeZone(self):
         return self._getBackend().getXAxisTimeZone()
 
+    @docstring(Axis)
     def setTimeZone(self, tz):
         if isinstance(tz, str) and tz.upper() == "UTC":
             tz = dateutil.tz.tzutc()
@@ -391,13 +387,13 @@ class XAxis(Axis):
         self._getBackend().setXAxisTimeZone(tz)
         self._getPlot()._setDirtyPlot()
 
-    def getTickMode(self):
+    def getTickMode(self) -> TickMode:
         if self._getBackend().isXAxisTimeSeries():
             return TickMode.TIME_SERIES
         else:
             return TickMode.DEFAULT
 
-    def setTickMode(self, tickMode):
+    def setTickMode(self, tickMode: TickMode):
         if tickMode == TickMode.DEFAULT:
             self._getBackend().setXAxisTimeSeries(False)
         elif tickMode == TickMode.TIME_SERIES:
@@ -451,7 +447,7 @@ class YAxis(Axis):
     def _internalSetLogarithmic(self, flag):
         self._getBackend().setYAxisLogarithmic(flag)
 
-    def setInverted(self, flag=True):
+    def setInverted(self, flag: bool = True):
         """Set the axis orientation.
 
         This is only available for the Y axis.
@@ -466,7 +462,7 @@ class YAxis(Axis):
         self._getPlot()._setDirtyPlot()
         self.sigInvertedChanged.emit(flag)
 
-    def isInverted(self):
+    def isInverted(self) -> bool:
         """Return True if the axis is inverted (top to bottom for the y-axis),
         False otherwise. It is always False for the X axis.
 
@@ -514,21 +510,21 @@ class YRightAxis(Axis):
     def _internalSetCurrentLabel(self, label):
         self._getBackend().setGraphYLabel(label, axis="right")
 
-    def _internalGetLimits(self):
+    def _internalGetLimits(self) -> tuple[float, float]:
         return self._getBackend().getGraphYLimits(axis="right")
 
     def _internalSetLimits(self, ymin, ymax):
         self._getBackend().setGraphYLimits(ymin, ymax, axis="right")
 
-    def setInverted(self, flag=True):
+    def setInverted(self, flag: bool = True):
         """Set the Y axis orientation.
 
-        :param bool flag: True for Y axis going from top to bottom,
+        :param flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
         return self.__mainAxis.setInverted(flag)
 
-    def isInverted(self):
+    def isInverted(self) -> bool:
         """Return True if Y axis goes from top to bottom, False otherwise."""
         return self.__mainAxis.isInverted()
 
@@ -536,36 +532,33 @@ class YRightAxis(Axis):
         """Returns whether the axis is displayed or not"""
         return self._getBackend().isYRightAxisVisible()
 
-    def getScale(self):
-        """Return the name of the scale used by this axis.
-
-        :rtype: str
-        """
+    def getScale(self) -> AxisScaleType:
+        """Return the name of the scale used by this axis."""
         return self.__mainAxis.getScale()
 
-    def setScale(self, scale):
+    def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
 
-        :param str scale: Name of the scale ("log", or "linear")
+        :param scale: Name of the scale ("log", or "linear")
         """
         self.__mainAxis.setScale(scale)
 
-    def _isLogarithmic(self):
+    def _isLogarithmic(self) -> bool:
         """Return True if Y axis scale is logarithmic, False if linear."""
         return self.__mainAxis._isLogarithmic()
 
-    def _setLogarithmic(self, flag):
+    def _setLogarithmic(self, flag: bool):
         """Set the Y axes scale (either linear or logarithmic).
 
         :param bool flag: True to use a logarithmic scale, False for linear.
         """
         return self.__mainAxis._setLogarithmic(flag)
 
-    def isAutoScale(self):
+    def isAutoScale(self) -> bool:
         """Return True if Y axes are automatically adjusting its limits."""
         return self.__mainAxis.isAutoScale()
 
-    def setAutoScale(self, flag=True):
+    def setAutoScale(self, flag: bool = True):
         """Set the Y axis limits adjusting behavior of :meth:`PlotWidget.resetZoom`.
 
         :param bool flag: True to resize limits automatically,

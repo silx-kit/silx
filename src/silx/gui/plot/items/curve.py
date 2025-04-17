@@ -102,24 +102,19 @@ class CurveStyle(_Style):
 
         self._gapcolor = None if gapcolor is None else colors.rgba(gapcolor)
 
-    def getColor(self, copy=True):
+    def getColor(self, copy: bool = True) -> colors.RGBAColorType | None:
         """Returns the color or None if not set.
 
-        :param bool copy: True to get a copy (default),
+        :param copy: True to get a copy (default),
             False to get internal representation (do not modify!)
-
-        :rtype: Union[List[float],None]
         """
         if isinstance(self._color, numpy.ndarray):
             return numpy.array(self._color, copy=copy or NP_OPTIONAL_COPY)
         else:
             return self._color
 
-    def getLineGapColor(self):
-        """Returns the color of dashed line gaps or None if not set.
-
-        :rtype: Union[List[float],None]
-        """
+    def getLineGapColor(self) -> colors.RGBAColorType | None:
+        """Returns the color of dashed line gaps or None if not set."""
         return self._gapcolor
 
     def getLineStyle(self) -> LineStyleType | None:
@@ -136,14 +131,11 @@ class CurveStyle(_Style):
         """
         return self._linestyle
 
-    def getLineWidth(self):
-        """Return the curve line width in pixels or None if not set.
-
-        :rtype: Union[float,None]
-        """
+    def getLineWidth(self) -> float | None:
+        """Return the curve line width in pixels or None if not set."""
         return self._linewidth
 
-    def getSymbol(self):
+    def getSymbol(self) -> str | None:
         """Return the point marker type.
 
         Marker type::
@@ -155,19 +147,14 @@ class CurveStyle(_Style):
             - 'x' x-cross
             - 'd' diamond
             - 's' square
-
-        :rtype: Union[str,None]
         """
         return self._symbol
 
-    def getSymbolSize(self):
-        """Return the point marker size in points.
-
-        :rtype: Union[float,None]
-        """
+    def getSymbolSize(self) -> float | None:
+        """Return the point marker size in points."""
         return self._symbolsize
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, CurveStyle):
             return (
                 numpy.array_equal(self.getColor(), other.getColor())
@@ -290,12 +277,10 @@ class Curve(
         else:
             raise IndexError("Index out of range: %s", str(item))
 
-    def getCurrentStyle(self):
+    def getCurrentStyle(self) -> CurveStyle:
         """Returns the current curve style.
 
         Curve style depends on curve highlighting
-
-        :rtype: CurveStyle
         """
         if self.isHighlighted():
             style = self.getHighlightedStyle()
@@ -325,23 +310,28 @@ class Curve(
                 gapcolor=self.getLineGapColor(),
             )
 
-    def setData(self, x, y, xerror=None, yerror=None, baseline=None, copy=True):
+    def setData(
+        self,
+        x: numpy.ndarray,
+        y: numpy.ndarray,
+        xerror: numpy.ndarray | None = None,
+        yerror: numpy.ndarray | None = None,
+        baseline: numpy.ndarray | float | None = None,
+        copy: bool = True,
+    ):
         """Set the data of the curve.
 
-        :param numpy.ndarray x: The data corresponding to the x coordinates.
-        :param numpy.ndarray y: The data corresponding to the y coordinates.
+        :param x: The data corresponding to the x coordinates.
+        :param y: The data corresponding to the y coordinates.
         :param xerror: Values with the uncertainties on the x values
-        :type xerror: A float, or a numpy.ndarray of float32.
-                      If it is an array, it can either be a 1D array of
-                      same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                       If it is an array, it can either be a 1D array of
+                       same length as the data or a 2D array with 2 rows
+                       of same length as the data: row 0 for positive errors,
+                       row 1 for negative errors.
         :param yerror: Values with the uncertainties on the y values.
-        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param baseline: curve baseline
-        :type baseline: Union[None,float,numpy.ndarray]
-        :param bool copy: True make a copy of the data (default),
-                          False to use provided arrays.
+        :param copy: True make a copy of the data (default),
+                     False to use provided arrays.
         """
         PointsBase.setData(self, x=x, y=y, xerror=xerror, yerror=yerror, copy=copy)
         self._setBaseline(baseline=baseline)

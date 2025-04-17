@@ -199,7 +199,8 @@ class ExternalResources:
             if not os.path.isfile(fullfilename):
                 raise RuntimeError(
                     """Could not automatically download test images %s!
-                    If you are behind a firewall, please set both environment variable http_proxy and https_proxy.
+                    If you are behind a firewall, please set both environment variable
+                     http_proxy and https_proxy.
                     This even works under windows !
                     Otherwise please try to download the images manually from
                     %s/%s"""
@@ -245,7 +246,7 @@ class ExternalResources:
 
         if lodn.endswith(("tar", "tgz", "tbz2", "tar.gz", "tar.bz2")):
             with tarfile.TarFile.open(full_path, mode="r") as fd:
-                # Avoid unsafe filter deprecation warning during transistion of mode change
+                # Avoid unsafe filter deprecation warning during mode change
                 if (3, 12) <= sys.version_info < (3, 14):
                     fd.extraction_filter = tarfile.data_filter
                 fd.extractall(output)
@@ -272,7 +273,7 @@ class ExternalResources:
             self._initialize_data()
         if filename not in self.all_data:
             self.all_data[filename] = self.get_hash(filename)
-            seld.save_json()
+            self.save_json()
         baseimage = os.path.basename(filename)
         logger.info("UtilsTest.getimage('%s')" % baseimage)
 
@@ -303,7 +304,8 @@ class ExternalResources:
             if not os.path.isfile(fullimagename_bz2):
                 raise RuntimeError(
                     """Could not automatically download test images %s!
-                    If you are behind a firewall, please set the environment variable http_proxy.
+                    If you are behind a firewall, please set the environment variable
+                     http_proxy.
                     Otherwise please try to download the images manually from
                     %s"""
                     % (self.url_base, filename)

@@ -34,7 +34,7 @@ from os.path import dirname
 
 
 try:
-    import pytest
+    import pytest  # noqa: F401
 except ImportError:
     logging.getLogger(__name__).error(
         "pytest is required to run the tests, please install it."
