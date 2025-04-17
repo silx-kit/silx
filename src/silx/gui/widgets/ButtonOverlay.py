@@ -4,7 +4,7 @@ from .OverlayMixIn import _OverlayMixIn
 
 
 class ButtonOverlay(_OverlayMixIn, qt.QPushButton):
-    """Display a Label on top of a PlotWidget"""
+    """Display a Button on top of a QWidget"""
 
     def __init__(self, parent: qt.QWidget | None = None) -> None:
         qt.QPushButton.__init__(self, parent)
