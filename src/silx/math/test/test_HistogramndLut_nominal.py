@@ -498,9 +498,9 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         type = self.sample.dtype.newbyteorder("L")
         sampleL = self.sample.astype(type)
 
-        histo_inst = HistogramndLut(sampleB, self.histo_range, self.n_bins)
+        HistogramndLut(sampleB, self.histo_range, self.n_bins)
 
-        histo_inst = HistogramndLut(sampleL, self.histo_range, self.n_bins)
+        HistogramndLut(sampleL, self.histo_range, self.n_bins)
 
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):
