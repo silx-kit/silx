@@ -20,6 +20,8 @@ security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 echo "Importing the certificate from the base64 string."
 echo "${CERTIFICATE_BASE64}" | base64 --decode -o "${CERTIFICATE_PATH}"
 
+cat "${CERTIFICATE_PATH}" 
+
 echo "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" -P "${CERTIFICATE_PASSWORD}" -A -t cert -f pkcs12 -k "${KEYCHAIN_PATH}"
 security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
