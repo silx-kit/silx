@@ -580,7 +580,7 @@ class Colormap(qt.QObject):
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax', 'stddev3', 'percentile' or 'contrast_enhancer'
+        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'
 
         :param mode: the mode to set
         """
