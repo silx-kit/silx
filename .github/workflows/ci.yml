@@ -72,13 +72,14 @@ jobs:
       - name: Build Windows
         if: runner.os == 'Windows'          
         run: |
-          ${{ '"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"' }}
+          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
           python -m build 
           ls dist
 
       - name: Build Unix
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
+        if: runner.os != 'Windows'
         run: |
           python -m build 
           ls dist
