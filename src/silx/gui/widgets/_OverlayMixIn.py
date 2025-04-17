@@ -3,7 +3,7 @@ from silx.gui.qt import inspect as qt_inspect
 from silx.gui.plot import PlotWidget
 
 
-class _OverlayMixIn:
+class OverlayMixIn:
     "MixIn class for overlay widget"
 
     def __init__(self, parent):
