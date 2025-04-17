@@ -263,8 +263,7 @@ class Axis(qt.QObject):
             self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
     def _isLogarithmic(self) -> bool:
-        """Return True if this axis scale is logarithmic, False if linear.
-        """
+        """Return True if this axis scale is logarithmic, False if linear."""
         return self._scale == self.LOGARITHMIC
 
     def _setLogarithmic(self, flag: bool):

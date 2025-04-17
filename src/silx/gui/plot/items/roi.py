@@ -286,8 +286,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     def getEndPoints(self) -> tuple[numpy.ndarray, numpy.ndarray]:
-        """Returns bounding points of this ROI.
-        """
+        """Returns bounding points of this ROI."""
         startPoint = numpy.array(self._handleStart.getPosition())
         endPoint = numpy.array(self._handleEnd.getPosition())
         return (startPoint, endPoint)
@@ -1501,8 +1500,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._updatePos(vmin + delta, vmax + delta)
 
     def getCenter(self) -> numpy.ndarray:
-        """Returns the center location of this ROI.
-        """
+        """Returns the center location of this ROI."""
         vmin, vmax = self.getRange()
         return (vmin + vmax) * 0.5
 

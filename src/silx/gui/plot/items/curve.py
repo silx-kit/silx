@@ -151,8 +151,7 @@ class CurveStyle(_Style):
         return self._symbol
 
     def getSymbolSize(self) -> float | None:
-        """Return the point marker size in points.
-        """
+        """Return the point marker size in points."""
         return self._symbolsize
 
     def __eq__(self, other) -> bool:

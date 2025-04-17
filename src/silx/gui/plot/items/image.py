@@ -294,8 +294,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         raise NotImplementedError("This MUST be implemented in sub-class")
 
     def getOrigin(self) -> tuple[float, float]:
-        """Returns the offset from origin at which to display the image.
-        """
+        """Returns the offset from origin at which to display the image."""
         return self._origin
 
     def setOrigin(self, origin: tuple[float, float]):
@@ -314,8 +313,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             self._updated(ItemChangedType.POSITION)
 
     def getScale(self) -> tuple[float, float]:
-        """Returns the scale of the image in data coordinates.
-        """
+        """Returns the scale of the image in data coordinates."""
         return self._scale
 
     def setScale(self, scale: tuple[float, float]):
@@ -656,8 +654,7 @@ class ImageStack(ImageDataAggregated):
         self.__updateDisplayedData()
 
     def getStackPosition(self) -> int:
-        """Get the displayed position of the stack.
-        """
+        """Get the displayed position of the stack."""
         return self.__stackPosition
 
     def __updateDisplayedData(self):
