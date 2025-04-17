@@ -53,8 +53,8 @@ class _SignalDump:
 
 class TestSelectDynamicColormap():
     
-    def test_evaluate_roi(self):
-        """Test evaluate_roi() method"""
+    def test_dynamic_colormap_interaction(self):
+        """Test correct interaction mode."""
         plot = PlotWidget()
         plot.setInteractiveMode("dynamic_colormap", shape="rectangle", label="test")
 
@@ -62,6 +62,8 @@ class TestSelectDynamicColormap():
         assert interaction["mode"] == "dynamic_colormap"
         assert isinstance(plot.interaction()._eventHandler, DynamicColormapMode)
         
+    def test_dynamic_colormap_vmin_vmax_calculation(self):
+        """Test vmin/vmax calculation for dynamic colormap"""
         # Test with a rectangle
         roi = numpy.arange(484).reshape((22,22))
         vmin, vmax, bb_x, bb_y = DynamicColormapMode._compute_vmin_vmax(roi,(11,11))

@@ -1643,6 +1643,8 @@ class DynamicColormapMode(ItemsInteraction):
     """
 
     ROI_SIZE = (10, 10)  # (y,x). The ROI <<radius>>
+    COLOR = "blue"
+    LINESTYLE = "--"
 
     @staticmethod
     def _compute_vmin_vmax(data: numpy.ndarray, dataPos: tuple[float, float]):
@@ -1688,9 +1690,9 @@ class DynamicColormapMode(ItemsInteraction):
             legend="ColorMap reference",
             replace=False,
             fill=False,
-            color="blue",
+            color=self.COLOR,
             gapcolor=None,
-            linestyle="--",
+            linestyle=self.LINESTYLE,
             overlay=True,
             z=1,
         )

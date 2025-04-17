@@ -141,6 +141,8 @@ class PanModeAction(PlotAction):
 
 class DynamicColormapAction(PlotAction):
     """QAction controlling the colormap mode of a :class:`.PlotWidget`.
+    This mode adjusts the colormap based on a small region around the 
+    mouse position in the plot.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
