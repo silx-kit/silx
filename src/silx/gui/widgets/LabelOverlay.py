@@ -4,7 +4,7 @@ from .OverlayMixIn import _OverlayMixIn
 
 
 class LabelOverlay(_OverlayMixIn, qt.QLabel):
-    """Display a Label on top of a PlotWidget"""
+    """Display a Label on top of a widget"""
 
     def __init__(self, parent: qt.QWidget | None = None) -> None:
         qt.QLabel.__init__(self, parent)
