@@ -955,7 +955,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         return x, y, value, xerror, yerror
 
-    def getValueData(self, copy=True) -> numpy.ndarray:
+    def getValueData(self, copy: bool = True) -> numpy.ndarray:
         """Returns the value assigned to the scatter data points.
 
         :param copy: True (Default) to get a copy,
@@ -963,7 +963,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         """
         return numpy.array(self._value, copy=copy or NP_OPTIONAL_COPY)
 
-    def getAlphaData(self, copy=True) -> numpy.ndarray:
+    def getAlphaData(self, copy: bool = True) -> numpy.ndarray:
         """Returns the alpha (transparency) assigned to the scatter data points.
 
         :param copy: True (Default) to get a copy,
@@ -972,7 +972,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         return numpy.array(self.__alpha, copy=copy or NP_OPTIONAL_COPY)
 
     def getData(
-        self, copy=True, displayed=False
+        self, copy: bool = True, displayed: bool = False
     ) -> tuple[
         numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray
     ]:
@@ -1009,7 +1009,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         xerror: float | numpy.ndarray | numpy.float32 | None = None,
         yerror: float | numpy.ndarray | numpy.float32 | None = None,
         alpha: float | numpy.ndarray | numpy.float32 | None = None,
-        copy=True,
+        copy: bool = True,
     ):
         """Set the data of the scatter.
 

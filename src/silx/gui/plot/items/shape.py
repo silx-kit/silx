@@ -133,10 +133,10 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
         """
         return self._type
 
-    def getPoints(self, copy=True) -> numpy.ndarray:
+    def getPoints(self, copy: bool = True) -> numpy.ndarray:
         """Get the control points of the shape.
 
-        :param bool copy: True (Default) to get a copy,
+        :param copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         :return: Array of point coordinates
         :rtype: numpy.ndarray with 2 dimensions

@@ -76,14 +76,13 @@ class _RegionOfInterestBase(qt.QObject):
         """Returns the name of the ROI
 
         :return: name of the region of interest
-        :rtype: str
         """
         return self.__name
 
     def setName(self, name: str):
         """Set the name of the ROI
 
-        :param str name: name of the region of interest
+        :param name: name of the region of interest
         """
         name = str(name)
         if self.__name != name:
@@ -100,7 +99,7 @@ class _RegionOfInterestBase(qt.QObject):
     def contains(self, position: tuple[float, float]) -> bool:
         """Returns True if the `position` is in this ROI.
 
-        :param tuple[float,float] position: position to check
+        :param position: position to check
         :return: True if the value / point is consider to be in the region of
                  interest.
         :rtype: bool

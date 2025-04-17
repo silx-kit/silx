@@ -223,7 +223,7 @@ class Axis(qt.QObject):
     def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
 
-        :param str scale: Name of the scale ("log", or "linear")
+        :param scale: Name of the scale ("log", or "linear")
         """
         assert scale in self._SCALES
         if self._scale == scale:
@@ -264,15 +264,13 @@ class Axis(qt.QObject):
 
     def _isLogarithmic(self) -> bool:
         """Return True if this axis scale is logarithmic, False if linear.
-
-        :rtype: bool
         """
         return self._scale == self.LOGARITHMIC
 
     def _setLogarithmic(self, flag: bool):
         """Set the scale of this axes (either linear or logarithmic).
 
-        :param bool flag: True to use a logarithmic scale, False for linear.
+        :param flag: True to use a logarithmic scale, False for linear.
         """
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
@@ -522,7 +520,7 @@ class YRightAxis(Axis):
     def setInverted(self, flag: bool = True):
         """Set the Y axis orientation.
 
-        :param bool flag: True for Y axis going from top to bottom,
+        :param flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
         return self.__mainAxis.setInverted(flag)
@@ -542,7 +540,7 @@ class YRightAxis(Axis):
     def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
 
-        :param str scale: Name of the scale ("log", or "linear")
+        :param scale: Name of the scale ("log", or "linear")
         """
         self.__mainAxis.setScale(scale)
 

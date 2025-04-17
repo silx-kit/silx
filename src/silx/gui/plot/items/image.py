@@ -295,8 +295,6 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
     def getOrigin(self) -> tuple[float, float]:
         """Returns the offset from origin at which to display the image.
-
-        :rtype: 2-tuple of float
         """
         return self._origin
 
@@ -317,8 +315,6 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
     def getScale(self) -> tuple[float, float]:
         """Returns the scale of the image in data coordinates.
-
-        :rtype: 2-tuple of float
         """
         return self._scale
 
@@ -458,7 +454,7 @@ class ImageData(ImageDataBase):
     def getAlternativeImageData(self, copy: bool = True) -> numpy.ndarray | None:
         """Get the optional RGBA image that is displayed instead of the data
 
-        :param bool copy: True (Default) to get a copy,
+        :param copy: True (Default) to get a copy,
             False to use internal representation (do not modify!)
         """
         if self._alternativeImage is None:
@@ -613,7 +609,7 @@ class ImageStack(ImageDataAggregated):
         """Displayed position in the cube"""
 
     def setStackData(
-        self, stack: numpy.ndarray, position: int | None = None, copy=True
+        self, stack: numpy.ndarray, position: int | None = None, copy: bool = True
     ):
         """Set the stack data
 
@@ -661,8 +657,6 @@ class ImageStack(ImageDataAggregated):
 
     def getStackPosition(self) -> int:
         """Get the displayed position of the stack.
-
-        :rtype: int
         """
         return self.__stackPosition
 

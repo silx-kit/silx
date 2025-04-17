@@ -152,8 +152,6 @@ class CurveStyle(_Style):
 
     def getSymbolSize(self) -> float | None:
         """Return the point marker size in points.
-
-        :rtype: Union[float,None]
         """
         return self._symbolsize
 
