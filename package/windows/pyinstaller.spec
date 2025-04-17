@@ -117,7 +117,7 @@ app = BUNDLE(
     silx_view_coll,
     name="silx-view.app",
     icon=icon,
-    bundle_identifier=None,
+    bundle_identifier="org.silx.silxview",
     info_plist={
         "CFBundleIdentifier": "org.silx",
         "CFBundleShortVersionString": strictversion,
