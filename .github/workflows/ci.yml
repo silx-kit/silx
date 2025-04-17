@@ -60,7 +60,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      - name: Enable Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1.13.0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -93,6 +94,4 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          pwd
-          ls
           python run_tests.py --installed --qt-binding=${{ matrix.QT_API }}
