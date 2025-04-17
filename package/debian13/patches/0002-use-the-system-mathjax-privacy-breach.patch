@@ -1,0 +1,25 @@
+From: =?utf-8?q?Picca_Fr=C3=A9d=C3=A9ric-Emmanuel?=
+ <picca@synchrotron-soleil.fr>
+Date: Thu, 10 Aug 2017 10:19:39 +0200
+Subject: use the system mathjax (privacy breach)
+
+---
+ doc/source/conf.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/doc/source/conf.py b/doc/source/conf.py
+index 86dbccf..18bfce2 100644
+--- a/doc/source/conf.py
++++ b/doc/source/conf.py
+@@ -143,6 +143,11 @@ pygments_style = 'sphinx'
+ # A list of ignored prefixes for module index sorting.
+ # modindex_common_prefix = []
+ 
++# -- Option for MathJax extension ----------------------------------------------
++
++# Override required in order to use Debian's system mathjax
++mathjax_path = 'file:///usr/share/javascript/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
++
+ 
+ # -- Options for HTML output ---------------------------------------------------
+ 
