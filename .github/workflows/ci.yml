@@ -1,4 +1,4 @@
-name: CI
+name: continuous-integration
 
 on:
   push:
@@ -12,7 +12,7 @@ defaults:
 
 jobs:
   build_windows_installer:
-    name: Build Windows "fat binary"
+    name: Build the Windows installer
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -23,12 +23,12 @@ jobs:
       - name: Install silx
         run: pip install .[full,test]
       - name: Install pyinstaller
-        # Install pyinstaller from source and compile bootloader
+        # Install PyInstaller from source and compile bootloader.
         env:
           PYINSTALLER_COMPILE_BOOTLOADER: "1"
           PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
         run: pip install pyinstaller --no-binary pyinstaller
-      - name: Build fat binary
+      - name: Build the package with all dependencies
         run: |
           cd package/windows
           pyinstaller pyinstaller.spec
@@ -41,13 +41,13 @@ jobs:
 
   test_windows_installer:
     needs: [build_windows_installer]
-    name: Test Windows "fat binary"
+    name: Test the Windows installer
     runs-on: windows-2022
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: windows-installer
-      - name: Unzip "fat binary"
+      - name: Unzip
         run: 7z x silx-*.zip
       - name: Test
         run: |
