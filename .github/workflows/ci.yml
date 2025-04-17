@@ -59,9 +59,7 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Enable Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1.13.0
+      - uses: actions/checkout@v4        
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -74,6 +72,7 @@ jobs:
           pip install --upgrade --pre build wheel 
 
       - name: Build
+        uses: ilammy/msvc-dev-cmd@v1.13.0
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
