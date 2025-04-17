@@ -331,10 +331,10 @@ class Colormap(qt.QObject):
     """constant for autoscale using mean +/- 3*std(data)
     with a clamp on min/max of the data"""
 
-    PERCENTILE_1_99 = "percentile_1_99"
-    """constant for autoscale using 1st and 99th percentile of data"""
+    PERCENTILE = "percentile"
+    """constant for autoscale using n'st and m'th percentile of data"""
 
-    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE_1_99)
+    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE)
     """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
@@ -350,6 +350,7 @@ class Colormap(qt.QObject):
         vmin: float | None = None,
         vmax: float | None = None,
         autoscaleMode: str = MINMAX,
+        saturation: float = 0.0,
     ):
         qt.QObject.__init__(self)
         self._editable = True
@@ -389,6 +390,11 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
         self.__warnBadVmax = True
+        self._saturation: float = saturation
+
+    @property
+    def getSaturation(self) -> float:
+        return self._saturation
 
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
@@ -534,6 +540,19 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
+    def getSaturation(self) -> float:
+        """Colormap saturation in (0, 100)"""
+        return self._saturation
+
+    def setSaturation(self, saturation: float):
+        if not (0.0 <= saturation <= 100.0):
+            raise ValueError(
+                f"saturation should be a float in [0.0, 100.0]. Got {saturation}"
+            )
+        if saturation != self._saturation:
+            self._saturation = saturation
+            self.sigChanged.emit()
+
     def setGammaNormalizationParameter(self, gamma: float):
         """Set the gamma correction parameter.
 
@@ -552,11 +571,11 @@ class Colormap(qt.QObject):
         return self.__gamma
 
     def getAutoscaleMode(self) -> str:
-        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')"""
+        """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax' or 'stddev3'
+        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'
 
         :param mode: the mode to set
         """
@@ -656,7 +675,9 @@ class Colormap(qt.QObject):
         :param data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
-        return self._getNormalizer().autoscale(data, mode=self.getAutoscaleMode())
+        return self._getNormalizer().autoscale(
+            data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+        )
 
     def getColormapRange(
         self,
@@ -694,7 +715,9 @@ class Colormap(qt.QObject):
                 min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
                 max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
-                min_, max_ = normalizer.autoscale(data, mode=self.getAutoscaleMode())
+                min_, max_ = normalizer.autoscale(
+                    data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+                )
 
             if vmin is None:  # Set vmin respecting provided vmax
                 vmin = min_ if vmax is None else min(min_, vmax)
