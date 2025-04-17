@@ -373,31 +373,33 @@ class TestFunctions(unittest.TestCase):
     object"""
 
     def testListOfLists(self):
-        l = [[0, 1, 2], [2, 3, 4]]
-        self.assertEqual(get_dtype(l), numpy.dtype(int))
-        self.assertEqual(get_shape(l), (2, 3))
-        self.assertTrue(is_nested_sequence(l))
-        self.assertFalse(is_array(l))
-        self.assertFalse(is_list_of_arrays(l))
+        test_list = [[0, 1, 2], [2, 3, 4]]
+        self.assertEqual(get_dtype(test_list), numpy.dtype(int))
+        self.assertEqual(get_shape(test_list), (2, 3))
+        self.assertTrue(is_nested_sequence(test_list))
+        self.assertFalse(is_array(test_list))
+        self.assertFalse(is_list_of_arrays(test_list))
 
-        l = [[0.0, 1.0], [2.0, 3.0]]
-        self.assertEqual(get_dtype(l), numpy.dtype(float))
-        self.assertEqual(get_shape(l), (2, 2))
-        self.assertTrue(is_nested_sequence(l))
-        self.assertFalse(is_array(l))
-        self.assertFalse(is_list_of_arrays(l))
+        test_list = [[0.0, 1.0], [2.0, 3.0]]
+        self.assertEqual(get_dtype(test_list), numpy.dtype(float))
+        self.assertEqual(get_shape(test_list), (2, 2))
+        self.assertTrue(is_nested_sequence(test_list))
+        self.assertFalse(is_array(test_list))
+        self.assertFalse(is_list_of_arrays(test_list))
 
         # concatenated dtype of int and float
-        l = [
+        test_list = [
             numpy.array([[0, 1, 2], [2, 3, 4]]),
             numpy.array([[0.0, 1.0, 2.0], [2.0, 3.0, 4.0]]),
         ]
 
-        self.assertEqual(get_concatenated_dtype(l), numpy.array(l).dtype)
-        self.assertEqual(get_shape(l), (2, 2, 3))
-        self.assertFalse(is_nested_sequence(l))
-        self.assertFalse(is_array(l))
-        self.assertTrue(is_list_of_arrays(l))
+        self.assertEqual(
+            get_concatenated_dtype(test_list), numpy.array(test_list).dtype
+        )
+        self.assertEqual(get_shape(test_list), (2, 2, 3))
+        self.assertFalse(is_nested_sequence(test_list))
+        self.assertFalse(is_array(test_list))
+        self.assertTrue(is_list_of_arrays(test_list))
 
     def testNumpyArray(self):
         a = numpy.array([[0, 1], [2, 3]])

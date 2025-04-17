@@ -116,7 +116,8 @@ class TestConversionTypes(testutils.ParametricTestCase):
 
         if Version(numpy.version.version) <= Version("1.10.4"):
             # numpy 1.8.2 -> Debian 8
-            # Checking a float128 precision with numpy 1.8.2 using abs(diff) is not working.
+            # Checking a float128 precision with numpy 1.8.2 using abs(diff) is not
+            # working.
             # It looks like the difference is done using float64 (diff == 0.0)
             expected = (numpy.longdouble, numpy.float64)
         else:
