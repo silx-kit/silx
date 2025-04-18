@@ -341,7 +341,8 @@ class _NormalizationMixIn:
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
-    """Colormap normalization mix-in class specific to autoscale taken from initial range"""
+    """Colormap normalization mix-in class specific to autoscale taken from
+    initial range"""
 
     def autoscale_mean3std(
         self, data: numpy.ndarray
