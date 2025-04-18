@@ -227,6 +227,10 @@ class WaitingPushButton(qt.QPushButton):
         :rtype: bool"""
         return self.__waiting
 
+    def close(self):
+        self.stopWaiting()
+        return super().close()
+
     @qt.Slot()
     def wait(self):
         """Enable the waiting state."""
