@@ -147,19 +147,22 @@ def sum_gauss(x, *params):
     _validate_parameters(params, 3)
 
     # ensure float64 (double) type and 1D contiguous data layout in memory
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_gauss(
-                    &x_c[0], x.size,
-                    &params_c[0], params_c.size,
-                    &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -190,19 +193,22 @@ def sum_agauss(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_agauss(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -236,19 +242,22 @@ def sum_fastagauss(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_fastagauss(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -263,9 +272,9 @@ def sum_splitgauss(x, *params):
         - *height* is the peak amplitude
         - *centroid* is the peak x-coordinate
         - *fwhm1* is the full-width at half maximum for the distribution
-          when ``x < centroid``
+            when ``x < centroid``
         - *fwhm2* is the full-width at half maximum for the distribution
-          when  ``x > centroid``
+            when  ``x > centroid``
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -281,19 +290,22 @@ def sum_splitgauss(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(shape=(
+        x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitgauss(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -328,19 +340,22 @@ def sum_apvoigt(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_apvoigt(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -375,19 +390,22 @@ def sum_pvoigt(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_pvoigt(
-                      &x_c[0], x.size,
-                      &params_c[0], params_c.size,
-                      &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -406,9 +424,9 @@ def sum_splitpvoigt(x, *params):
         - *height* is the peak amplitude for G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm1* is the full-width at half maximum of both functions
-          when ``x < centroid``
+            when ``x < centroid``
         - *fwhm2* is the full-width at half maximum of both functions
-          when ``x > centroid``
+            when ``x > centroid``
         - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
@@ -426,19 +444,22 @@ def sum_splitpvoigt(x, *params):
 
     _validate_parameters(params, 5)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitpvoigt(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -457,9 +478,9 @@ def sum_splitpvoigt2(x, *params):
         - *height* is the peak amplitude for G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm1* is the full-width at half maximum of both functions
-          when ``x < centroid``
+            when ``x < centroid``
         - *fwhm2* is the full-width at half maximum of both functions
-          when ``x > centroid``
+            when ``x > centroid``
         - *eta1* is the Lorentzian fraction when ``x < centroid``
         - *eta2* is the Lorentzian fraction when ``x > centroid``
 
@@ -478,19 +499,22 @@ def sum_splitpvoigt2(x, *params):
 
     _validate_parameters(params, 6)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitpvoigt2(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -521,19 +545,22 @@ def sum_lorentz(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_lorentz(
-                     &x_c[0], x.size,
-                     &params_c[0], params_c.size,
-                     &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -564,19 +591,22 @@ def sum_alorentz(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_alorentz(
-                           &x_c[0], x.size,
-                           &params_c[0], params_c.size,
-                           &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -608,19 +638,23 @@ def sum_splitlorentz(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitlorentz(
-                               &x_c[0], x.size,
-                               &params_c[0], params_c.size,
-                               &y_c[0])
+        &x_c[0], x.size,
+        &params_c[0], params_c.size,
+        &y_c[0]
+    )
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -635,7 +669,7 @@ def sum_stepdown(x, *params):
         - *height* is the step's amplitude
         - *centroid* is the step's x-coordinate
         - *fwhm* is the full-width at half maximum for the derivative,
-          which is a measure of the *sharpness* of the step-down's edge
+            which is a measure of the *sharpness* of the step-down's edge
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -652,20 +686,24 @@ def sum_stepdown(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
-    status = functions_wrapper.sum_stepdown(&x_c[0],
-                           x.size,
-                           &params_c[0],
-                           params_c.size,
-                           &y_c[0])
+    status = functions_wrapper.sum_stepdown(
+        &x_c[0],
+        x.size,
+        &params_c[0],
+        params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -680,7 +718,7 @@ def sum_stepup(x, *params):
         - *height* is the step's amplitude
         - *centroid* is the step's x-coordinate
         - *fwhm* is the full-width at half maximum for the derivative,
-          which is a measure of the *sharpness* of the step-up's edge
+            which is a measure of the *sharpness* of the step-up's edge
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -697,20 +735,24 @@ def sum_stepup(x, *params):
 
     _validate_parameters(params, 3)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
-    status = functions_wrapper.sum_stepup(&x_c[0],
-                         x.size,
-                         &params_c[0],
-                         params_c.size,
-                         &y_c[0])
+    status = functions_wrapper.sum_stepup(
+        &x_c[0],
+        x.size,
+        &params_c[0],
+        params_c.size,
+        &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -726,8 +768,8 @@ def sum_slit(x, *params):
         - *position* is the center of the slit's x-coordinate
         - *fwhm* is the full-width at half maximum of the slit
         - *beamfwhm* is the full-width at half maximum of the
-          derivative, which is a measure of the *sharpness*
-          of the edges of the slit
+            derivative, which is a measure of the *sharpness*
+            of the edges of the slit
 
     :param x: Independent variable where the slits are calculated
     :type x: numpy.ndarray
@@ -744,20 +786,25 @@ def sum_slit(x, *params):
 
     _validate_parameters(params, 4)
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
-    status = functions_wrapper.sum_slit(&x_c[0],
-                       x.size,
-                       &params_c[0],
-                       params_c.size,
-                       &y_c[0])
+    status = functions_wrapper.sum_slit(
+        &x_c[0],
+        x.size,
+        &params_c[0],
+        params_c.size,
+        &y_c[0]
+    )
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -765,26 +812,28 @@ def sum_slit(x, *params):
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def sum_ahypermet(x, *params,
-                  gaussian_term=True, st_term=True, lt_term=True, step_term=True):
+def sum_ahypermet(
+    x, *params,
+    gaussian_term=True, st_term=True, lt_term=True, step_term=True
+):
     """Return a sum of ahypermet functions.
     defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,
     lt_slope_r, step_height_r)*.
 
         - *area* is the area underneath the gaussian peak
         - *position* is the center of the various peaks and the position of
-          the step down
+            the step down
         - *fwhm* is the full-width at half maximum of the terms
         - *st_area_r* is factor between the gaussian area and the area of the
-          short tail term
+            short tail term
         - *st_slope_r* is a ratio related to the slope of the short tail
-          in the low ``x`` values (the lower, the steeper)
+            in the low ``x`` values (the lower, the steeper)
         - *lt_area_r* is ratio between the gaussian area and the area of the
-          long tail term
+            long tail term
         - *lt_slope_r* is a ratio related to the slope of the long tail
-          in the low ``x`` values  (the lower, the steeper)
+            in the low ``x`` values  (the lower, the steeper)
         - *step_height_r* is the ratio between the height of the step down
-          and the gaussian height
+            and the gaussian height
 
     A hypermet function is a sum of four functions (terms):
 
@@ -821,21 +870,25 @@ def sum_ahypermet(x, *params,
     if step_term:
         tail_flags += 8
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
-    status = functions_wrapper.sum_ahypermet(&x_c[0],
-                            x.size,
-                            &params_c[0],
-                            params_c.size,
-                            &y_c[0],
-                            tail_flags)
+    status = functions_wrapper.sum_ahypermet(
+        &x_c[0],
+        x.size,
+        &params_c[0],
+        params_c.size,
+        &y_c[0],
+        tail_flags)
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -843,26 +896,28 @@ def sum_ahypermet(x, *params,
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def sum_fastahypermet(x, *params,
-                      gaussian_term=True, st_term=True,
-                      lt_term=True, step_term=True):
+def sum_fastahypermet(
+    x, *params,
+    gaussian_term=True, st_term=True,
+    lt_term=True, step_term=True
+):
     """Return a sum of hypermet functions defined by *(area, position, fwhm,
     st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)*.
 
         - *area* is the area underneath the gaussian peak
         - *position* is the center of the various peaks and the position of
-          the step down
+            the step down
         - *fwhm* is the full-width at half maximum of the terms
         - *st_area_r* is factor between the gaussian area and the area of the
-          short tail term
+            short tail term
         - *st_slope_r* is a parameter related to the slope of the short tail
-          in the low ``x`` values (the lower, the steeper)
+            in the low ``x`` values (the lower, the steeper)
         - *lt_area_r* is factor between the gaussian area and the area of the
-          long tail term
+            long tail term
         - *lt_slope_r* is a parameter related to the slope of the long tail
-          in the low ``x`` values  (the lower, the steeper)
+            in the low ``x`` values  (the lower, the steeper)
         - *step_height_r* is the factor between the height of the step down
-          and the gaussian height
+            and the gaussian height
 
     A hypermet function is a sum of four functions (terms):
 
@@ -910,21 +965,26 @@ def sum_fastahypermet(x, *params,
     # (params[8*i + 4]) is 0, to prevent division by 0. Same thing for
     # lt_slope_r (params[8*i + 6]) and lt_term.
 
-    x_c = numpy.asarray(x,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
-    params_c = numpy.asarray(params,
-                           dtype=numpy.float64,
-                           order='C').reshape(-1)
-    y_c = numpy.empty(shape=(x.size,),
-                      dtype=numpy.float64)
+    x_c = numpy.asarray(
+        x,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    params_c = numpy.asarray(
+        params,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
+    y_c = numpy.empty(
+        shape=(x.size,),
+        dtype=numpy.float64)
 
-    status = functions_wrapper.sum_fastahypermet(&x_c[0],
-                               x.size,
-                               &params_c[0],
-                               params_c.size,
-                               &y_c[0],
-                               tail_flags)
+    status = functions_wrapper.sum_fastahypermet(
+        &x_c[0],
+        x.size,
+        &params_c[0],
+        params_c.size,
+        &y_c[0],
+        tail_flags
+    )
 
     if status:
         raise IndexError("Wrong number of parameters for function")
