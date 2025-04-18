@@ -310,7 +310,7 @@ class _NormalizationMixIn:
         # Use [0, 1] as data range for normalization not using range
         normdata = self.apply(data, 0.0, 1.0)
         if normdata.dtype.kind == "f":  # Replaces inf by NaN
-            normdata[numpy.isfinite(normdata) == False] = numpy.nan
+            normdata = numpy.where(numpy.isfinite(normdata), normdata, numpy.nan)
         if normdata.size == 0:  # Fallback
             return None, None
 
@@ -355,7 +355,7 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
         """
         if data.dtype.kind == "f":  # Replaces inf by NaN
             data = numpy.array(data, copy=True)  # Work on a copy
-            data[numpy.isfinite(data) == False] = numpy.nan
+            data = numpy.where(numpy.isfinite(data), data, numpy.nan)
         if data.size == 0:  # Fallback
             return None, None
         with warnings.catch_warnings():
