@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-########################################################################### */
+# ########################################################################## */
 """This modules provides a set of fit functions and associated
 estimation functions in a format that can be imported into a
 :class:`silx.math.fit.FitManager` instance.
