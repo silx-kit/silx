@@ -608,7 +608,7 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
-        self.__cacheColormapRange = {}  # Store {normalization: {saturation: range}}
+        self.__cacheColormapRange: dict[tuple[str, str, int], tuple[float]] = {}  # Store {normalization, mode, saturation: range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -658,21 +658,9 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
             if min_ is not None and numpy.isfinite(min_):
-                if (Colormap.LINEAR, Colormap.MINMAX) not in self.__cacheColormapRange:
-                    self.__cacheColormapRange = {}
-
-                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX][
-                    colormap.saturation
-                ] = (min_, max_)
+                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX, colormap.saturation] = (min_, max_)
             if minPositive is not None and numpy.isfinite(minPositive):
-                if (
-                    Colormap.LOGARITHM,
-                    Colormap.MINMAX,
-                ) not in self.__cacheColormapRange:
-                    self.__cacheColormapRange = {}
-                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX][
-                    colormap.saturation
-                ] = (
+                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX, colormap.saturation] = (
                     minPositive,
                     max_,
                 )
@@ -710,15 +698,11 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
 
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
-        key = normalization, autoscaleMode
-        vRange = self.__cacheColormapRange.get(key, {}).get(
-            colormap.getSaturation, None
-        )
+        key = normalization, autoscaleMode, colormap.getSaturation()
+        vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
             vRange = colormap._computeAutoscaleRange(data)
-            if key not in self.__cacheColormapRange:
-                self.__cacheColormapRange[key] = {}
-            self.__cacheColormapRange[key][colormap.getSaturation] = vRange
+            self.__cacheColormapRange[key] = vRange
         return vRange
 
 
