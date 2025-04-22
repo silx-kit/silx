@@ -333,10 +333,10 @@ class Colormap(qt.QObject):
     """constant for autoscale using mean +/- 3*std(data)
     with a clamp on min/max of the data"""
 
-    PERCENTILE_1_99 = "percentile_1_99"
-    """constant for autoscale using 1st and 99th percentile of data"""
+    PERCENTILE = "percentile"
+    """constant for autoscale using n'st and m'th percentile of data"""
 
-    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE_1_99)
+    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE)
     """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
@@ -557,11 +557,11 @@ class Colormap(qt.QObject):
         return self.__gamma
 
     def getAutoscaleMode(self) -> str:
-        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')"""
+        """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax' or 'stddev3'
+        """Set the autoscale mode: either 'minmax', 'stddev3', 'percentile' or 'contrast_enhancer'
 
         :param mode: the mode to set
         """
