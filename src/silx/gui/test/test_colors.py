@@ -671,7 +671,7 @@ class TestAutoscaleRange(ParametricTestCase):
         ]
         for norm, mode, array, expectedRange in data:
             with self.subTest(norm=norm, mode=mode, array=array):
-                colormap = Colormap()
+                colormap = Colormap(saturation=2.0)
                 colormap.setNormalization(norm)
                 colormap.setAutoscaleMode(mode)
                 vRange = colormap._computeAutoscaleRange(array)
