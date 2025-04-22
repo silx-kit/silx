@@ -978,7 +978,6 @@ class ColormapDialog(qt.QDialog):
         self._saturation.setRange(0, 100)
         self._saturation.setValue(2)  # 2 <=> 1-99 percentile mode
         self._saturation.valueChanged.connect(self._saturationChanged)
-        self._saturation.setVisible(False)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1043,6 +1042,7 @@ class ColormapDialog(qt.QDialog):
         button.setDefault(True)
         button = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         button.clicked.connect(self.resetColormap)
+        button.clicked.connect(self._updateSaturationVisibility)
 
         self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
@@ -1610,6 +1610,7 @@ class ColormapDialog(qt.QDialog):
             return
 
         self._syncScaleToButtonsEnabled()
+        self._updateSaturationVisibility()
 
         colormap = self.getColormap()
         if colormap is None:
@@ -1733,8 +1734,8 @@ class ColormapDialog(qt.QDialog):
         mode = self._autoScaleCombo.currentMode()
 
         colormap = self.getColormap()
-        activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
         if colormap is not None:
+            activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
             with self._colormapChange:
                 if activate_saturation:
                     colormap.setSaturation(self._saturation.value())
@@ -1742,9 +1743,13 @@ class ColormapDialog(qt.QDialog):
                     colormap.setSaturation(0.0)
                 colormap.setAutoscaleMode(mode)
 
+        self._updateSaturationVisibility()
+        self._updateWidgetRange()
+
+    def _updateSaturationVisibility(self):
+        activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
         self._saturation.setVisible(activate_saturation)
         self._saturationLabel.setVisible(activate_saturation)
-        self._updateWidgetRange()
 
     def _saturationChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
