@@ -975,6 +975,7 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         self._saturation = qt.QSlider(qt.Qt.Horizontal, self)
+        self._saturation.setTickPosition(qt.QSlider.TicksBelow)
         self._saturation.setRange(0, 100)
         self._saturation.setValue(2)  # 2 <=> 1-99 percentile mode
         self._saturation.valueChanged.connect(self._saturationChanged)
