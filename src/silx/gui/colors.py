@@ -417,6 +417,7 @@ class Colormap(qt.QObject):
                 assert colors is not None
                 self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
+            self.setSaturation(other.getSaturation())
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
             self.setAutoscaleMode(other.getAutoscaleMode())
