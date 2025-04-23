@@ -349,6 +349,9 @@ class Colormap(qt.QObject):
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
     _DEFAULT_SATURATION: int = 2
+    """Saturation value to be used with percentile mode.
+    We convert saturation to percentile by taking the percentile [saturation / 2, 100 - saturation / 2]
+    For example if saturation is 2 then we will take 1st and 99th percentiles."""
 
     def __init__(
         self,
