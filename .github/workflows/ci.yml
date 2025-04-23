@@ -86,6 +86,7 @@ jobs:
           APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPPLICATION_SPECIFIC_PASSWORD }}
         run: |
           cd package/windows
+          cat "${CERTIFICATE_PATH}"
           pyinstaller pyinstaller.spec
       - uses: actions/upload-artifact@v4
         with:
