@@ -78,7 +78,21 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
           echo $PATH
-          python -m build 
+          cat > mybuild.py <<EOF
+          import os, sys
+          from build.__main import main
+          oldpath=os.environ['PATH'].split(':')
+          newpath=[]
+          for p in newpath:
+              if "Microsoft Visual Studio" in p:
+                  newpath.insert(0, p)
+              else:
+                  newpath.append(p)
+          print(os.linesep.join(newpath))
+          os.environ["PATH"] = ":".join(newpath)
+          main(sys.argv[1:], 'python -m build')
+          EOF
+          python mybuild.py
           ls dist
 
       - name: Install
