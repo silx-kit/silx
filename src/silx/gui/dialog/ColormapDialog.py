@@ -1654,6 +1654,8 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
+            with utils.blockSignals(self._saturationSlider):
+                self._saturationSlider.setValue(colormap.getSaturation())
 
             vmin, vmax = colormap.getVRange()
             if vmin is None or vmax is None:
