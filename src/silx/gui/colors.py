@@ -348,7 +348,7 @@ class Colormap(qt.QObject):
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
-    DEFAULT_SATURATION: int = 2
+    _DEFAULT_SATURATION: int = 2
 
     def __init__(
         self,

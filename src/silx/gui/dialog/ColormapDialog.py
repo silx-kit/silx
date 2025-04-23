@@ -1741,7 +1741,7 @@ class ColormapDialog(qt.QDialog):
                 if activate_saturation:
                     colormap.setSaturation(self._saturation.value())
                 else:
-                    colormap.setSaturation(Colormap.DEFAULT_SATURATION)
+                    colormap.setSaturation(Colormap._DEFAULT_SATURATION)
                 colormap.setAutoscaleMode(mode)
 
         self._updateSaturationVisibility()
