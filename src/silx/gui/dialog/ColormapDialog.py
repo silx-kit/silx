@@ -974,11 +974,11 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
-        self._saturation = qt.QSlider(qt.Qt.Horizontal, self)
-        self._saturation.setTickPosition(qt.QSlider.TicksBelow)
-        self._saturation.setRange(0, 100)
-        self._saturation.setValue(2)  # 2 <=> 1-99 percentile mode
-        self._saturation.valueChanged.connect(self._saturationChanged)
+        self._saturationSlider = qt.QSlider(qt.Qt.Horizontal, self)
+        self._saturationSlider.setTickPosition(qt.QSlider.TicksBelow)
+        self._saturationSlider.setRange(0, 100)
+        self._saturationSlider.setValue(2)  # 2 <=> 1-99 percentile mode
+        self._saturationSlider.valueChanged.connect(self._saturationChanged)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1073,7 +1073,7 @@ class ColormapDialog(qt.QDialog):
         layoutSaturation = qt.QFormLayout()
         self._saturationLabel = qt.QLabel("saturation")
         self._saturationLabel.setVisible(False)
-        layoutSaturation.addRow(self._saturationLabel, self._saturation)
+        layoutSaturation.addRow(self._saturationLabel, self._saturationSlider)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1739,7 +1739,7 @@ class ColormapDialog(qt.QDialog):
             activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
             with self._colormapChange:
                 if activate_saturation:
-                    colormap.setSaturation(self._saturation.value())
+                    colormap.setSaturation(self._saturationSlider.value())
                 else:
                     colormap.setSaturation(Colormap._DEFAULT_SATURATION)
                 colormap.setAutoscaleMode(mode)
@@ -1749,7 +1749,7 @@ class ColormapDialog(qt.QDialog):
 
     def _updateSaturationVisibility(self):
         activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
-        self._saturation.setVisible(activate_saturation)
+        self._saturationSlider.setVisible(activate_saturation)
         self._saturationLabel.setVisible(activate_saturation)
 
     def _saturationChanged(self, value):
