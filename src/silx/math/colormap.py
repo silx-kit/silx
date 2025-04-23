@@ -475,7 +475,7 @@ def apply_colormap(
     vmin=None,
     vmax=None,
     gamma=1.0,
-    saturation: float = 0.0,
+    saturation: int = 0,
 ):
     """Apply colormap to data with given normalization and autoscale.
 
@@ -521,7 +521,7 @@ def normalize(
     vmin=None,
     vmax=None,
     gamma=1.0,
-    saturation=0.0,
+    saturation: int = 0,
 ):
     """Normalize data to an array of uint8.
 

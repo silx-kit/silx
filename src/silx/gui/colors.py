@@ -344,6 +344,8 @@ class Colormap(qt.QObject):
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
+    DEFAULT_SATURATION: int = 2
+
     def __init__(
         self,
         name: str | None = None,
@@ -352,7 +354,6 @@ class Colormap(qt.QObject):
         vmin: float | None = None,
         vmax: float | None = None,
         autoscaleMode: str = MINMAX,
-        saturation: float = 0.0,
     ):
         qt.QObject.__init__(self)
         self._editable = True
@@ -392,11 +393,7 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
         self.__warnBadVmax = True
-        self._saturation: float = saturation
-
-    @property
-    def getSaturation(self) -> float:
-        return self._saturation
+        self._saturation: int = self._DEFAULT_NAN_COLOR
 
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
@@ -546,14 +543,18 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
-    def getSaturation(self) -> float:
+    def getSaturation(self) -> int:
         """Colormap saturation in (0, 100)"""
         return self._saturation
 
-    def setSaturation(self, saturation: float):
-        if not (0.0 <= saturation <= 100.0):
+    def setSaturation(self, saturation: int):
+        if not isinstance(saturation, int):
+            raise TypeError(
+                f"saturation is expected to be an int. Got {type(saturation)}"
+            )
+        if not (0 <= saturation <= 100):
             raise ValueError(
-                f"saturation should be a float in [0.0, 100.0]. Got {saturation}"
+                f"saturation should be a float in [0, 100]. Got {saturation}"
             )
         if saturation != self._saturation:
             self._saturation = saturation
