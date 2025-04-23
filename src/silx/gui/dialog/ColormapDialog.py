@@ -1736,9 +1736,9 @@ class ColormapDialog(qt.QDialog):
 
         colormap = self.getColormap()
         if colormap is not None:
-            activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
+            enable_saturation = self._autoScaleCombo.currentText() == "Percentile"
             with self._colormapChange:
-                if activate_saturation:
+                if enable_saturation:
                     colormap.setSaturation(self._saturationSlider.value())
                 else:
                     colormap.setSaturation(Colormap._DEFAULT_SATURATION)
@@ -1748,9 +1748,9 @@ class ColormapDialog(qt.QDialog):
         self._updateWidgetRange()
 
     def _updateSaturationVisibility(self):
-        activate_saturation = self._autoScaleCombo.currentText() == "Percentile"
-        self._saturationSlider.setVisible(activate_saturation)
-        self._saturationLabel.setVisible(activate_saturation)
+        enable_saturation = self._autoScaleCombo.currentText() == "Percentile"
+        self._saturationSlider.setEnabled(enable_saturation)
+        self._saturationLabel.setEnabled(enable_saturation)
 
     def _saturationChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
