@@ -80,7 +80,7 @@ jobs:
           echo $PATH
           cat > mybuild.py <<EOF
           import os, sys
-          from build.__main import main
+          from build.__main__ import main
           oldpath=os.environ['PATH'].split(':')
           newpath=[]
           for p in newpath:
