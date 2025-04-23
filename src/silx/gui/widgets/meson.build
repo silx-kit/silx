@@ -3,6 +3,7 @@ subdir('test')
 
 py.install_sources([
     'BoxLayoutDockWidget.py',
+    'ButtonOverlay.py',
     'ColormapNameComboBox.py',
     'ElidedLabel.py',
     'FloatEdit.py',
@@ -10,6 +11,7 @@ py.install_sources([
     'FormGridLayout.py',
     'FrameBrowser.py',
     'HierarchicalTableView.py',
+    'LabelOverlay.py',
     'LegendIconWidget.py',
     'MedianFilterDialog.py',
     'MultiModeAction.py',
@@ -24,6 +26,7 @@ py.install_sources([
     'UrlSelectionTable.py',
     'WaitingOverlay.py',
     'WaitingPushButton.py',
+    '_OverlayMixIn.py',
     '__init__.py',
 ],
 pure: false,    # Will be installed next to binaries
