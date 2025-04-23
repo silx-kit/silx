@@ -534,9 +534,9 @@ def normalize(
     data: numpy.ndarray,
     norm: str = "linear",
     autoscale: str = "minmax",
-    vmin=None,
-    vmax=None,
-    gamma=1.0,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    gamma: float = 1.0,
     saturation: int = 0,
 ):
     """Normalize data to an array of uint8.
