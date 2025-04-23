@@ -488,9 +488,9 @@ def apply_colormap(
     colormap: str,
     norm: str = "linear",
     autoscale: str = "minmax",
-    vmin=None,
-    vmax=None,
-    gamma=1.0,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    gamma: float = 1.0,
     saturation: int = 0,
 ):
     """Apply colormap to data with given normalization and autoscale.
