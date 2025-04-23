@@ -400,7 +400,7 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
         self.__warnBadVmax = True
-        self._saturation: int = self.DEFAULT_SATURATION
+        self._saturation: int = self._DEFAULT_SATURATION
 
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
