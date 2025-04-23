@@ -64,10 +64,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-      - name: Test secrets
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-        run: echo $APPLE_ID
       - name: Install silx
         run: pip install .[full]
       - name: Install pyinstaller
@@ -86,7 +82,7 @@ jobs:
           APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPPLICATION_SPECIFIC_PASSWORD }}
         run: |
           cd package/windows
-          cat "${CERTIFICATE_PATH}"
+          echo -n "${APPLE_TEAM_ID}" | xxd -ps
           pyinstaller pyinstaller.spec
       - uses: actions/upload-artifact@v4
         with:
