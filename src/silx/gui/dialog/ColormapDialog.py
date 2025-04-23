@@ -958,6 +958,7 @@ class ColormapDialog(qt.QDialog):
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
         self._autoScaleCombo = autoScaleCombo
+        self._autoScaleCombo.currentTextChanged.connect(self._updateSaturationVisibility)
 
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
@@ -1110,6 +1111,7 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
+        self._updateSaturationVisibility()
         self._applyColormap()
 
     def getHistogramWidget(self):
@@ -1612,7 +1614,6 @@ class ColormapDialog(qt.QDialog):
             return
 
         self._syncScaleToButtonsEnabled()
-        self._updateSaturationVisibility()
 
         colormap = self.getColormap()
         if colormap is None:
@@ -1745,7 +1746,6 @@ class ColormapDialog(qt.QDialog):
                     colormap.setSaturation(Colormap._DEFAULT_SATURATION)
                 colormap.setAutoscaleMode(mode)
 
-        self._updateSaturationVisibility()
         self._updateWidgetRange()
 
     def _updateSaturationVisibility(self):

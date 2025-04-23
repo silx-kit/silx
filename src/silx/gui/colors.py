@@ -584,11 +584,11 @@ class Colormap(qt.QObject):
         """Returns the gamma correction parameter value."""
         return self.__gamma
 
-    def getAutoscaleMode(self) -> AutoScaleModeType:
+    def getAutoscaleMode(self) -> str:
         """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
         return self._autoscaleMode
 
-    def setAutoscaleMode(self, mode: AutoScaleModeType):
+    def setAutoscaleMode(self, mode: str):
         """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'.
 
         :param mode: the mode to set
