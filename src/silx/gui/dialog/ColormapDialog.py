@@ -978,6 +978,7 @@ class ColormapDialog(qt.QDialog):
         self._saturationSlider.setTickPosition(qt.QSlider.TicksBelow)
         self._saturationSlider.setRange(0, 100)
         self._saturationSlider.setValue(2)  # 2 <=> 1-99 percentile mode
+        self._saturationSlider.setTracking(False)
         self._saturationSlider.valueChanged.connect(self._saturationChanged)
 
         rangeLayout = qt.QGridLayout()
