@@ -60,33 +60,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4        
+      - name: Set up MSVC environment if applicable
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
       - uses: ./.github/actions/setup-system
-      - name: Set up MSVC environment if applicable
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64  # ou x86 selon vos besoins
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
 
-      - name: Build Windows
-        if: runner.os == 'Windows'          
-        shell: cmd
-        run: |
-          "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
-          echo %PATH%
-          python -m build 
-          dir dist
-
-      - name: Build Unix
+      - name: Build Wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-        if: runner.os != 'Windows'
         run: |
+          echo $PATH
           python -m build 
           ls dist
 
