@@ -266,9 +266,7 @@ class _NormalizationMixIn:
             else:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile":
-            vmin, vmax = self.autoscale_percentile(
-                data, percentile=(saturation / 2.0, 100 - saturation / 2.0)
-            )
+            vmin, vmax = self.autoscale_percentile(data, saturation=saturation)
         else:
             raise ValueError("Unsupported mode: %s" % mode)
 
@@ -325,20 +323,27 @@ class _NormalizationMixIn:
         )
 
     def autoscale_percentile(
-        self, data: numpy.ndarray, percentile=(1, 99)
+        self, data: numpy.ndarray, saturation: int = 2
     ) -> tuple[float, float] | tuple[None, None]:
-        """Autoscale using [1st, 99th] percentiles
+        """Autoscale using percentiles
 
         :param data: The data to process
-        :param percentile: percentile to be used for autoscale calculation
+        :param saturation: in [0, 100] 'saturation' of the image that will impact percentiles as [saturation/2.0, 100-saturation/2.0]
         :returns: (vmin, vmax)
         """
+        if not isinstance(saturation, int):
+            raise TypeError(
+                f"saturation is expected to be an int. Got {type(saturation)}"
+            )
+        if not (0 <= saturation <= 100):
+            raise ValueError(f"saturation should be in [0, 100]. Got {saturation}")
         data = data[self.is_valid(data)]
         if data.dtype.kind == "f":  # Strip +/-inf
             data = data[numpy.isfinite(data)]
         if data.size == 0:
             return None, None
 
+        percentile = (saturation / 2.0, 100 - saturation / 2.0)
         return numpy.nanpercentile(data, percentile)
 
 
