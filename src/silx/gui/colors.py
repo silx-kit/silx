@@ -162,26 +162,28 @@ def rgba(
         return rgba(color.getRgb(), colorDict, colors)
 
     # From array
-    values = numpy.asarray(color).ravel()
+    varray = numpy.asarray(color).ravel()
 
-    if values.dtype.kind not in "iuf":
+    if varray.dtype.kind not in "iuf":
         raise ValueError(
-            f"The array color must be integer/unsigned or float. Found '{values.dtype.kind}'"
+            f"The array color must be integer/unsigned or float. Found '{varray.dtype.kind}'"
         )
-    if len(values) not in (3, 4):
+    if len(varray) not in (3, 4):
         raise ValueError(
-            f"The array color must have 3 or 4 compound. Found '{len(values)}'"
+            f"The array color must have 3 or 4 compound. Found '{len(varray)}'"
         )
 
     # Convert from integers in [0, 255] to float in [0, 1]
-    if values.dtype.kind in "iu":
-        values = values / 255.0
+    if varray.dtype.kind in "iu":
+        farray = varray / 255.0
+    else:
+        farray = varray
 
-    values = numpy.clip(values, 0.0, 1.0)
+    farray = numpy.clip(farray, 0.0, 1.0)
 
-    if len(values) == 3:
-        return values[0], values[1], values[2], 1.0
-    return tuple(values)
+    if len(farray) == 3:
+        return farray[0], farray[1], farray[2], 1.0
+    return farray[0], farray[1], farray[2], farray[3]
 
 
 def greyed(
@@ -275,7 +277,7 @@ class _Colormappable:
         """
         raise NotImplementedError("This method must be implemented in subclass")
 
-    def getColormappedData(copy: bool = False) -> numpy.ndarray | None:
+    def getColormappedData(self, copy: bool = False) -> numpy.ndarray | None:
         """Returns the data used to compute the displayed colors
 
         :param copy: True to get a copy, False to get internal data (do not modify!).
@@ -345,7 +347,7 @@ class Colormap(qt.QObject):
     def __init__(
         self,
         name: str | None = None,
-        colors: numpy.ndarray | None = None,
+        colors: numpy.ndarray | list[RGBAColorType] | None = None,
         normalization: str = LINEAR,
         vmin: float | None = None,
         vmax: float | None = None,
@@ -369,8 +371,8 @@ class Colormap(qt.QObject):
                 vmin = None
                 vmax = None
 
-        self._name = None
-        self._colors = None
+        self._name: str | None = None
+        self._colors: numpy.ndarray | None = None
 
         if colors is not None and name is not None:
             raise ValueError("name and colors arguments can't be set at the same time")
@@ -404,7 +406,10 @@ class Colormap(qt.QObject):
             if name is not None:
                 self.setName(name)
             else:
-                self.setColormapLUT(other.getColormapLUT())
+                colors = other.getColormapLUT()
+                # There is no name so there is a color
+                assert colors is not None
+                self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
@@ -468,7 +473,7 @@ class Colormap(qt.QObject):
             return numpy.array(self._colors, copy=copy or NP_OPTIONAL_COPY)
         return None
 
-    def setColormapLUT(self, colors: numpy.ndarray):
+    def setColormapLUT(self, colors: numpy.ndarray | list[RGBAColorType]):
         """Set the colors of the colormap.
 
         :param colors: the colors of the LUT.
@@ -687,22 +692,30 @@ class Colormap(qt.QObject):
                 _logger.info("Invalid vmax, switching to autoscale for upper bound")
             vmax = None
 
-        if vmin is None or vmax is None:  # Handle autoscale
-            if isinstance(data, _Colormappable):
-                min_, max_ = data._getColormapAutoscaleRange(self)
-                # Make sure min_, max_ are not None
-                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
-                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
-            else:
-                min_, max_ = normalizer.autoscale(data, mode=self.getAutoscaleMode())
+        if vmin is not None and vmax is not None:
+            return vmin, vmax
 
-            if vmin is None:  # Set vmin respecting provided vmax
-                vmin = min_ if vmax is None else min(min_, vmax)
+        # Handle autoscale
 
-            if vmax is None:
-                vmax = max(max_, vmin)  # Handle max_ <= 0 for log scale
+        if isinstance(data, _Colormappable):
+            min_, max_ = data._getColormapAutoscaleRange(self)
+            # Make sure min_, max_ are not None
+            fmin = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+            fmax = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+        else:
+            fmin, fmax = normalizer.autoscale(data, mode=self.getAutoscaleMode())
 
-        return vmin, vmax
+        if vmin is None:  # Set vmin respecting provided vmax
+            vmin2 = fmin if vmax is None else min(fmin, vmax)
+        else:
+            vmin2 = vmin
+
+        if vmax is None:
+            vmax2 = max(fmax, vmin2)  # Handle max_ <= 0 for log scale
+        else:
+            vmax2 = vmax
+
+        return vmin2, vmax2
 
     def getVRange(self) -> tuple[float | None, float | None]:
         """Get the bounds of the colormap
@@ -828,6 +841,8 @@ class Colormap(qt.QObject):
         if name is not None:
             self.setName(name)
         else:
+            # if name is None => colors is not None
+            assert colors is not None
             self.setColormapLUT(colors)
         self._vmin = vmin
         self._vmax = vmax
@@ -877,10 +892,12 @@ class Colormap(qt.QObject):
         vmin, vmax = self.getColormapRange(reference)
 
         if isinstance(data, _Colormappable):  # Use item's data
-            data = data.getColormappedData(copy=False)
+            array = data.getColormappedData(copy=False)
+        else:
+            array = data
 
         return _colormap.cmap(
-            data, self._colors, vmin, vmax, self._getNormalizer(), self.__nanColor
+            array, self._colors, vmin, vmax, self._getNormalizer(), self.__nanColor
         )
 
     @staticmethod
@@ -1027,7 +1044,7 @@ class Colormap(qt.QObject):
         return data
 
 
-_PREFERRED_COLORMAPS = None
+_PREFERRED_COLORMAPS: list[str] | None = None
 """
 Tuple of preferred colormap names accessed with :meth:`preferredColormaps`.
 """
@@ -1059,6 +1076,10 @@ def preferredColormaps() -> tuple[str, ...]:
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
         setPreferredColormaps(_DEFAULT_PREFERRED_COLORMAPS)
+
+    # setPreferredColormaps initialize _PREFERRED_COLORMAPS
+    assert _PREFERRED_COLORMAPS is not None
+
     return tuple(_PREFERRED_COLORMAPS)
 
 
