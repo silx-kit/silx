@@ -608,7 +608,9 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
-        self.__cacheColormapRange: dict[tuple[str, str, int|None], tuple[float]] = {}  # Store {normalization, mode, saturation: range}
+        self.__cacheColormapRange: dict[tuple[str, str, int | None], tuple[float]] = (
+            {}
+        )  # Store {normalization, mode, saturation: range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -659,7 +661,10 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
             if min_ is not None and numpy.isfinite(min_):
-                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX, None] = (min_, max_)
+                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX, None] = (
+                    min_,
+                    max_,
+                )
             if minPositive is not None and numpy.isfinite(minPositive):
                 self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX, None] = (
                     minPositive,
