@@ -237,7 +237,7 @@ class _NormalizationMixIn:
         else:
             return True
 
-    def autoscale(self, data: numpy.ndarray | None, mode: str, saturation: int = 0):
+    def autoscale(self, data: numpy.ndarray | None, mode: AutoScaleModeType, saturation: int = 0) -> tuple[float, float]:
         """Returns range for given data and autoscale mode.
 
         :param Union[None,numpy.ndarray] data:
@@ -474,7 +474,7 @@ def _get_range(
     vmin: float | None,
     vmax: float | None,
     saturation: int = 0,
-):
+) -> tuple[float, float]:
     """Returns effective range"""
     if vmin is None or vmax is None:
         auto_vmin, auto_vmax = normalizer.autoscale(
