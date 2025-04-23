@@ -34,10 +34,12 @@ from typing import NamedTuple, Literal
 import warnings
 import numpy
 
+
 from ..resources import resource_filename as _resource_filename
 from .combo import min_max as _min_max
 from . import _colormap
 from ._colormap import cmap  # noqa
+from ..utils.deprecation import deprecated_warning
 from ..utils.proxy import docstring
 
 
@@ -246,6 +248,15 @@ class _NormalizationMixIn:
         data = None if data is None else numpy.asarray(data)
         if data is None or data.size == 0:
             return self.DEFAULT_RANGE
+
+        if mode == "percentile_1_99":
+            deprecated_warning(
+                type_="Mode",
+                name="mode",
+                replacement="percentile",
+                since_version="3.0",
+            )
+            mode = "percentile"
 
         if mode == "minmax":
             vmin, vmax = self.autoscale_minmax(data)

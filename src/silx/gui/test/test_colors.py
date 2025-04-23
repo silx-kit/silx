@@ -661,6 +661,12 @@ class TestAutoscaleRange(ParametricTestCase):
                 numpy.array([10, 50, 100, -50]),
                 (10.8, 99.0),
             ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 50, 100, -50]),
+                (10.8, 99.0),
+            ),
             # With inf
             (
                 Colormap.LOGARITHM,

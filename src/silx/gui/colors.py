@@ -44,6 +44,7 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
+from silx.utils.deprecation import deprecated_warning
 
 
 _logger = logging.getLogger(__name__)
@@ -333,6 +334,9 @@ class Colormap(qt.QObject):
     """constant for autoscale using mean +/- 3*std(data)
     with a clamp on min/max of the data"""
 
+    PERCENTILE_1_99 = "percentile_1_99"
+    """constant for autoscale using 1st and 99th percentile of data. Deprecated to the benefit of 'percentile'"""
+
     PERCENTILE = "percentile"
     """constant for autoscale using n'st and m'th percentile of data"""
 
@@ -582,12 +586,23 @@ class Colormap(qt.QObject):
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'
+        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'.
 
         :param mode: the mode to set
+
+        .. warning:: 'percentile_1_99' is deprecated
         """
         if self.isEditable() is False:
             raise NotEditableError("Colormap is not editable")
+        if mode == self.PERCENTILE_1_99:
+            deprecated_warning(
+                type_="Mode",
+                name="mode",
+                replacement="percentile",
+                since_version="3.0",
+            )
+            mode = self.PERCENTILE
+
         assert mode in self.AUTOSCALE_MODES
         if mode != self._autoscaleMode:
             self._autoscaleMode = mode
