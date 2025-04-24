@@ -4,9 +4,11 @@
 
 # Exit immediately if a command exits with a non-zero status
 set -e
+# Print commands and their arguments as they are executed (debug mode)
+set -x
 
 log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO [notarize] $1"
 }
 
 log "Setting the required environment variables."
