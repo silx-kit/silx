@@ -158,13 +158,13 @@ if test_options is not None:
     test_options.add_parser_argument(parser)
 
 parser.add_argument("test_name", nargs='*',
-                    default=tuple(),
-                    help="Test names to run (Default: all)")
+                    default=(PROJECT_NAME,),
+                    help=f"Test names to run (Default: {PROJECT_NAME})")
 
 parser.add_argument("-i", "--installed",
                     action="store_true", dest="installed", default=False,
                     help="Test the installed version instead of"
-                          "building from the source")
+                          "building from the source and testing the development version")
 parser.add_argument("--no-gui",
                     action="store_false", dest="gui", default=True,
                     help="Disable the test of the graphical use interface")
@@ -177,21 +177,13 @@ parser.add_argument("--no-opencl",
 parser.add_argument("--high-mem",
                     action="store_false", dest="low_mem", default=True,
                     help="Enable tests requiring large amounts of data (>100Mb)")
-
-# parser.add_argument("-c", "--coverage", dest="coverage",
-#                     action="store_true", default=False,
-#                     help=("Report code coverage" +
-#                           "(requires 'coverage' and 'lxml' module)"))
-# parser.add_argument("-m", "--memprofile", dest="memprofile",
-#                     action="store_true", default=False,
-#                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
 parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+                    help="Force using a Qt binding, from 'PyQt5', 'PyQt6', or 'PySide6'")
 
 options = parser.parse_args()
 
@@ -208,27 +200,12 @@ elif options.verbose > 1:
     test_verbosity = 2
     use_buffer = False
 
-# if options.coverage:
-#     logger.info("Running test-coverage")
-#     import coverage
-#     omits = ["*test*", "*third_party*", "*/setup.py",
-#              # temporary test modules (silx.math.fit.test.test_fitmanager)
-#              "*customfun.py", ]
-#     try:
-#         coverage_class = coverage.Coverage
-#     except AttributeError:
-#         coverage_class = coverage.coverage
-#     print(f"|{PROJECT_NAME}|")
-#     cov = coverage_class(include=[f"*/{PROJECT_NAME}/*"],
-#                          omit=omits)
-#     cov.start()
-
 if options.qt_binding:
     binding = options.qt_binding.lower()
     if binding == "pyqt5":
         logger.info("Force using PyQt5")
         import PyQt5.QtCore  # noqa
-    if binding == "pyqt6":
+    elif binding == "pyqt6":
         logger.info("Force using PyQt6")
         import PyQt6.QtCore  # noqa
     elif binding == "pyside6":
@@ -245,7 +222,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     project_module = module
     PROJECT_PATH = str(Path(project_module.__path__[0]).resolve())
-    print("PROJECT_PATH:", PROJECT_PATH)
+    print(f"PROJECT_PATH: {PROJECT_PATH}")
     sys.path.insert(0, PROJECT_PATH)
 
     # corresponds to options to pass back to pytest ...
@@ -261,31 +238,24 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     if options.low_mem is True:
         pytest_options.append("--low-mem")
 
-    
-    
-    def normalize_option(option):
+    def path2module(option):
+        if option.endswith(".py"):
+            option=option[:-3]
         option_parts = option.split(os.path.sep)
-        if option_parts == ["src", "silx"]:
-            return PROJECT_PATH
-        if option_parts[:2] == ["src", "silx"]:
-            return os.path.join(PROJECT_PATH, *option_parts[2:])
-        if option_parts[:1] == "silx":
-            return os.path.join(PROJECT_PATH,*option_parts[1:])
-        return option
+        if option_parts == ["src", PROJECT_NAME]:
+            option_parts = [PROJECT_NAME]
+        elif len(option_parts)==1:
+            pass
+        elif option_parts[:2] == ["src", PROJECT_NAME]:
+            option_parts = option_parts[1:]
+        return ".".join(i for i in option_parts if i)
 
-    args=[normalize_option(p) for p in options.test_name]
+    modules = [path2module(p) for p in options.test_name]
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
-
-    try:
-        rc = test_module.run_tests(
-                module=None if options.test_name else "silx",
-                args=[normalize_option(p) for p in options.test_name],
-                options=pytest_options
-            )
-    except TypeError:
-        rc = test_module.run_tests(
-                module=None if options.test_name else "silx",
-                args=pytest_options+args)
-    finally:
-        sys.exit(rc)
+    # print(modules)
+    # print(pytest_options)
+    rc = test_module.run_tests(
+            modules=modules,
+            args=pytest_options)
+    sys.exit(rc)
 

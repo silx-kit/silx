@@ -43,10 +43,9 @@ except ImportError:
 
 
 def run_tests(
-    module: str | None = "silx",
+    modules: Sequence[str] = ("silx",),
     verbosity: int = 0,
     args: Sequence[str] = (),
-    options: Sequence[str] = (),
 ):
     """Run tests in a subprocess
 
@@ -70,16 +69,22 @@ def run_tests(
         # Remove __array__ ignore once h5py v3.12 is released
         "-Wignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
     ]
-    cmd += list(options)
+
     if args:
         cmd += list(args)
-    elif module is not None:
+
+    if modules:
+        list_path = []
+        for module in modules:
         # Retrieve folder for packages and file for modules
-        imported_module = importlib.import_module(module)
-        cmd.append(
-            imported_module.__path__[0]
-            if hasattr(imported_module, "__path__")
-            else imported_module.__file__
-        )
-    print(cmd)
+            imported_module = importlib.import_module(module)
+            list_path.append(
+                imported_module.__path__[0]
+                if hasattr(imported_module, "__path__")
+                else imported_module.__file__
+                )
+        cmd += list_path
+        
+    print("Running pytest with this command:")
+    print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
     return subprocess.run(cmd, check=False).returncode

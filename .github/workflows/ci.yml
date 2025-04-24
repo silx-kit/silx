@@ -59,24 +59,41 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4        
+      - name: Set up MSVC environment if applicable
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
-
       - uses: ./.github/actions/setup-system
-
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
 
-      - name: Build
+      - name: Build Wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
-          python -m build 
+          echo $PATH
+          cat > mybuild.py <<EOF
+          import os, sys
+          oldpath=os.environ['PATH'].split(':')
+          newpath=[]
+          for p in oldpath:
+              if "Microsoft Visual Studio" in p:
+                  newpath.insert(0, p)
+              else:
+                  newpath.append(p)
+          print(os.linesep.join(newpath))
+          os.environ["PATH"] = ":".join(newpath)
+          
+          from build.__main__ import main
+          main(sys.argv[1:], 'python -m build')
+          EOF
+          python mybuild.py
           ls dist
 
       - name: Install
@@ -93,5 +110,4 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          pip install --upgrade -r requirements-dev.txt
-          python run-test.py --installed --qt-binding=${{ matrix.QT_API }}
+          python run_tests.py --installed --qt-binding=${{ matrix.QT_API }}
