@@ -421,7 +421,9 @@ class Colormap(qt.QObject):
                 assert colors is not None
                 self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
-            self.setSaturationAutoscaleParameter(other.getSaturationAutoscaleParameter())
+            self.setSaturationAutoscaleParameter(
+                other.getSaturationAutoscaleParameter()
+            )
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
             self.setAutoscaleMode(other.getAutoscaleMode())
@@ -708,7 +710,9 @@ class Colormap(qt.QObject):
         :return: (vmin, vmax) range
         """
         return self._getNormalizer().autoscale(
-            data, mode=self.getAutoscaleMode(), saturation=self.getSaturationAutoscaleParameter()
+            data,
+            mode=self.getAutoscaleMode(),
+            saturation=self.getSaturationAutoscaleParameter(),
         )
 
     def getColormapRange(
@@ -751,7 +755,9 @@ class Colormap(qt.QObject):
                 max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
                 min_, max_ = normalizer.autoscale(
-                    data, mode=self.getAutoscaleMode(), saturation=self.getSaturationAutoscaleParameter()
+                    data,
+                    mode=self.getAutoscaleMode(),
+                    saturation=self.getSaturationAutoscaleParameter(),
                 )
 
         # Handle autoscale
