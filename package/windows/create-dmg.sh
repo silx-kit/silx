@@ -2,15 +2,20 @@
 
 # The script creates a DMG file for the application bundle.
 
+# Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "Setting environment variables."
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+log "Setting environment variables."
 APP_NAME="silx-view"
 ROOT="${PWD}"
 APP="${ROOT}/dist/${APP_NAME}.app"
 RESOURCES="${ROOT}" # The path to resources (volume icon, background, ...)."
 
-echo "Setting derived environment variables."
+log "Setting derived environment variables."
 ARTIFACTS="${ROOT}/artifacts"
 TEMPLATE="${ARTIFACTS}/template"
 TEMPLATE_DMG="${ARTIFACTS}/template.dmg"
@@ -18,17 +23,17 @@ APP_DMG="${ARTIFACTS}/${APP_NAME}.dmg"
 
 SLEEP_INTERVAL=5
 
-echo "Checking if artifacts folder exists."
+log "Checking if artifacts folder exists."
 [ -d "${ARTIFACTS}" ] && rm -rf "${ARTIFACTS}"
 
-echo "Creating the artifacts folder."
+log "Creating the artifacts folder."
 mkdir -p "${ARTIFACTS}"
 
-echo "Removing any previous images."
+log "Removing any previous images."
 if [[ -e "${TEMPLATE}" ]]; then rm -rf "${TEMPLATE}"; fi
 if [[ -e "${APP_DMG}" ]]; then rm -rf "${APP_DMG}"; fi
 
-echo "Copying required files."
+log "Copying required files."
 mkdir -p "${TEMPLATE}/.background"
 cp -a "${RESOURCES}/background.pdf" "${TEMPLATE}/.background/background.pdf"
 cp -a "${RESOURCES}/silx.icns" "${TEMPLATE}/.VolumeIcon.icns"
@@ -36,39 +41,39 @@ cp -a "${RESOURCES}/DS_Store" "${TEMPLATE}/.DS_Store"
 cp -a "${APP}" "${TEMPLATE}/${APP_NAME}.app"
 ln -s "/Applications/" "${TEMPLATE}/Applications"
 
-echo "Creating a regular .fseventsd/no_log file."
+log "Creating a regular .fseventsd/no_log file."
 mkdir "${TEMPLATE}/.fseventsd"
 touch "${TEMPLATE}/.fseventsd/no_log"
 
-echo "Sleeping for a few seconds."
+log "Sleeping for a few seconds."
 sleep "${SLEEP_INTERVAL}"
 
-echo "Creating the temporary disk image."
+log "Creating the temporary disk image."
 hdiutil create -verbose -format UDRW -volname "${APP_NAME}" -fs APFS \
        -srcfolder "${TEMPLATE}" \
        "${TEMPLATE_DMG}"
 
-echo "Sleeping for a few seconds."
+log "Sleeping for a few seconds."
 sleep "${SLEEP_INTERVAL}"
 
-echo "Detaching the temporary disk image if still attached."
+log "Detaching the temporary disk image if still attached."
 hdiutil detach -verbose "/Volumes/${APP_NAME}" -force || true
 
-echo "Attaching the temporary disk image in read/write mode."
+log "Attaching the temporary disk image in read/write mode."
 MOUNT_OUTPUT=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMPLATE_DMG}" | grep '^/dev/')
 DEV_NAME=$(echo -n "${MOUNT_OUTPUT}" | head -n 1 | awk '{print $1}')
 MOUNT_POINT=$(echo -n "${MOUNT_OUTPUT}" | tail -n 1 | awk '{print $3}')
 
-echo "Fixing permissions."
+log "Fixing permissions."
 chmod -Rf go-w "${TEMPLATE}" || true
 
-echo "Hiding the background directory even more."
+log "Hiding the background directory even more."
 SetFile -a V "${MOUNT_POINT}/.background"
 
-echo "Seting the custom icon volume flag so that volume has nice icon."
+log "Seting the custom icon volume flag so that volume has nice icon."
 SetFile -a C "${MOUNT_POINT}"
 
-echo "Moving the icons to the appropriate position relative to the background."
+log "Moving the icons to the appropriate position relative to the background."
 WINDOW_SIZE="{0, 0, 500, 300}"
 APP_ICON_POSITION="{114, 124}"
 APPLICATIONS_ICON_POSITION="{386, 124}"
@@ -98,18 +103,21 @@ tell application "Finder"
 end tell
 EOF
 
-echo "Sleeping for a few seconds."
+log "Sleeping for a few seconds."
 sleep "${SLEEP_INTERVAL}"
 
-echo "Detaching the temporary disk image"
+log "Detaching the temporary disk image"
 hdiutil detach "${DEV_NAME}" -force || true
 
-echo "Sleeping for a few seconds."
+log "Sleeping for a few seconds."
 sleep "${SLEEP_INTERVAL}"
 
-echo "Converting the temporary image to a compressed image."
-hdiutil convert "${TEMPLATE_DMG}" -format UDZO -imagekey zlib-level=9 -o "${APP_DMG}"
+log "Converting the temporary image to a compressed image."
+hdiutil convert "${TEMPLATE_DMG}" \
+       -format UDZO \
+       -imagekey zlib-level=9 \
+       -o "${APP_DMG}"
 
-echo "Cleaning up."
+log "Cleaning up."
 rm -rf "${TEMPLATE}"
 rm -rf "${TEMPLATE_DMG}"

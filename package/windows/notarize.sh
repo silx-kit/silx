@@ -2,17 +2,26 @@
 
 # The script submits the application for notarization to Apple.
 
+# Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "Setting the required environment variables."
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+log "Setting the required environment variables."
 APP_NAME="silx-view"
 ROOT="${PWD}"
 APP_DMG="${ROOT}/artifacts/${APP_NAME}.dmg"
 
-echo "Submiting the application for notarization."
-xcrun notarytool submit --apple-id "${APPLE_ID}" --team-id "${APPLE_TEAM_ID}" --password "${APPLICATION_SPECIFIC_PASSWORD}" --wait "${APP_DMG}"
+log "Submiting the application for notarization."
+xcrun notarytool submit \
+  --apple-id "${APPLE_ID}" \
+  --team-id "${APPLE_TEAM_ID}" \
+  --password "${APPLICATION_SPECIFIC_PASSWORD}" \
+  --wait "${APP_DMG}"
 
-echo "Stapling the notarization ticket to the application bundle."
+log "Stapling the notarization ticket to the application bundle."
 xcrun stapler staple "${APP_DMG}"
 
-echo "Notarization completed successfully."
+log "Notarization completed successfully."

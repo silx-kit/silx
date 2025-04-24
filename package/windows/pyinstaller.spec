@@ -175,8 +175,6 @@ if sys.platform == "darwin":
         os.path.join("artifacts", "silx-view.dmg"),
         os.path.join("artifacts", f"silx-view-{strictversion}.dmg"),
     )
-
-    pass
 elif sys.platform == "win32":
     config_name = "create-installer.iss"
     with open(config_name + ".template") as f:
