@@ -56,21 +56,23 @@ cdef class MarchingCubes:
 
     Expected indices in memory of a (2, 2, 2) dataset:
 
-           dim 0 (depth)
-             |
-             |
-           4 +------+ 5
-            /|     /|
-           / |    / |
-        6 +------+ 7|
-          |  |   |  |
-          |0 +---|--+ 1 --- dim 2 (width)
-          | /    | /
-          |/     |/
-        2 +------+ 3
-         /
-        /
-      dim 1 (height)
+    .. code-block::
+
+             dim 0 (depth)
+               |
+               |
+             4 +------+ 5
+              /|     /|
+             / |    / |
+          6 +------+ 7|
+            |  |   |  |
+            |0 +---|--+ 1 --- dim 2 (width)
+            | /    | /
+            |/     |/
+          2 +------+ 3
+           /
+          /
+        dim 1 (height)
 
     Example with a 3D data set:
 
@@ -97,8 +99,10 @@ cdef class MarchingCubes:
     """
     cdef mc.MarchingCubes[float, float] * c_mc  # Pointer to the C++ instance
 
-    def __cinit__(self, data=None, isolevel=None,
-                  invert_normals=True, sampling=(1, 1, 1)):
+    def __cinit__(
+        self, data=None, isolevel=None,
+        invert_normals=True, sampling=(1, 1, 1)
+    ):
         self.c_mc = new mc.MarchingCubes[float, float](isolevel)
         self.c_mc.invert_normals = bool(invert_normals)
         self.c_mc.sampling[0] = sampling[0]
@@ -227,5 +231,6 @@ cdef class MarchingCubes:
     def get_indices(self):
         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
         """
-        return numpy.array(self.c_mc.indices,
-                           dtype=numpy.uint32).reshape(-1, 3)
+        return numpy.array(
+            self.c_mc.indices,
+            dtype=numpy.uint32).reshape(-1, 3)
