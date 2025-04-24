@@ -235,13 +235,12 @@ class _NormalizationMixIn:
         else:
             return True
 
-    def autoscale(
-        self, data: numpy.ndarray | None, mode: AutoScaleModeType
-    ) -> tuple[float, float]:
+    def autoscale(self, data, mode, saturation: float = 0.0):
         """Returns range for given data and autoscale mode.
 
-        :param data: The data to process
-        :param mode: Autoscale mode ('minmax' or 'stddev3')
+        :param Union[None,numpy.ndarray] data:
+        :param str mode: Autoscale mode: 'minmax' or 'stddev3'
+        :param saturation: ratio of pixel to saturate when computing vmin and vmax. Used by the "PERCENTILE" colormap. in (0, 100)
         :returns: Range as (min, max)
         """
         data = None if data is None else numpy.asarray(data)
@@ -267,7 +266,12 @@ class _NormalizationMixIn:
             else:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile":
-            vmin, vmax = self.autoscale_percentile(data)
+            vmin, vmax = self.autoscale_percentile(
+                data, percentile=(saturation / 2.0, 100 - saturation / 2.0)
+            )
+        elif mode == "contrast_enhancer":
+            vmin, vmax = self.autoscale_contrast_enhancer(data)
+
         else:
             raise ValueError("Unsupported mode: %s" % mode)
 
@@ -450,16 +454,12 @@ def _get_normalizer(norm: str, gamma: float) -> _NormalizationMixIn:
     return _BASIC_NORMALIZATIONS[norm]
 
 
-def _get_range(
-    normalizer,
-    data: numpy.ndarray,
-    autoscale: AutoScaleModeType,
-    vmin: float | None,
-    vmax: float | None,
-) -> tuple[float, float]:
+def _get_range(normalizer, data, autoscale, vmin, vmax, saturation: float = 0.0):
     """Returns effective range"""
     if vmin is None or vmax is None:
-        auto_vmin, auto_vmax = normalizer.autoscale(data, autoscale)
+        auto_vmin, auto_vmax = normalizer.autoscale(
+            data, autoscale, saturation=saturation
+        )
         if vmin is None:  # Set vmin respecting provided vmax
             vmin = auto_vmin if vmax is None else min(auto_vmin, vmax)
         if vmax is None:
@@ -474,10 +474,11 @@ def apply_colormap(
     data,
     colormap: str,
     norm: str = "linear",
-    autoscale: AutoScaleModeType = "minmax",
-    vmin: float | None = None,
-    vmax: float | None = None,
-    gamma: float = 1.0,
+    autoscale: str = "minmax",
+    vmin=None,
+    vmax=None,
+    gamma=1.0,
+    saturation: float = 0.0,
 ):
     """Apply colormap to data with given normalization and autoscale.
 
@@ -489,11 +490,14 @@ def apply_colormap(
     :param vmax: Upper bound, None (default) to autoscale
     :param float gamma:
         Gamma correction parameter (used only for "gamma" normalization)
+    :param saturation: ratio of pixel to saturate when computing vmin and vmax. Used by the "PERCENTILE" colormap
     :returns: Array of colors
     """
     colors = get_colormap_lut(colormap)
     normalizer = _get_normalizer(norm, gamma)
-    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
+    vmin, vmax = _get_range(
+        normalizer, data, autoscale, vmin, vmax, saturation=saturation
+    )
     return _colormap.cmap(
         data,
         colors,
@@ -516,11 +520,12 @@ class NormalizeResult(NamedTuple):
 def normalize(
     data: numpy.ndarray,
     norm: str = "linear",
-    autoscale: AutoScaleModeType = "minmax",
-    vmin: float | None = None,
-    vmax: float | None = None,
-    gamma: float = 1.0,
-) -> NormalizeResult:
+    autoscale: str = "minmax",
+    vmin=None,
+    vmax=None,
+    gamma=1.0,
+    saturation=0.0,
+):
     """Normalize data to an array of uint8.
 
     :param data: Data to normalize
@@ -530,10 +535,13 @@ def normalize(
     :param vmax: Upper bound, None (default) to autoscale
     :param gamma:
         Gamma correction parameter (used only for "gamma" normalization)
+    :param saturation: ratio of pixel to saturate when computing vmin and vmax. Used by the "PERCENTILE" colormap
     :returns: Array of normalized values, vmin, vmax
     """
     normalizer = _get_normalizer(norm, gamma)
-    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
+    vmin, vmax = _get_range(
+        normalizer, data, autoscale, vmin, vmax, saturation=saturation
+    )
     norm_data = _colormap.cmap(
         data,
         _UINT8_LUT,

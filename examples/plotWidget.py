@@ -41,7 +41,7 @@ import numpy
 
 from silx.gui import qt
 
-from silx.gui.plot import PlotWidget
+from silx.gui.plot import Plot2D
 from silx.gui.plot import tools  # QToolbars to use with PlotWidget
 from silx.gui.plot import actions  # QAction to use with PlotWidget
 from silx.gui.plot import PlotToolButtons  # QToolButton to use with PlotWidget
@@ -57,7 +57,7 @@ class MyPlotWindow(qt.QMainWindow):
         super().__init__(parent)
 
         # Create a PlotWidget
-        self._plot = PlotWidget(parent=self)
+        self._plot = Plot2D(parent=self)
 
         # Create a colorbar linked with the PlotWidget
         colorBar = ColorBarWidget(parent=self, plot=self._plot)
