@@ -227,7 +227,6 @@ def main(argv):
         argv = options.script[1:]
         res = find_executable(script)
         kind = res[0]
-        # print(res)
         if kind == "path":
             run_file(target, argv)
         elif kind == "entry_point":
