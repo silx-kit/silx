@@ -1,8 +1,14 @@
 #!/usr/bin/python3
+"""
+Tool to bootstrap the structure of meson-python project.
+Adds all Python files by default.
+Does NOT update missing files. Manual edition is needed.
+"""
 
-import os
 
-def mesonify(where, top=None):    
+import os, sys
+
+def mesonify(where, top=None):
     if top==None:
         top = os.path.join(where,"src")
     # print(where, "top: ", top)
@@ -23,7 +29,7 @@ def mesonify(where, top=None):
     if pyfiles:
         pyfiles.sort()
         txt.append("")
-        txt.append("py.install_sources([")        
+        txt.append("py.install_sources([")
         for f in pyfiles:
             txt.append(f"    '{f}',")
         txt.append("],")
@@ -33,12 +39,16 @@ def mesonify(where, top=None):
         txt.append(")")
         txt.append("")
 
-    dst = os.path.join(where,"meson.build")
-    print(dst)
-    with open(dst,"w") as w:
-        w.write("\n".join(txt))
+    if txt:
+        dst = os.path.join(where,"meson.build")
+        if os.path.exists(dst):
+            print(f"Meson file `{dst}` already exist, not overwriting it!")
+        else:
+            print(f"Generating Meson file `{dst}`.")
+            with open(dst,"w") as w:
+                w.write("\n".join(txt))
 
 if __name__ == "__main__":
     base = os.path.abspath(os.path.join(__file__, "..", "..", "src"))
-    print(base)
+    print("Start working at `{base}`")
     mesonify(base, base)
