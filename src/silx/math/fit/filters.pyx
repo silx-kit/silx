@@ -53,7 +53,7 @@ References:
    https://doi.org/10.1016/0168-583X(88)90063-8
 
 API documentation:
--------------------
+------------------
 
 """
 
@@ -90,7 +90,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     :param factor: scaling factor applied to the average of ``y(i-w)`` and
         ``y(i+w)`` before comparing to ``y(i)``
     :param anchors: Array of anchors, indices of points that will not be
-          modified during the stripping procedure.
+        modified during the stripping procedure.
     :return: Data with peaks stripped away
     """
     cdef:
@@ -106,18 +106,21 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     else:
         data_shape = data.shape
 
-    input_c = numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    input_c = numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
-    output = numpy.empty(shape=(input_c.size,),
-                         dtype=numpy.float64)
+    output = numpy.empty(
+        shape=(input_c.size,),
+        dtype=numpy.float64)
 
     if anchors is not None and len(anchors):
-        anchors_c = numpy.asarray(anchors,
-                                dtype=numpy.intc,
-                                order='C')
+        anchors_c = numpy.asarray(
+            anchors,
+            dtype=numpy.intc,
+            order='C')
         len_anchors = anchors_c.size
     else:
         # Make a dummy length-1 array, because if I use shape=(0,) I get the error
@@ -126,10 +129,10 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
                                 dtype=numpy.intc)
         len_anchors = 0
 
-
-    status = filters_wrapper.strip(&input_c[0], input_c.size,
-                                    factor, niterations, w,
-                                    &anchors_c[0], len_anchors, &output[0])
+    status = filters_wrapper.strip(
+        &input_c[0], input_c.size,
+        factor, niterations, w,
+        &anchors_c[0], len_anchors, &output[0])
 
     return numpy.asarray(output).reshape(data_shape)
 
@@ -158,16 +161,18 @@ def snip1d(data, snip_width):
 
     if not isinstance(data, numpy.ndarray):
         if not hasattr(data, "__len__"):
-            raise TypeError("data must be a sequence (list, tuple) " +
-                            "or a numpy array")
+            raise TypeError(
+                "data must be a sequence (list, tuple) " +
+                "or a numpy array")
         data_shape = (len(data), )
     else:
         data_shape = data.shape
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.snip1d(&data_c[0], data_c.size, snip_width)
 
@@ -207,10 +212,11 @@ def snip2d(data, snip_width):
         else:
             raise TypeError("data array must be 2-dimensional")
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.snip2d(&data_c[0], nrows, ncolumns, snip_width)
 
@@ -254,10 +260,11 @@ def snip3d(data, snip_width):
         else:
             raise TypeError("data array must be 3-dimensional")
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.snip3d(&data_c[0], nx, ny, nz, snip_width)
 
@@ -277,19 +284,23 @@ def savitsky_golay(data, npoints=5):
         double[::1] data_c
         double[::1] output
 
-    data_c =  numpy.array(data,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
-    output = numpy.empty(shape=(data_c.size,),
-                         dtype=numpy.float64)
+    output = numpy.empty(
+        shape=(data_c.size,),
+        dtype=numpy.float64)
 
-    status = filters_wrapper.SavitskyGolay(&data_c[0], data_c.size,
-                                           npoints, &output[0])
+    status = filters_wrapper.SavitskyGolay(
+        &data_c[0], data_c.size,
+        npoints, &output[0])
 
     if status:
-        _logger.error("Smoothing failed. Check that npoints is greater " +
-                      "than 3 and smaller than 100.")
+        _logger.error(
+            "Smoothing failed. Check that npoints is greater " +
+            "than 3 and smaller than 100.")
 
     return numpy.asarray(output).reshape(data.shape)
 
@@ -323,10 +334,11 @@ def smooth1d(data):
     else:
         data_shape = data.shape
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.smooth1d(&data_c[0], data_c.size)
 
@@ -361,10 +373,11 @@ def smooth2d(data):
         else:
             raise TypeError("data array must be 2-dimensional")
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.smooth2d(&data_c[0], nrows, ncolumns)
 
@@ -403,10 +416,11 @@ def smooth3d(data):
         else:
             raise TypeError("data array must be 3-dimensional")
 
-    data_c =  numpy.array(data,
-                          copy=True,
-                          dtype=numpy.float64,
-                          order='C').reshape(-1)
+    data_c =  numpy.array(
+        data,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
 
     filters_wrapper.smooth3d(&data_c[0], nx, ny, nz)
 

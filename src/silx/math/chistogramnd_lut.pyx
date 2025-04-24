@@ -115,11 +115,12 @@ def histogramnd_get_lut(sample,
         err_histo_range = True
 
     if err_histo_range:
-        raise ValueError(f'<histo_range> error : expected {n_dims} sets of '
-                         'lower and upper bin edges, '
-                         f'got the following instead : {i_histo_range}. '
-                         '(provided <sample> contains '
-                         f'{n_dims}D values)'
+        raise ValueError(
+            f'<histo_range> error : expected {n_dims} sets of '
+            'lower and upper bin edges, '
+            f'got the following instead : {i_histo_range}. '
+            '(provided <sample> contains '
+            f'{n_dims}D values)'
         )
 
     histo_range = np.double(histo_range)
@@ -129,10 +130,11 @@ def histogramnd_get_lut(sample,
     if len(n_bins) == 1:
         n_bins = np.tile(n_bins, n_dims)
     elif n_bins.shape != (n_dims,):
-        raise ValueError('n_bins must be either a scalar (same number '
-                         'of bins for all dimensions) or '
-                         'an array (number of bins for each '
-                         'dimension).')
+        raise ValueError(
+            'n_bins must be either a scalar (same number '
+            'of bins for all dimensions) or '
+            'an array (number of bins for each '
+            'dimension).')
 
     # checking if None is in n_bins, otherwise a rather cryptic
     #   exception is thrown when calling np.zeros
@@ -157,30 +159,35 @@ def histogramnd_get_lut(sample,
     histo = np.zeros(n_bins, dtype=np.uint32)
 
     dtype = sample.dtype.newbyteorder("N")
-    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)),
-                                    dtype=dtype)
+    sample_c = np.ascontiguousarray(
+        sample.reshape((sample.size,)),
+        dtype=dtype)
 
-    histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)),
-                                         dtype=histo_range.dtype.newbyteorder("N"))
+    histo_range_c = np.ascontiguousarray(
+        histo_range.reshape((histo_range.size,)),
+        dtype=histo_range.dtype.newbyteorder("N"))
 
-    n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
-                                    dtype=np.int32)
+    n_bins_c = np.ascontiguousarray(
+        n_bins.reshape((n_bins.size,)),
+        dtype=np.int32)
 
     lut_c = np.ascontiguousarray(lut.reshape((lut.size,)))
-    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)),
-                                   dtype=histo.dtype.newbyteorder('N'))
+    histo_c = np.ascontiguousarray(
+        histo.reshape((histo.size,)),
+        dtype=histo.dtype.newbyteorder('N'))
 
     rc = 0
 
     try:
-        rc = _histogramnd_get_lut_fused(sample_c,
-                                        n_dims,
-                                        n_elem,
-                                        histo_range_c,
-                                        n_bins_c,
-                                        lut_c,
-                                        histo_c,
-                                        last_bin_closed)
+        rc = _histogramnd_get_lut_fused(
+            sample_c,
+            n_dims,
+            n_elem,
+            histo_range_c,
+            n_bins_c,
+            lut_c,
+            histo_c,
+            last_bin_closed)
     except TypeError as ex:
         raise TypeError(f'Type not supported - sample : {sample_type}')
 
@@ -193,8 +200,10 @@ def histogramnd_get_lut(sample,
         dim_edges = np.zeros(n_bins[i_dim] + 1)
         rng_min = histo_range[2 * i_dim]
         rng_max = histo_range[2 * i_dim + 1]
-        dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *
-                          ((rng_max - rng_min) / n_bins[i_dim]))
+        dim_edges[:-1] = (
+            rng_min + np.arange(n_bins[i_dim]) *
+            ((rng_max - rng_min) / n_bins[i_dim])
+        )
         dim_edges[-1] = rng_max
         edges.append(dim_edges)
 
@@ -205,33 +214,37 @@ def histogramnd_get_lut(sample,
 # =====================
 
 
-def histogramnd_from_lut(weights,
-                         histo_lut,
-                         histo=None,
-                         weighted_histo=None,
-                         shape=None,
-                         dtype=None,
-                         weight_min=None,
-                         weight_max=None):
+def histogramnd_from_lut(
+    weights,
+    histo_lut,
+    histo=None,
+    weighted_histo=None,
+    shape=None,
+    dtype=None,
+    weight_min=None,
+    weight_max=None
+):
     """
     dtype ignored if weighted_histo provided
     """
 
     if histo is None and weighted_histo is None:
         if shape is None:
-            raise ValueError('At least one of the following parameters has to '
-                             'be provided : <shape> or <histo> or '
-                             '<weighted_histo>')
+            raise ValueError(
+                'At least one of the following parameters has to '
+                'be provided : <shape> or <histo> or '
+                '<weighted_histo>')
 
     if shape is not None:
         if histo is not None and list(histo.shape) != list(shape):
-            raise ValueError('The <shape> value does not match'
-                             'the <histo> shape.')
+            raise ValueError(
+                'The <shape> value does not match'
+                'the <histo> shape.')
 
-        if(weighted_histo is not None and
-           list(weighted_histo.shape) != list(shape)):
-            raise ValueError('The <shape> value does not match'
-                             'the <weighted_histo> shape.')
+        if (weighted_histo is not None and list(weighted_histo.shape) != list(shape)):
+            raise ValueError(
+                'The <shape> value does not match'
+                'the <weighted_histo> shape.')
     else:
         if histo is not None:
             shape = histo.shape
@@ -240,15 +253,17 @@ def histogramnd_from_lut(weights,
 
     if histo is not None:
         if histo.dtype != np.uint32:
-            raise ValueError('Provided <histo> array doesn\'t have '
-                             'the expected type '
-                             f': should be {np.uint32} instead of {histo.dtype}.'
+            raise ValueError(
+                'Provided <histo> array doesn\'t have '
+                'the expected type '
+                f': should be {np.uint32} instead of {histo.dtype}.'
             )
 
         if weighted_histo is not None:
             if histo.shape != weighted_histo.shape:
-                raise ValueError('The <histo> shape does not match'
-                                 'the <weighted_histo> shape.')
+                raise ValueError(
+                    'The <histo> shape does not match'
+                    'the <weighted_histo> shape.')
     else:
         histo = np.zeros(shape, dtype=np.uint32)
 
@@ -261,28 +276,30 @@ def histogramnd_from_lut(weights,
             dtype = weighted_histo.dtype
     elif weighted_histo is not None:
         if weighted_histo.dtype != dtype:
-            raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'
-                             ' do not match.')
+            raise ValueError(
+                'Provided <dtype> and <weighted_histo>\'s dtype'
+                ' do not match.')
         dtype = weighted_histo.dtype
 
     if weighted_histo is None:
         weighted_histo = np.zeros(shape, dtype=dtype)
 
     if histo_lut.size != weights.size:
-        raise ValueError('The LUT and weights arrays must have the same '
-                         'number of elements.')
+        raise ValueError(
+            'The LUT and weights arrays must have the same '
+            'number of elements.')
 
     w_c = np.ascontiguousarray(weights.reshape((weights.size,)),
-                               dtype=weights.dtype.newbyteorder('N'))
+        dtype=weights.dtype.newbyteorder('N'))
 
     h_c = np.ascontiguousarray(histo.reshape((histo.size,)),
-                               dtype=histo.dtype.newbyteorder('N'))
+        dtype=histo.dtype.newbyteorder('N'))
 
     w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)),
-                                 dtype=weighted_histo.dtype.newbyteorder('N'))  # noqa
+        dtype=weighted_histo.dtype.newbyteorder('N'))  # noqa
 
     h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)),
-                                   histo_lut.dtype.newbyteorder('N'))
+        histo_lut.dtype.newbyteorder('N'))
 
     rc = 0
 
@@ -354,15 +371,16 @@ def _histogramnd_from_lut_fused(weights_t[:] i_weights,
 @cython.initializedcheck(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
-def _histogramnd_get_lut_fused(sample_t[:] i_sample,
-                               int i_n_dims,
-                               size_t i_n_elems,
-                               double[:] i_histo_range,
-                               int[:] i_n_bins,
-                               lut_t[:] o_lut,
-                               uint32_t[:] o_histo,
-                               bint last_bin_closed):
-
+def _histogramnd_get_lut_fused(
+    sample_t[:] i_sample,
+    int i_n_dims,
+    size_t i_n_elems,
+    double[:] i_histo_range,
+    int[:] i_n_bins,
+    lut_t[:] o_lut,
+    uint32_t[:] o_histo,
+    bint last_bin_closed
+):
     cdef:
         int i = 0
         long elem_idx = 0
@@ -411,9 +429,13 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                 #  than coordinates higher or equal to the max
                 #  (two tests)
                 if elem_coord < g_max[i]:
-                    bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
-                                     (((elem_coord - g_min[i]) * i_n_bins[i]) /
-                                      bins_range[i]))
+                    bin_idx = <long>(
+                        bin_idx * i_n_bins[i] +  # noqa
+                        (
+                            ((elem_coord - g_min[i]) * i_n_bins[i]) /
+                            bins_range[i]
+                        )
+                    )
                 else:
                     # if equal and the last bin is closed :
                     #  put it in the last bin
