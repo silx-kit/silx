@@ -18,7 +18,7 @@ override_dh_install:
 	dh_numpy3
 
 	# move the scripts to right package
-	dh_install -p pyfai debian/python3-pyfai/usr/bin usr/
+	dh_install -p silx debian/python3-pyfai/usr/bin usr/
 	# remove all scripts installed by pybuild
 	rm -rf debian/python3-silx/usr/bin
 
@@ -28,7 +28,7 @@ override_dh_install:
 # inactive test for now
 override_dh_auto_test:
 	PYBUILD_SYSTEM=custom \
-	PYBUILD_TEST_ARGS="PYTHONPATH={build_dir} PYFAI_TESTIMAGES=testimages PYFAI_DATA=$(shell pwd) {interpreter} ./run_tests.py --installed" dh_auto_test
+	PYBUILD_TEST_ARGS="PYTHONPATH={build_dir} {interpreter} ./run_tests.py --installed" dh_auto_test
 
 override_dh_installman:
 	dh_installman -p silx build/man/*.1
