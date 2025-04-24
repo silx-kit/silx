@@ -11,7 +11,6 @@ authors = [
   { name = 'Algorithms & Data Analysis, ExpD, ESRF', email = 'silx@esrf.fr'},
 ]
 
-# double check classifiers on https://pypi.python.org/pypi?%3Aaction=list_classifiers
 classifiers = ["Development Status :: 5 - Production/Stable",
                "Environment :: Console",
                "Environment :: MacOS X",
