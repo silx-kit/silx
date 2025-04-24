@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "14/04/2025"
+__date__ = "24/04/2025"
 
 import sys
 import os
@@ -219,27 +219,7 @@ def main(argv):
         dest="module",
         help="run library module as a script (terminates option list)",
     )
-    # group.add_argument(
-    #     "-j",
-    #     "--jupyter",
-    #     action="store_true",
-    #     help="Start jupyter notebook rather than IPython console",
-    # )
     options = parser.parse_args()
-
-    # if options.jupyter:
-    #     if options.script:
-    #         logger.error("-j, --jupyter is mutually exclusive with other options")
-    #         parser.print_help()
-    #         return
-
-    #     logger.info("Start Jupyter notebook")
-    #     from notebook.notebookapp import main as notebook_main
-
-    #     os.environ["PYTHONPATH"] = (
-    #         LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
-    #     )
-    #     notebook_main(argv=[])
 
     if options.script:
         logger.info("Executing %s from source checkout", options.script)
