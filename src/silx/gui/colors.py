@@ -421,7 +421,7 @@ class Colormap(qt.QObject):
                 assert colors is not None
                 self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
-            self.setSaturation(other.getSaturation())
+            self.setSaturationAutoscaleParameter(other.getSaturationAutoscaleParameter())
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
             self.setAutoscaleMode(other.getAutoscaleMode())
@@ -550,11 +550,18 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
-    def getSaturation(self) -> int:
+    def getSaturationAutoscaleParameter(self) -> int:
         """Colormap saturation in (0, 100)"""
         return self._saturation
 
-    def setSaturation(self, saturation: int):
+    def setSaturationAutoscaleParameter(self, saturation: int):
+        """Set the 'saturation' parameter.
+
+        Only used for autoscale 'percentile' mode
+
+        :raise ValueError: If saturation is not valid
+        :raise TypeError: If saturation is not an integer
+        """
         if not isinstance(saturation, int):
             raise TypeError(
                 f"saturation is expected to be an int. Got {type(saturation)}"
@@ -701,7 +708,7 @@ class Colormap(qt.QObject):
         :return: (vmin, vmax) range
         """
         return self._getNormalizer().autoscale(
-            data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+            data, mode=self.getAutoscaleMode(), saturation=self.getSaturationAutoscaleParameter()
         )
 
     def getColormapRange(
@@ -744,7 +751,7 @@ class Colormap(qt.QObject):
                 max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
                 min_, max_ = normalizer.autoscale(
-                    data, mode=self.getAutoscaleMode(), saturation=self.getSaturation()
+                    data, mode=self.getAutoscaleMode(), saturation=self.getSaturationAutoscaleParameter()
                 )
 
         # Handle autoscale

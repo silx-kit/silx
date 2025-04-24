@@ -1655,7 +1655,7 @@ class ColormapDialog(qt.QDialog):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
             with utils.blockSignals(self._saturationSlider):
-                self._saturationSlider.setValue(colormap.getSaturation())
+                self._saturationSlider.setValue(colormap.getSaturationAutoscaleParameter())
 
             vmin, vmax = colormap.getVRange()
             if vmin is None or vmax is None:
@@ -1743,9 +1743,9 @@ class ColormapDialog(qt.QDialog):
             enable_saturation = self._autoScaleCombo.currentText() == "Percentile"
             with self._colormapChange:
                 if enable_saturation:
-                    colormap.setSaturation(self._saturationSlider.value())
+                    colormap.setSaturationAutoscaleParameter(self._saturationSlider.value())
                 else:
-                    colormap.setSaturation(Colormap._DEFAULT_SATURATION)
+                    colormap.setSaturationAutoscaleParameter(Colormap._DEFAULT_SATURATION)
                 colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
@@ -1760,7 +1760,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
-                colormap.setSaturation(value)
+                colormap.setSaturationAutoscaleParameter(value)
         self._updateWidgetRange()
 
     def _minAutoscaleUpdated(self, autoEnabled):
