@@ -24,12 +24,12 @@ echo "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" -P "${CERTIFICATE_PASSWORD}" -A -t cert -f pkcs12 -k "${KEYCHAIN_PATH}"
 security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
-echo -n "${APPLE_TEAM_ID}" | xxd -ps
+security find-certificate ${ROOT}/notarize.keychain-db
 
 echo "Codesigning the application bundle."
 codesign --force --deep --options=runtime --entitlements ./entitlements.plist --verbose --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})" --keychain "${KEYCHAIN_PATH}" --timestamp "${APP_PATH}"
 
-echo "Removing the certificate and keychain."
+echo "Removing the certificate file and keychain."
 rm "${CERTIFICATE_PATH}"
 security delete-keychain "${KEYCHAIN_PATH}"
 
