@@ -175,7 +175,8 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
         except OSError:
             raise ValueError(f"File {url.file_path()} doesn't exists")
 
-        h5Object = self._tree.findHdf5Object(url=url)
+        model = self._tree.findHdf5TreeModel()
+        h5Object = model.findHdf5Object(url=url)
 
         if h5Object is None:
             raise ValueError(
