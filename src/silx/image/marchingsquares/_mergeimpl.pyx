@@ -669,7 +669,8 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.cdivision(True)
     cdef void insert_segment(
         self, TileContext *context,
-        int x, int y,
+        int x,
+        int y,
         uint8_t begin_edge,
         uint8_t end_edge,
         double level
@@ -970,7 +971,8 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.cdivision(True)
     cdef void insert_segment(
         self, TileContext *context,
-        int x, int y,
+        int x,
+        int y,
         uint8_t begin_edge,
         uint8_t end_edge,
         double level
@@ -1153,7 +1155,8 @@ cdef class MarchingSquaresMergeImpl(object):
 
     def __init__(
         self,
-        image, mask=None,
+        image,
+        mask=None,
         group_size=256,
         use_minmax_cache=False
     ):
