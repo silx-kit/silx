@@ -958,7 +958,9 @@ class ColormapDialog(qt.QDialog):
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
         self._autoScaleCombo = autoScaleCombo
-        self._autoScaleCombo.currentTextChanged.connect(self._updateSaturationVisibility)
+        self._autoScaleCombo.currentTextChanged.connect(
+            self._updateSaturationVisibility
+        )
 
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
@@ -975,6 +977,8 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
+        # saturation
+        self._saturationLabel = qt.QLabel("saturation")
         self._saturationSlider = qt.QSlider(qt.Qt.Horizontal, self)
         self._saturationSlider.setTickPosition(qt.QSlider.TicksBelow)
         self._saturationSlider.setRange(0, 100)
@@ -1066,16 +1070,16 @@ class ColormapDialog(qt.QDialog):
         self._scaleToAreaGroup.setLayout(layout)
         self._scaleToAreaGroup.setVisible(False)
 
-        layoutScale = qt.QHBoxLayout()
+        layoutScale = qt.QGridLayout()
         layoutScale.setContentsMargins(0, 0, 0, 0)
-        layoutScale.addWidget(self._autoButtons)
-        layoutScale.addWidget(self._autoScaleCombo)
-        layoutScale.addStretch()
+        layoutScale.addWidget(self._autoButtons, 0, 0, 1, 1)
+        layoutScale.addWidget(self._autoScaleCombo, 0, 1, 1, 1)
+        layoutScale.addItem(
+            qt.QSpacerItem(0, 0, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed), 0, 2, 1, 1
+        )
 
-        layoutSaturation = qt.QFormLayout()
-        self._saturationLabel = qt.QLabel("saturation")
-        self._saturationLabel.setVisible(False)
-        layoutSaturation.addRow(self._saturationLabel, self._saturationSlider)
+        layoutScale.addWidget(self._saturationLabel, 1, 0, 1, 1)
+        layoutScale.addWidget(self._saturationSlider, 1, 1, 1, 2)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1094,7 +1098,6 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         )
         formLayout.addRow("Scale:", layoutScale)
-        formLayout.addRow("", layoutSaturation)
         formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
