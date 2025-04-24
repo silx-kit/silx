@@ -16,6 +16,7 @@ py.install_sources([
     'TextFormatter.py',
     '_RecordPlot.py',
     '_VolumeWindow.py',
+    '_SignalSelector.py',
     '__init__.py',
 ],
 pure: false,    # Will be installed next to binaries
