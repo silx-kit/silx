@@ -44,19 +44,16 @@ requires = [
     "meson>=1.1",
     'ninja',
     'wheel',
-    'oldest-supported-numpy',
     'Cython>=0.29.31',
     'pyproject-metadata>=0.5.0',
     "tomli>=1.0.0; python_version < '3.12'",
-    'h5py',
-    'fabio'
 ]
 
 
 [project.optional-dependencies]
-full = [ 'pyopencl; platform_machine in "i386, x86_64, AMD64"',  # For silx.opencl
+full = [  'pyopencl; platform_machine in "i386, x86_64, AMD64"', # For silx.opencl
           'Mako',                                                # For pyopencl reduction
-          'qtconsole',                                            # For silx.gui.console
+          'qtconsole',                                           # For silx.gui.console
           'matplotlib >= 3.1.0',                                 # For silx.gui.plot
           'PyOpenGL',                                            # For silx.gui.plot3d
           'python-dateutil',                                     # For silx.gui.plot
@@ -83,7 +80,9 @@ test = ['build',                     # To build the project
         'hdf5plugin',                # For HDF5 compression filters handling
         'pyinstaller>=6.0.0; sys_platform == "win32"',
         ]
-opencl = [ "pyopencl", "Mako" ]
+opencl = [ "pyopencl", 
+           "Mako", 
+           "siphash24"]
 
 [project.urls]
 homepage = 'http://www.silx.org'
