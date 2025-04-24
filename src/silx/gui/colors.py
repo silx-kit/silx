@@ -44,6 +44,7 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
+from silx.utils.deprecation import deprecated_warning
 
 
 _logger = logging.getLogger(__name__)
@@ -334,15 +335,23 @@ class Colormap(qt.QObject):
     with a clamp on min/max of the data"""
 
     PERCENTILE_1_99 = "percentile_1_99"
-    """constant for autoscale using 1st and 99th percentile of data"""
+    """constant for autoscale using 1st and 99th percentile of data. Deprecated to the benefit of 'percentile'"""
 
-    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE_1_99)
+    PERCENTILE = "percentile"
+    """constant for autoscale using n'st and m'th percentile of data"""
+
+    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE)
     """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
+    _DEFAULT_SATURATION: int = 2
+    """Saturation value to be used with percentile mode.
+    We convert saturation to percentile by taking the percentile [saturation / 2, 100 - saturation / 2]
+    For example if saturation is 2 then we will take 1st and 99th percentiles."""
 
     def __init__(
         self,
@@ -391,6 +400,7 @@ class Colormap(qt.QObject):
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
         self.__warnBadVmax = True
+        self._saturation: int = self._DEFAULT_SATURATION
 
     def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
@@ -411,6 +421,9 @@ class Colormap(qt.QObject):
                 assert colors is not None
                 self.setColormapLUT(colors)
             self.setNaNColor(other.getNaNColor())
+            self.setSaturationAutoscaleParameter(
+                other.getSaturationAutoscaleParameter()
+            )
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
             self.setAutoscaleMode(other.getAutoscaleMode())
@@ -539,6 +552,30 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
+    def getSaturationAutoscaleParameter(self) -> int:
+        """Colormap saturation in (0, 100)"""
+        return self._saturation
+
+    def setSaturationAutoscaleParameter(self, saturation: int):
+        """Set the 'saturation' parameter.
+
+        Only used for autoscale 'percentile' mode
+
+        :raise ValueError: If saturation is not valid
+        :raise TypeError: If saturation is not an integer
+        """
+        if not isinstance(saturation, int):
+            raise TypeError(
+                f"saturation is expected to be an int. Got {type(saturation)}"
+            )
+        if not (0 <= saturation <= 100):
+            raise ValueError(
+                f"saturation should be a float in [0, 100]. Got {saturation}"
+            )
+        if saturation != self._saturation:
+            self._saturation = saturation
+            self.sigChanged.emit()
+
     def setGammaNormalizationParameter(self, gamma: float):
         """Set the gamma correction parameter.
 
@@ -557,16 +594,27 @@ class Colormap(qt.QObject):
         return self.__gamma
 
     def getAutoscaleMode(self) -> str:
-        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')"""
+        """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax' or 'stddev3'
+        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'.
 
         :param mode: the mode to set
+
+        .. warning:: 'percentile_1_99' is deprecated
         """
         if self.isEditable() is False:
             raise NotEditableError("Colormap is not editable")
+        if mode == self.PERCENTILE_1_99:
+            deprecated_warning(
+                type_="Mode",
+                name="mode",
+                replacement="percentile",
+                since_version="3.0",
+            )
+            mode = self.PERCENTILE
+
         assert mode in self.AUTOSCALE_MODES
         if mode != self._autoscaleMode:
             self._autoscaleMode = mode
@@ -661,7 +709,11 @@ class Colormap(qt.QObject):
         :param data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
-        return self._getNormalizer().autoscale(data, mode=self.getAutoscaleMode())
+        return self._getNormalizer().autoscale(
+            data,
+            mode=self.getAutoscaleMode(),
+            saturation=self.getSaturationAutoscaleParameter(),
+        )
 
     def getColormapRange(
         self,
@@ -694,6 +746,19 @@ class Colormap(qt.QObject):
 
         if vmin is not None and vmax is not None:
             return vmin, vmax
+
+        if vmin is None or vmax is None:  # Handle autoscale
+            if isinstance(data, _Colormappable):
+                min_, max_ = data._getColormapAutoscaleRange(self)
+                # Make sure min_, max_ are not None
+                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+            else:
+                min_, max_ = normalizer.autoscale(
+                    data,
+                    mode=self.getAutoscaleMode(),
+                    saturation=self.getSaturationAutoscaleParameter(),
+                )
 
         # Handle autoscale
 
