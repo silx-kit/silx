@@ -43,7 +43,7 @@ except ImportError:
 
 
 def run_tests(
-    modules: Sequence[str] = ("silx",),
+    modules: Sequence[str] | None = ("silx",),
     verbosity: int = 0,
     args: Sequence[str] = (),
 ):
