@@ -25,10 +25,18 @@ override_dh_install:
 	#Finally install stuff
 	dh_install
 
-# inactive test for now
+override_dh_python3:
+	dh_python3
+	dh_python3 -p python3-silx /usr/lib/$(DEB_HOST_MULTIARCH)/qt5/plugins/designer/python
+
+# WITH_QT_TEST=False to disable graphical tests
+# SILX_OPENCL=False to disable OpenCL tests
+# WITH_HIGH_MEM_TEST=True to enable tests taking large amount of memory
+# GPU=False to disable the use of a GPU with OpenCL test
+# WITH_GL_TEST=False to disable tests using OpenGL
 override_dh_auto_test:
-	PYBUILD_SYSTEM=custom \
-	PYBUILD_TEST_ARGS="PYTHONPATH={build_dir} {interpreter} ./run_tests.py --installed" dh_auto_test
+	mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False WITH_HIGH_MEM_TEST=False xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
 
 override_dh_installman:
 	dh_installman -p silx build/man/*.1
