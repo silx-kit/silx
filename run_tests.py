@@ -31,7 +31,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/04/2025"
+__date__ = "05/05/2025"
 __license__ = "MIT"
 
 import sys
@@ -236,7 +236,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     if options.opengl is False:
         pytest_options.append("--no-opengl")
     if options.low_mem is True:
-        pytest_options.append("--low-mem")
+        pytest_options.append("--no-high-mem")
 
     def path2module(option):
         if option.endswith(".py"):
