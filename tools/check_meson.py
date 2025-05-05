@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to check if all python sources files are actually registered in meson
+Script to check if all python source files are actually registered in meson
 """
 import os
 import subprocess
