@@ -145,8 +145,8 @@ else:
 
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests
-PYFAI_OPENCL=False to disable OpenCL tests.
-PYFAI_LOW_MEM: set to True to skip all tests >100Mb
+SILX_OPENCL=False to disable OpenCL tests.
+WITH_HIGH_MEM_TEST: set to True to enable all tests >100Mb
 WITH_GL_TEST=False to disable tests using OpenGL
 """
 parser = ArgumentParser(description='Run the tests.',
