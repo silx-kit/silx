@@ -11,7 +11,17 @@ defaults:
     shell: bash
 
 jobs:
-  # This workflow contains a single job called "build"
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check meson.build files
+        run: |
+          python ./tools/check_meson.py
+
   build:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
     runs-on: ${{ matrix.os }}
@@ -73,10 +83,16 @@ jobs:
         run: |
           pip install --upgrade --pre build wheel 
 
-      - name: Build Wheel
+      - name: Build Wheel (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          python -m build
+
+      - name: Build Wheel (Unix)
+        if: runner.os != 'Windows'
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-        shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
         run: |
           python -m build
           ls dist

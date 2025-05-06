@@ -10,6 +10,7 @@ py.install_sources([
     '__init__.py',
     'calibration.py',
     'colormap.py',
+    'combo.pyi',
     'histogram.py',
 ],
 pure: false,    # Will be installed next to binaries
