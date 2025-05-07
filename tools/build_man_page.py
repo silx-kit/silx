@@ -33,8 +33,10 @@ import re
 import subprocess
 import sys
 from collections.abc import Iterator
-
-from setuptools.config import read_configuration
+if sys.version_info[:2] < (3, 11):
+    import tomli
+else:
+    import tomllib as tomli
 
 
 logging.basicConfig(level=logging.INFO)
@@ -45,19 +47,21 @@ PROJECT_PATH = Path(__file__).parent.parent
 
 
 def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
-    config = read_configuration(project_path / "setup.cfg")
-    entry_points_config = config.get("options", {}).get("entry_points", {})
+    # search the executable in pyproject.toml
+    with open( project_path / "pyproject.toml") as f:
+        pyproject = tomli.loads(f.read())
+    # print(pyproject)
+    entry_points_config = pyproject.get("project", {})
+    # print("entry_points_config", entry_points_config)
     print(entry_points_config)
-
-    for group in ("console_scripts", "gui_scripts"):
-        for entry in entry_points_config.get(group, ()):
-            print(entry)
-            match = re.fullmatch(
-                r"(?P<name>\w+)\s*=\s*(?P<module>[^:]+):(?P<object>\w*)",
-                entry,
-            )
-            if match is not None:
-                yield match["name"], match["module"], match["object"]
+    for group in ("scripts", "gui_scripts"):
+        for entry, value in entry_points_config.get(group, {}).items():
+            try:
+                module, fnt = value.split(":", 1)
+            except:
+                logger.error(f"Unable to parse entry {value}!")
+            else:
+                yield entry, module, fnt
 
 
 def get_synopsis(module_name: str) -> str:

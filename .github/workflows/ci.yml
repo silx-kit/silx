@@ -11,7 +11,17 @@ defaults:
     shell: bash
 
 jobs:
-  # This workflow contains a single job called "build"
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check meson.build files
+        run: |
+          python ./tools/check_meson.py
+
   build:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
     runs-on: ${{ matrix.os }}
@@ -59,25 +69,32 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4        
+      - name: Set up MSVC environment if applicable
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
-
       - uses: ./.github/actions/setup-system
-
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build cython setuptools wheel
-          pip list
+          pip install --upgrade --pre build wheel 
 
-      - name: Build
+      - name: Build Wheel (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          python -m build
+
+      - name: Build Wheel (Unix)
+        if: runner.os != 'Windows'
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
-          python -m build --no-isolation
+          python -m build
           ls dist
 
       - name: Install
@@ -94,4 +111,4 @@ jobs:
           SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
+          python run_tests.py --installed --qt-binding=${{ matrix.QT_API }}

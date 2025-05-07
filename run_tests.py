@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,15 +31,15 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "30/09/2020"
+__date__ = "05/05/2025"
 __license__ = "MIT"
 
-import importlib
+import sys
 import logging
 import os
-import subprocess
 import sys
 import sysconfig
+from argparse import ArgumentParser
 from pathlib import Path
 
 
@@ -53,7 +53,28 @@ logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
 
 logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
+if sys.version_info.major < 3 or sys.version_info.minor < 10:
+    logger.error("SILX requires at least Python3.10")
 
+try:
+    import resource
+except ImportError:
+    resource = None
+    logger.warning("resource module missing")
+
+try:
+    import importlib
+    importer = importlib.import_module
+except ImportError:
+
+    def importer(name):
+        module = __import__(name)
+        # returns the leaf module, instead of the root module
+        subnames = name.split(".")
+        subnames.pop(0)
+        for subname in subnames:
+            module = getattr(module, subname)
+            return module
 
 try:
     import numpy
@@ -70,23 +91,10 @@ else:
     logger.info("h5py %s", h5py.version.version)
 
 
-def get_project_name(root_dir):
-    """Retrieve project name by running python setup.py --name in root_dir.
-
-    :param str root_dir: Directory where to run the command.
-    :return: The name of the project stored in root_dir
-    """
-    logger.debug("Getting project name in %s", root_dir)
-    p = subprocess.Popen(
-        [sys.executable, "setup.py", "--name"],
-        shell=False,
-        cwd=root_dir,
-        stdout=subprocess.PIPE,
-    )
-    name, _stderr_data = p.communicate()
-    logger.debug("subprocess ended with rc= %s", p.returncode)
-    return name.split()[-1].decode("ascii")
-
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+from bootstrap import get_project_name, build_project
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info("Project name: %s", PROJECT_NAME)
 
 def is_debug_python():
     """Returns true if the Python interpreter is in debug mode."""
@@ -96,84 +104,158 @@ def is_debug_python():
     return hasattr(sys, "gettotalrefcount")
 
 
-def build_project(name, root_dir):
-    """Run python setup.py build for the project.
+# Prevent importing from source directory
+if os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0]):
+    removed_from_sys_path = sys.path.pop(0)
+    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
 
-    Build directory can be modified by environment variables.
 
-    :param str name: Name of the project.
-    :param str root_dir: Root directory of the project
-    :return: The path to the directory were build was performed
-    """
-    platform = sysconfig.get_platform()
-    architecture = "lib.%s-%i.%i" % (platform, sys.version_info[0], sys.version_info[1])
-    if is_debug_python():
-        architecture += "-pydebug"
+def get_test_options(project_module):
+    """Returns the test options if available, else None"""
+    module_name = project_module.__name__ + '.test.utils'
+    logger.info('Import %s', module_name)
+    try:
+        test_utils = importer(module_name)
+    except ImportError:
+        logger.warning("No module named '%s'. No test options available.", module_name)
+        return None
 
-    if os.environ.get("PYBUILD_NAME") == name:
-        # we are in the debian packaging way
-        home = os.environ.get("PYTHONPATH", "").split(os.pathsep)[-1]
-    elif os.environ.get("BUILDPYTHONPATH"):
-        home = os.path.abspath(os.environ.get("BUILDPYTHONPATH", ""))
+    test_options = getattr(test_utils, "test_options", None)
+    return test_options
+
+
+if "-i" in sys.argv or "--installed" in sys.argv:
+    for bad_path in (".", os.getcwd(), PROJECT_DIR):
+        if bad_path in sys.path:
+            sys.path.remove(bad_path)
+    try:
+        module = importer(PROJECT_NAME)
+    except Exception:
+        logger.error("Cannot run tests on installed version: %s not installed or raising error.",
+                     PROJECT_NAME)
+        raise
     else:
-        home = os.path.join(root_dir, "build", architecture)
-
-    logger.warning("Building %s to %s", name, home)
-    cmd = [sys.executable, "setup.py", "build"]
-    if home:
-        cmd += ["--build-lib", home]
-    p = subprocess.Popen(cmd, shell=False, cwd=root_dir)
-    logger.debug("subprocess ended with rc= %s", p.wait())
-
-    if os.path.isdir(home):
-        return home
-    alt_home = os.path.join(os.path.dirname(home), "lib")
-    if os.path.isdir(alt_home):
-        return alt_home
+        print("Running tests on system-wide installed project")
+else:
+    build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
+    sys.path.insert(0, build_dir)
+    logger.warning("Patched sys.path, added: '%s'", build_dir)
+    module = importer(PROJECT_NAME)
 
 
-def import_project_module(project_name, project_dir):
-    """Import project module, from the system of from the project directory"""
-    if "--installed" in sys.argv:
-        try:
-            module = importlib.import_module(project_name)
-        except Exception:
-            logger.error(
-                "Cannot run tests on installed version: %s not installed or raising error.",
-                project_name,
-            )
-            raise
-    else:  # Use built source
-        build_dir = build_project(project_name, project_dir)
-        if build_dir is None:
-            logging.error("Built project is not available !!! investigate")
-        sys.path.insert(0, build_dir)
-        logger.warning("Patched sys.path, added: '%s'", build_dir)
-        module = importlib.import_module(project_name)
-    return module
+epilog = """Environment variables:
+WITH_QT_TEST=False to disable graphical tests
+SILX_OPENCL=False to disable OpenCL tests.
+WITH_HIGH_MEM_TEST: set to True to enable all tests >100Mb
+WITH_GL_TEST=False to disable tests using OpenGL
+"""
+parser = ArgumentParser(description='Run the tests.',
+                        epilog=epilog)
+
+test_options = get_test_options(module)
+"""Contains extra configuration for the tests."""
+if test_options is not None:
+    test_options.add_parser_argument(parser)
+
+parser.add_argument("test_name", nargs='*',
+                    default=(PROJECT_NAME,),
+                    help=f"Test names to run (Default: {PROJECT_NAME})")
+
+parser.add_argument("-i", "--installed",
+                    action="store_true", dest="installed", default=False,
+                    help="Test the installed version instead of"
+                          "building from the source and testing the development version")
+parser.add_argument("--no-gui",
+                    action="store_false", dest="gui", default=True,
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("--no-opengl",
+                    action="store_false", dest="opengl", default=True,
+                    help="Disable tests using OpenGL")
+parser.add_argument("--no-opencl",
+                    action="store_false", dest="opencl", default=True,
+                    help="Disable tests using OpenCL")
+parser.add_argument("--high-mem",
+                    action="store_false", dest="low_mem", default=True,
+                    help="Enable tests requiring large amounts of data (>100Mb)")
+parser.add_argument("-v", "--verbose", default=0,
+                    action="count", dest="verbose",
+                    help="Increase verbosity. Option -v prints additional " +
+                         "INFO messages. Use -vv for full verbosity, " +
+                         "including debug messages and test help strings.")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt5', 'PyQt6', or 'PySide6'")
+
+options = parser.parse_args()
+
+test_verbosity = 1
+use_buffer = True
+if options.verbose == 1:
+    logging.root.setLevel(logging.INFO)
+    logger.info("Set log level: INFO")
+    test_verbosity = 2
+    use_buffer = False
+elif options.verbose > 1:
+    logging.root.setLevel(logging.DEBUG)
+    logger.info("Set log level: DEBUG")
+    test_verbosity = 2
+    use_buffer = False
+
+if options.qt_binding:
+    binding = options.qt_binding.lower()
+    if binding == "pyqt5":
+        logger.info("Force using PyQt5")
+        import PyQt5.QtCore  # noqa
+    elif binding == "pyqt6":
+        logger.info("Force using PyQt6")
+        import PyQt6.QtCore  # noqa
+    elif binding == "pyside6":
+        logger.info("Force using PySide6")
+        import PySide6.QtCore  # noqa
+    else:
+        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
+
+PROJECT_VERSION = getattr(module, 'version', '')
+PROJECT_PATH = module.__path__[0]
 
 
 if __name__ == "__main__":  # Needed for multiprocessing support on Windows
-    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    PROJECT_NAME = get_project_name(PROJECT_DIR)
-    logger.info("Project name: %s", PROJECT_NAME)
 
-    project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
-    PROJECT_VERSION = getattr(project_module, "version", "")
+    project_module = module
     PROJECT_PATH = str(Path(project_module.__path__[0]).resolve())
+    print(f"PROJECT_PATH: {PROJECT_PATH}")
+    sys.path.insert(0, PROJECT_PATH)
 
-    def normalize_option(option):
+    # corresponds to options to pass back to pytest ...
+    pytest_options = []
+    if options.qt_binding:
+        pytest_options.append(f"--qt-binding={options.qt_binding}")
+    if options.gui is False:
+        pytest_options.append("--no-gui")
+    if options.opencl is False:
+        pytest_options.append("--no-opencl")
+    if options.opengl is False:
+        pytest_options.append("--no-opengl")
+    if options.low_mem is True:
+        pytest_options.append("--no-high-mem")
+
+    def path2module(option):
+        if option.endswith(".py"):
+            option=option[:-3]
         option_parts = option.split(os.path.sep)
-        if option_parts == ["src", "silx"]:
-            return PROJECT_PATH
-        if option_parts[:2] == ["src", "silx"]:
-            return os.path.join(PROJECT_PATH, *option_parts[2:])
-        return option
+        if option_parts == ["src", PROJECT_NAME]:
+            option_parts = [PROJECT_NAME]
+        elif len(option_parts)==1:
+            pass
+        elif option_parts[:2] == ["src", PROJECT_NAME]:
+            option_parts = option_parts[1:]
+        return ".".join(i for i in option_parts if i)
 
+    modules = [path2module(p) for p in options.test_name]
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
-    sys.exit(
-        test_module.run_tests(
-            module=None,
-            args=[normalize_option(p) for p in sys.argv[1:] if p != "--installed"],
-        )
-    )
+    # print(modules)
+    # print(pytest_options)
+    rc = test_module.run_tests(
+            modules=modules,
+            args=pytest_options)
+    sys.exit(rc)
+
