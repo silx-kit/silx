@@ -13,7 +13,7 @@ from ..dictdumplinks import link_from_hdf5
 from ..dictdumplinks import link_from_serialized
 from ..dictdumplinks._link_types import InternalLink
 from ..dictdumplinks._link_types import ExternalLink
-from ..dictdumplinks._link_types import ExternalVirtualLink
+from ..dictdumplinks._link_types import VDSLink
 from ..dictdumplinks._link_types import ExternalBinaryLink
 
 
@@ -69,7 +69,7 @@ def test_vds_from_str(tmp_path):
         f"{master_file}::/group/link",
         "data.h5?path=/group/dataset&slice=1:5,2:3",
     )
-    assert isinstance(link1, ExternalVirtualLink)
+    assert isinstance(link1, VDSLink)
     assert link1.shape == sliced_data.shape
     assert link1.dtype == sliced_data.dtype
 
@@ -81,8 +81,7 @@ def test_vds_from_str(tmp_path):
         numpy.testing.assert_almost_equal(data, sliced_data)
         link2 = link_from_hdf5(fh, "/group/link")
 
-    assert isinstance(link2, ExternalVirtualLink)
-    # assert link1 == link2  # TODO
+    assert link2 is None
 
 
 def test_external_edf_from_str(tmp_path):
@@ -102,6 +101,9 @@ def test_external_edf_from_str(tmp_path):
     with h5py.File(tmp_path / "master.h5", mode="r") as fh:
         ext_data = fh["/group/link"][()]
         numpy.testing.assert_almost_equal(ext_data, data)
+        link2 = link_from_hdf5(fh, "/group/link")
+
+    assert link2 is None
 
 
 def test_external_multipage_edf_from_str(tmp_path):

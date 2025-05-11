@@ -1,14 +1,15 @@
-from typing import NewType
+from typing import TypeAlias
+from types import EllipsisType
 from collections.abc import Sequence
 
-RawDsetIndexItem = NewType("RawDsetIndexItem", int | slice | type(Ellipsis) | None)
-RawDsetIndex = NewType("RawDsetIndex", tuple[RawDsetIndexItem] | RawDsetIndexItem)
+RawDsetIndexItem: TypeAlias = int | slice | EllipsisType | None
+RawDsetIndex: TypeAlias = tuple[RawDsetIndexItem, ...] | RawDsetIndexItem
 
-SliceArgs = NewType(
-    "SliceArgs",
-    Sequence[int | None]  # slice(None, stop, None)
-    | Sequence[int | None, int | None]  # slice(start, stop)
-    | Sequence[int | None, int | None, int | None],  # slice(start, stop, step)
+SliceArgs: TypeAlias = (
+    tuple[int | None]  # slice(None, stop, None)
+    | tuple[int | None, int | None]  # slice(start, stop)
+    | tuple[int | None, int | None, int | None]  # slice(start, stop, step)
 )
-DsetIndexItem = NewType("DsetIndexItem", RawDsetIndexItem | SliceArgs)
-DsetIndex = NewType("DsetIndex", Sequence[DsetIndexItem] | DsetIndexItem)
+
+DsetIndexItem: TypeAlias = RawDsetIndexItem | SliceArgs
+DsetIndex: TypeAlias = Sequence[DsetIndexItem] | DsetIndexItem
