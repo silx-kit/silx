@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, NewType
+from typing import Any, TypeAlias
 from collections.abc import Sequence
 
 import h5py
@@ -59,26 +59,29 @@ class ExternalLink(LinkInterface):
 
 class ExternalBinaryLink(LinkInterface):
     def __init__(
-        self, shape: tuple[int], dtype: DTypeLike, sources: list[tuple[str, int, int]]
+        self,
+        shape: tuple[int, ...],
+        dtype: DTypeLike,
+        sources: Sequence[tuple[str, int, int]],
     ) -> None:
         self._shape = shape
         self._dtype = dtype
         self._sources = sources
 
     @property
-    def shape(self) -> tuple[int]:
+    def shape(self) -> tuple[int, ...]:
         return self._shape
 
     @property
-    def dtype(self) -> tuple[int]:
+    def dtype(self) -> DTypeLike:
         return self._dtype
 
     @property
-    def sources(self) -> tuple[int]:
+    def sources(self) -> Sequence[tuple[str, int, int]]:
         return self._sources
 
     def __eq__(self, other: Any):
-        if isinstance(other, ExternalLink):
+        if isinstance(other, ExternalBinaryLink):
             return (
                 self.shape == other.shape
                 and self.dtype == other.dtype
@@ -92,29 +95,29 @@ class ExternalBinaryLink(LinkInterface):
         )
 
 
-class ExternalVirtualLink(LinkInterface):
+class VDSLink(LinkInterface):
 
     def __init__(
-        self, shape: tuple[int], dtype: DTypeLike, sources: Sequence[VdsSource]
+        self, shape: tuple[int, ...], dtype: DTypeLike, sources: Sequence[VdsSource]
     ) -> None:
         self._shape = shape
         self._dtype = dtype
         self._sources = sources
 
     @property
-    def shape(self) -> tuple[int]:
+    def shape(self) -> tuple[int, ...]:
         return self._shape
 
     @property
-    def dtype(self) -> tuple[int]:
+    def dtype(self) -> DTypeLike:
         return self._dtype
 
     @property
-    def sources(self) -> tuple[int]:
+    def sources(self) -> Sequence[VdsSource]:
         return self._sources
 
     def __eq__(self, other: Any):
-        if isinstance(other, ExternalLink):
+        if isinstance(other, VDSLink):
             return (
                 self.shape == other.shape
                 and self.dtype == other.dtype
@@ -144,7 +147,4 @@ class ExternalVirtualLink(LinkInterface):
         return layout
 
 
-Hdf5LinkType = NewType(
-    "Hdf5LinkType",
-    ExternalLink | InternalLink | ExternalVirtualLink | ExternalBinaryLink,
-)
+Hdf5LinkType: TypeAlias = ExternalLink | InternalLink | VDSLink | ExternalBinaryLink
