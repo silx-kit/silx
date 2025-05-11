@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import TypedDict, Any, Literal, NamedTuple
+from typing import TypedDict, Any, Literal, NamedTuple, cast
 
 from numpy.typing import DTypeLike
 
@@ -19,7 +19,7 @@ class VdsSourceSchemaV1(TypedDict):
 
 
 class VdsSchemaV1(TypedDict):
-    dictdump_schema: Literal["external_virtual_link_v1"]
+    dictdump_schema: Literal["virtual_dataset_v1"]
     shape: Sequence[int]
     dtype: str | DTypeLike
     sources: Sequence[VdsSourceSchemaV1]
@@ -28,14 +28,14 @@ class VdsSchemaV1(TypedDict):
 class VdsSource(NamedTuple):
     file_path: str
     data_path: str
-    shape: tuple[int]
+    shape: tuple[int, ...]
     dtype: str | DTypeLike
     source_index: RawDsetIndex
     target_index: RawDsetIndex
 
 
 class Vds(NamedTuple):
-    shape: tuple[int]
+    shape: tuple[int, ...]
     dtype: str | DTypeLike
     sources: list[VdsSource]
 
@@ -60,9 +60,9 @@ def parse_vds_schema_v1(target: VdsSchemaV1) -> Vds:
     return Vds(shape, dtype, sources)
 
 
-def _as_raw_dset_index(idx: DsetIndex) -> tuple[RawDsetIndexItem]:
+def _as_raw_dset_index(idx: DsetIndex) -> RawDsetIndex:
     if _is_raw_dset_index_item(idx):
-        return _as_raw_dset_index_item(idx)
+        return _as_raw_dset_index_item(cast(DsetIndexItem, idx))
     if not isinstance(idx, Sequence):
         raise TypeError(f"Unsupported index type {type(idx)}: {idx}")
     return tuple(_as_raw_dset_index_item(idx_item) for idx_item in idx)
@@ -70,9 +70,9 @@ def _as_raw_dset_index(idx: DsetIndex) -> tuple[RawDsetIndexItem]:
 
 def _as_raw_dset_index_item(idx_item: DsetIndexItem) -> RawDsetIndexItem:
     if _is_raw_dset_index_item(idx_item):
-        return idx_item
+        return cast(RawDsetIndexItem, idx_item)
     if _is_slice_arguments(idx_item):
-        return slice(*idx_item)
+        return slice(*cast(Sequence, idx_item))
     raise TypeError(f"Unsupported index item type {type(idx_item)}: {idx_item}")
 
 

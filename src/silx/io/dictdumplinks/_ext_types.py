@@ -8,7 +8,7 @@ class ExtSchemaV1(TypedDict):
     dictdump_schema: Literal["external_binary_link_v1"]
     shape: Sequence[int]
     dtype: str | DTypeLike
-    sources: Sequence[Sequence[str, int, int]]
+    sources: Sequence[tuple[str, int, int]]
 
 
 class Ext(NamedTuple):
@@ -16,7 +16,7 @@ class Ext(NamedTuple):
     with respect to the current working directory, not relative to the parent file.
     """
 
-    shape: tuple[int]
+    shape: tuple[int, ...]
     dtype: str | DTypeLike
     sources: list[tuple[str, int, int]]  # (file_path, offset, bytecount)
 

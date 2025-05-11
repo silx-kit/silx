@@ -3,7 +3,7 @@ Supports representations of these HDF5 link types:
 
 * Soft links: `InternalLink`
 * External links: `ExternalLink`
-* Virtual datasets: `ExternalVirtualLink`
+* Virtual datasets: `VDSLink`
 * External raw binary data: `ExternalBinaryLink`
 
 An instance of these link classes can be created from a serialized

@@ -1,5 +1,5 @@
 import os
-from typing import NewType
+from typing import TypeAlias, Any, cast
 from collections.abc import Mapping, Sequence
 
 import h5py
@@ -15,54 +15,66 @@ from ._ext_types import ExtSchemaV1
 from ._link_types import Hdf5LinkType
 from ._link_types import InternalLink
 from ._link_types import ExternalLink
-from ._link_types import ExternalVirtualLink
+from ._link_types import VDSLink
 from ._link_types import ExternalBinaryLink
 from ._schemas import parse_schema
 
 
-SerializedHdf5LinkType = NewType(
-    "SerializedHdf5LinkType",
-    str | DataUrl | Sequence[str | DataUrl] | Mapping | VdsSchemaV1 | ExtSchemaV1,
+SerializedHdf5LinkType: TypeAlias = (
+    str | DataUrl | Sequence[str | DataUrl] | VdsSchemaV1 | ExtSchemaV1
 )
 
-NativeHdf5LinkType = NewType("NativeHdf5LinkType", h5py.SoftLink | h5py.ExternalLink)
+NativeHdf5LinkType: TypeAlias = h5py.SoftLink | h5py.ExternalLink
 
 
 def link_from_serialized(
     source: str | DataUrl,
-    target: Hdf5LinkType | NativeHdf5LinkType | SerializedHdf5LinkType,
+    target: Hdf5LinkType | NativeHdf5LinkType | SerializedHdf5LinkType | Any,
 ) -> Hdf5LinkType | None:
-    """
+    """Convert the target to a link instance when it describes a link.
+    Otherwise return `None`.
+
     :param source: URL of the link.
     :param target: URL or schema of the target.
-    :returns: Link instance or `None` when the `target` object is not
-              a valid link target schema.
+    :returns: Link instance or `None`.
     """
     if isinstance(
         target,
-        (InternalLink, ExternalLink, ExternalVirtualLink, ExternalBinaryLink),
+        (InternalLink, ExternalLink, VDSLink, ExternalBinaryLink),
     ):
+        # Already a link instance.
         return target
 
     if isinstance(target, h5py.SoftLink):
+        # A native h5py link instance.
         return InternalLink(target.path)
     if isinstance(target, h5py.ExternalLink):
+        # A native h5py link instance.
         return ExternalLink(target.filename, target.path)
-    if isinstance(target, (str, DataUrl)):
-        return _url_to_hdf5_link(source, target)
     if isinstance(target, Mapping):
+        # A mapping could be a link schema or just any mapping.
         return parse_schema(target)
-    if isinstance(target, Sequence):
-        return _urls_to_hdf5_link(target)
+    if isinstance(target, (str, DataUrl)):
+        # Possibly a URL to a link target.
+        return _url_to_hdf5_link(source, target)
+    if isinstance(target, Sequence) and all(
+        isinstance(v, (str, DataUrl)) for v in target
+    ):
+        # Possibly URL's to concatenate as a link target.
+        return _urls_to_hdf5_link(source, target)
+
+    return None
 
 
-def _url_to_hdf5_link(source: str | DataUrl, target: str | DataUrl) -> Hdf5LinkType:
-    if isinstance(source, str):
+def _url_to_hdf5_link(
+    source: str | DataUrl, target: str | DataUrl
+) -> Hdf5LinkType | None:
+    if not isinstance(source, DataUrl):
         source = DataUrl(source)
 
-    if isinstance(target, str):
+    if not isinstance(target, DataUrl):
         if "::" in target or "?" in target:
-            # target refers to an data item in a file
+            # target refers to a data item in a file
             target = DataUrl(target)
         elif _get_file_type(target):
             # target refers to a file
@@ -70,9 +82,6 @@ def _url_to_hdf5_link(source: str | DataUrl, target: str | DataUrl) -> Hdf5LinkT
         else:
             # target refers to a dataset
             target = DataUrl(f"{os.path.abspath(source.file_path())}::{target}")
-
-    if not isinstance(target, DataUrl):
-        raise TypeError(f"Unsupported target type {type(target)}: {target}")
 
     file_type = _get_target_file_type(source, target)
     if file_type == "hdf5":
@@ -87,12 +96,12 @@ def _url_to_hdf5_link(source: str | DataUrl, target: str | DataUrl) -> Hdf5LinkT
     elif file_type == "edf":
         return _fabio_url_to_external_data(source, target)
     else:
-        raise ValueError(f"File type is not supported: {target.path()}")
+        return None
 
 
 def _urls_to_hdf5_link(
     source: str | DataUrl, target: Sequence[str | DataUrl]
-) -> Hdf5LinkType:
+) -> Hdf5LinkType | None:
     # TODO: stack of targets
     raise NotImplementedError
 
@@ -112,7 +121,7 @@ def _is_same_file(source: DataUrl, target: DataUrl) -> bool:
     return os.path.realpath(source_file_path) == os.path.realpath(target_file_path)
 
 
-def _get_target_file_type(source: DataUrl, target: DataUrl) -> str:
+def _get_target_file_type(source: DataUrl, target: DataUrl) -> str | None:
     if _is_same_file(source, target):
         return "hdf5"
     abs_file_path = _absolute_file_path(target.file_path(), source.file_path())
@@ -129,6 +138,7 @@ def _get_file_type(abs_file_path: str) -> str | None:
         return "tiff"
     if ext in {".edf"}:
         return "edf"
+    return None
 
 
 def _url_to_soft_link(source: DataUrl, target: DataUrl) -> InternalLink:
@@ -140,22 +150,22 @@ def _url_to_soft_link(source: DataUrl, target: DataUrl) -> InternalLink:
 
 
 def _url_to_external_link(source: DataUrl, target: DataUrl) -> ExternalLink:
-    return ExternalLink(target.file_path(), target.data_path())
+    return ExternalLink(target.file_path(), target.data_path() or "/")
 
 
-def _url_to_vds(source: DataUrl, target: DataUrl) -> ExternalVirtualLink:
+def _url_to_vds(source: DataUrl, target: DataUrl) -> VDSLink:
     if _is_same_file(source, target):
         file_path = "."
     else:
         file_path = target.file_path()
 
-    data_path = target.data_path()
+    data_path = target.data_path() or "/"
     data_slice = target.data_slice()
 
     if ".." in data_path.split("/"):
         if file_path == ".":
             # Up links are not supported in internal virtual datasets
-            data_path = _absolute_data_path(data_path, source.data_path())
+            data_path = _absolute_data_path(data_path, source.data_path() or "/")
         else:
             raise ValueError(
                 f"VDS target data path in a different file cannot be relative ({data_path})"
@@ -175,12 +185,12 @@ def _url_to_vds(source: DataUrl, target: DataUrl) -> ExternalVirtualLink:
         "target_index": tuple(),
     }
     target_desc = {
-        "dictdump_schema": "external_virtual_link_v1",
+        "dictdump_schema": "virtual_dataset_v1",
         "shape": data_shape,
         "dtype": source_dtype,
         "sources": [vsource],
     }
-    return parse_schema(target_desc)
+    return cast(VDSLink, parse_schema(target_desc))
 
 
 def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
@@ -191,7 +201,7 @@ def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBin
     abs_file_path = _absolute_file_path(file_path, source.file_path())
 
     with fabio.open(abs_file_path) as fabioimage:
-        sources = list()
+        sources: list[tuple[str, int, int]] = list()
 
         if fabioimage.nframes > 1:
             shape = (fabioimage.nframes,) + fabioimage.shape
@@ -207,7 +217,7 @@ def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBin
             offset, bytecount = _fabio_frame_info(file_path, frame)
             sources.append((file_path, offset, bytecount))
 
-    return parse_schema(target_desc)
+    return cast(ExternalBinaryLink, parse_schema(target_desc))
 
 
 def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
@@ -218,7 +228,7 @@ def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBina
     abs_file_path = _absolute_file_path(file_path, source.file_path())
 
     with TiffIO(abs_file_path) as tiffimage:
-        sources = list()
+        sources: list[tuple[str, int, int]] = list()
         nframes = tiffimage.getNumberOfImages()
         img = tiffimage.getImage(0)
         if nframes > 1:
@@ -236,16 +246,14 @@ def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBina
             info = tiffimage.getInfo(i)
             if info["compression"]:
                 raise RuntimeError(
-                    "{} (frame {}): external datasets do not support compression".format(
-                        repr(file_path), i
-                    )
+                    f"{file_path!r} (frame {i}): external datasets do not support compression"
                 )
 
             # shape = info["nRows"], info["nColumns"]
             for offset, bytecount in zip(info["stripOffsets"], info["stripByteCounts"]):
                 sources.append((file_path, offset, bytecount))
 
-    return parse_schema(target_desc)
+    return cast(ExternalBinaryLink, parse_schema(target_desc))
 
 
 def _fabio_frame_info(file_path: str, frame: FabioFrame) -> tuple[int, int]:
@@ -287,7 +295,7 @@ def _absolute_file_path(file_path: str, start_file_path: str) -> str:
 def _absolute_data_path(data_path: str, start_data_path: str) -> str:
     inparts = [s for s in start_data_path.split("/") if s][:-1]
     inparts += data_path.split("/")
-    outparts = []
+    outparts: list[str] = []
     for part in inparts:
         if part == "." or not part:
             pass
@@ -300,7 +308,7 @@ def _absolute_data_path(data_path: str, start_data_path: str) -> str:
 
 def _get_hdf5_dataset_info(
     file_path: str, data_path: str, data_slice
-) -> tuple[str, tuple[int], tuple[int]]:
+) -> tuple[str, tuple[int, ...], tuple[int, ...]]:
     with h5py.File(file_path, locking=False, mode="r") as f:
         dset = f[data_path]
         source_shape = dset.shape
