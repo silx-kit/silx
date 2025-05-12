@@ -45,8 +45,8 @@ def parse_vds_schema_v1(target: VdsSchemaV1) -> Vds:
     dtype = target["dtype"]
     sources = list()
     for source in target["sources"]:
-        source_index = _as_raw_dset_index(source.get("source_index") or tuple())
-        target_index = _as_raw_dset_index(source.get("target_index") or tuple())
+        source_index = _as_raw_dset_index(source.get("source_index", tuple()))
+        target_index = _as_raw_dset_index(source.get("target_index", tuple()))
         sources.append(
             VdsSource(
                 file_path=source["file_path"],
