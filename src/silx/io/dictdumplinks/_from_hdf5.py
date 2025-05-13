@@ -1,10 +1,11 @@
 import h5py
 
-from ._link_types import InternalLink
-from ._link_types import ExternalLink
+from ._base_types import LinkInterface
+from ._internal_link_types import InternalLink
+from ._external_link_types import ExternalLink
 
 
-def link_from_hdf5(parent: h5py.Group, name: str) -> InternalLink | ExternalLink | None:
+def link_from_hdf5(parent: h5py.Group, name: str) -> LinkInterface | None:
     """
     External binary datasets and virtual datasets are not supported
     as h5py does not provide an API for it.

@@ -11,27 +11,26 @@ from numpy.typing import DTypeLike
 
 from ..url import DataUrl
 
+from ._base_types import LinkInterface
+from ._base_types import NativeHdf5LinkType
+from ._internal_link_types import InternalLink
+from ._external_link_types import ExternalLink
+from ._vds_types import VDSLink
 from ._vds_types import VdsSchemaV1
-from ._ext_types import ExtSchemaV1
-from ._link_types import Hdf5LinkType
-from ._link_types import InternalLink
-from ._link_types import ExternalLink
-from ._link_types import VDSLink
-from ._link_types import ExternalBinaryLink
-from ._schemas import parse_schema
+from ._external_binary_types import ExternalBinaryLink
+from ._external_binary_types import ExtSchemaV1
+from ._schemas import deserialize_schema
 
 
 SerializedHdf5LinkType: TypeAlias = (
     str | DataUrl | Sequence[str | DataUrl] | VdsSchemaV1 | ExtSchemaV1
 )
 
-NativeHdf5LinkType: TypeAlias = h5py.SoftLink | h5py.ExternalLink
-
 
 def link_from_serialized(
     source: str | DataUrl,
-    target: Hdf5LinkType | NativeHdf5LinkType | SerializedHdf5LinkType | Any,
-) -> Hdf5LinkType | None:
+    target: LinkInterface | NativeHdf5LinkType | SerializedHdf5LinkType | Any,
+) -> LinkInterface | None:
     """Convert the target to a link instance when it describes a link.
     Otherwise return `None`.
 
@@ -101,7 +100,7 @@ def link_from_serialized(
         return ExternalLink(target.filename, target.path)
     if isinstance(target, Mapping):
         # A mapping could be a link schema or just any mapping.
-        return parse_schema(target)
+        return deserialize_schema(target)
     if isinstance(target, (str, DataUrl)):
         # Possibly a URL to a link target.
         return _url_to_hdf5_link(source, target)
@@ -116,7 +115,7 @@ def link_from_serialized(
 
 def _url_to_hdf5_link(
     source: str | DataUrl, target: str | DataUrl
-) -> Hdf5LinkType | None:
+) -> LinkInterface | None:
     if not isinstance(source, DataUrl):
         source = DataUrl(source)
 
@@ -149,7 +148,7 @@ def _url_to_hdf5_link(
 
 def _urls_to_hdf5_link(
     source: str | DataUrl, targets: Sequence[str | DataUrl]
-) -> Hdf5LinkType | None:
+) -> LinkInterface | None:
     if not isinstance(source, DataUrl):
         source = DataUrl(source)
     targets: list[DataUrl] = [
@@ -210,8 +209,7 @@ def _url_to_soft_link(source: DataUrl, target: DataUrl) -> InternalLink:
     data_path = target.data_path() or "/"
     if ".." in data_path.split("/"):
         # Up links are not supported in soft links
-        assert source.data_path()
-        data_path = _absolute_data_path(data_path, source.data_path())
+        data_path = _absolute_data_path(data_path, source.data_path() or "/")
     return InternalLink(data_path)
 
 
@@ -222,7 +220,7 @@ def _url_to_external_link(source: DataUrl, target: DataUrl) -> ExternalLink:
 def _url_to_vds(source: DataUrl, target: DataUrl) -> VDSLink:
     target_desc: Dict[str, Any] = dict()
     _ = _add_url_to_vds_schema(source, target, target_desc)
-    return cast(VDSLink, parse_schema(target_desc))
+    return cast(VDSLink, deserialize_schema(target_desc))
 
 
 def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> VDSLink:
@@ -234,7 +232,7 @@ def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> VDSLink:
     for source, n in zip(target_desc["sources"], nimages):
         source["target_index"] = slice(i0, i0 + n)
         i0 += n
-    return cast(VDSLink, parse_schema(target_desc))
+    return cast(VDSLink, deserialize_schema(target_desc))
 
 
 def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) -> int:
@@ -303,7 +301,7 @@ def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) 
 def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, parse_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
 
 
 def _fabio_urls_to_external_data(
@@ -312,7 +310,7 @@ def _fabio_urls_to_external_data(
     target_desc: Dict[str, Any] = dict()
     for target in targets:
         _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, parse_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
 
 
 def _add_fabio_url_to_schema(
@@ -360,7 +358,7 @@ def _add_fabio_url_to_schema(
 def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, parse_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
 
 
 def _tiff_urls_to_external_data(
@@ -369,7 +367,7 @@ def _tiff_urls_to_external_data(
     target_desc = {}
     for target in targets:
         _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, parse_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
 
 
 def _add_tiff_url_to_schema(

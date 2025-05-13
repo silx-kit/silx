@@ -11,10 +11,10 @@ except ImportError:
 
 from ..dictdumplinks import link_from_hdf5
 from ..dictdumplinks import link_from_serialized
-from ..dictdumplinks._link_types import InternalLink
-from ..dictdumplinks._link_types import ExternalLink
-from ..dictdumplinks._link_types import VDSLink
-from ..dictdumplinks._link_types import ExternalBinaryLink
+from ..dictdumplinks import VDSLink
+from ..dictdumplinks import ExternalBinaryLink
+from ..dictdumplinks import InternalLink
+from ..dictdumplinks import ExternalLink
 
 
 def test_soft_link_from_str(tmp_path):
