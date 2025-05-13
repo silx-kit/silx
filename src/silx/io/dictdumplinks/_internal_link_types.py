@@ -2,6 +2,7 @@ from typing import Any
 
 import h5py
 
+from silx.utils.deprecation import deprecated
 from ._base_types import LinkInterface
 
 
@@ -12,6 +13,11 @@ class InternalLink(LinkInterface):
 
     @property
     def data_path(self) -> str:
+        return self._data_path
+
+    @property
+    @deprecated(since_version="3.0.0", replacement="data_path")
+    def path(self) -> str:
         return self._data_path
 
     def __eq__(self, other: Any):
