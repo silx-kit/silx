@@ -24,12 +24,14 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
-from collections.abc import Mapping
+import os
 import json
 import logging
-import numpy
-import os.path
+from collections.abc import Mapping
+from typing import Any
+
 import h5py
+import numpy
 
 try:
     from pint import Quantity as PintQuantity
@@ -38,6 +40,8 @@ except ImportError:
         from pint.quantity import Quantity as PintQuantity
     except ImportError:
         PintQuantity = None
+
+from silx.utils.deprecation import deprecated_warning
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -49,6 +53,9 @@ from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 from .utils import h5py_read_dataset
 from .utils import H5pyAttributesReadWrapper
+from .dictdumplinks import link_from_hdf5
+from .dictdumplinks import link_from_serialized
+from .dictdumplinks import LinkInterface
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -316,8 +323,35 @@ def dicttoh5(
                     )
                 elif not exists:
                     h5f.create_group(h5name)
-            elif is_link(value):
-                # HDF5 link
+            elif isinstance(value, LinkInterface):
+                # HDF5 soft link, external link or virtual dataset
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if not exists:
+                    value.create(h5f, h5name)
+            elif is_softlink(value):
+                # HDF5 soft link
+                deprecated_warning(
+                    "Type",
+                    "h5py.SoftLink",
+                    replacement="silx.io.dictdumplinks.InternalLink",
+                    since_version="3.0.0",
+                )
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if not exists:
+                    # Create link from h5py link object
+                    h5f[h5name] = value
+            elif is_externallink(value):
+                # HDF5 external link
+                deprecated_warning(
+                    "Type",
+                    "h5py.ExternalLink",
+                    replacement="silx.io.dictdumplinks.ExternalLink",
+                    since_version="3.0.0",
+                )
                 if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
@@ -415,11 +449,16 @@ def _ensure_nx_class(treedict, parents=tuple()):
         treedict[("", "NX_class")] = "NXcollection"
 
 
-def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=False):
+def nexus_to_h5_dict(
+    treedict,
+    parents=tuple(),
+    add_nx_class=True,
+    has_nx_class=False,
+    file_path: str | None = None,
+):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
-        * key with ">{url}" notation: strip ">" and convert value to
-                                      h5py.SoftLink or h5py.ExternalLink
+        * key with ">{url}" notation: strip ">" and convert value to `LinkInterface`
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -428,6 +467,7 @@ def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=
     :param parents: Needed to resolve up-links (tuple of HDF5 group names)
     :param add_nx_class: Add "NX_class" attribute when missing
     :param has_nx_class: The "NX_class" attribute is defined in the parent
+    :param file_path: File path
 
     :rtype dict:
     """
@@ -439,27 +479,23 @@ def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=
             # HDF5 attribute
             key = tuple(key.rsplit("@", 1))
         elif key.startswith(">"):
-            # HDF5 link
-            if isinstance(value, str):
-                key = key[1:]
-                first, sep, second = value.partition("::")
-                if sep:
-                    value = h5py.ExternalLink(first, second)
-                else:
-                    if ".." in first:
-                        # Up-links not supported: make absolute
-                        parts = []
-                        for p in list(parents) + first.split("/"):
-                            if not p or p == ".":
-                                continue
-                            elif p == "..":
-                                parts.pop(-1)
-                            else:
-                                parts.append(p)
-                        first = "/" + "/".join(parts)
-                    value = h5py.SoftLink(first)
-            elif is_link(value):
-                key = key[1:]
+            if file_path:
+                source = file_path + "::" + "/".join(parents + (key[1:],))
+                target = value
+                link_value = link_from_serialized(source, target)
+                if link_value is not None:
+                    key = key[1:]
+                    value = link_value
+            else:
+                deprecated_warning(
+                    "Argument",
+                    "nexus_to_h5_dict without file_path argument",
+                    since_version="3.0.0",
+                )
+                link_value = _deprecated_link_from_serialized(value, parents)
+                if link_value is not None:
+                    key = key[1:]
+                    value = link_value
 
         if isinstance(value, Mapping):
             # HDF5 group
@@ -469,6 +505,7 @@ def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=
                 parents=parents + (key,),
                 add_nx_class=add_nx_class,
                 has_nx_class=key_has_nx_class,
+                file_path=file_path,
             )
 
         elif PintQuantity is not None and isinstance(value, PintQuantity):
@@ -482,6 +519,33 @@ def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=
     if add_nx_class and not has_nx_class:
         _ensure_nx_class(copy, parents)
     return copy
+
+
+def _deprecated_link_from_serialized(
+    value: Any, parents: tuple[str, ...]
+) -> h5py.SoftLink | h5py.ExternalLink | None:
+    if isinstance(value, str):
+        key = key[1:]
+        first, sep, second = value.partition("::")
+        if sep:
+            return h5py.ExternalLink(first, second)
+        else:
+            if ".." in first:
+                # Up-links not supported: make absolute
+                parts = []
+                for p in list(parents) + first.split("/"):
+                    if not p or p == ".":
+                        continue
+                    elif p == "..":
+                        parts.pop(-1)
+                    else:
+                        parts.append(p)
+                first = "/" + "/".join(parts)
+            return h5py.SoftLink(first)
+    elif is_link(value):
+        return value
+    else:
+        return None
 
 
 def h5_to_nexus_dict(treedict):
@@ -502,12 +566,28 @@ def h5_to_nexus_dict(treedict):
             if len(key) != 2:
                 raise ValueError("HDF5 attribute must be described by 2 values")
             key = f"{key[0]}@{key[1]}"
+        elif isinstance(value, LinkInterface):
+            key = ">" + key
+            value = value.serialize()
         elif is_softlink(value):
+            deprecated_warning(
+                "Type",
+                "h5py.SoftLink",
+                replacement="silx.io.dictdumplinks.InternalLink",
+                since_version="3.0.0",
+            )
             key = ">" + key
             value = value.path
         elif is_externallink(value):
+            deprecated_warning(
+                "Type",
+                "h5py.ExternalLink",
+                replacement="silx.io.dictdumplinks.ExternalLink",
+                since_version="3.0.0",
+            )
             key = ">" + key
             value = value.filename + "::" + value.path
+
         if isinstance(value, Mapping):
             copy[key] = h5_to_nexus_dict(value)
         else:
@@ -605,12 +685,7 @@ def h5todict(
         try:
             root = h5f[path]
         except KeyError as e:
-            if not isinstance(h5f.get(path, getlink=True), h5py.HardLink):
-                _handle_error(
-                    errors, KeyError, 'Cannot retrieve path "%s" (broken link)', path
-                )
-            else:
-                _handle_error(errors, KeyError, ", ".join(e.args))
+            _handle_keyerror(h5f, h5name, e, errors)
             return ddict
 
         # Read the attributes of the group
@@ -625,23 +700,15 @@ def h5todict(
             h5name = path + "/" + key
             # Preserve HDF5 link when requested
             if not dereference_links:
-                lnk = h5f.get(h5name, getlink=True)
-                if is_link(lnk):
+                lnk = link_from_hdf5(h5f, h5name)
+                if lnk is not None:
                     ddict[key] = lnk
                     continue
 
             try:
                 h5obj = h5f[h5name]
             except KeyError as e:
-                if not isinstance(h5f.get(h5name, getlink=True), h5py.HardLink):
-                    _handle_error(
-                        errors,
-                        KeyError,
-                        'Cannot retrieve path "%s" (broken link)',
-                        h5name,
-                    )
-                else:
-                    _handle_error(errors, KeyError, ", ".join(e.args))
+                _handle_keyerror(h5f, h5name, e, errors)
                 continue
 
             if is_group(h5obj):
@@ -673,6 +740,15 @@ def h5todict(
                         for aname, avalue in attrs.items():
                             ddict[(key, aname)] = avalue
     return ddict
+
+
+def _handle_keyerror(h5f: h5py.File, h5name: str, e: KeyError, errors: str):
+    if not isinstance(h5f.get(h5name, getlink=True), h5py.HardLink):
+        _handle_error(
+            errors, KeyError, 'Cannot retrieve path "%s" (broken link)', h5name
+        )
+    else:
+        _handle_error(errors, KeyError, ", ".join(e.args))
 
 
 def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
@@ -727,10 +803,16 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
         dicttonx(gauss,"test.h5")
     """
     h5file, h5path = _normalize_h5_path(h5file, h5path)
+    if isinstance(h5file, str):
+        file_path = h5file
+    else:
+        file_path = h5file.filename
     parents = tuple(p for p in h5path.split("/") if p)
     if add_nx_class is None:
         add_nx_class = kw.get("update_mode", None) in (None, "add")
-    nxtreedict = nexus_to_h5_dict(treedict, parents=parents, add_nx_class=add_nx_class)
+    nxtreedict = nexus_to_h5_dict(
+        treedict, parents=parents, add_nx_class=add_nx_class, file_path=file_path
+    )
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 
