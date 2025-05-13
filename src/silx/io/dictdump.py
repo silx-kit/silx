@@ -551,8 +551,12 @@ def _deprecated_link_from_serialized(
 def h5_to_nexus_dict(treedict):
     """The following conversions are applied:
         * 2-tuple key: converted to string ("@" notation)
-        * h5py.Softlink value: converted to string (">" key prefix)
-        * h5py.ExternalLink value: converted to string (">" key prefix)
+        * silx.io.dictdumplinks.InternalLink value: converted to string (">" key prefix)
+        * silx.io.dictdumplinks.ExternalLink value: converted to string (">" key prefix)
+        * silx.io.dictdumplinks.ExternalBinaryLink value: converted to dictionary (">" key prefix)
+        * silx.io.dictdumplinks.VDSLink value: converted to dictionary (">" key prefix)
+        * h5py.Softlink value (DEPRECATED): converted to string (">" key prefix)
+        * h5py.ExternalLink value (DEPRECATED): converted to string (">" key prefix)
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -758,7 +762,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     therefore the dataset_names should not contain ``"@"``.
 
     Similarly, links are identified by keys starting with the ``">"`` character.
-    The corresponding value can be a soft or external link.
+    The corresponding value can be a soft link, external link or virtual dataset.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -820,8 +824,8 @@ def nxtodict(h5file, include_attributes=True, **kw):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
-    As opposed to h5todict, all keys will be strings and no h5py objects are
-    present in the tree.
+    As opposed to h5todict, all keys will be strings and no h5py of LinkInterface
+    objects are present in the tree.
 
     The named parameters are passed to h5todict.
     """
