@@ -11,10 +11,10 @@ link with `link_from_serialized` or from an HDF5 item with `link_from_hdf5`.
 
 Serialized instances of HDF5 links have the following type
 
-* Soft links: string or `DataUrl`
-* External links: string or `DataUrl`
-* Virtual datasets: mapping matching the VDS schemas
-* External raw binary data: mapping matching EXT schemas
+* Soft link: string or `DataUrl`
+* External link: string or `DataUrl`
+* Virtual dataset: mapping matching the VDS schema
+* External raw binary data: mapping matching EXT schema
 """
 
 from ._base_types import LinkInterface  # noqa F401
