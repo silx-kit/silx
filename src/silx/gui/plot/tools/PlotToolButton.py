@@ -45,7 +45,7 @@ class PlotToolButton(qt.QToolButton):
     """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`."""
 
     def __init__(self, parent: qt.QWidget | None = None, plot=None):
-        super(PlotToolButton, self).__init__(parent)
+        super().__init__(parent)
         self._plotRef = None
         if plot is not None:
             self.setPlot(plot)

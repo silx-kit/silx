@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@
 
 #include <stdio.h>
 
-/*  strip(double* input, double c, long niter, double* output)
+/*  strip(double* input, double c, int niter, double* output)
 
     The strip background is probably PyMca's  most popular background model.
 
@@ -62,12 +62,12 @@
         - output: output array
 
 */
-int strip(double* input, long len_input,
-          double c, long niter, int deltai,
-          long* anchors, long len_anchors,
+int strip(double* input, int len_input,
+          double c, int niter, int deltai,
+          int* anchors, int len_anchors,
           double* output)
 {
-    long iter_index, array_index, anchor_index, anchor;
+    int iter_index, array_index, anchor_index, anchor;
     int anchor_nearby_flag;
     double  t_mean;
 

@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Sample code illustrating how to custom silx view into another application.
-"""
+"""Sample code illustrating how to custom silx view into another application."""
 
 import sys
 import numpy
@@ -38,7 +37,7 @@ def createWindow(parent, settings):
 
     class RandomColorAction(PlotAction):
         def __init__(self, plot, parent=None):
-            super(RandomColorAction, self).__init__(
+            super().__init__(
                 plot,
                 icon="colormap",
                 text="Color",

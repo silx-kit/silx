@@ -107,7 +107,7 @@ class TestCpy2d(unittest.TestCase):
         errmax = np.max(np.abs(result - reference))
         logger.info("Max error = %e" % (errmax))
         self.assertTrue(
-            errmax == 0, str("Max error is too high")
+            errmax == 0, "Max error is too high"
         )  # . PRNG state was %s" % str(self.prng_state)))
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")

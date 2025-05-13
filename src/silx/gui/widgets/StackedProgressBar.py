@@ -24,7 +24,9 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple, Any, ValuesView
+from typing import NamedTuple, Any
+
+from collections.abc import ValuesView
 from silx.gui import qt
 
 

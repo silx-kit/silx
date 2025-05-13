@@ -222,14 +222,8 @@ class Projection(OpenclProcessing):
         self.add_to_cl_mem({"d_slice": ary})
 
     def allocate_textures(self):
-        self.d_image_tex = pyopencl.Image(
-            self.ctx,
-            mf.READ_ONLY | mf.USE_HOST_PTR,
-            pyopencl.ImageFormat(
-                pyopencl.channel_order.INTENSITY, pyopencl.channel_type.FLOAT
-            ),
-            hostbuf=np.ascontiguousarray(self._tmp_extended_img.T),
-        )
+        hostbuf = np.ascontiguousarray(self._tmp_extended_img.T)
+        self.d_image_tex = self.allocate_texture(hostbuf.shape, hostbuf)
 
     def transfer_to_texture(self, image):
         image2 = image

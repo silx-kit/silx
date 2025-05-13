@@ -164,7 +164,7 @@ KEYS = 1
 VALUES = 2
 
 
-class Image(object):
+class Image:
     """ """
 
     def __init__(self):
@@ -181,7 +181,7 @@ class Image(object):
         self.DataType = ""
 
 
-class EdfFile(object):
+class EdfFile:
     """ """
 
     def __init__(self, FileName, access=None, fastedf=None):
@@ -225,13 +225,13 @@ class EdfFile(object):
                 self.__ownedOpen = False
                 self.File = gzip.GzipFile(FileName)
             else:
-                raise IOError("No gzip module support in this system")
+                raise OSError("No gzip module support in this system")
         elif FileName.lower().endswith(".bz2"):
             if BZ2:
                 self.__ownedOpen = False
                 self.File = bz2.BZ2File(FileName)
             else:
-                raise IOError("No bz2 module support in this system")
+                raise OSError("No bz2 module support in this system")
         else:
             self.__ownedOpen = True
 
@@ -239,7 +239,7 @@ class EdfFile(object):
             if access is not None:
                 if access[0].upper() == "R":
                     if not os.path.isfile(self.FileName):
-                        raise IOError("File %s not found" % FileName)
+                        raise OSError("File %s not found" % FileName)
                 if "b" not in access:
                     access += "b"
             if 1:
@@ -277,12 +277,12 @@ class EdfFile(object):
                             or sys.version > "2.9"
                         ):
                             if not TIFF_SUPPORT:
-                                raise IOError("TIFF support not implemented")
+                                raise OSError("TIFF support not implemented")
                             else:
                                 self.TIFF = True
                         elif not MARCCD_SUPPORT:
                             if not TIFF_SUPPORT:
-                                raise IOError("MarCCD support not implemented")
+                                raise OSError("MarCCD support not implemented")
                             else:
                                 self.TIFF = True
                         else:
@@ -290,7 +290,7 @@ class EdfFile(object):
                     basename = os.path.basename(FileName).upper()
                     if basename.endswith(".CBF"):
                         if not PILATUS_CBF_SUPPORT:
-                            raise IOError("CBF support not implemented")
+                            raise OSError("CBF support not implemented")
                         if twoChars[0] != "{":
                             self.PILATUS_CBF = True
                     elif basename.endswith(".SPE"):
@@ -303,7 +303,7 @@ class EdfFile(object):
                     self.File.close()
                 except:
                     pass
-                raise IOError("EdfFile: Error opening file")
+                raise OSError("EdfFile: Error opening file")
 
         self.File.seek(0, 0)
         if self.TIFF:
@@ -333,7 +333,7 @@ class EdfFile(object):
             # decode to make sure I have character string
             # str to make sure python 2.x sees it as string and not unicode
             if sys.version < "3.0":
-                if type(line) != type(str("")):
+                if type(line) != str:
                     line = "%s" % line
             else:
                 try:
@@ -457,7 +457,7 @@ class EdfFile(object):
                 )
             except ValueError:
                 msg = "Size spec in ADSC-header does not match size of image data field"
-                raise IOError(msg)
+                raise OSError(msg)
             if "little" in header["BYTE_ORDER"]:
                 self.Images[Index].ByteOrder = "LowByteFirst"
             else:
@@ -904,10 +904,10 @@ class EdfFile(object):
         for i in STATIC_HEADER_ELEMENTS:
             if i in self.Images[Index].StaticHeader.keys():
                 StrHeader = StrHeader + (
-                    "%s = %s ;\n" % (i, self.Images[Index].StaticHeader[i])
+                    f"{i} = {self.Images[Index].StaticHeader[i]} ;\n"
                 )
         for i in Header.keys():
-            StrHeader = StrHeader + ("%s = %s ;\n" % (i, Header[i]))
+            StrHeader = StrHeader + (f"{i} = {Header[i]} ;\n")
             self.Images[Index].Header[i] = Header[i]
         newsize = (
             ((len(StrHeader) + 1) // HEADER_BLOCK_SIZE) + 1

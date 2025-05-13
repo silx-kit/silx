@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A QComboBox to display prefered colormaps
-"""
+"""A QComboBox to display prefered colormaps"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"

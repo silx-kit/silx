@@ -24,7 +24,7 @@
 
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Union
 
 import h5py
 import numpy
@@ -34,8 +34,8 @@ from . import utils
 
 
 IndexType = Union[int, slice, type(Ellipsis)]
-IndicesType = Union[IndexType, Tuple[IndexType, ...]]
-NormalisedIndicesType = Tuple[Union[int, slice], ...]
+IndicesType = Union[IndexType, tuple[IndexType, ...]]
+NormalisedIndicesType = tuple[Union[int, slice], ...]
 
 
 def _expand_indices(
@@ -134,7 +134,7 @@ class DatasetSlice(commonh5.Dataset):
 
     def __init__(
         self,
-        dataset: Union[h5py.Dataset, commonh5.Dataset],
+        dataset: h5py.Dataset | commonh5.Dataset,
         indices: IndicesType,
         attrs: dict,
     ):
@@ -152,7 +152,7 @@ class DatasetSlice(commonh5.Dataset):
             self.__dataset.name, data=None, parent=self.__file, attrs=attrs
         )
 
-    def _get_data(self) -> Union[h5py.Dataset, commonh5.Dataset]:
+    def _get_data(self) -> h5py.Dataset | commonh5.Dataset:
         # Give access to the underlying (h5py) dataset, not the selected data
         # All commonh5.Dataset methods using _get_data must be overridden
         return self.__dataset
@@ -197,7 +197,7 @@ class DatasetSlice(commonh5.Dataset):
         return self[()].__iter__()
 
     @property
-    def file(self) -> Union[h5py.File, commonh5.File]:
+    def file(self) -> h5py.File | commonh5.File:
         if isinstance(self.__file, h5py.File) and not self.__file.id:
             return None
         return self.__file

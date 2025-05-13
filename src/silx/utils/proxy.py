@@ -31,7 +31,7 @@ __date__ = "02/10/2017"
 import functools
 
 
-class Proxy(object):
+class Proxy:
     """Create a proxy of an object.
 
     Provides default methods and property using :meth:`__getattr__` and special

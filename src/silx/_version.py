@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -67,8 +67,8 @@ RELEASE_LEVEL_VALUE = {"dev": 0, "alpha": 10, "beta": 11, "candidate": 12, "fina
 
 PRERELEASE_NORMALIZED_NAME = {"dev": "a", "alpha": "a", "beta": "b", "candidate": "rc"}
 
-MAJOR = 2
-MINOR = 1
+MAJOR = 3
+MINOR = 0
 MICRO = 0
 RELEV = "dev"  # <16
 SERIAL = 0  # <16
@@ -86,7 +86,7 @@ version_info = _version_info(MAJOR, MINOR, MICRO, RELEV, SERIAL)
 strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":
     _prerelease = PRERELEASE_NORMALIZED_NAME[version_info[3]]
-    version += "-%s%s" % (_prerelease, version_info[-1])
+    version += f"-{_prerelease}{version_info[-1]}"
     debianversion += (
         "~adev%i" % version_info[-1]
         if RELEV == "dev"

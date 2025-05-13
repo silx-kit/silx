@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A toolbar to display and edit limits of a PlotWidget
-"""
+"""A toolbar to display and edit limits of a PlotWidget"""
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
@@ -57,7 +56,7 @@ class LimitsToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, plot=None, title="Limits"):
-        super(LimitsToolBar, self).__init__(title, parent)
+        super().__init__(title, parent)
         assert plot is not None
         self._plot = plot
         self._plot.sigPlotSignal.connect(self._plotWidgetSlot)

@@ -85,12 +85,12 @@ def _retry_loop(retry_timeout=None, retry_period=None, retry_on_error=None):
     retry_state = {"t0": t0, "exception": None, "retry_on_error": retry_on_error}
     while True:
         yield retry_state
-        if retry_period is not None:
-            time.sleep(retry_period)
-        if has_timeout and (time.time() - t0) > retry_timeout:
+        if has_timeout and (time.time() - retry_state["t0"]) > retry_timeout:
             err_msg = "%s seconds" % retry_timeout
             cause = retry_state.get("exception")
             raise RetryTimeoutError(err_msg) from cause
+        if retry_period is not None:
+            time.sleep(retry_period)
 
 
 def retry(
@@ -118,7 +118,8 @@ def retry(
         if inspect.isgeneratorfunction(method):
             if "start_index" not in inspect.signature(method).parameters:
                 raise TypeError(
-                    "The generator function '%s' needs a `start_index` named argument because it is wrapped with the `retry` decorator."
+                    "The generator function '%s' needs a `start_index` named argument"
+                    " because it is wrapped with the `retry` decorator."
                     % method.__name__
                 )
 

@@ -63,9 +63,9 @@ def _uniqueAlongLastAxis(a):
         # Expect a C contiguous array of shape N, 2
         uniquedt = numpy.dtype((numpy.void, a.itemsize * a.shape[-1]))
     elif a.dtype.char in numpy.typecodes["Float"]:
-        uniquedt = [("f{i}".format(i=i), a.dtype) for i in range(a.shape[-1])]
+        uniquedt = [(f"f{i}", a.dtype) for i in range(a.shape[-1])]
     else:
-        raise TypeError("Unsupported type {dtype}".format(dtype=a.dtype))
+        raise TypeError(f"Unsupported type {a.dtype}")
 
     uniquearray = numpy.unique(numpy.ascontiguousarray(a).view(uniquedt))
     return uniquearray.view(a.dtype).reshape((-1, a.shape[-1]))
@@ -563,7 +563,7 @@ class Plane(event.Notifier):
     """
 
     def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0)):
-        super(Plane, self).__init__()
+        super().__init__()
 
         assert len(point) == 3
         self._point = numpy.array(point, copy=True, dtype=numpy.float32)

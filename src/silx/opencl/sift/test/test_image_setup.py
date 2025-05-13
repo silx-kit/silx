@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -45,11 +45,7 @@ except ImportError:
     scipy = None
 else:
     import scipy.ndimage
-
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
 
 from .test_image_functions import (
     my_gradient,
@@ -127,9 +123,7 @@ def local_maxmin_setup():
         # sift.cpp : for a given "i", we have : increase = initsigma*(sigmaratio)^(i-1)*sqrt(sigmaratio**2 -1)
         for i in range(1, 6):
             sigma = (
-                initsigma
-                * (sigmaratio) ** (i - 1.0)
-                * numpy.sqrt(sigmaratio**2 - 1.0)
+                initsigma * (sigmaratio) ** (i - 1.0) * numpy.sqrt(sigmaratio**2 - 1.0)
             )  # sift.cpp "increase"
             g[i] = my_blur(g[i - 1], sigma)  # blur[i]
 

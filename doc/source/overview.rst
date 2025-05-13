@@ -37,14 +37,11 @@ Project
     - To register from outside ESRF, send an email to `silx-subscribe@esrf.fr <mailto:silx-subscribe@esrf.fr>`_.
 
 - Continuous integration: *silx* is continuously tested on all three major
-  operating systems:
-
-  - Linux, MacOS, Windows: `GitHub Actions <https://github.com/silx-kit/silx/actions>`_
-  - Windows: `AppVeyor <https://ci.appveyor.com/project/ESRF/silx>`_
+  operating systems (Linux, MacOS, Windows): `GitHub Actions <https://github.com/silx-kit/silx/actions>`_
 
 Additional Material
 -------------------
 
-- Code Camp held before releases: `The PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
+- Code Camp held before releases: `The PDFs of the talks are available for download <https://www.silx.org/doc/silx/talks/>`_
 
 

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ _logger = logging.getLogger(__name__)
 from collections import namedtuple
 from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Optional, Union
 import datetime as dt
 import itertools
 import numbers
@@ -98,7 +97,7 @@ class _PlotWidgetSelection(qt.QObject):
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
-        super(_PlotWidgetSelection, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         # Init history
         self.__history = [  # Store active items from most recent to oldest
@@ -117,7 +116,7 @@ class _PlotWidgetSelection(qt.QObject):
         parent.sigActiveCurveChanged.connect(self._activeCurveChanged)
         parent.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
-    def __mostRecentActiveItem(self) -> Optional[items.Item]:
+    def __mostRecentActiveItem(self) -> items.Item | None:
         """Returns most recent active item."""
         return self.__history[0] if len(self.__history) >= 1 else None
 
@@ -138,11 +137,11 @@ class _PlotWidgetSelection(qt.QObject):
 
         return active
 
-    def getCurrentItem(self) -> Optional[items.Item]:
+    def getCurrentItem(self) -> items.Item | None:
         """Returns the current item in the :class:`PlotWidget` or None."""
         return self.__current
 
-    def setCurrentItem(self, item: Optional[items.Item]):
+    def setCurrentItem(self, item: items.Item | None):
         """Set the current item in the :class:`PlotWidget`.
 
         :param item:
@@ -191,9 +190,7 @@ class _PlotWidgetSelection(qt.QObject):
         if previousSelected != self.getSelectedItems():
             self.sigSelectedItemsChanged.emit()
 
-    def __activeItemChanged(
-        self, kind: str, previous: Optional[str], legend: Optional[str]
-    ):
+    def __activeItemChanged(self, kind: str, previous: str | None, legend: str | None):
         """Set current item from kind and legend"""
         if previous == legend:
             return  # No-op for update of item
@@ -378,7 +375,7 @@ class PlotWidget(qt.QMainWindow):
         self._panWithArrowKeys = True
         self._viewConstrains = None
 
-        super(PlotWidget, self).__init__(parent)
+        super().__init__(parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
@@ -822,16 +819,16 @@ class PlotWidget(qt.QMainWindow):
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
             self._backend.postRedisplay()
-        super(PlotWidget, self).showEvent(event)
+        super().showEvent(event)
         self.sigVisibilityChanged.emit(True)
 
     def hideEvent(self, event):
-        super(PlotWidget, self).hideEvent(event)
+        super().hideEvent(event)
         if qt.BINDING == "PySide6":
-            # Workaround RuntimeError: The SignalInstance object was already deleted
+            # Workaround RuntimeError/AttributeError: The SignalInstance object was already deleted
             try:
                 self.sigVisibilityChanged.emit(False)
-            except RuntimeError as e:
+            except (RuntimeError, AttributeError) as e:
                 _logger.error(f"Exception occured: {e}")
         else:
             self.sigVisibilityChanged.emit(False)
@@ -1192,6 +1189,11 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             self._resetColorAndStyle()
 
+        if color is not None:
+            default_color, default_linestyle = color, self._styleList[self._styleIndex]
+        else:
+            default_color, default_linestyle = self._getColorAndStyle()
+
         # Create/Update curve object
         curve = self.getCurve(legend)
         mustBeAdded = curve is None
@@ -1200,7 +1202,6 @@ class PlotWidget(qt.QMainWindow):
             curve = items.Curve() if histogram is None else items.Histogram()
             curve.setName(legend)
             # Set default color, linestyle and symbol
-            default_color, default_linestyle = self._getColorAndStyle()
             curve.setColor(default_color)
             curve.setLineStyle(default_linestyle)
             curve.setSymbol(self._defaultPlotPoints)
@@ -1337,7 +1338,8 @@ class PlotWidget(qt.QMainWindow):
             # add it to the plot
             histo = items.Histogram()
             histo.setName(legend)
-            histo.setColor(self._getColorAndStyle()[0])
+            if color is None:  # Rotate default color only if used
+                histo.setColor(self._getColorAndStyle()[0])
 
         # Override previous/default values with provided ones
         if color is not None:
@@ -2672,9 +2674,9 @@ class PlotWidget(qt.QMainWindow):
         xmax: float,
         ymin: float,
         ymax: float,
-        y2min: Optional[float] = None,
-        y2max: Optional[float] = None,
-        margins: Union[bool, tuple[float, float, float, float]] = False,
+        y2min: float | None = None,
+        y2max: float | None = None,
+        margins: bool | tuple[float, float, float, float] = False,
     ):
         """Set the limits of the X and Y axes at once.
 
@@ -3065,7 +3067,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return Colormap.getSupportedColormaps()
 
-    def setDefaultColors(self, colors: Optional[Tuple[str, ...]]):
+    def setDefaultColors(self, colors: tuple[str, ...] | None):
         """Set the list of colors to use as default for curves and histograms.
 
         Set to None to use `silx.config.DEFAULT_PLOT_CURVE_COLORS`.
@@ -3073,7 +3075,7 @@ class PlotWidget(qt.QMainWindow):
         self._defaultColors = None if colors is None else tuple(colors)
         self._resetColorAndStyle()
 
-    def getDefaultColors(self) -> Tuple[str, ...]:
+    def getDefaultColors(self) -> tuple[str, ...]:
         """Returns the list of default colors for curves and histograms"""
         if self._defaultColors is None:
             return tuple(silx.config.DEFAULT_PLOT_CURVE_COLORS)
@@ -3083,7 +3085,7 @@ class PlotWidget(qt.QMainWindow):
         self._colorIndex = 0
         self._styleIndex = 0
 
-    def _getColorAndStyle(self) -> Tuple[str, str]:
+    def _getColorAndStyle(self) -> tuple[str, str]:
         defaultColors = self.getDefaultColors()
         if self._colorIndex >= len(defaultColors):  # Handle list length updated
             self._colorIndex = 0
@@ -3288,7 +3290,7 @@ class PlotWidget(qt.QMainWindow):
 
     def _forceResetZoom(
         self,
-        dataMargins: Optional[tuple[float, float, float, float]] = None,
+        dataMargins: tuple[float, float, float, float] | None = None,
     ):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
@@ -3683,12 +3685,12 @@ class PlotWidget(qt.QMainWindow):
     def setInteractiveMode(
         self,
         mode: str,
-        color: Union[str, Sequence[numbers.Real]] = "black",
+        color: str | Sequence[numbers.Real] = "black",
         shape: str = "polygon",
-        label: Optional[str] = None,
+        label: str | None = None,
         zoomOnWheel: bool = True,
         source=None,
-        width: Optional[float] = None,
+        width: float | None = None,
     ):
         """Switch the interactive mode.
 
@@ -3786,4 +3788,4 @@ class PlotWidget(qt.QMainWindow):
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
-            super(PlotWidget, self).keyPressEvent(event)
+            super().keyPressEvent(event)

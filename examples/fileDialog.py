@@ -52,7 +52,7 @@ class Mode(enum.Enum):
 
 class DialogExample(qt.QMainWindow):
     def __init__(self, parent=None):
-        super(DialogExample, self).__init__(parent)
+        super().__init__(parent)
 
         self.__state = {}
 
@@ -157,14 +157,14 @@ class DialogExample(qt.QMainWindow):
             print("- URL: %s" % dialog.selectedUrl())
             print("- Data URL: %s" % dialog.selectedDataUrl())
             image = dialog.selectedImage()
-            print("- Image: <dtype: %s, shape: %s>" % (image.dtype, image.shape))
+            print(f"- Image: <dtype: {image.dtype}, shape: {image.shape}>")
         elif isinstance(dialog, DataFileDialog):
             print("- File: %s" % dialog.selectedFile())
             print("- URL: %s" % dialog.selectedUrl())
             print("- Data URL: %s" % dialog.selectedDataUrl())
             try:
                 data = dialog.selectedData()
-                print("- Data: <dtype: %s, shape: %s>" % (data.dtype, data.shape))
+                print(f"- Data: <dtype: {data.dtype}, shape: {data.shape}>")
             except Exception as e:
                 print("- Data: %s" % e)
 

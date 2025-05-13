@@ -162,7 +162,7 @@ CSUM = 6
 CIGNORED = 7
 
 
-class FitTheories(object):
+class FitTheories:
     """Class wrapping functions from :class:`silx.math.fit.functions`
     and providing estimate functions for all of these fit functions."""
 

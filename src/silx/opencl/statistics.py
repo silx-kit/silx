@@ -137,9 +137,7 @@ class Statistics(OpenclProcessing):
     def set_kernel_arguments(self):
         """Parametrize all kernel arguments"""
         for val in self.mapping.values():
-            self.cl_kernel_args[val] = dict(
-                ((i, self.cl_mem[i]) for i in ("raw", "converted"))
-            )
+            self.cl_kernel_args[val] = {i: self.cl_mem[i] for i in ("raw", "converted")}
 
     def compile_kernels(self):
         """Compile the kernel"""

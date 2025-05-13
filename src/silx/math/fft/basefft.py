@@ -42,7 +42,7 @@ def check_version(package, required_version):
     return ver_v >= req_v
 
 
-class BaseFFT(object):
+class BaseFFT:
     """
     Base class for all FFT backends.
     """

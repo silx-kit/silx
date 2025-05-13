@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains a DataViewer with a view selector.
-"""
+"""This module contains a DataViewer with a view selector."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -73,7 +72,7 @@ class DataViewerFrame(qt.QWidget):
 
         :param qt.QWidget parent:
         """
-        super(DataViewerFrame, self).__init__(parent)
+        super().__init__(parent)
 
         class _DataViewer(DataViewer):
             """Overwrite methods to avoid to create views while the instance
@@ -84,11 +83,11 @@ class DataViewerFrame(qt.QWidget):
 
             def initializeViews(self):
                 """Avoid to create views while the instance is not created."""
-                super(_DataViewer, self)._initializeViews()
+                super()._initializeViews()
 
             def _createDefaultViews(self, parent):
                 """Expose the original `createDefaultViews` function"""
-                return super(_DataViewer, self).createDefaultViews()
+                return super().createDefaultViews()
 
             def createDefaultViews(self, parent=None):
                 """Allow the DataViewerFrame to override this function"""

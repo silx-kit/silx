@@ -1,6 +1,155 @@
 Release Notes
 =============
 
+2.2.1: 2025/02/27
+-----------------
+
+* `silx.io.h5py_utils`: Fixed base exceptions cannot be h5py exceptions (PR #4209)
+* `silx.gui.plot.PlotWidget`:
+
+  * Fixed deprecation warning in matplotlib backend (PR #4204)
+  * Fixed `saveGraph` for OpenGL backend (PR #4218)
+
+* Documentation: Improved Release section of CONTRIBUTING (PR #4208)
+
+2.2.0: 2025/01/21
+-----------------
+
+* `silx view`:
+
+  * Added a new window to plot selected datasets as curves (PR #4132, #4137, #4140, #4141, #4145, #4146)
+  * Added a tool button to control the aggregation of displayed image data (PR #4174)
+
+* `silx.gui`
+
+  * `silx.gui.colors`: Add "percentile" mode for autoscaling (PR #4154)
+  * `silx.gui.data.DataViewer.DataViewer`: Fixed issue with accessing views after using the removeView method. (PR #4131)
+  * `silx.gui.dialog.ColormapDialog`: Fixed typo in method name getDisplayMode (PR #4142)
+  * `silx.gui.plot.tools.profile`: Fixed profile error when plot item is None (PR #4196)
+  * `silx.gui.plot.items`: Fixed Marker.setSymbolSize (PR #4181)
+  * `silx.gui.plot.ImageStack`: Fixed `_urlIndexes` initialization.  (PR #4189)
+  * `silx.gui.plot.tools.profile.manager`: Fixed threaded execution to avoid seg fault with PySide6.7 (PR #4169)
+  * `silx.gui.plot.PlotWidget.addCurve`: Fixed progression in color, linestyle (PR #4138)
+  * `silx.gui.plot.PlotWidget`: Fixed support of PySide6 (PR #4136)
+  * `silx.gui.widgets.FrameBrowser`: Added a play button to `HorizontalSliderWithBrowser` (PR #4176)
+
+* `silx.io`
+
+  * `silx.io.fioh5`: Added tests for NaN and <no-data> in file (PR #4179)
+  * `silx.io.fioh5`: Improved handling of missing data entries (PR #4156)
+  * `silx.io.h5py_utils`: Fixed support of libhdf5 v1.14.4 (PR #4177)
+  * `silx.io.h5py_utils`: Added `is_h5py_exception` and `retry_h5py_error` (PR #4200)
+  * `silx.io.specfile`: Fixed `SpecFile` deallocation issue (PR #4129)
+  * `silx.ui.specfile`: Fixed by using int instead of long in cython code (PR #4195)
+  * `silx.io.url`: Added HSDS URL support (PR #4119)
+  * `silx.io.utils`: Removed `print` statement (PR #4192)
+
+* `silx.math.fit.peaks`: Fixed `-Wuse-after-free` warning (PR #4147)
+
+* `silx.opencl`
+
+  * Fixed deprecation warning upon texture creation (PR #4193)
+  * `silx.opencl.convolution`: Fixed separable convolution on CPU that crashed in some cases (PR #4150)
+  * `silx.opencl.processing`: work-around for double precision GPU on Apple-silicon  (PR #4198)
+
+* `silx.utils`
+
+  * `silx.utils.enum`: Deprecated `Enum.from_value` method (PR #4143)
+  * `silx.utils.ExternalResources`: Allow to set data_home when instantiating the class (PR #4151)
+  * `silx.utils.retry`: Fixed resetting the timeout timer when iterating (PR #4157)
+
+* Documentation
+
+  * Added how-to make a release (PR #4112)
+  * Added missing arg in docstring of open_item (PR #4117)
+  * Updated installation and contribution documentation (PR #4148)
+  * Improved release instructions (PR #4163)
+
+* Dependencies
+
+  * Removed numpy from build dependency (PR #4114)
+  * Removed `bitshuffle` from test dependencies (PR #4164)
+
+* Tests
+
+  * Improved tests by converting warnings to errors (PR #4113)
+
+* Continuous Integration
+
+  * Added build and deployment of Windows installer to the release workflow (PR #4122)
+  * Added tests and wheel generation for Python 3.13 (PR #4201)
+  * Removed appveyor (PR #4171)
+  * Enabled OpenCL tests on Linux and OpenGL tests on Windows (PR #4172)
+  * Fixed issues and updated CI configuration (PR #4126, #4149, #4164, #4126)
+
+2.1.1: 2024/08/13
+-----------------
+
+* Bug fixes
+
+  * `silx.io.specfile`: Fixed `SpecFile` deallocation issue (PR #4129)
+  * `silx.gui.data.DataViewer.DataViewer`: Fixed issue with accessing views after using the removeView method (PR #4131)
+  * `silx.opencl.convolution`: Fixed separable convolution on CPU that crashed in some cases by (PR #4150)
+  * `silx.util.retry`: Fixed resetting the timeout timer when iterating (PR #4157)
+
+* Dependencies
+
+  * Removed numpy from build dependency (PR #4114)
+
+2.1.0: 2024/04/19
+-----------------
+
+This version of `silx` supports Python 3.8 to 3.12.
+This is the first version of `silx` supporting `numpy` v2.
+
+* `silx.image.marchingsquare`: Fixed cython code generation warning (PR #4110)
+* `silx.io`:
+
+  * `silx.io.specfile`: Fixed compilation warnings (PR #4065)
+  * `silx.io.commonh5`: Improved code to use built-in types (PR #4090)
+
+* `silx.gui`:
+
+  * `silx.gui.data.RecordTableView`: Fixed cell background color in dark mode (PR #4094)
+  * `silx.gui.plot.PlotWidget`: Fixed support of negative error values for curves and scatter plot (PR #4079)
+  * `silx.gui.widgets.LegendIconWidget`: Fixed logging: removing `print` (PR #4064)
+  * `silx.gui.widgets.ElidedLabel`: Fixed deprecation warning with Qt5>=5.11 (PR #4091)
+
+* `silx.math.marchingcubes`: Fixed compilation warnings (PR #4065)
+* `silx.opencl.common`: Changed `ocl` object for lazy initialization of OpenCL devices (PR #4093)
+* `silx.resources`: Changed dependency from deprecated `pkg_resources` to `importlib_resources` for Python<3.9 (PR #4078)
+
+* Dependencies
+
+  * Removed support of Python 3.7 (PR #4057)
+  * Added support of `numpy` v2 (PR #4082, #4100, #4108)
+  * Added requirement `scipy>=1.10` for the tests (PR #4104)
+  * Fixed `scipy.signal.gaussian` deprecation warning (PR #4087)
+
+* Documentation:
+
+  * Added how to override `silx.opencl.sift` parameters (PR #4107)
+  * Updated to use `sphinx-design` instead of `sphinx-panels` (PR #4063)
+  * Updated the guidelines to provide changelog in PR (PR #4058)
+  * Updated changelog (PR #4111)
+  * Fixed some links to documentation in the README (PR #4096)
+
+* Continuous integration:
+
+  * Added release workflow (PR #4059)
+  * Added tests with numpy v2 (PR #4102, #4108)
+  * Fixed test by using PySide<6.7 (PR #4108)
+
+* Build: Fixed Debian12 packaging by removing build of documentation (PR #4068)
+
+2.0.1: 2024/03/18
+-----------------
+
+This is a bug fix version:
+
+* `silx.io.open`: Reverted behavior: `open` locks HDF5 files (PR #4074, #4084)
+* Dependencies: Updated to advertise that `numpy` v2 is not supported (PR #4084)
+
 2.0.0: 2024/01/30
 -----------------
 

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a QMainWindow with a 3D scene and associated toolbar.
-"""
+"""This module provides a QMainWindow with a 3D scene and associated toolbar."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -40,7 +39,7 @@ class Plot3DWindow(qt.QMainWindow):
     """OpenGL widget with a 3D viewport and an overview."""
 
     def __init__(self, parent=None):
-        super(Plot3DWindow, self).__init__(parent)
+        super().__init__(parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)

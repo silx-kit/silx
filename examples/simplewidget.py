@@ -99,7 +99,7 @@ class SimpleWidgetExample(qt.QMainWindow):
         print(result)
 
     def printEvent(self, eventName, *args):
-        print("Event %s: %s" % (eventName, args))
+        print(f"Event {eventName}: {args}")
 
     def takesTimeToComputePow(self, a, b):
         qt.QThread.sleep(2)

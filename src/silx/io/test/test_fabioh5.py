@@ -309,9 +309,9 @@ class TestFabioH5(unittest.TestCase):
         """Data from mediapix.edf"""
         header = {}
         header["UB_mne"] = "UB0 UB1 UB2 UB3 UB4 UB5 UB6 UB7 UB8"
-        header[
-            "UB_pos"
-        ] = "1.99593e-16 2.73682e-16 -1.54 -1.08894 1.08894 1.6083e-16 1.08894 1.08894 9.28619e-17"
+        header["UB_pos"] = (
+            "1.99593e-16 2.73682e-16 -1.54 -1.08894 1.08894 1.6083e-16 1.08894 1.08894 9.28619e-17"
+        )
         header["sample_mne"] = "U0 U1 U2 U3 U4 U5"
         header["sample_pos"] = "4.08 4.08 4.08 90 90 90"
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
@@ -407,7 +407,7 @@ class TestFabioH5(unittest.TestCase):
             data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
             fabio_image = fabio.edfimage.edfimage(data=data, header=header)
             header = {}
-            header["foo"] = b"a\x90bc\xFE"
+            header["foo"] = b"a\x90bc\xfe"
             fabio_image.append_frame(data=data, header=header)
         except Exception as e:
             _logger.error(e.args[0])

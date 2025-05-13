@@ -97,7 +97,7 @@ class TestCSR(unittest.TestCase):
             self._test_sparsification(input_on_device, output_on_device, dtype)
 
     def _test_sparsification(self, input_on_device, output_on_device, dtype):
-        current_config = "input on device: %s, output on device: %s, dtype: %s" % (
+        current_config = "input on device: {}, output on device: {}, dtype: {}".format(
             str(input_on_device),
             str(output_on_device),
             str(dtype),
@@ -149,7 +149,7 @@ class TestCSR(unittest.TestCase):
             self._test_desparsification(input_on_device, output_on_device, dtype)
 
     def _test_desparsification(self, input_on_device, output_on_device, dtype):
-        current_config = "input on device: %s, output on device: %s, dtype: %s" % (
+        current_config = "input on device: {}, output on device: {}, dtype: {}".format(
             str(input_on_device),
             str(output_on_device),
             str(dtype),

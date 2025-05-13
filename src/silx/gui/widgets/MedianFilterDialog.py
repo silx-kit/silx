@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-""" MedianFilterDialog
+"""MedianFilterDialog
 Classes
 -------
 

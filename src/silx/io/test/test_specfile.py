@@ -31,7 +31,6 @@ import locale
 import logging
 import numpy
 import os
-import sys
 import tempfile
 import unittest
 
@@ -203,7 +202,7 @@ class TestSpecFile(unittest.TestCase):
             self.sf.index(99)
 
     def assertRaisesRegex(self, *args, **kwargs):
-        return super(TestSpecFile, self).assertRaisesRegex(*args, **kwargs)
+        return super().assertRaisesRegex(*args, **kwargs)
 
     def test_getitem(self):
         self.assertIsInstance(self.sf[2], Scan)

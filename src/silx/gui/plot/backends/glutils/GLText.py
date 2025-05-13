@@ -156,11 +156,11 @@ class Text2D:
         self.bgColor = bgColor
 
         if align not in (LEFT, CENTER, RIGHT):
-            raise ValueError("Horizontal alignment not supported: {0}".format(align))
+            raise ValueError(f"Horizontal alignment not supported: {align}")
         self._align = align
 
         if valign not in (TOP, CENTER, BASELINE, BOTTOM):
-            raise ValueError("Vertical alignment not supported: {0}".format(valign))
+            raise ValueError(f"Vertical alignment not supported: {valign}")
         self._valign = valign
 
         self._rotate = numpy.radians(rotate)

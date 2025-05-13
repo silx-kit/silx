@@ -45,7 +45,7 @@ class Hdf5HeaderView(qt.QHeaderView):
         :param orientation qt.Qt.Orientation: Orientation of the header
         :param parent qt.QWidget: Parent of the widget
         """
-        super(Hdf5HeaderView, self).__init__(orientation, parent)
+        super().__init__(orientation, parent)
         self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__createContextMenu)
 
@@ -66,7 +66,7 @@ class Hdf5HeaderView(qt.QHeaderView):
 
         :param model qt.QAbstractItemModel: A model
         """
-        super(Hdf5HeaderView, self).setModel(model)
+        super().setModel(model)
         self.__updateAutoResize()
 
     def __updateAutoResize(self):

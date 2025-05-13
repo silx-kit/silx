@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module contains a float editor
-"""
+"""Module contains a float editor"""
 from __future__ import annotations
 
 

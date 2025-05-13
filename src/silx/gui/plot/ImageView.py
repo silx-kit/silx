@@ -44,20 +44,18 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
-from typing import Union
 
 import silx
 from .. import qt
 from .. import colors
-from .. import icons
 
 from . import items, PlotWindow, PlotWidget, actions
 from ..colors import Colormap
 from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
+from ...utils.deprecation import deprecated_warning
 from ...utils.proxy import docstring
-from ...utils.deprecation import deprecated
 from ...utils.enum import Enum
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
@@ -65,6 +63,7 @@ from ..utils import blockSignals
 from . import _utils
 from .tools.profile import rois
 from .actions import PlotAction
+from .actions.image import AggregationModeAction
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -178,7 +177,7 @@ class _SideHistogram(PlotWidget):
     sigMouseMoved = qt.Signal(float, float)
 
     def __init__(self, parent=None, backend=None, direction=qt.Qt.Horizontal):
-        super(_SideHistogram, self).__init__(parent=parent, backend=backend)
+        super().__init__(parent=parent, backend=backend)
         self._direction = direction
         self.sigPlotSignal.connect(self._plotEvents)
         self._color = "blue"
@@ -338,7 +337,7 @@ class ShowSideHistogramsAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ShowSideHistogramsAction, self).__init__(
+        super().__init__(
             plot,
             icon="side-histograms",
             text="Show/hide side histograms",
@@ -351,91 +350,6 @@ class ShowSideHistogramsAction(PlotAction):
     def _actionTriggered(self, checked=False):
         if self.plot.isSideHistogramDisplayed() != checked:
             self.plot.setSideHistogramDisplayed(checked)
-
-
-class AggregationModeAction(qt.QWidgetAction):
-    """Action providing few filters to the image"""
-
-    sigAggregationModeChanged = qt.Signal()
-
-    def __init__(self, parent):
-        qt.QWidgetAction.__init__(self, parent)
-
-        toolButton = qt.QToolButton(parent)
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("No filter")
-        filterAction.setCheckable(True)
-        filterAction.setChecked(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.NONE
-        )
-        densityNoFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Max filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MAX
-        )
-        densityMaxFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Mean filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MEAN
-        )
-        densityMeanFilterAction = filterAction
-
-        filterAction = qt.QAction(self)
-        filterAction.setText("Min filter")
-        filterAction.setCheckable(True)
-        filterAction.setProperty(
-            "aggregation", items.ImageDataAggregated.Aggregation.MIN
-        )
-        densityMinFilterAction = filterAction
-
-        densityGroup = qt.QActionGroup(self)
-        densityGroup.setExclusive(True)
-        densityGroup.addAction(densityNoFilterAction)
-        densityGroup.addAction(densityMaxFilterAction)
-        densityGroup.addAction(densityMeanFilterAction)
-        densityGroup.addAction(densityMinFilterAction)
-        densityGroup.triggered.connect(self._aggregationModeChanged)
-        self.__densityGroup = densityGroup
-
-        filterMenu = qt.QMenu(toolButton)
-        filterMenu.addAction(densityNoFilterAction)
-        filterMenu.addAction(densityMaxFilterAction)
-        filterMenu.addAction(densityMeanFilterAction)
-        filterMenu.addAction(densityMinFilterAction)
-
-        toolButton.setPopupMode(qt.QToolButton.InstantPopup)
-        toolButton.setMenu(filterMenu)
-        toolButton.setText("Data filters")
-        toolButton.setToolTip("Enable/disable filter on the image")
-        icon = icons.getQIcon("aggregation-mode")
-        toolButton.setIcon(icon)
-        toolButton.setText("Pixel aggregation filter")
-
-        self.setDefaultWidget(toolButton)
-
-    def _aggregationModeChanged(self):
-        self.sigAggregationModeChanged.emit()
-
-    def setAggregationMode(self, mode):
-        """Set an Aggregated enum from ImageDataAggregated"""
-        for a in self.__densityGroup.actions():
-            if a.property("aggregation") is mode:
-                a.setChecked(True)
-
-    def getAggregationMode(self):
-        """Returns an Aggregated enum from ImageDataAggregated"""
-        densityAction = self.__densityGroup.checkedAction()
-        if densityAction is None:
-            return items.ImageDataAggregated.Aggregation.NONE
-        return densityAction.property("aggregation")
 
 
 class ImageView(PlotWindow):
@@ -490,7 +404,7 @@ class ImageView(PlotWindow):
         self._imageLegend = "__ImageView__image" + str(id(self))
         self._cache = None  # Store currently visible data information
 
-        super(ImageView, self).__init__(
+        super().__init__(
             parent=parent,
             backend=backend,
             resetzoom=True,
@@ -739,7 +653,7 @@ class ImageView(PlotWindow):
         self._dirtyCache()
         self._updateHistograms()
 
-    def setProfileWindowBehavior(self, behavior: Union[str, ProfileWindowBehavior]):
+    def setProfileWindowBehavior(self, behavior: str | ProfileWindowBehavior):
         """Set where profile widgets are displayed.
 
         :param ProfileWindowBehavior behavior:
@@ -747,7 +661,7 @@ class ImageView(PlotWindow):
         - 'embedded': Horizontal, vertical and cross profiles are displayed in
           sides widgets, others are displayed in pop-up windows.
         """
-        behavior = self.ProfileWindowBehavior.from_value(behavior)
+        behavior = self.ProfileWindowBehavior(behavior)
         if behavior is not self.getProfileWindowBehavior():
             manager = self.__profile.getProfileManager()
             manager.clearProfile()
@@ -781,11 +695,6 @@ class ImageView(PlotWindow):
         :rtype: silx.gui.plot.PlotTools.ProfileToolBar
         """
         return self.__profile
-
-    @property
-    @deprecated(replacement="getProfileToolBar()")
-    def profile(self):
-        return self.getProfileToolBar()
 
     def getHistogram(self, axis):
         """Return the histogram and corresponding row or column extent.
@@ -952,6 +861,12 @@ class ImageView(PlotWindow):
         self._dirtyCache()
 
         if reset is not None:
+            deprecated_warning(
+                type_="Argument",
+                name="reset",
+                replacement="resetzoom",
+                since_version="2.2.2",
+            )
             resetzoom = reset
 
         assert len(origin) == 2
@@ -1025,7 +940,7 @@ class ImageViewMainWindow(ImageView):
 
     def __init__(self, parent=None, backend=None):
         self._dataInfo = None
-        super(ImageViewMainWindow, self).__init__(parent, backend)
+        super().__init__(parent, backend)
         self.setWindowFlags(qt.Qt.Window)
 
         self.getXAxis().setLabel("X")
@@ -1071,14 +986,9 @@ class ImageViewMainWindow(ImageView):
         try:
             if isinstance(value, numpy.ndarray):
                 if len(value) == 4:
-                    return "RGBA: %.3g, %.3g, %.3g, %.3g" % (
-                        value[0],
-                        value[1],
-                        value[2],
-                        value[3],
-                    )
+                    return f"RGBA: {value[0]:.3g}, {value[1]:.3g}, {value[2]:.3g}, {value[3]:.3g}"
                 elif len(value) == 3:
-                    return "RGB: %.3g, %.3g, %.3g" % (value[0], value[1], value[2])
+                    return f"RGB: {value[0]:.3g}, {value[1]:.3g}, {value[2]:.3g}"
             else:
                 return "Value: %g" % value
         except Exception:
@@ -1119,4 +1029,4 @@ class ImageViewMainWindow(ImageView):
             self.statusBar().showMessage(self._dataInfo)
 
         # Set the new image in ImageView widget
-        super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
+        super().setImage(image, *args, **kwargs)

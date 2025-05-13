@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides regular mesh item class.
-"""
+"""This module provides regular mesh item class."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -299,9 +298,7 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         else:
             mesh = primitives.ColormapMesh3D(
                 position=position,
-                value=numpy.asarray(value).reshape(
-                    -1, 1
-                ),  # Make it a 2D array
+                value=numpy.asarray(value).reshape(-1, 1),  # Make it a 2D array
                 colormap=self._getSceneColormap(),
                 normal=normal,
                 mode=mode,
@@ -556,7 +553,7 @@ class Box(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Box, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.size = None
         self.color = None
@@ -648,7 +645,7 @@ class Cylinder(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Cylinder, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.radius = None
         self.height = None
@@ -752,7 +749,7 @@ class Hexagon(_CylindricalVolume):
     """
 
     def __init__(self, parent=None):
-        super(Hexagon, self).__init__(parent)
+        super().__init__(parent)
         self.position = None
         self.radius = 0
         self.height = 0

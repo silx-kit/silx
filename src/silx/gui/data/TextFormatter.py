@@ -242,9 +242,9 @@ class TextFormatter(qt.QObject):
             # Here we can spam errors, this is definitly a badly
             # generated file
             _logger.error("Invalid ASCII string %s.", data)
-            if data == b"\xB0":
+            if data == b"\xb0":
                 _logger.error("Fallback using cp1252 encoding")
-                return self.__formatText("\u00B0")
+                return self.__formatText("\u00b0")
         return self.__formatSafeAscii(data)
 
     def __formatH5pyObject(self, data, dtype):

@@ -17,6 +17,9 @@ src/silx/third_party/_local/scipy_spatial/qhull.c
 
 # Hidden files
 .*
+!.gitignore
+!.flake8
+!.flake8_nb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

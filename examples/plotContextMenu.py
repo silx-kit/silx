@@ -50,7 +50,7 @@ class PlotWidgetWithContextMenu(PlotWidget):
     """This class adds a custom context menu to PlotWidget's plot area."""
 
     def __init__(self, *args, **kwargs):
-        super(PlotWidgetWithContextMenu, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setWindowTitle("PlotWidget with a context menu")
         self.setGraphTitle("Right-click on the plot to access context menu")
 

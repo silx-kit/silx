@@ -52,7 +52,7 @@ class _SetViewpointAction(Plot3DAction):
     """
 
     def __init__(self, parent, face, plot3d=None):
-        super(_SetViewpointAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
         assert face in ("side", "front", "back", "left", "right", "top", "bottom")
         self._face = face
 
@@ -78,7 +78,7 @@ class FrontViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(FrontViewpointAction, self).__init__(parent, "front", plot3d)
+        super().__init__(parent, "front", plot3d)
 
         self.setIcon(getQIcon("cube-front"))
         self.setText("Front")
@@ -94,7 +94,7 @@ class BackViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(BackViewpointAction, self).__init__(parent, "back", plot3d)
+        super().__init__(parent, "back", plot3d)
 
         self.setIcon(getQIcon("cube-back"))
         self.setText("Back")
@@ -110,7 +110,7 @@ class LeftViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(LeftViewpointAction, self).__init__(parent, "left", plot3d)
+        super().__init__(parent, "left", plot3d)
 
         self.setIcon(getQIcon("cube-left"))
         self.setText("Left")
@@ -126,7 +126,7 @@ class RightViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(RightViewpointAction, self).__init__(parent, "right", plot3d)
+        super().__init__(parent, "right", plot3d)
 
         self.setIcon(getQIcon("cube-right"))
         self.setText("Right")
@@ -142,7 +142,7 @@ class TopViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(TopViewpointAction, self).__init__(parent, "top", plot3d)
+        super().__init__(parent, "top", plot3d)
 
         self.setIcon(getQIcon("cube-top"))
         self.setText("Top")
@@ -158,7 +158,7 @@ class BottomViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(BottomViewpointAction, self).__init__(parent, "bottom", plot3d)
+        super().__init__(parent, "bottom", plot3d)
 
         self.setIcon(getQIcon("cube-bottom"))
         self.setText("Bottom")
@@ -174,7 +174,7 @@ class SideViewpointAction(_SetViewpointAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(SideViewpointAction, self).__init__(parent, "side", plot3d)
+        super().__init__(parent, "side", plot3d)
 
         self.setIcon(getQIcon("cube"))
         self.setText("Side")
@@ -196,7 +196,7 @@ class RotateViewpoint(Plot3DAction):
     """Rotation speed of the animation"""
 
     def __init__(self, parent, plot3d=None):
-        super(RotateViewpoint, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
 
         self._previousTime = None
 

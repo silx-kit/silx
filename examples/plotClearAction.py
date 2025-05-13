@@ -39,7 +39,7 @@ class ClearPlotAction(PlotAction):
     """A QAction that can be added to PlotWidget toolbar to clear the plot"""
 
     def __init__(self, plot, parent=None):
-        super(ClearPlotAction, self).__init__(
+        super().__init__(
             plot,
             icon="close",
             text="Clear",

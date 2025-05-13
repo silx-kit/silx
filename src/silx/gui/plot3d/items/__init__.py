@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides classes that describes :class:`.SceneWidget` content.
-"""
+"""This package provides classes that describes :class:`.SceneWidget` content."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

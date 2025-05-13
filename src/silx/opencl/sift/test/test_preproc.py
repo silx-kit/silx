@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -46,10 +46,7 @@ try:
 except ImportError:
     scipy = None
 else:
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
 
 import math
 from silx.opencl import ocl, kernel_workgroup_size
@@ -127,7 +124,7 @@ def binning(input_img, binsize):
 class TestPreproc(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestPreproc, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -151,7 +148,7 @@ class TestPreproc(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestPreproc, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -847,8 +844,7 @@ class TestPreproc(unittest.TestCase):
         lint = numpy.ascontiguousarray(self.input, numpy.float32)
 
         out_shape = tuple(
-            int(math.ceil((float(i) / j)))
-            for i, j in zip(self.input.shape, self.binning)
+            int(math.ceil(float(i) / j)) for i, j in zip(self.input.shape, self.binning)
         )
         t0 = time.time()
         inp_gpu = pyopencl.array.to_device(self.queue, lint)

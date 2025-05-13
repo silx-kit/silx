@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a views used by :class:`silx.gui.data.DataViewer`.
-"""
+"""This module defines a views used by :class:`silx.gui.data.DataViewer`."""
 
 import logging
 import numbers
@@ -37,6 +36,8 @@ from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot.items.image import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -98,7 +99,7 @@ def _normalizeComplex(data):
     return data
 
 
-class DataInfo(object):
+class DataInfo:
     """Store extracted information from a data"""
 
     def __init__(self, data):
@@ -225,7 +226,7 @@ class DataInfo(object):
         return self.__priorities[view]
 
 
-class DataViewHooks(object):
+class DataViewHooks:
     """A set of hooks defined to custom the behaviour of the data views."""
 
     def getColormap(self, view):
@@ -241,7 +242,7 @@ class DataViewHooks(object):
         return
 
 
-class DataView(object):
+class DataView:
     """Holder for the data view."""
 
     UNSUPPORTED = -1
@@ -561,7 +562,7 @@ class SelectOneDataView(_CompositeDataView):
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(SelectOneDataView, self).__init__(parent, modeId, icon, label)
+        super().__init__(parent, modeId, icon, label)
         self.__views = {}
         self.__currentView = None
 
@@ -570,7 +571,7 @@ class SelectOneDataView(_CompositeDataView):
 
         :param DataViewHooks hooks: The data view hooks to use
         """
-        super(SelectOneDataView, self).setHooks(hooks)
+        super().setHooks(hooks)
         if hooks is not None:
             for v in self.__views:
                 v.setHooks(hooks)
@@ -740,9 +741,7 @@ class SelectManyDataView(_CompositeDataView):
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(SelectManyDataView, self).__init__(
-            parent, modeId=None, icon=None, label=None
-        )
+        super().__init__(parent, modeId=None, icon=None, label=None)
         if views is None:
             views = []
         self.__views = views
@@ -752,7 +751,7 @@ class SelectManyDataView(_CompositeDataView):
 
         :param DataViewHooks hooks: The data view hooks to use
         """
-        super(SelectManyDataView, self).setHooks(hooks)
+        super().setHooks(hooks)
         if hooks is not None:
             for v in self.__views:
                 v.setHooks(hooks)
@@ -879,7 +878,7 @@ class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
     def __init__(self, parent):
-        super(_Plot1dView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=PLOT1D_MODE,
             label="Curve",
@@ -941,7 +940,7 @@ class _Plot1dView(DataView):
 
 class _Plot2dRecordView(DataView):
     def __init__(self, parent):
-        super(_Plot2dRecordView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=RECORD_PLOT_MODE,
             label="Curve",
@@ -1051,7 +1050,7 @@ class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
     def __init__(self, parent):
-        super(_Plot2dView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=PLOT2D_MODE,
             label="Image",
@@ -1066,6 +1065,22 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+
+        self.__aggregationModeAction = AggregationModeAction(parent=widget)
+        widget.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
+
+        self.__imageItem = ImageDataAggregated()
+        self.__imageItem.setAggregationMode(
+            self.__aggregationModeAction.getAggregationMode()
+        )
+        self.__imageItem.setName("data")
+        self.__imageItem.setColormap(widget.getDefaultColormap())
+        widget.addItem(self.__imageItem)
+        widget.setActiveImage(self.__imageItem)
+
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
         widget.getYAxis().setLabel("Y")
@@ -1073,8 +1088,13 @@ class _Plot2dView(DataView):
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
 
+    def _aggregationModeChanged(self):
+        self.__imageItem.setAggregationMode(
+            self.__aggregationModeAction.getAggregationMode()
+        )
+
     def clear(self):
-        self.getWidget().clear()
+        self.__imageItem.setData(numpy.zeros((0, 0), dtype=numpy.float32))
         self.__resetZoomNextTime = True
 
     def normalizeData(self, data):
@@ -1084,9 +1104,11 @@ class _Plot2dView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        self.getWidget().addImage(
-            legend="data", data=data, resetzoom=self.__resetZoomNextTime
-        )
+        plot = self.getWidget()
+
+        self.__imageItem.setData(data=data)
+        if self.__resetZoomNextTime:
+            plot.resetZoom()
         self.__resetZoomNextTime = False
 
     def setDataSelection(self, selection):
@@ -1114,7 +1136,7 @@ class _Plot3dView(DataView):
     """View displaying data using a 3d plot"""
 
     def __init__(self, parent):
-        super(_Plot3dView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=PLOT3D_MODE,
             label="Cube",
@@ -1166,7 +1188,7 @@ class _ComplexImageView(DataView):
     """View displaying data using a ComplexImageView"""
 
     def __init__(self, parent):
-        super(_ComplexImageView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=COMPLEX_IMAGE_MODE,
             label="Complex Image",
@@ -1271,7 +1293,7 @@ class _StackView(DataView):
     """View displaying data using a stack of images"""
 
     def __init__(self, parent):
-        super(_StackView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=STACK_MODE,
             label="Image stack",
@@ -1462,7 +1484,7 @@ class _Hdf5View(DataView):
     """View displaying data using text"""
 
     def __init__(self, parent):
-        super(_Hdf5View, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=HDF5_MODE,
             label="HDF5",
@@ -1502,7 +1524,7 @@ class _RawView(CompositeDataView):
     """
 
     def __init__(self, parent):
-        super(_RawView, self).__init__(
+        super().__init__(
             parent=parent, modeId=RAW_MODE, label="Raw", icon=icons.getQIcon("view-raw")
         )
         self.addView(_HexaView(parent))
@@ -1518,7 +1540,7 @@ class _ImageView(CompositeDataView):
     """
 
     def __init__(self, parent):
-        super(_ImageView, self).__init__(
+        super().__init__(
             parent=parent,
             modeId=IMAGE_MODE,
             label="Image",
@@ -1970,7 +1992,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
             raise
 
     def normalizeData(self, data):
-        data = super(_NXdataVolumeView, self).normalizeData(data)
+        data = super().normalizeData(data)
         data = _normalizeComplex(data)
         return data
 
@@ -2143,7 +2165,7 @@ class _NXdataView(CompositeDataView):
     widget depending on the dimensionality."""
 
     def __init__(self, parent):
-        super(_NXdataView, self).__init__(
+        super().__init__(
             parent=parent,
             label="NXdata",
             modeId=NXDATA_MODE,

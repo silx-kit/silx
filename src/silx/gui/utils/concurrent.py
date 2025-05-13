@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module allows to run a function in Qt main thread from another thread
-"""
+"""This module allows to run a function in Qt main thread from another thread"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -41,7 +40,7 @@ class _QtExecutor(qt.QObject):
     """Signal used to run tasks."""
 
     def __init__(self):
-        super(_QtExecutor, self).__init__(parent=None)
+        super().__init__(parent=None)
 
         # Makes sure the executor lives in the main thread
         app = qt.QApplication.instance()

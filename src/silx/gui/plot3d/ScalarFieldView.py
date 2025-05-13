@@ -76,7 +76,7 @@ class Isosurface(qt.QObject):
     """
 
     def __init__(self, parent):
-        super(Isosurface, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         self._level = float("nan")
         self._autoLevelFunction = None
         self._color = rgba("#FFD700FF")
@@ -223,7 +223,7 @@ class Isosurface(qt.QObject):
                 self._group.children = [mesh]
 
 
-class SelectedRegion(object):
+class SelectedRegion:
     """Selection of a 3D region aligned with the axis.
 
     :param arrayRange: Range of the selection in the array
@@ -335,7 +335,7 @@ class CutPlane(qt.QObject):
     """
 
     def __init__(self, sfView):
-        super(CutPlane, self).__init__(parent=sfView)
+        super().__init__(parent=sfView)
 
         self._dataRange = None
         self._visible = False
@@ -702,7 +702,7 @@ class CutPlane(qt.QObject):
         self.sigColormapChanged.emit(self.getColormap())
 
 
-class _CutPlaneImage(object):
+class _CutPlaneImage:
     """Object representing the data sliced by a cut plane
 
     :param CutPlane cutPlane: The CutPlane from which to generate image info
@@ -858,7 +858,7 @@ class ScalarFieldView(Plot3DWindow):
     """
 
     def __init__(self, parent=None):
-        super(ScalarFieldView, self).__init__(parent)
+        super().__init__(parent)
         self._colormap = Colormap(
             name="gray", normalization="linear", vmin=None, vmax=None
         )
@@ -946,7 +946,7 @@ class ScalarFieldView(Plot3DWindow):
         # TODO : delegate the serialization to the serialized items
         # isosurfaces
         if nIsoSurfaces:
-            tagIn = "<IsoSurfaces nIso={0}>".format(nIsoSurfaces)
+            tagIn = f"<IsoSurfaces nIso={nIsoSurfaces}>"
             stream.writeString(tagIn)
 
             for surface in isoSurfaces:
@@ -1008,9 +1008,7 @@ class ScalarFieldView(Plot3DWindow):
                 if closeId != itemId:
                     # TODO : explicit error
                     raise ValueError(
-                        "Unexpected closing tag {0} "
-                        "(expected {1})"
-                        "".format(closeId, itemId)
+                        f"Unexpected closing tag {closeId} (expected {itemId})"
                     )
 
                 if itemId == "ScalarFieldView":
@@ -1039,7 +1037,7 @@ class ScalarFieldView(Plot3DWindow):
                 if not argsMatch:
                     # TODO : explicit error
                     raise ValueError(
-                        'Failed to parse args "{0}".' "".format(matchDict["args"])
+                        'Failed to parse args "{}".' "".format(matchDict["args"])
                     )
                 argsDict = argsMatch.groupdict()
                 nIso = int(argsDict["nIso"])
@@ -1062,7 +1060,7 @@ class ScalarFieldView(Plot3DWindow):
                 self.setForegroundColor(foreground)
                 self.setHighlightColor(highlight)
             else:
-                raise ValueError("Unknown entry tag {0}." "".format(itemId))
+                raise ValueError(f"Unknown entry tag {itemId}.")
 
     def _initPanPlaneAction(self):
         """Creates and init the pan plane action"""
@@ -1152,7 +1150,9 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()
 
         else:
-            data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C")
+            data = numpy.array(
+                data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
+            )
             assert data.ndim == 3
             assert min(data.shape) >= 2
 

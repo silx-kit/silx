@@ -22,15 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains library wide configuration.
-"""
+"""This module contains library wide configuration."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "09/11/2018"
 
 
-class Config(object):
+class Config:
     """
     Class containing shared global configuration for the silx library.
 

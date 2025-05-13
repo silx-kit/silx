@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains utils class for axes management.
-"""
+"""This module contains utils class for axes management."""
 
 __authors__ = [
     "H. Payno",

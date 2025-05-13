@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""Tests for polygon functions
-"""
+"""Tests for polygon functions"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

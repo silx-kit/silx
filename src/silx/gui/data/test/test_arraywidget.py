@@ -42,12 +42,12 @@ class TestArrayWidget(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
 
     def setUp(self):
-        super(TestArrayWidget, self).setUp()
+        super().setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
 
     def tearDown(self):
         del self.aw
-        super(TestArrayWidget, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         """test for errors"""
@@ -198,7 +198,7 @@ class TestH5pyArrayWidget(TestCaseQt):
     Test flags, for dataset open in read-only or read-write modes"""
 
     def setUp(self):
-        super(TestH5pyArrayWidget, self).setUp()
+        super().setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
         self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
         # create an h5py file with a dataset
@@ -214,7 +214,7 @@ class TestH5pyArrayWidget(TestCaseQt):
         del self.aw
         os.unlink(self.h5_fname)
         os.rmdir(self.tempdir)
-        super(TestH5pyArrayWidget, self).tearDown()
+        super().tearDown()
 
     def testShow(self):
         self.aw.show()

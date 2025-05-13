@@ -98,7 +98,7 @@ class DataViewer(qt.QFrame):
 
         :param QWidget parent: The parent of the widget
         """
-        super(DataViewer, self).__init__(parent)
+        super().__init__(parent)
 
         self.__stack = qt.QStackedWidget(self)
         self.__numpySelection = NumpyAxesSelector(self)
@@ -195,7 +195,9 @@ class DataViewer(qt.QFrame):
         """
         if view not in self.__index:
             widget = view.getWidget()
-            index = self.__stack.addWidget(widget)
+            index = self.__stack.indexOf(widget)
+            if index == -1:
+                index = self.__stack.addWidget(widget)
             self.__index[view] = index
         else:
             index = self.__index[view]

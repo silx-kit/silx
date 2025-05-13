@@ -100,7 +100,7 @@ def read_cl_file(filename):
     :param filename: read an OpenCL file and apply a preprocessor
     :return: preprocessed source code
     """
-    with open(get_cl_file(filename), "r") as f:
+    with open(get_cl_file(filename)) as f:
         # Dummy preprocessor which removes the #include
         lines = [i for i in f.readlines() if not i.startswith("#include ")]
     return "".join(lines)
@@ -121,7 +121,7 @@ def concatenate_cl_kernel(filenames):
     return os.linesep.join(read_cl_file(fn) for fn in filenames)
 
 
-class ConvolutionInfos(object):
+class ConvolutionInfos:
     allowed_axes = {
         "1D": [None],
         "separable_2D_1D_2D": [None, (0, 1), (1, 0)],

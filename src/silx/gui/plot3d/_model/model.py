@@ -74,7 +74,7 @@ class Root(BaseRow):
     """
 
     def __init__(self, model, sceneWidget):
-        super(Root, self).__init__()
+        super().__init__()
         self._sceneWidget = weakref.ref(sceneWidget)
         self.setParent(model)  # Needed for Root
 
@@ -83,7 +83,7 @@ class Root(BaseRow):
         if sceneWidget is None:
             return ()
         else:
-            return super(Root, self).children()
+            return super().children()
 
 
 class SceneModel(qt.QAbstractItemModel):
@@ -95,7 +95,7 @@ class SceneModel(qt.QAbstractItemModel):
     def __init__(self, parent):
         self._sceneWidget = weakref.ref(parent)
 
-        super(SceneModel, self).__init__(parent)
+        super().__init__(parent)
         self._root = Root(self, parent)
         self._root.addRow(Settings(parent))
         self._root.addRow(nodeFromItem(parent.getSceneGroup()))

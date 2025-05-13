@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 class TestAddition(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestAddition, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -69,7 +69,7 @@ class TestAddition(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestAddition, cls).tearDownClass()
+        super().tearDownClass()
         print(
             "Maximum valid workgroup size %s on device %s"
             % (cls.max_valid_wg, cls.ctx.devices[0])
@@ -114,7 +114,7 @@ class TestAddition(unittest.TestCase):
                 max_valid_wg = self.program.addition.get_work_group_info(
                     pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0]
                 )
-                msg = "Error %s on WG=%s: %s" % (error, wg, max_valid_wg)
+                msg = f"Error {error} on WG={wg}: {max_valid_wg}"
                 self.assertLess(max_valid_wg, wg, msg)
                 break
             else:
@@ -134,8 +134,7 @@ class TestAddition(unittest.TestCase):
                 self.assertEqual(
                     meas,
                     device.max_work_group_size,
-                    "Workgroup size for %s/%s: %s == %s"
-                    % (platform, device, meas, device.max_work_group_size),
+                    f"Workgroup size for {platform}/{device}: {meas} == {device.max_work_group_size}",
                 )
 
     def test_query(self):

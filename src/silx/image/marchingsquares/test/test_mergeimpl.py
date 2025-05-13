@@ -233,7 +233,7 @@ class TestMergeImplContours(unittest.TestCase):
     def test_image(self):
         # example from skimage
         x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
+        image = numpy.sin(numpy.exp(numpy.sin(x) ** 3 + numpy.cos(y) ** 2))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask)
         polygons = ms.find_contours(0.5)
@@ -243,7 +243,7 @@ class TestMergeImplContours(unittest.TestCase):
     def test_image_tiled(self):
         # example from skimage
         x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
+        image = numpy.sin(numpy.exp(numpy.sin(x) ** 3 + numpy.cos(y) ** 2))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask, group_size=50)
         polygons = ms.find_contours(0.5)
@@ -253,7 +253,7 @@ class TestMergeImplContours(unittest.TestCase):
     def test_image_tiled_minmax(self):
         # example from skimage
         x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
+        image = numpy.sin(numpy.exp(numpy.sin(x) ** 3 + numpy.cos(y) ** 2))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask, group_size=50, use_minmax_cache=True)
         polygons = ms.find_contours(0.5)

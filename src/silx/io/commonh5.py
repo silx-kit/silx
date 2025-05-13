@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,61 +24,22 @@
 This module contains generic objects, emulating *h5py* groups, datasets and
 files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 """
-from collections import abc
+from types import MappingProxyType
 import weakref
 
 import h5py
 import numpy
 
 from . import utils
+from .._utils import NP_OPTIONAL_COPY
+
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "02/07/2018"
 
 
-class _MappingProxyType(abc.MutableMapping):
-    """Read-only dictionary
-
-    This class is available since Python 3.3, but not on earlyer Python
-    versions.
-    """
-
-    def __init__(self, data):
-        self._data = data
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __len__(self):
-        return len(self._data)
-
-    def __iter__(self):
-        return iter(self._data)
-
-    def get(self, key, default=None):
-        return self._data.get(key, default)
-
-    def __setitem__(self, key, value):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def __delitem__(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def pop(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def clear(self):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def update(self, key, value):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-    def setdefault(self, key):
-        raise RuntimeError("Cannot modify read-only dictionary")
-
-
-class Node(object):
+class Node:
     """This is the base class for all :mod:`spech5` and :mod:`fabioh5`
     classes. It represents a tree node, and knows its parent node
     (:attr:`parent`).
@@ -173,7 +134,7 @@ class Node(object):
         if self._is_editable():
             return self.__attrs
         else:
-            return _MappingProxyType(self.__attrs)
+            return MappingProxyType(self.__attrs)
 
     @property
     def name(self):
@@ -324,11 +285,7 @@ class Dataset(Node):
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<HDF5-like dataset "%s": shape %s, type "%s">' % (
-            basename,
-            self.shape,
-            self.dtype.str,
-        )
+        return f'<HDF5-like dataset "{basename}": shape {self.shape}, type "{self.dtype.str}">'
 
     def __getslice__(self, i, j):
         """Returns the slice of the data exposed by this dataset.
@@ -388,12 +345,16 @@ class Dataset(Node):
         :rtype: list or None"""
         return None
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         # Special case for (0,)*-shape datasets
         if numpy.prod(self.shape) == 0:
             return self[()]
         else:
-            return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)
+            return numpy.array(
+                self[...],
+                dtype=self.dtype if dtype is None else dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            )
 
     def __iter__(self):
         """Iterate over the first axis. TypeError if scalar."""
@@ -551,7 +512,7 @@ class LazyLoadableDataset(Dataset):
     """
 
     def __init__(self, name, parent=None, attrs=None):
-        super(LazyLoadableDataset, self).__init__(name, None, parent, attrs=attrs)
+        super().__init__(name, None, parent, attrs=attrs)
         self._is_initialized = False
 
     def _create_data(self):
@@ -578,7 +539,7 @@ class LazyLoadableDataset(Dataset):
             # is case of wrong check of the data
             self._is_initialized = True
             self._set_data(data)
-        return super(LazyLoadableDataset, self)._get_data()
+        return super()._get_data()
 
 
 class SoftLink(Node):
@@ -837,8 +798,7 @@ class Group(Node):
 
     def __iter__(self):
         """Iterate over member names"""
-        for x in self._get_items().__iter__():
-            yield x
+        yield from self._get_items().__iter__()
 
     def keys(self):
         """Returns an iterator over the children's names in a group."""

@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -47,11 +47,7 @@ except ImportError:
     scipy = None
 else:
     import scipy.ndimage
-
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
 
 import unittest
 from silx.opencl import ocl
@@ -76,7 +72,7 @@ def my_blur(img, kernel):
 class TestConvol(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestConvol, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -99,7 +95,7 @@ class TestConvol(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestConvol, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -166,10 +162,10 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, f"sigma= {sigma} delta={delta}")
             else:
-                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
-            logger.info("sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, f"sigma= {sigma} delta={delta}")
+            logger.info(f"sigma= {sigma} delta={delta}")
             if self.PROFILE:
                 logger.info(
                     "Global execution time: CPU %.3fms, GPU: %.3fms."
@@ -209,10 +205,10 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, f"sigma= {sigma} delta={delta}")
             else:
-                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
-            logger.info("sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, f"sigma= {sigma} delta={delta}")
+            logger.info(f"sigma= {sigma} delta={delta}")
             if self.PROFILE:
                 logger.info(
                     "Global execution time: CPU %.3fms, GPU: %.3fms."
@@ -264,10 +260,10 @@ class TestConvol(unittest.TestCase):
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
-                self.assertLess(delta, 50, "sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 50, f"sigma= {sigma} delta={delta}")
             else:
-                self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
-            logger.info("sigma= %s delta=%s" % (sigma, delta))
+                self.assertLess(delta, 1e-4, f"sigma= {sigma} delta={delta}")
+            logger.info(f"sigma= {sigma} delta={delta}")
             if self.PROFILE:
                 logger.info(
                     "Global execution time: CPU %.3fms, GPU: %.3fms."

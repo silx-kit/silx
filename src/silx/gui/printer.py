@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a singleton QPrinter used by default by silx widgets.
-"""
+"""This module provides a singleton QPrinter used by default by silx widgets."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

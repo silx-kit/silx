@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,9 @@ Functions:
 
 import numpy
 import numbers
+
+from .._utils import NP_OPTIONAL_COPY
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -192,7 +195,7 @@ def get_concatenated_dtype(arrays):
     return numpy.array(dummy).dtype
 
 
-class ListOfImages(object):
+class ListOfImages:
     """This class provides a way to access values and slices in a stack of
     images stored as a list of 2D numpy arrays, without creating a 3D numpy
     array first.
@@ -212,7 +215,7 @@ class ListOfImages(object):
 
     def __init__(self, images, transposition=None):
         """ """
-        super(ListOfImages, self).__init__()
+        super().__init__()
 
         # if images is a ListOfImages instance, get the underlying data
         # as a list of 2D arrays
@@ -276,13 +279,18 @@ class ListOfImages(object):
         )
         return sorted_indices
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Cast the images into a numpy array, and return it.
 
         If a transposition has been done on this images, return
         a transposed view of a numpy array."""
         return numpy.transpose(
-            numpy.array(self.images, dtype=dtype), self.transposition
+            numpy.array(
+                self.images,
+                dtype=dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            ),
+            self.transposition,
         )
 
     def __len__(self):
@@ -406,7 +414,7 @@ class ListOfImages(object):
         return max_value
 
 
-class DatasetView(object):
+class DatasetView:
     """This class provides a way to transpose a dataset without
     casting it into a numpy array. This way, the dataset in a file need not
     necessarily be integrally read into memory to view it in a different
@@ -425,7 +433,7 @@ class DatasetView(object):
 
     def __init__(self, dataset, transposition=None):
         """ """
-        super(DatasetView, self).__init__()
+        super().__init__()
         self.dataset = dataset
         """original dataset"""
 
@@ -543,13 +551,18 @@ class DatasetView(object):
 
         return numpy.transpose(output_data_not_transposed, axes=output_dimensions)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Cast the dataset into a numpy array, and return it.
 
         If a transposition has been done on this dataset, return
         a transposed view of a numpy array."""
         return numpy.transpose(
-            numpy.array(self.dataset, dtype=dtype), self.transposition
+            numpy.array(
+                self.dataset,
+                dtype=dtype,
+                copy=NP_OPTIONAL_COPY if copy is None else copy,
+            ),
+            self.transposition,
         )
 
     def __len__(self):

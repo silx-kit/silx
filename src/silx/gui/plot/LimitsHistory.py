@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides handling of :class:`PlotWidget` limits history.
-"""
+"""This module provides handling of :class:`PlotWidget` limits history."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -40,7 +39,7 @@ class LimitsHistory(qt.QObject):
 
     def __init__(self, parent):
         self._history = []
-        super(LimitsHistory, self).__init__(parent)
+        super().__init__(parent)
         self.setParent(parent)
 
     def setParent(self, parent):
@@ -49,7 +48,7 @@ class LimitsHistory(qt.QObject):
         :param PlotWidget parent: The PlotWidget this object is bound to.
         """
         self.clear()  # Clear history when changing parent
-        super(LimitsHistory, self).setParent(parent)
+        super().setParent(parent)
 
     def push(self):
         """Append current limits to the history."""

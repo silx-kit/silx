@@ -21,15 +21,13 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module contains an elidable label
-"""
+"""Module contains an elidable label"""
 
 __license__ = "MIT"
 __date__ = "07/12/2018"
 
 
 from packaging.version import Version
-from ...utils.deprecation import deprecated
 from silx.gui import qt
 
 
@@ -45,7 +43,7 @@ class ElidedLabel(qt.QLabel):
     """
 
     def __init__(self, parent=None):
-        super(ElidedLabel, self).__init__(parent)
+        super().__init__(parent)
         self.__text = ""
         self.__toolTip = ""
         self.__textAsToolTip = True
@@ -95,10 +93,6 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__text
 
-    @deprecated(replacement="text", since_version="1.1.0")
-    def getText(self):
-        return self.text()
-
     def setText(self, text):
         self.__text = text
         self.__updateText()
@@ -110,10 +104,6 @@ class ElidedLabel(qt.QLabel):
         set to true.
         """
         return self.__toolTip
-
-    @deprecated(replacement="toolTip", since_version="1.1.0")
-    def getToolTip(self):
-        return self.toolTip()
 
     def setToolTip(self, toolTip):
         self.__toolTip = toolTip

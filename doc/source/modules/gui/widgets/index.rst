@@ -20,3 +20,4 @@ Public modules:
     tablewidget.rst
     threadpoolpushbutton.rst
     waitingpushbutton.rst
+    overlaywidgets.rst

@@ -31,7 +31,6 @@ __date__ = "08/03/2019"
 import os
 import unittest
 import shutil
-import socket
 import urllib.request
 import urllib.error
 
@@ -44,7 +43,7 @@ def isSilxWebsiteAvailable():
         return True
     except urllib.error.URLError:
         return False
-    except socket.timeout:
+    except TimeoutError:
         # This exception is still received in Python 2.7
         return False
 

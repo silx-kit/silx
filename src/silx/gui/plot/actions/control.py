@@ -68,7 +68,7 @@ class ResetZoomAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ResetZoomAction, self).__init__(
+        super().__init__(
             plot,
             icon="zoom-original",
             text="Reset Zoom",
@@ -108,7 +108,7 @@ class ZoomBackAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ZoomBackAction, self).__init__(
+        super().__init__(
             plot,
             icon="zoom-back",
             text="Zoom Back",
@@ -131,7 +131,7 @@ class ZoomInAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ZoomInAction, self).__init__(
+        super().__init__(
             plot,
             icon="zoom-in",
             text="Zoom In",
@@ -155,7 +155,7 @@ class ZoomOutAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ZoomOutAction, self).__init__(
+        super().__init__(
             plot,
             icon="zoom-out",
             text="Zoom Out",
@@ -179,7 +179,7 @@ class XAxisAutoScaleAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(XAxisAutoScaleAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-xauto",
             text="X Autoscale",
@@ -206,7 +206,7 @@ class YAxisAutoScaleAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(YAxisAutoScaleAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-yauto",
             text="Y Autoscale",
@@ -233,7 +233,7 @@ class XAxisLogarithmicAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(XAxisLogarithmicAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-xlog",
             text="X Log. scale",
@@ -262,7 +262,7 @@ class YAxisLogarithmicAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(YAxisLogarithmicAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-ylog",
             text="Y Log. scale",
@@ -296,7 +296,7 @@ class GridAction(PlotAction):
         assert gridMode in ("both", "major")
         self._gridMode = gridMode
 
-        super(GridAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-grid",
             text="Grid",
@@ -327,7 +327,7 @@ class CurveStyleAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(CurveStyleAction, self).__init__(
+        super().__init__(
             plot,
             icon="plot-toggle-points",
             text="Curve style",
@@ -362,7 +362,7 @@ class ColormapAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColormapDialog
-        super(ColormapAction, self).__init__(
+        super().__init__(
             plot,
             icon="colormap",
             text="Colormap",
@@ -460,7 +460,7 @@ class ColorBarAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColorBar
-        super(ColorBarAction, self).__init__(
+        super().__init__(
             plot,
             icon="colorbar",
             text="Colorbar",
@@ -507,7 +507,7 @@ class KeepAspectRatioAction(PlotAction):
         }
 
         icon, tooltip = self._states[plot.isKeepDataAspectRatio()]
-        super(KeepAspectRatioAction, self).__init__(
+        super().__init__(
             plot,
             icon=icon,
             text="Toggle keep aspect ratio",
@@ -544,7 +544,7 @@ class YAxisInvertedAction(PlotAction):
         }
 
         icon, tooltip = self._states[plot.getYAxis().isInverted()]
-        super(YAxisInvertedAction, self).__init__(
+        super().__init__(
             plot,
             icon=icon,
             text="Invert Y Axis",
@@ -587,7 +587,7 @@ class CrosshairAction(PlotAction):
         self.linestyle = linestyle
         """Style of line of the cursor (str)."""
 
-        super(CrosshairAction, self).__init__(
+        super().__init__(
             plot,
             icon="crosshair",
             text="Crosshair Cursor",
@@ -616,7 +616,7 @@ class PanWithArrowKeysAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(PanWithArrowKeysAction, self).__init__(
+        super().__init__(
             plot,
             icon="arrow-keys",
             text="Pan with arrow keys",
@@ -715,7 +715,7 @@ class OpenGLAction(PlotAction):
 
         name = self._getBackendName(plot)
         icon, tooltip = self._states[name]
-        super(OpenGLAction, self).__init__(
+        super().__init__(
             plot,
             icon=icon,
             text="Enable/disable OpenGL rendering",

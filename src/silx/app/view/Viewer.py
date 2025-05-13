@@ -34,7 +34,6 @@ import logging
 import functools
 import traceback
 from types import TracebackType
-from typing import Optional
 
 import silx.io.nxdata
 from silx.gui import qt
@@ -46,7 +45,7 @@ from .CustomNxdataWidget import CustomNxDataToolBar
 from ..utils import parseutils
 from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
-
+from .CustomPlotSelectionWindow import CustomPlotSelectionWindow
 
 _logger = logging.getLogger(__name__)
 
@@ -116,6 +115,9 @@ class Viewer(qt.QMainWindow):
         rightPanel.setStretchFactor(1, 1)
         rightPanel.setCollapsible(0, False)
         rightPanel.setCollapsible(1, False)
+
+        self._customPlotSelectionWindow = CustomPlotSelectionWindow(self)
+        self._customPlotSelectionWindow.setVisible(False)
 
         self.__dataPanel = DataPanel(self, self.__context)
 
@@ -236,7 +238,7 @@ class Viewer(qt.QMainWindow):
         indexes = selection.selectedIndexes()
         selectedItems = []
         model = self.__treeview.model()
-        h5files = set([])
+        h5files = set()
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
@@ -308,7 +310,7 @@ class Viewer(qt.QMainWindow):
 
         qt.QApplication.restoreOverrideCursor()
 
-    def __synchronizeH5pyObject(self, h5, filename: Optional[str] = None):
+    def __synchronizeH5pyObject(self, h5, filename: str | None = None):
         model = self.__treeview.findHdf5TreeModel()
         # This is buggy right now while h5py do not allow to close a file
         # while references are still used.
@@ -670,9 +672,24 @@ class Viewer(qt.QMainWindow):
         action.toggled.connect(self.__toggleCustomNxdataWindow)
         self._displayCustomNxdataWindow = action
 
+        action = qt.QAction("Plot selection", self)
+        action.setStatusTip(
+            "Open a new window which allows to create plot by selecting data"
+        )
+        action.setCheckable(True)
+        action.toggled.connect(self.__togglePlotSelectionWindow)
+        self._displayCustomPlotSelectionWindow = action
+        self._customPlotSelectionWindow.sigVisibilityChanged.connect(
+            self._displayCustomPlotSelectionWindow.setChecked
+        )
+
     def __toggleCustomNxdataWindow(self):
         isVisible = self._displayCustomNxdataWindow.isChecked()
         self.__customNxdataWindow.setVisible(isVisible)
+
+    def __togglePlotSelectionWindow(self):
+        isVisible = self._displayCustomPlotSelectionWindow.isChecked()
+        self._customPlotSelectionWindow.setVisible(isVisible)
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
@@ -772,6 +789,7 @@ class Viewer(qt.QMainWindow):
 
         viewMenu = self.menuBar().addMenu("&Views")
         viewMenu.addAction(self._displayCustomNxdataWindow)
+        viewMenu.addAction(self._displayCustomPlotSelectionWindow)
 
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
@@ -836,7 +854,7 @@ class Viewer(qt.QMainWindow):
         filters = []
         filters.append("All supported files (%s)" % " ".join(all_supported_extensions))
         for name, extension in extensions.items():
-            filters.append("%s (%s)" % (name, extension))
+            filters.append(f"{name} ({extension})")
         filters.append("All files (*)")
 
         dialog.setNameFilters(filters)
@@ -945,10 +963,22 @@ class Viewer(qt.QMainWindow):
             self.__customNxdataWindow.setVisible(True)
             self._displayCustomNxdataWindow.setChecked(True)
 
+    def __makeSureCustomPlotSelectionWindowIsVisible(self):
+        if not self._customPlotSelectionWindow.isVisible():
+            self._customPlotSelectionWindow.setVisible(True)
+
     def useAsNewCustomSignal(self, h5dataset):
         self.__makeSureCustomNxDataWindowIsVisible()
         model = self.__customNxdata.model()
         model.createFromSignal(h5dataset)
+
+    def setToPlotSelectionAbscissaValues(self, h5dataset):
+        self.__makeSureCustomPlotSelectionWindowIsVisible()
+        self._customPlotSelectionWindow.setX(h5dataset)
+
+    def addAsPlotSelectionOrdinateValues(self, h5dataset):
+        self.__makeSureCustomPlotSelectionWindowIsVisible()
+        self._customPlotSelectionWindow.addY(h5dataset)
 
     def useAsNewCustomNxdata(self, h5nxdata):
         self.__makeSureCustomNxDataWindowIsVisible()
@@ -969,7 +999,6 @@ class Viewer(qt.QMainWindow):
 
         for obj in selectedObjects:
             h5 = obj.h5py_object
-
             name = obj.name
             if name.startswith("/"):
                 name = name[1:]
@@ -984,6 +1013,23 @@ class Viewer(qt.QMainWindow):
                 action = qt.QAction("Use as a new custom signal", event.source())
                 action.triggered.connect(lambda: self.useAsNewCustomSignal(h5))
                 menu.addAction(action)
+
+                if h5.ndim == 1:
+                    action = qt.QAction(
+                        "Set X values of plot selection", event.source()
+                    )
+                    action.triggered.connect(
+                        lambda: self.setToPlotSelectionAbscissaValues(obj.data_url)
+                    )
+                    menu.addAction(action)
+
+                    action = qt.QAction(
+                        "Add Y values to plot selection", event.source()
+                    )
+                    action.triggered.connect(
+                        lambda: self.addAsPlotSelectionOrdinateValues(obj.data_url)
+                    )
+                    menu.addAction(action)
 
             if silx.io.is_group(h5) and silx.io.nxdata.is_valid_nxdata(h5):
                 action = qt.QAction("Use as a new custom NXdata", event.source())

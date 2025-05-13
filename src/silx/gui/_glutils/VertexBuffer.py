@@ -39,7 +39,7 @@ from .utils import numpyToGLType, sizeofGLType
 _logger = logging.getLogger(__name__)
 
 
-class VertexBuffer(object):
+class VertexBuffer:
     """Object handling an OpenGL vertex buffer object
 
     :param data: Data used to fill the vertex buffer
@@ -152,7 +152,7 @@ class VertexBuffer(object):
         gl.glBindBuffer(self._target, 0)
 
 
-class VertexBufferAttrib(object):
+class VertexBufferAttrib:
     """Describes data stored in a vertex buffer
 
     Convenient class to store info for glVertexAttribPointer calls

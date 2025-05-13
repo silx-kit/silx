@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This example illustrates some usage possible with the baseline parameter
-"""
+"""This example illustrates some usage possible with the baseline parameter"""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"

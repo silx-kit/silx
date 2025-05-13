@@ -59,7 +59,7 @@ class Font(event.Notifier):
         self._size = size
         self._weight = weight
         self._italic = italic
-        super(Font, self).__init__()
+        super().__init__()
 
     name = event.notifyProperty(
         "_name", doc="""Name of the font (str)""", converter=str
@@ -116,7 +116,7 @@ class Text2D(primitives.Geometry):
         self._texture = None
         self._textureDirty = True
 
-        super(Text2D, self).__init__(
+        super().__init__(
             "triangle_strip",
             copy=False,
             # Keep an array for position as it is bound to attr 0 and MUST
@@ -295,7 +295,7 @@ class Text2D(primitives.Geometry):
                 )
                 self.setAttribute("offsetInViewportCoords", offsets)
 
-        super(Text2D, self).prepareGL2(context)
+        super().prepareGL2(context)
 
     def renderGL2(self, context):
         if not self.text:
@@ -389,7 +389,7 @@ class LabelledAxes(primitives.GroupBBox):
     """A group displaying a bounding box with axes labels around its children."""
 
     def __init__(self):
-        super(LabelledAxes, self).__init__()
+        super().__init__()
         self._ticksForBounds = None
 
         self._font = Font()
@@ -538,4 +538,4 @@ class LabelledAxes(primitives.GroupBBox):
 
     def prepareGL2(self, context):
         self._updateTicks()
-        super(LabelledAxes, self).prepareGL2(context)
+        super().prepareGL2(context)

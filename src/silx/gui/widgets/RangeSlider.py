@@ -40,7 +40,7 @@ from silx.gui.utils.image import convertArrayToQImage
 
 class StyleOptionRangeSlider(qt.QStyleOption):
     def __init__(self):
-        super(StyleOptionRangeSlider, self).__init__()
+        super().__init__()
         self.minimum = None
         self.maximum = None
         self.sliderPosition1 = None
@@ -108,7 +108,7 @@ class RangeSlider(qt.QWidget):
 
         # call the super constructor AFTER defining all members that
         # are used in the "paint" method
-        super(RangeSlider, self).__init__(parent)
+        super().__init__(parent)
 
         self.setFocusPolicy(qt.Qt.ClickFocus)
         self.setAttribute(qt.Qt.WA_Hover)
@@ -133,7 +133,7 @@ class RangeSlider(qt.QWidget):
                 # qt-6
                 return self.__updateHoverControl(event.position().toPoint())
         else:
-            return super(RangeSlider, self).event(event)
+            return super().event(event)
 
     def __updateHoverControl(self, pos):
         hoverControl, hoverRect = self.__findHoverControl(pos)
@@ -519,7 +519,7 @@ class RangeSlider(qt.QWidget):
         return position
 
     def mousePressEvent(self, event):
-        super(RangeSlider, self).mousePressEvent(event)
+        super().mousePressEvent(event)
 
         if event.buttons() == qt.Qt.LeftButton:
             picked = None
@@ -535,7 +535,7 @@ class RangeSlider(qt.QWidget):
             self.update()
 
     def mouseMoveEvent(self, event):
-        super(RangeSlider, self).mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
 
         if self.__moving is not None:
             event_pos = self._mouseEventPosition(event)
@@ -548,7 +548,7 @@ class RangeSlider(qt.QWidget):
                 self.setSecondPosition(position)
 
     def mouseReleaseEvent(self, event):
-        super(RangeSlider, self).mouseReleaseEvent(event)
+        super().mouseReleaseEvent(event)
 
         if event.button() == qt.Qt.LeftButton and self.__moving is not None:
             self.__moving = None
@@ -558,7 +558,7 @@ class RangeSlider(qt.QWidget):
         if self.__focus is not None:
             self.__focus = None
             self.update()
-        super(RangeSlider, self).focusOutEvent(event)
+        super().focusOutEvent(event)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -576,12 +576,12 @@ class RangeSlider(qt.QWidget):
                     self.setSecondPosition(self.getSecondPosition() + 1)
                 return  # accept event
 
-        super(RangeSlider, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
     # Handle resize
 
     def resizeEvent(self, event):
-        super(RangeSlider, self).resizeEvent(event)
+        super().resizeEvent(event)
 
         # If no step, signal position update when width change
         if (

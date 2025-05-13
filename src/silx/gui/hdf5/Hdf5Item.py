@@ -29,7 +29,6 @@ __date__ = "17/01/2019"
 
 import logging
 import enum
-from typing import Optional
 
 from .. import qt
 from .. import icons
@@ -64,14 +63,14 @@ class Hdf5Item(Hdf5Node):
 
     def __init__(
         self,
-        text: Optional[str],
+        text: str | None,
         obj,
         parent,
         key=None,
         h5Class=None,
         linkClass=None,
         populateAll=False,
-        openedPath: Optional[str] = None,
+        openedPath: str | None = None,
     ):
         """
         :param text: text displayed
@@ -94,7 +93,7 @@ class Hdf5Item(Hdf5Node):
         if parent is None:
             return self.__text
         else:
-            return "%s/%s" % (parent._getCanonicalName(), self.__text)
+            return f"{parent._getCanonicalName()}/{self.__text}"
 
     @property
     def obj(self):
@@ -210,17 +209,12 @@ class Hdf5Item(Hdf5Node):
                 class_ = silx.io.utils.get_h5_class(self.__obj)
 
                 if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
-                    message = "External link broken. Path %s::%s does not exist" % (
-                        self.__obj.filename,
-                        self.__obj.path,
-                    )
+                    message = f"External link broken. Path {self.__obj.filename}::{self.__obj.path} does not exist"
                 elif class_ == silx.io.utils.H5Type.SOFT_LINK:
-                    message = "Soft link broken. Path %s does not exist" % (
-                        self.__obj.path
-                    )
+                    message = f"Soft link broken. Path {self.__obj.path} does not exist"
                 else:
                     name = self.__obj.__class__.__name__.split(".")[-1].capitalize()
-                    message = "%s broken" % (name)
+                    message = f"{name} broken"
                 self.__error = message
                 self.__isBroken = True
             else:
@@ -241,7 +235,7 @@ class Hdf5Item(Hdf5Node):
                                 obj[key]
                     except Exception as e:
                         _logger.debug(e, exc_info=True)
-                        message = "%s broken. %s" % (self.__obj.name, e.args[0])
+                        message = f"{self.__obj.name} broken. {e.args[0]}"
                         self.__error = message
                         self.__isBroken = True
 
@@ -605,7 +599,7 @@ class Hdf5Item(Hdf5Node):
                 return self.__error
             kind, label = self.__getDataDescription()
             if label is not None:
-                return "<b>%s</b><br/>%s" % (kind.value.capitalize(), label)
+                return f"<b>{kind.value.capitalize()}</b><br/>{label}"
             else:
                 return ""
         return None

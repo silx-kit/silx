@@ -131,13 +131,9 @@ class CUFFT(BaseFFT):
 
     def check_array(self, array, shape, dtype, copy=True):
         if array.shape != shape:
-            raise ValueError(
-                "Invalid data shape: expected %s, got %s" % (shape, array.shape)
-            )
+            raise ValueError(f"Invalid data shape: expected {shape}, got {array.shape}")
         if array.dtype != dtype:
-            raise ValueError(
-                "Invalid data type: expected %s, got %s" % (dtype, array.dtype)
-            )
+            raise ValueError(f"Invalid data type: expected {dtype}, got {array.dtype}")
 
     def set_data(self, dst, src, shape, dtype, copy=True, name=None):
         """

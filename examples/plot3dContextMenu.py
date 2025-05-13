@@ -55,7 +55,7 @@ class ScalarFieldViewWithContextMenu(ScalarFieldView):
     """Subclass ScalarFieldView to add a custom context menu to its 3D area."""
 
     def __init__(self, parent=None):
-        super(ScalarFieldViewWithContextMenu, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle("Right-click to open the context menu")
 
         # Set Plot3DWidget custom context menu

@@ -67,10 +67,7 @@ import os
 import sys
 from typing import NamedTuple, Optional
 
-if sys.version_info < (3, 9):
-    import importlib_resources
-else:
-    import importlib.resources as importlib_resources
+import importlib.resources as importlib_resources
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +97,7 @@ class _ResourceDirectory(NamedTuple):
     """Store a source of resources"""
 
     package_name: str
-    forced_path: Optional[str] = None
+    forced_path: str | None = None
 
 
 _SILX_DIRECTORY = _ResourceDirectory(package_name=__name__, forced_path=_RESOURCES_DIR)
@@ -110,7 +107,7 @@ _RESOURCE_DIRECTORIES["silx"] = _SILX_DIRECTORY
 
 
 def register_resource_directory(
-    name: str, package_name: str, forced_path: Optional[str] = None
+    name: str, package_name: str, forced_path: str | None = None
 ):
     """Register another resource directory to the available list.
 
@@ -182,7 +179,7 @@ def exists(resource: str) -> bool:
 
 
 def _get_package_and_resource(
-    resource: str, default_directory: Optional[str] = None
+    resource: str, default_directory: str | None = None
 ) -> tuple[_ResourceDirectory, str]:
     """
     Return the resource directory class and a cleaned resource name without
@@ -231,7 +228,7 @@ _file_manager = contextlib.ExitStack()
 atexit.register(_file_manager.close)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_resource_filename(package: str, resource: str) -> str:
     """Returns path to requested resource in package
 
@@ -247,7 +244,7 @@ def _get_resource_filename(package: str, resource: str) -> str:
     return str(path.absolute())
 
 
-def _resource_filename(resource: str, default_directory: Optional[str] = None) -> str:
+def _resource_filename(resource: str, default_directory: str | None = None) -> str:
     """Return filename corresponding to resource.
 
     The existence of the resource is not checked.

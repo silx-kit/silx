@@ -70,7 +70,7 @@ def slice_sequence_to_string(data_slice: Iterable[SliceLike] | SliceLike) -> str
         return _slice_to_string(data_slice)
 
 
-class DataUrl(object):
+class DataUrl:
     """Non-mutable object to parse a string representing a resource data
     locator.
 
@@ -110,6 +110,10 @@ class DataUrl(object):
     >>> # It also supports parsing of file access for convenience
     >>> DataUrl("./foo/bar/image.edf")
     >>> DataUrl("C:/data/")
+
+    >>> # HSDS urls are supported with a http or https schema
+    >>> DataUrl("http://hsds-server.tld:8080/home/file")
+
 
     :param path: Path representing a link to a data. If specified, other
         arguments must not be provided.
@@ -211,6 +215,9 @@ class DataUrl(object):
                 self.__data_path is None and self.__data_slice is None
             ) or self.__data_path is not None
             self.__is_valid = slice_implies_data
+        elif self.__scheme in ("http", "https"):
+            # is an HSDS url for h5pyd
+            self.__is_valid = True
         else:
             self.__is_valid = False
 
@@ -267,7 +274,6 @@ class DataUrl(object):
         if "?" not in path:
             path = path.replace("::", "?", 1)
         url = urllib.parse.urlparse(path)
-
         is_valid = True
 
         if len(url.scheme) <= 2:
@@ -277,7 +283,7 @@ class DataUrl(object):
             file_path = self.__path[0:pos] + url.path
         else:
             scheme = url.scheme if url.scheme != "" else None
-            file_path = url.path
+            file_path = f"{url.netloc}{url.path}"
 
             # Check absolute windows path
             if len(file_path) > 2 and file_path[0] == "/":
@@ -367,7 +373,7 @@ class DataUrl(object):
                 else:
                     path = self.__scheme + ":///" + path
             else:
-                path = self.__scheme + ":" + path
+                path = self.__scheme + "://" + path
 
         return path
 

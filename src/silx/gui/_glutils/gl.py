@@ -32,7 +32,6 @@ from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
 import sys
-from typing import Optional
 
 from packaging.version import Version
 
@@ -76,7 +75,7 @@ except NameError:
     GLchar = c_char
 
 
-def getPlatform() -> Optional[str]:
+def getPlatform() -> str | None:
     """Returns the name of the PyOpenGL class handling the platform.
 
     E.g., GLXPlatform, EGLPlatform

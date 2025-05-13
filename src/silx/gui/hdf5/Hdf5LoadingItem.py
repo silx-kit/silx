@@ -26,7 +26,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "06/07/2018"
 
-from typing import Optional
 
 from .. import qt
 from .Hdf5Node import Hdf5Node
@@ -44,7 +43,7 @@ class Hdf5LoadingItem(Hdf5Node):
         text,
         parent,
         animatedIcon,
-        openedPath: Optional[str] = None,
+        openedPath: str | None = None,
     ):
         """Constructor"""
         Hdf5Node.__init__(self, parent, openedPath=openedPath)

@@ -38,7 +38,7 @@ _logger = logging.getLogger(__name__)
 # Notifier ####################################################################
 
 
-class Notifier(object):
+class Notifier:
     """Base class for object with notification mechanism."""
 
     def __init__(self):
@@ -121,7 +121,7 @@ class HookList(list):
     """List with hooks before and after modification."""
 
     def __init__(self, iterable):
-        super(HookList, self).__init__(iterable)
+        super().__init__(iterable)
 
         self._listWasChangedHook("__init__", iterable)
 
@@ -146,7 +146,7 @@ class HookList(list):
     def _wrapper(self, methodName, *args, **kwargs):
         """Generic wrapper of list methods calling the hooks."""
         self._listWillChangeHook(methodName, *args, **kwargs)
-        result = getattr(super(HookList, self), methodName)(*args, **kwargs)
+        result = getattr(super(), methodName)(*args, **kwargs)
         self._listWasChangedHook(methodName, *args, **kwargs)
         return result
 

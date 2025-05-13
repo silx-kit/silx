@@ -1,7 +1,6 @@
 # -*- mode: python -*-
 import importlib.metadata
 import os.path
-from pathlib import Path
 import shutil
 import subprocess
 import sys
@@ -109,20 +108,17 @@ silx_coll = COLLECT(
 
 # Generate license file from current Python env
 def create_license_file(filename: str):
-    import PyQt5.QtCore
+    import PySide6.QtCore
 
     with open(filename, "w") as f:
         f.write(
             f"""
 This is free software.
 
-This distribution of silx is provided under the
-GNU General Public License v3 (https://www.gnu.org/licenses/gpl-3.0.en.html) since it includes PyQt5.
-
 It includes mainy software packages with different licenses:
 
 - Python ({sys.version}): PSF license, https://www.python.org/
-- Qt ({PyQt5.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
+- Qt ({PySide6.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
 """
         )
 
@@ -152,4 +148,19 @@ def innosetup():
     os.remove(config_name)
 
 
+
+def make_zip():
+    """Create a zip archive of the fat binary files"""
+    from silx import strictversion
+
+    base_name = os.path.join(SPECPATH, "artifacts", f"silx-{strictversion}-windows-application")
+    shutil.make_archive(
+        base_name,
+        format="zip",
+        root_dir=os.path.join(SPECPATH, "dist"),
+        base_dir="silx",
+    )
+
+
 innosetup()
+make_zip()

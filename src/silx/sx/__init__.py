@@ -119,7 +119,7 @@ def enable_gui():
     from ._plot import plot, imshow, scatter, ginput  # noqa
 
     try:
-        import OpenGL
+        import OpenGL  # noqa: F401
     except ImportError:
         _logger.warning(
             "Not loading silx.gui.plot3d features: PyOpenGL is not installed"

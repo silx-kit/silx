@@ -22,7 +22,7 @@
 #
 # ############################################################################*/
 """Tests that the different implementation of opencl (cpp, opencl) are
-    accessible
+accessible
 """
 
 __authors__ = ["H. Payno"]

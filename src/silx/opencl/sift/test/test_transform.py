@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -50,11 +50,7 @@ except ImportError:
     scipy = None
 else:
     import scipy.ndimage
-
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
 
 from silx.opencl import ocl, kernel_workgroup_size
 
@@ -74,7 +70,7 @@ logger = logging.getLogger(__name__)
 class TestTransform(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestTransform, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -95,7 +91,7 @@ class TestTransform(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestTransform, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 

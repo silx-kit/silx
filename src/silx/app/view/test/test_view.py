@@ -147,7 +147,7 @@ class TestDataPanel(TestCaseQt):
         self.assertIs(widget.getCustomNxdataItem(), None)
 
     def testCustomDataItem(self):
-        class CustomDataItemMock(object):
+        class CustomDataItemMock:
             def getVirtualGroup(self):
                 return None
 

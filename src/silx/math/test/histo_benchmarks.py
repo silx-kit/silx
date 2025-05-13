@@ -67,22 +67,17 @@ def commpare_results(
     ):
         err_txt = (
             txt + " : results arent the same : "
-            "hits : {0}, "
-            "weights : {1}."
-            "".format("OK" if hits_cmp else "NOK", "OK" if weights_cmp else "NOK")
+            f"hits : {'OK' if hits_cmp else 'NOK'}, "
+            f"weights : {'OK' if weights_cmp else 'NOK'}."
         )
         print("\t" + err_txt)
         if raise_ex:
             raise ValueError(err_txt)
         return False
 
-    result_txt = " : results OK. c : {0: <7.3f};".format(times[0])
+    result_txt = f" : results OK. c : {times[0]: <7.3f};"
     if result_np or result_np_w:
-        result_txt += (
-            " np : {0: <7.3f}; "
-            "np (weights) {1: <7.3f}."
-            "".format(times[1], times[2])
-        )
+        result_txt += f" np : {times[1]: <7.3f}; " "np (weights) {times[2]: <7.3f}."
     print("\t" + txt + result_txt)
     return True
 
@@ -154,7 +149,7 @@ def benchmark(
             t3s.append(0)
 
         commpare_results(
-            "Run {0}".format(i),
+            f"Run {i}",
             [t1s[-1] - t0s[-1], t2s[-1] - t1s[-1], t3s[-1] - t2s[-1]],
             result_c,
             result_np,
@@ -183,7 +178,7 @@ def run_benchmark(dtype=np.double, do_weights=True, do_numpy=True):
     # ====================================================
 
     print("==========================")
-    print(" 1D [{0}]".format(dtype))
+    print(f" 1D [{dtype}]")
     print("==========================")
     sample_shape = (10**7,)
     histo_range = [[0.0, 100.0]]
@@ -211,7 +206,7 @@ def run_benchmark(dtype=np.double, do_weights=True, do_numpy=True):
     # ====================================================
 
     print("==========================")
-    print(" 2D [{0}]".format(dtype))
+    print(f" 2D [{dtype}]")
     print("==========================")
     sample_shape = (10**7, 2)
     histo_range = [[0.0, 100.0], [0.0, 100.0]]
@@ -239,7 +234,7 @@ def run_benchmark(dtype=np.double, do_weights=True, do_numpy=True):
     # ====================================================
 
     print("==========================")
-    print(" 3D [{0}]".format(dtype))
+    print(f" 3D [{dtype}]")
     print("==========================")
     sample_shape = (10**7, 3)
     histo_range = np.array([[0.0, 100.0], [0.0, 100.0], [0.0, 100.0]])

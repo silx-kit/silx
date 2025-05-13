@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""WaitingPushButton module
-"""
+"""WaitingPushButton module"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -227,6 +226,10 @@ class WaitingPushButton(qt.QPushButton):
 
         :rtype: bool"""
         return self.__waiting
+
+    def close(self):
+        self.stopWaiting()
+        return super().close()
 
     @qt.Slot()
     def wait(self):

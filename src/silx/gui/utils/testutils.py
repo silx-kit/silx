@@ -31,7 +31,6 @@ __date__ = "22/11/2023"
 import gc
 import logging
 import unittest
-import time
 import functools
 import sys
 import os
@@ -323,17 +322,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
-
-        if qt.BINDING == "PySide6":
-            # PySide has no qWait, provide a replacement
-            timeout = int(ms)
-            endTimeMS = int(time.time() * 1000) + timeout
-            qapp = qt.QApplication.instance()
-            while timeout > 0:
-                qapp.processEvents(qt.QEventLoop.AllEvents, timeout)
-                timeout = endTimeMS - int(time.time() * 1000)
-        else:
-            QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
+        QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.
@@ -421,7 +410,7 @@ class TestCaseQt(unittest.TestCase):
         _logger.log(level, "Screenshot saved at %s", filename)
 
 
-class SignalListener(object):
+class SignalListener:
     """Util to listen a Qt event and store parameters"""
 
     def __init__(self):

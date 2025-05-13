@@ -54,7 +54,7 @@ class Base(event.Notifier):
     """A scene node with common features."""
 
     def __init__(self):
-        super(Base, self).__init__()
+        super().__init__()
         self._visible = True
         self._pickable = False
 
@@ -240,7 +240,7 @@ class Elem(Base):
     """A scene node that does some rendering."""
 
     def __init__(self):
-        super(Elem, self).__init__()
+        super().__init__()
         # self.showBBox = False  # Here or outside scene graph?
         # self.clipPlane = None  # This needs to be handled in the shader
 
@@ -255,25 +255,21 @@ class PrivateGroup(Base):
         """List of children with notification and children's parent update."""
 
         def _listWillChangeHook(self, methodName, *args, **kwargs):
-            super(PrivateGroup.ChildrenList, self)._listWillChangeHook(
-                methodName, *args, **kwargs
-            )
+            super()._listWillChangeHook(methodName, *args, **kwargs)
             for item in self:
                 item._setParent(None)
 
         def _listWasChangedHook(self, methodName, *args, **kwargs):
             for item in self:
                 item._setParent(self._parentRef())
-            super(PrivateGroup.ChildrenList, self)._listWasChangedHook(
-                methodName, *args, **kwargs
-            )
+            super()._listWasChangedHook(methodName, *args, **kwargs)
 
         def __init__(self, parent, children):
             self._parentRef = weakref.ref(parent)
-            super(PrivateGroup.ChildrenList, self).__init__(children)
+            super().__init__(children)
 
     def __init__(self, children=()):
-        super(PrivateGroup, self).__init__()
+        super().__init__()
         self.__children = PrivateGroup.ChildrenList(self, children)
         self.__children.addListener(self._updated)
 

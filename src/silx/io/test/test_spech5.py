@@ -23,7 +23,6 @@
 """Tests for spech5"""
 import numpy
 import os
-import io
 import tempfile
 import unittest
 import datetime
@@ -170,9 +169,8 @@ class TestSpecDate(unittest.TestCase):
             self.assertEqual(
                 iso_date,
                 expected_date,
-                msg="Testing {0}. format={1}. "
-                'Expected "{2}", got "{3} ({4})" (dt={5}).'
-                "".format(msg, i_fmt, expected_date, iso_date, spec_date, dt),
+                msg=f"Testing {msg}. format={i_fmt}. "
+                f'Expected "{expected_date}", got "{iso_date} ({spec_date})" (dt={dt}).',
             )
 
     def testYearsNominal(self):
@@ -260,7 +258,7 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["25.1/start_time"], "2015-03-14T03:53:50")
 
     def assertRaisesRegex(self, *args, **kwargs):
-        return super(TestSpecH5, self).assertRaisesRegex(*args, **kwargs)
+        return super().assertRaisesRegex(*args, **kwargs)
 
     def testDatasetInstanceAttr(self):
         """The SpecH5Dataset objects must implement some dummy attributes
@@ -567,7 +565,7 @@ class TestSpecH5(unittest.TestCase):
     @testutils.validate_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
-        with io.open(self.sfh5.filename) as f:
+        with open(self.sfh5.filename) as f:
             sfh5 = SpecH5(f)
             self.assertIsNotNone(sfh5)
             name_list = []

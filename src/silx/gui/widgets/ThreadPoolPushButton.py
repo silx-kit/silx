@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""ThreadPoolPushButton module
-"""
+"""ThreadPoolPushButton module"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -42,7 +41,7 @@ class _Wrapper(qt.QRunnable):
 
     def __init__(self, signalHolder, function, args, kwargs):
         """Constructor"""
-        super(_Wrapper, self).__init__()
+        super().__init__()
         self.__signalHolder = signalHolder
         self.__callable = function
         self.__args = args
@@ -124,7 +123,7 @@ class ThreadPoolPushButton(WaitingPushButton):
         self.__args = None
         self.__kwargs = None
         self.__runnerCount = 0
-        self.__runnerSet = set([])
+        self.__runnerSet = set()
         self.clicked.connect(self.executeCallable)
         self.finished.connect(self.__runnerFinished)
         self._sigReleaseRunner.connect(self.__releaseRunner)

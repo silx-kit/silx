@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt Hdf5 widget examples
-"""
+"""Qt Hdf5 widget examples"""
 
 import logging
 import sys
@@ -64,7 +63,7 @@ class CustomTooltips(qt.QIdentityProxyModel):
 
             # We can filter according to the column
             if sourceIndex.column() == Hdf5TreeModel.TYPE_COLUMN:
-                return super(CustomTooltips, self).data(index, role)
+                return super().data(index, role)
 
             # Let's create our own tooltips
             template = """<html>
@@ -94,7 +93,7 @@ class CustomTooltips(qt.QIdentityProxyModel):
             )
             return template.format(**info)
 
-        return super(CustomTooltips, self).data(index, role)
+        return super().data(index, role)
 
 
 _file_cache = {}

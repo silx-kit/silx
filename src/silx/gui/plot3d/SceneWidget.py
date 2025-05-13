@@ -45,7 +45,7 @@ from ._model.items import Item3DRow
 __all__ = ["items", "SceneWidget"]
 
 
-class _SceneSelectionHighlightManager(object):
+class _SceneSelectionHighlightManager:
     """Class controlling the highlight of the selection in a SceneWidget
 
     :param ~silx.gui.plot3d.SceneWidget.SceneSelection:
@@ -184,7 +184,7 @@ class SceneSelection(qt.QObject):
     """
 
     def __init__(self, parent=None):
-        super(SceneSelection, self).__init__(parent)
+        super().__init__(parent)
         self.__current = None  # Store weakref to current item
         self.__selectionModel = None  # Store sync selection model
         self.__syncInProgress = False  # True during model synchronization
@@ -365,7 +365,7 @@ class SceneWidget(Plot3DWidget):
     """Widget displaying data sets in 3D"""
 
     def __init__(self, parent=None):
-        super(SceneWidget, self).__init__(parent)
+        super().__init__(parent)
         self._model = None  # Store lazy-loaded model
         self._selection = None  # Store lazy-loaded SceneSelection
         self._items = []
@@ -424,10 +424,9 @@ class SceneWidget(Plot3DWidget):
             return  # Empty iterator
 
         devicePixelRatio = self.getDevicePixelRatio()
-        for result in self.getSceneGroup().pickItems(
+        yield from self.getSceneGroup().pickItems(
             x * devicePixelRatio, y * devicePixelRatio, condition
-        ):
-            yield result
+        )
 
     # Interactive modes
 
@@ -470,7 +469,7 @@ class SceneWidget(Plot3DWidget):
             else:  # No selected plane, fallback to rotate scene
                 mode = "rotate"
 
-        super(SceneWidget, self).setInteractiveMode(mode)
+        super().setInteractiveMode(mode)
 
     def getInteractiveMode(self):
         """Returns the interactive mode in use.
@@ -480,7 +479,7 @@ class SceneWidget(Plot3DWidget):
         if isinstance(self.eventHandler, interaction.PanPlaneZoomOnWheelControl):
             return "panSelectedPlane"
         else:
-            return super(SceneWidget, self).getInteractiveMode()
+            return super().getInteractiveMode()
 
     # Add/remove items
 

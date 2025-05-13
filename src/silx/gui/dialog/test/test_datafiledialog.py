@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Test for silx.gui.hdf5 module"""
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "08/03/2019"
@@ -32,7 +34,6 @@ import tempfile
 import numpy
 import shutil
 import os
-import io
 import weakref
 import fabio
 import h5py
@@ -47,7 +48,7 @@ _tmpDirectory = None
 
 def setUpModule():
     global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
+    _tmpDirectory = os.path.realpath(tempfile.mkdtemp(prefix=__name__))
 
     data = numpy.arange(100 * 100)
     data.shape = 100, 100
@@ -81,7 +82,7 @@ def setUpModule():
     f.close()
 
     filename = _tmpDirectory + "/badformat.h5"
-    with io.open(filename, "wb") as f:
+    with open(filename, "wb") as f:
         f.write(b"{\nHello Nurse!")
 
 
@@ -90,14 +91,14 @@ def tearDownModule():
     for _ in range(10):
         try:
             shutil.rmtree(_tmpDirectory)
-        except PermissionError:  # Might fail on appveyor
+        except PermissionError:  # Might fail on Windows
             testutils.TestCaseQt.qWait(500)
         else:
             break
     _tmpDirectory = None
 
 
-class _UtilsMixin(object):
+class _UtilsMixin:
     def createDialog(self):
         self._deleteDialog()
         self._dialog = self._createDialog()
@@ -115,25 +116,35 @@ class _UtilsMixin(object):
             self.qWaitForDestroy(ref)
 
     def qWaitForPendingActions(self, dialog):
+        self.qapp.processEvents()
         for _ in range(20):
             if not dialog.hasPendingEvents():
                 return
-            self.qWait(10)
+            self.qWait(100)
         raise RuntimeError("Still have pending actions")
 
     def assertSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ != path2_:
-            # Use the unittest API to log and display error
-            self.assertEqual(path1, path2)
+        self.assertEqual(
+            os.path.normcase(os.path.realpath(path1)),
+            os.path.normcase(os.path.realpath(path2)),
+            msg=f"Paths differs: {path1} != {path2}",
+        )
 
-    def assertNotSamePath(self, path1, path2):
-        path1_ = os.path.normcase(path1)
-        path2_ = os.path.normcase(path2)
-        if path1_ == path2_:
-            # Use the unittest API to log and display error
-            self.assertNotEqual(path1, path2)
+    def assertSameUrls(
+        self,
+        url1: silx.io.url.DataUrl | str,
+        url2: silx.io.url.DataUrl | str,
+    ):
+        """Check that both DataUrls are equivalent"""
+        if isinstance(url1, str):
+            url1 = silx.io.url.DataUrl(url1)
+        if isinstance(url2, str):
+            url2 = silx.io.url.DataUrl(url2)
+
+        self.assertEqual(url1.scheme(), url2.scheme())
+        self.assertSamePath(url1.file_path(), url2.file_path())
+        self.assertEqual(url1.data_path(), url2.data_path())
+        self.assertEqual(url1.data_slice(), url2.data_slice())
 
 
 class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
@@ -272,7 +283,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data/data.h5"
@@ -281,51 +292,47 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        )
+        self.assertSameUrls(urlLineEdit.text(), url)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        self.assertSameUrls(urlLineEdit.text(), url)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data")
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
         button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), path)
+        self.assertSameUrls(urlLineEdit.text(), url)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        self.assertSameUrls(urlLineEdit.text(), url)
         # self.assertFalse(button.isEnabled())
 
     def testClickOnBackToDirectoryTool(self):
@@ -333,24 +340,24 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
         button = testutils.getQToolButtonFromAction(action)
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(file_path=filename, data_path="/group/image")
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
-        ).path()
-        self.assertSamePath(url.text(), path)
+        )
+        self.assertSameUrls(urlLineEdit.text(), url)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
         self.assertFalse(button.isEnabled())
 
         # FIXME: There is an unreleased qt.QWidget without nameObject
@@ -362,7 +369,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
 
-        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         forwardAction = testutils.findChildren(
             dialog, qt.QAction, name="forwardAction"
         )[0]
@@ -377,15 +384,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
         self.qWaitForPendingActions(dialog)
-        path2 = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
-        dialog.selectUrl(path2)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
+        dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
-        path3 = silx.io.url.DataUrl(
+        url2 = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group"
-        ).path()
-        dialog.selectUrl(path3)
+        )
+        dialog.selectUrl(url2.path())
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
@@ -395,14 +400,14 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path2)
+        self.assertSameUrls(urlLineEdit.text(), url)
 
         button = testutils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path3)
+        self.assertSameUrls(urlLineEdit.text(), url2)
 
     def testSelectImageFromEdf(self):
         dialog = self.createDialog()
@@ -419,7 +424,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(url.path())
         self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), url.path())
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectImage(self):
         dialog = self.createDialog()
@@ -428,14 +433,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/image"
-        ).path()
-        dialog.selectUrl(path)
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image")
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectScalar(self):
         dialog = self.createDialog()
@@ -444,14 +447,14 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
+        url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/scalar"
-        ).path()
-        dialog.selectUrl(path)
+        )
+        dialog.selectUrl(url.path())
         # test
         self.assertEqual(dialog._selectedData()[()], 10)
         self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectGroup(self):
         dialog = self.createDialog()
@@ -495,9 +498,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(
-            scheme="silx", file_path=filename, data_path="/"
-        ).path()
+        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -505,7 +506,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
         # test
-        self.assertSamePath(dialog.selectedUrl(), path)
+        self.assertSameUrls(dialog.selectedUrl(), url)
 
     def testSelectBadFileFormat_Activate(self):
         dialog = self.createDialog()
@@ -840,19 +841,19 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i"
         b"\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00"
         b"a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00"
-        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00\xFF\x00\x00'
-        b"\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
-        b"\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00\x00\x00\x00"
-        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00\x00"
-        b"}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00\x00\x00"
-        b"\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00\xFF\x00\x00"
+        b'\x01\x00\x00\x00\x0c\x00\x00\x00\x00"\x00\x00\x00\xff\x00\x00'
+        b"\x00\x00\x00\x00\x00\x03\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+        b"\xff\xff\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x00\x00\x00\x00"
+        b"}\x00\x00\x00\x0e\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00\x00\x00"
+        b"\x01\x00\x00\x00\x0c\x00\x00\x00\x00Z\x00\x00\x00\xff\x00\x00"
         b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00"
         b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00\x00\x00"
-        b"\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00\x00\x81"
+        b"\x00\x00\x00\x00\x00\x00\x00d\xff\xff\xff\xff\x00\x00\x00\x81"
         b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00\x00\x00\x04"
         b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00"
-        b"\x01\xFF\xFF\xFF\xFF"
+        b"\x01\xff\xff\xff\xff"
     )
     """Serialized state on Qt4. Generated using :meth:`printState`"""
 
@@ -862,21 +863,21 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i"
         b"\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00"
         b"a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00"
-        b"\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00\xFF\x00\x00"
-        b"\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
-        b"\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00\x00\x00\x00"
-        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00"
-        b"\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00"
-        b"\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87\x00\x00\x00\xFF"
+        b"\x01\x00\x00\x00\x0c\x00\x00\x00\x00#\x00\x00\x00\xff\x00\x00"
+        b"\x00\x01\x00\x00\x00\x03\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+        b"\xff\xff\x01\xff\xff\xff\xff\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x00\x00\x00"
+        b"\x00\xaa\x00\x00\x00\x0e\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00"
+        b"\x00\x00\x01\x00\x00\x00\x0c\x00\x00\x00\x00\x87\x00\x00\x00\xff"
         b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         b"\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00"
-        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xff\xff\xff\xff\x00\x00"
         b"\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00d\x00\x00"
         b"\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00"
         b"\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
-        b"\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xE8\x00\xFF"
-        b"\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x01"
+        b"\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xe8\x00\xff"
+        b"\xff\xff\xff\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x01"
     )
     """Serialized state on Qt5. Generated using :meth:`printState`"""
 

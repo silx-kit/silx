@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,8 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
+from __future__ import annotations
+
 """
 This module provides utility methods on top of h5py, mainly to handle
 parallel writing and reading.
@@ -34,11 +36,11 @@ import os
 import sys
 import traceback
 import logging
+from collections.abc import Sequence
 import h5py
 
 from .._version import calc_hexversion
 from ..utils import retry as retry_mod
-from silx.utils.deprecation import deprecated_warning
 
 _logger = logging.getLogger(__name__)
 
@@ -79,7 +81,13 @@ def _libver_low_bound_is_v108(libver) -> bool:
     return low == "v108"
 
 
-def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
+def _hdf5_file_locking(
+    mode: str | None = "r",
+    locking: bool | str | None = None,
+    swmr: bool | None = None,
+    libver: str | Sequence[str] | None = None,
+    **_,
+) -> str | bool | None:
     """Concurrent access by disabling file locking is not supported
     in these cases:
 
@@ -88,17 +96,16 @@ def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
         * libver > v108 and file already locked: does not work
         * windows and HDF5_HAS_LOCKING_ARGUMENT and file already locked: does not work
 
-    :param str or None mode: read-only by default
-    :param bool or None locking: by default it is disabled for `mode='r'`
-                                 and `swmr=False` and enabled for all
-                                 other modes.
-    :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-    :param None or str or tuple libver:
-    :returns bool:
+    :param mode: read-only by default
+    :param locking: by default it is disabled for `mode='r'`
+                    and `swmr=False` and enabled when supported
+                    for all other modes.
+    :param swmr: try both modes when `mode='r'` and `swmr=None`
+    :param libver:
     """
-    if locking is None:
-        locking = bool(mode != "r" or swmr)
-    if not locking:
+    if locking is None and mode == "r" and not swmr:
+        locking = False
+    if locking in (False, "false"):
         if mode != "r":
             raise ValueError("Locking is mandatory for HDF5 writing")
         if swmr:
@@ -114,11 +121,13 @@ def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
     return locking
 
 
-def _is_h5py_exception(e):
+def is_h5py_exception(e):
     """
     :param BaseException e:
     :returns bool:
     """
+    if not isinstance(e, Exception):
+        return False
     for frame in traceback.walk_tb(e.__traceback__):
         for namespace in (frame[0].f_locals, frame[0].f_globals):
             if namespace.get("__package__", None) == "h5py":
@@ -126,18 +135,22 @@ def _is_h5py_exception(e):
     return False
 
 
-def _retry_h5py_error(e):
+def retry_h5py_error(e):
     """
     :param BaseException e:
     :returns bool:
     """
-    if _is_h5py_exception(e):
+    if is_h5py_exception(e):
         if isinstance(e, (OSError, RuntimeError)):
             return True
         elif isinstance(e, KeyError):
             # For example this needs to be retried:
             # KeyError: 'Unable to open object (bad object header version number)'
-            return "Unable to open object" in str(e)
+            message = str(e)
+            return (
+                "Unable to open object" in message
+                or "Unable to synchronously open object" in message
+            )
     elif isinstance(e, retry_mod.RetryError):
         return True
     return False
@@ -150,7 +163,7 @@ def retry(**kw):
 
     :param \**kw: see `silx.utils.retry`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry(**kw)
 
 
@@ -161,7 +174,7 @@ def retry_contextmanager(**kw):
 
     :param \**kw: see `silx.utils.retry_contextmanager`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry_contextmanager(**kw)
 
 
@@ -179,7 +192,7 @@ def retry_in_subprocess(**kw):
 
     :param \**kw: see `silx.utils.retry_in_subprocess`
     """
-    kw.setdefault("retry_on_error", _retry_h5py_error)
+    kw.setdefault("retry_on_error", retry_h5py_error)
     return retry_mod.retry_in_subprocess(**kw)
 
 
@@ -202,6 +215,7 @@ def open_item(filename, name, retry_invalid=False, validate=None, **open_options
     r"""Yield an HDF5 dataset or group (retry until it can be instantiated).
 
     :param str filename:
+    :param str name: HDF5 path of the item
     :param bool retry_invalid: retry when item is missing or not valid
     :param callable or None validate:
     :param \**open_options: see `File.__init__`
@@ -340,25 +354,23 @@ class File(h5py.File):
 
     def __init__(
         self,
-        filename,
-        mode=None,
-        locking=None,
-        enable_file_locking=None,
-        swmr=None,
-        libver=None,
+        filename: str,
+        mode: str | None = None,
+        locking: bool | str | None = None,
+        swmr: bool | None = None,
+        libver: str | Sequence[str] | None = None,
         **kwargs,
     ):
         r"""The arguments `locking` and `swmr` should not be
         specified explicitly for normal use cases.
 
-        :param str filename:
-        :param str or None mode: read-only by default
-        :param bool or None locking: by default it is disabled for `mode='r'`
-                                        and `swmr=False` and enabled for all
-                                        other modes.
-        :param bool or None enable_file_locking: deprecated
-        :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-        :param None or str or tuple libver:
+        :param filename:
+        :param mode: read-only by default
+        :param locking: by default it is disabled for `mode='r'`
+                        and `swmr=False` and enabled when supported
+                        for all other modes.
+        :param swmr: try both modes when `mode='r'` and `swmr=None`
+        :param libver:
         :param \**kwargs: see `h5py.File.__init__`
         """
         # File locking behavior has changed in recent versions of libhdf5
@@ -373,21 +385,12 @@ class File(h5py.File):
         if mode is None:
             mode = "r"
         elif mode not in ("r", "w", "w-", "x", "a", "r+"):
-            raise ValueError("invalid mode {}".format(mode))
+            raise ValueError(f"invalid mode {mode}")
         if not HAS_SWMR:
             swmr = False
         if swmr and libver is None:
             libver = self._SWMR_LIBVER
 
-        if enable_file_locking is not None:
-            deprecated_warning(
-                type_="argument",
-                name="enable_file_locking",
-                replacement="locking",
-                since_version="1.0",
-            )
-            if locking is None:
-                locking = enable_file_locking
         locking = _hdf5_file_locking(
             mode=mode, locking=locking, swmr=swmr, libver=libver
         )

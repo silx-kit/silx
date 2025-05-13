@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Action to hold many mode actions, usually for a tool bar.
-"""
+"""Action to hold many mode actions, usually for a tool bar."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

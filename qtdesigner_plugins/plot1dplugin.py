@@ -41,7 +41,7 @@ from silx.gui.plot import Plot1D
 
 class Plot1DPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
     def __init__(self, parent=None):
-        super(Plot1DPlugin, self).__init__(parent)
+        super().__init__(parent)
         self.initialized = False
 
     def initialize(self, core):

@@ -45,7 +45,7 @@ class TestIcons(TestCaseQt):
 
     @classmethod
     def setUpClass(cls):
-        super(TestIcons, cls).setUpClass()
+        super().setUpClass()
 
         cls.tmpDirectory = tempfile.mkdtemp(prefix="resource_")
         os.mkdir(os.path.join(cls.tmpDirectory, "gui"))
@@ -60,7 +60,7 @@ class TestIcons(TestCaseQt):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestIcons, cls).tearDownClass()
+        super().tearDownClass()
         shutil.rmtree(cls.tmpDirectory)
 
     def setUp(self):

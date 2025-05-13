@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains utils class for axes management.
-"""
+"""This module contains utils class for axes management."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -40,7 +39,7 @@ from ...qt.inspect import isValid as _isQObjectValid
 _logger = logging.getLogger(__name__)
 
 
-class SyncAxes(object):
+class SyncAxes:
     """Synchronize a set of plot axes together.
 
     It is created with the expected axes and starts to synchronize them.

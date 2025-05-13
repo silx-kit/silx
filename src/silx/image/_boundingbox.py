@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""offer some generic 2D bounding box features
-"""
+"""offer some generic 2D bounding box features"""
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides Arc ROI item for the :class:`~silx.gui.plot.PlotWidget`.
-"""
+"""This module provides Arc ROI item for the :class:`~silx.gui.plot.PlotWidget`."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -31,7 +30,6 @@ __date__ = "28/06/2018"
 import logging
 import numpy
 import enum
-from typing import Tuple
 
 from ... import utils
 from .. import items
@@ -352,10 +350,10 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
-        super(ArcROI, self)._updated(event, checkVisibility)
+        super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(ArcROI, self)._updatedStyle(event, style)
+        super()._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -632,7 +630,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 center, start, end, radius, weight, startAngle, endAngle
             )
 
-        elif numpy.linalg.norm(numpy.cross(mid - start, end - start)) < 1e-5:
+        elif (
+            numpy.linalg.norm(
+                numpy.cross(numpy.append(mid - start, 0), numpy.append(end - start, 0))
+            )
+            < 1e-5
+        ):
             # Degenerated arc, it's a rectangle
             return _ArcGeometry.createRect(start, end, weight)
         else:
@@ -796,7 +799,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             geometry.endAngle,
         )
 
-    def getPosition(self, role: Role = Role.CENTER) -> Tuple[float, float]:
+    def getPosition(self, role: Role = Role.CENTER) -> tuple[float, float]:
         """Returns a position by it's role.
 
         By default returns the center of the circle of the arc ROI.
@@ -911,7 +914,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         # first check distance, fastest
         center = self.getCenter()
         distance = numpy.sqrt(
-            (position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2
+            (position[1] - center[1]) ** 2 + (position[0] - center[0]) ** 2
         )
         is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
         if not is_in_distance:
@@ -989,4 +992,4 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             params = "center: %f %f; radius: %f %f; angles: %f %f" % params
         except ValueError:
             params = "invalid"
-        return "%s(%s)" % (self.__class__.__name__, params)
+        return f"{self.__class__.__name__}({params})"

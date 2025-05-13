@@ -165,7 +165,7 @@ def visit_archive_html(self, node):
 
     # Generate HTML
     relative_path = posixpath.join(self.builder.dlpath, filename)
-    self.body.append('<a href="%s">%s</a>' % (relative_path, filename))
+    self.body.append(f'<a href="{relative_path}">{filename}</a>')
     raise docutils.nodes.SkipNode
 
 

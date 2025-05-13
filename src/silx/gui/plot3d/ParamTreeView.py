@@ -55,7 +55,7 @@ class FloatEditor(_FloatEdit):
     """
 
     def __init__(self, parent: qt.QWidget | None = None, value: float | None = None):
-        super(FloatEditor, self).__init__(parent, value)
+        super().__init__(parent, value)
         self.setAlignment(qt.Qt.AlignLeft)
 
     valueProperty = qt.Property(
@@ -79,7 +79,7 @@ class Vector3DEditor(qt.QWidget):
         parent: qt.QWidget | None = None,
         flags: qt.Qt.WindowType = qt.Qt.Widget,
     ):
-        super(Vector3DEditor, self).__init__(parent, flags)
+        super().__init__(parent, flags)
         layout = qt.QHBoxLayout(self)
         # layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -132,7 +132,7 @@ class Vector4DEditor(qt.QWidget):
         parent: qt.QWidget | None = None,
         flags: qt.Qt.WindowType = qt.Qt.Widget,
     ):
-        super(Vector4DEditor, self).__init__(parent, flags)
+        super().__init__(parent, flags)
         layout = qt.QHBoxLayout(self)
         # layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -190,7 +190,7 @@ class IntSliderEditor(qt.QSlider):
     """
 
     def __init__(self, parent: qt.QWidget | None = None):
-        super(IntSliderEditor, self).__init__(parent)
+        super().__init__(parent)
         self.setOrientation(qt.Qt.Horizontal)
         self.setSingleStep(1)
         self.setRange(0, 255)
@@ -209,7 +209,7 @@ class BooleanEditor(qt.QCheckBox):
     """Signal emitted when value is changed by the user"""
 
     def __init__(self, parent: qt.QWidget | None = None):
-        super(BooleanEditor, self).__init__(parent)
+        super().__init__(parent)
         self.setBackgroundRole(qt.QPalette.Base)
         self.setAutoFillBackground(True)
 
@@ -252,7 +252,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
     """Specific editors for different type of data"""
 
     def __init__(self, parent: qt.QWidget | None = None):
-        super(ParameterTreeDelegate, self).__init__(parent)
+        super().__init__(parent)
 
     def paint(
         self,
@@ -264,13 +264,13 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
         data = index.data(qt.Qt.DisplayRole)
 
         if not isinstance(data, (qt.QVector3D, qt.QVector4D)):
-            super(ParameterTreeDelegate, self).paint(painter, option, index)
+            super().paint(painter, option, index)
             return
 
         if isinstance(data, qt.QVector3D):
-            text = "(x: %g; y: %g; z: %g)" % (data.x(), data.y(), data.z())
+            text = f"(x: {data.x():g}; y: {data.y():g}; z: {data.z():g})"
         elif isinstance(data, qt.QVector4D):
-            text = "(%g; %g; %g; %g)" % (data.x(), data.y(), data.z(), data.w())
+            text = f"({data.x():g}; {data.y():g}; {data.z():g}; {data.w():g})"
         else:
             text = ""
 
@@ -315,9 +315,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
 
             return True
         else:
-            return super(ParameterTreeDelegate, self).editorEvent(
-                event, model, option, index
-            )
+            return super().editorEvent(event, model, option, index)
 
     def createEditor(
         self,
@@ -372,9 +370,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                     break
 
             else:  # Default handling for default types
-                return super(ParameterTreeDelegate, self).createEditor(
-                    parent, option, index
-                )
+                return super().createEditor(parent, option, index)
 
         editor.setAutoFillBackground(True)
         return editor
@@ -401,7 +397,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                 model.setData(index, value, qt.Qt.EditRole)
 
         else:
-            super(ParameterTreeDelegate, self).setModelData(editor, model, index)
+            super().setModelData(editor, model, index)
 
 
 class ParamTreeView(qt.QTreeView):
@@ -413,7 +409,7 @@ class ParamTreeView(qt.QTreeView):
     """
 
     def __init__(self, parent: qt.QWidget | None = None):
-        super(ParamTreeView, self).__init__(parent)
+        super().__init__(parent)
 
         header = self.header()
         header.setMinimumSectionSize(128)  # For colormap pixmaps
@@ -461,12 +457,12 @@ class ParamTreeView(qt.QTreeView):
 
     def setModel(self, model: qt.QAbstractItemModel):
         """Set the model this TreeView is displaying"""
-        super(ParamTreeView, self).setModel(model)
+        super().setModel(model)
         self._openEditors()
 
     def rowsInserted(self, parent: qt.QModelIndex, start: int, end: int):
         """See :meth:`QTreeView.rowsInserted`"""
-        super(ParamTreeView, self).rowsInserted(parent, start, end)
+        super().rowsInserted(parent, start, end)
         model = self.model()
         if model is not None:
             for row in range(start, end + 1):
@@ -487,7 +483,7 @@ class ParamTreeView(qt.QTreeView):
         roles: Sequence[int] = (),
     ):
         """Handle model dataChanged signal eventually closing editors"""
-        super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
+        super().dataChanged(topLeft, bottomRight, roles)
         if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
             for row in range(topLeft.row(), bottomRight.row() + 1):
                 for column in range(topLeft.column(), bottomRight.column() + 1):
@@ -508,6 +504,6 @@ class ParamTreeView(qt.QTreeView):
     ) -> qt.QItemSelectionModel.SelectionFlag:
         """Filter out selection of not selectable items"""
         if index.flags() & qt.Qt.ItemIsSelectable:
-            return super(ParamTreeView, self).selectionCommand(index, event)
+            return super().selectionCommand(index, event)
         else:
             return qt.QItemSelectionModel.NoUpdate

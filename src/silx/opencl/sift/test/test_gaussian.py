@@ -86,7 +86,7 @@ def gaussian_cpu(sigma, size=None, PROFILE=False):
 class TestGaussian(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestGaussian, cls).setUpClass()
+        super().setUpClass()
         cls.ctx = ocl.create_context()
 
         if logger.getEffectiveLevel() <= logging.INFO:
@@ -120,7 +120,7 @@ class TestGaussian(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestGaussian, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = cls.kernels = cls.queue = None
 
     @classmethod

@@ -75,7 +75,7 @@ def my_compact(keypoints, nbkeypoints):
 class TestAlgebra(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestAlgebra, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -98,7 +98,7 @@ class TestAlgebra(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestAlgebra, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -221,7 +221,7 @@ class TestAlgebra(unittest.TestCase):
         res_sort = res[res_sort_arg]
         ref_sort_arg = ref[:, 2].argsort(axis=0)
         ref_sort = ref[ref_sort_arg]
-        delta = abs((res_sort - ref_sort)).max()
+        delta = abs(res_sort - ref_sort).max()
         self.assertLess(delta, 1e-5, "delta=%s" % (delta))
         self.assertEqual(count, count_ref, "counters are the same")
         logger.debug("delta=%s", delta)

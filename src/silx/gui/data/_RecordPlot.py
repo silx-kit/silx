@@ -5,7 +5,7 @@ from .. import qt
 
 class RecordPlot(PlotWindow):
     def __init__(self, parent=None, backend=None):
-        super(RecordPlot, self).__init__(
+        super().__init__(
             parent=parent,
             backend=backend,
             resetzoom=True,
@@ -80,7 +80,7 @@ class RecordPlot(PlotWindow):
 
 class AxesSelectionToolBar(qt.QToolBar):
     def __init__(self, parent=None, plot=None, title="Plot Axes Selection"):
-        super(AxesSelectionToolBar, self).__init__(title, parent)
+        super().__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
 

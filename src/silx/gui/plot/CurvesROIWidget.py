@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,12 @@ import os
 import sys
 import functools
 import numpy
+
+try:
+    from numpy import trapezoid
+except ImportError:  # numpy v1 compatibility
+    from numpy import trapz as trapezoid
+
 from silx.io import dictdump
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
@@ -46,6 +52,7 @@ import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from . import items
 from .items.roi import _RegionOfInterestBase
+from silx.utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -79,11 +86,11 @@ class CurvesROIWidget(qt.QWidget):
     sigROISignal = qt.Signal(object)
 
     def __init__(self, parent=None, name=None, plot=None):
-        super(CurvesROIWidget, self).__init__(parent)
+        super().__init__(parent)
         if name is not None:
             self.setWindowTitle(name)
         self.__lastSigROISignal = None
-        """Store the last value emitted for the sigRoiSignal. In the case the
+        """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
         This come from the fact sigROISignal is connected to the 
@@ -328,7 +335,7 @@ class CurvesROIWidget(qt.QWidget):
         if os.path.exists(outputFile):
             try:
                 os.remove(outputFile)
-            except IOError:
+            except OSError:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
                 msg.setText("Input Output Error: %s" % (sys.exc_info()[1]))
@@ -477,7 +484,7 @@ class ROITable(TableWidget):
     INFO_NOT_FOUND = "????????"
 
     def __init__(self, parent=None, plot=None, rois=None):
-        super(ROITable, self).__init__(parent)
+        super().__init__(parent)
         self._showAllMarkers = False
         self._userIsEditingRoi = False
         """bool used to avoid conflict when editing the ROI object"""
@@ -636,7 +643,7 @@ class ROITable(TableWidget):
                     )
             elif name == "Type":
                 item = qt.QTableWidgetItem(type=qt.QTableWidgetItem.Type)
-                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+                item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
             elif name in ("To", "From"):
                 item = _FloatItem()
                 if roi.getName().upper() in ("ICR", "DEFAULT"):
@@ -649,7 +656,7 @@ class ROITable(TableWidget):
                     )
             elif name in ("Raw Counts", "Net Counts", "Raw Area", "Net Area"):
                 item = _FloatItem()
-                item.setFlags((qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled))
+                item.setFlags(qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled)
             else:
                 raise ValueError("item type not recognized")
 
@@ -868,16 +875,14 @@ class ROITable(TableWidget):
 
         if order is None or order.lower() == "none":
             ordered_roilist = list(self._roiDict.values())
-            res = dict(
-                [(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist]
-            )
+            res = {roi.getName(): self._roiDict[roi.getID()] for roi in ordered_roilist}
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
             ordered_roilist = sorted(
                 self._roiDict.keys(),
                 key=lambda roi_id: self._roiDict[roi_id].get(order),
             )
-            res = dict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
+            res = {roi.getName(): self._roiDict[id] for id in ordered_roilist}
 
         return res
 
@@ -1240,13 +1245,13 @@ class ROI(_RegionOfInterestBase):
         if x.size == 0:
             return 0.0, 0.0
 
-        rawArea = numpy.trapz(y, x=x)
+        rawArea = trapezoid(y, x=x)
         # to speed up and avoid an intersection calculation we are taking the
         # closest index to the ROI
         closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
         closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
         yBackground = y[closestXLeftIndex], y[closestXRightIndex]
-        background = numpy.trapz(yBackground, x=x)
+        background = trapezoid(yBackground, x=x)
         netArea = rawArea - background
         return rawArea, netArea
 
@@ -1255,7 +1260,7 @@ class ROI(_RegionOfInterestBase):
         return self._fromdata <= position[0] <= self._todata
 
 
-class _RoiMarkerManager(object):
+class _RoiMarkerManager:
     """
     Deal with all the ROI markers
     """
@@ -1376,7 +1381,7 @@ class _RoiMarkerManager(object):
         return res
 
 
-class _RoiMarkerHandler(object):
+class _RoiMarkerHandler:
     """Used to deal with ROI markers used in ROITable"""
 
     def __init__(self, roi, plot):
@@ -1526,27 +1531,13 @@ class CurvesROIDockWidget(qt.QDockWidget):
     :param name: See :class:`QDockWidget`
     """
 
-    sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
-
     def __init__(self, parent=None, plot=None, name=None):
-        super(CurvesROIDockWidget, self).__init__(name, parent)
+        super().__init__(name, parent)
 
         assert plot is not None
         self.plot = plot
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
-
-        # convenience methods to offer a simpler API allowing to ignore
-        # the details of the underlying implementation
-        # (ALL DEPRECATED)
-        self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
-        self.setRois = self.roiWidget.setRois
-        self.getRois = self.roiWidget.getRois
-
-        self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
@@ -1554,19 +1545,31 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.setAreaVisible = self.roiWidget.roiTable.setAreaVisible
         self.setCountsVisible = self.roiWidget.roiTable.setCountsVisible
 
-    def _forwardSigROISignal(self, ddict):
-        # emit deprecated signal for backward compatibility (silx < 0.7)
-        self.sigROISignal.emit(ddict)
-
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
 
         See :class:`QMainWindow`.
         """
-        action = super(CurvesROIDockWidget, self).toggleViewAction()
+        action = super().toggleViewAction()
         action.setIcon(icons.getQIcon("plot-roi"))
         return action
 
     @property
     def currentROI(self):
         return self.roiWidget.currentRoi
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateROIs(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateRois(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.getRois")
+    def getRois(self, order=None):
+        return self.roiWidget.getRois(order)
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.setRois")
+    def setRois(self, rois, order=None):
+        return self.roiWidget.setRois(rois, order)

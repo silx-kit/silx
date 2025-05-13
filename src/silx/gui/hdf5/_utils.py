@@ -41,7 +41,7 @@ from .. import qt
 _logger = logging.getLogger(__name__)
 
 
-class Hdf5ContextMenuEvent(object):
+class Hdf5ContextMenuEvent:
     """Hold information provided to context menu callbacks."""
 
     def __init__(self, source, menu, hoveredObject):
@@ -98,7 +98,7 @@ def htmlFromDict(dictionary, title=None):
         result += "<b>%s</b>" % escape(title)
     result += "<ul>"
     for key, value in dictionary.items():
-        result += "<li><b>%s</b>: %s</li>" % (escape(key), escape(value))
+        result += f"<li><b>{escape(key)}</b>: {escape(value)}</li>"
     result += "</ul>"
     result += "</body></html>"
     return result
@@ -136,7 +136,7 @@ class Hdf5DatasetMimeData(qt.QMimeData):
         return self.__dataset
 
 
-class H5Node(object):
+class H5Node:
     """Adapter over an h5py object to provide missing informations from h5py
     nodes, like internal node path and filename (which are not provided by
     :mod:`h5py` for soft and external links).

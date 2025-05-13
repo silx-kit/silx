@@ -43,7 +43,7 @@ class LabelledAxes(primitives.GroupBBox):
     """A group displaying a bounding box with axes labels around its children."""
 
     def __init__(self):
-        super(LabelledAxes, self).__init__()
+        super().__init__()
         self._ticksForBounds = None
 
         self._font = text.Font(size=10)
@@ -86,7 +86,7 @@ class LabelledAxes(primitives.GroupBBox):
 
         Overridden from GroupBBox
         """
-        super(LabelledAxes, self)._updateBoxAndAxes()
+        super()._updateBoxAndAxes()
 
         bounds = self._group.bounds(dataBounds=True)
         if bounds is not None:
@@ -256,4 +256,4 @@ class LabelledAxes(primitives.GroupBBox):
 
     def prepareGL2(self, context):
         self._updateTicks()
-        super(LabelledAxes, self).prepareGL2(context)
+        super().prepareGL2(context)

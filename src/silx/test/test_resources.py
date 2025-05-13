@@ -39,7 +39,7 @@ import silx.resources
 class TestResources(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestResources, cls).setUpClass()
+        super().setUpClass()
 
         cls.tmpDirectory = tempfile.mkdtemp(prefix="resource_")
         os.mkdir(os.path.join(cls.tmpDirectory, "gui"))
@@ -54,7 +54,7 @@ class TestResources(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestResources, cls).tearDownClass()
+        super().tearDownClass()
         shutil.rmtree(cls.tmpDirectory)
 
     def setUp(self):
@@ -163,7 +163,7 @@ class TestResources(unittest.TestCase):
 class TestResourcesWithCustomDirectory(TestResources):
     @classmethod
     def setUpClass(cls):
-        super(TestResourcesWithCustomDirectory, cls).setUpClass()
+        super().setUpClass()
         cls._old = silx.resources._RESOURCES_DIR
         base = os.path.dirname(silx.resources.__file__)
         silx.resources._RESOURCES_DIR = base
@@ -172,4 +172,4 @@ class TestResourcesWithCustomDirectory(TestResources):
     def tearDownClass(cls):
         silx.resources._RESOURCES_DIR = cls._old
         del cls._old
-        super(TestResourcesWithCustomDirectory, cls).tearDownClass()
+        super().tearDownClass()

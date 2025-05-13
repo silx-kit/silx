@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Helper to access to external resources.
-"""
+"""Helper to access to external resources."""
 
 __authors__ = ["Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
@@ -46,13 +45,13 @@ import zipfile
 logger = logging.getLogger(__name__)
 
 
-class ExternalResources(object):
+class ExternalResources:
     """Utility class which allows to download test-data from www.silx.org
     and manage the temporary data during the tests.
 
     """
 
-    def __init__(self, project, url_base, env_key=None, timeout=60):
+    def __init__(self, project, url_base, env_key=None, timeout=60, data_home=None):
         """Constructor of the class
 
         :param str project: name of the project, like "silx"
@@ -65,6 +64,7 @@ class ExternalResources(object):
                             The environment variable is optional: in case it is not set,
                             a directory in the temporary folder is used.
         :param timeout: time in seconds before it breaks
+        :param data_home: Directory in which the data will be downloaded
         """
         self.project = project
         self._initialized = False
@@ -74,7 +74,7 @@ class ExternalResources(object):
         self.url_base = url_base
         self.all_data = {}
         self.timeout = timeout
-        self._data_home = None
+        self._data_home = data_home
 
     @property
     def data_home(self):
@@ -99,7 +99,7 @@ class ExternalResources(object):
                 else:
                     name = "uid" + str(os.getuid())
 
-            basename = "%s_testdata_%s" % (self.project, name)
+            basename = f"{self.project}_testdata_{name}"
             data_home = os.path.join(tempfile.gettempdir(), basename)
         if not os.path.exists(data_home):
             os.makedirs(data_home)
@@ -176,7 +176,7 @@ class ExternalResources(object):
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener(
-                    "%s/%s" % (self.url_base, filename), data=None, timeout=self.timeout
+                    f"{self.url_base}/{filename}", data=None, timeout=self.timeout
                 ).read()
                 logger.info("Image %s successfully downloaded.", filename)
             except urllib.error.URLError:
@@ -189,8 +189,8 @@ class ExternalResources(object):
             try:
                 with open(fullfilename, mode="wb") as outfile:
                     outfile.write(data)
-            except IOError:
-                raise IOError(
+            except OSError:
+                raise OSError(
                     "unable to write downloaded \
                     data to disk at %s"
                     % self.data_home
@@ -199,7 +199,8 @@ class ExternalResources(object):
             if not os.path.isfile(fullfilename):
                 raise RuntimeError(
                     """Could not automatically download test images %s!
-                    If you are behind a firewall, please set both environment variable http_proxy and https_proxy.
+                    If you are behind a firewall, please set both environment variable
+                     http_proxy and https_proxy.
                     This even works under windows !
                     Otherwise please try to download the images manually from
                     %s/%s"""
@@ -224,11 +225,11 @@ class ExternalResources(object):
     def save_json(self):
         image_list = list(self.all_data.keys())
         image_list.sort()
-        dico = dict([(i, self.all_data[i]) for i in image_list])
+        dico = {i: self.all_data[i] for i in image_list}
         try:
             with open(self.testdata, "w") as fp:
                 json.dump(dico, fp, indent=4)
-        except IOError:
+        except OSError:
             logger.info("Unable to save JSON dict")
 
     def getdir(self, dirname):
@@ -245,7 +246,7 @@ class ExternalResources(object):
 
         if lodn.endswith(("tar", "tgz", "tbz2", "tar.gz", "tar.bz2")):
             with tarfile.TarFile.open(full_path, mode="r") as fd:
-                # Avoid unsafe filter deprecation warning during transistion of mode change
+                # Avoid unsafe filter deprecation warning during mode change
                 if (3, 12) <= sys.version_info < (3, 14):
                     fd.extraction_filter = tarfile.data_filter
                 fd.extractall(output)
@@ -272,7 +273,7 @@ class ExternalResources(object):
             self._initialize_data()
         if filename not in self.all_data:
             self.all_data[filename] = self.get_hash(filename)
-            seld.save_json()
+            self.save_json()
         baseimage = os.path.basename(filename)
         logger.info("UtilsTest.getimage('%s')" % baseimage)
 
@@ -303,7 +304,8 @@ class ExternalResources(object):
             if not os.path.isfile(fullimagename_bz2):
                 raise RuntimeError(
                     """Could not automatically download test images %s!
-                    If you are behind a firewall, please set the environment variable http_proxy.
+                    If you are behind a firewall, please set the environment variable
+                     http_proxy.
                     Otherwise please try to download the images manually from
                     %s"""
                     % (self.url_base, filename)
@@ -329,8 +331,8 @@ class ExternalResources(object):
                 try:
                     with open(fullimagename_raw, "wb") as fullimage:
                         fullimage.write(decompressed)
-                except IOError:
-                    raise IOError(
+                except OSError:
+                    raise OSError(
                         "unable to write decompressed \
                     data to disk at %s"
                         % self.data_home
@@ -341,8 +343,8 @@ class ExternalResources(object):
                     raise RuntimeError("gzip library is expected to recompress data")
                 try:
                     gzip.open(fullimagename_gz, "wb").write(decompressed)
-                except IOError:
-                    raise IOError(
+                except OSError:
+                    raise OSError(
                         "unable to write gzipped \
                     data to disk at %s"
                         % self.data_home

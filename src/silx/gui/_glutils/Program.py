@@ -38,7 +38,7 @@ from . import Context, gl
 _logger = logging.getLogger(__name__)
 
 
-class Program(object):
+class Program:
     """Wrap OpenGL shader program.
 
     The program is compiled lazily (i.e., at first program :meth:`use`).

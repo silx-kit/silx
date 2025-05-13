@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2023 European Synchrotron Radiation Facility
@@ -33,7 +32,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import Iterator, Tuple
+from collections.abc import Iterator
 
 from setuptools.config import read_configuration
 
@@ -45,7 +44,7 @@ logger = logging.getLogger(__name__)
 PROJECT_PATH = Path(__file__).parent.parent
 
 
-def entry_points(project_path: Path) -> Iterator[Tuple[str, str, str]]:
+def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
     config = read_configuration(project_path / "setup.cfg")
     entry_points_config = config.get("options", {}).get("entry_points", {})
     print(entry_points_config)

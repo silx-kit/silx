@@ -55,11 +55,11 @@ def pytest_addoption(parser):
         help="Disable the test of the OpenCL part",
     )
     parser.addoption(
-        "--low-mem",
-        dest="low_mem",
-        default=False,
-        action="store_true",
-        help="Disable test with large memory consumption (>100Mbyte",
+        "--no-high-mem",
+        dest="high_mem",
+        default=True,
+        action="store_false",
+        help="Disable tests with large memory consumption (>100Mbytes)",
     )
 
 
@@ -112,10 +112,10 @@ def use_opencl(test_options):
 def use_large_memory(test_options):
     """Fixture to flag test using a large memory consumption.
 
-    This can be skipped with `--low-mem`.
+    This can be skipped with `--no-high-mem`.
     """
-    if test_options.TEST_LOW_MEM:
-        pytest.skip(test_options.TEST_LOW_MEM_REASON, allow_module_level=True)
+    if not test_options.WITH_HIGH_MEM_TEST:
+        pytest.skip(test_options.WITH_HIGH_MEM_TEST_REASON, allow_module_level=True)
 
 
 @pytest.fixture(scope="session")
@@ -155,6 +155,49 @@ def qapp_utils(qapp):
     yield utils
     utils.tearDown()
     utils.tearDownClass()
+
+
+@pytest.fixture
+def qWidgetFactory(qapp, qapp_utils):
+    """QWidget factory as fixture
+
+    This fixture provides a function taking a QWidget subclass as argument
+    which returns an instance of this QWidget making sure it is shown first
+    and destroyed once the test is done.
+    """
+    from silx.gui import qt
+    from silx.gui.qt.inspect import isValid
+
+    widgets = []
+
+    def createWidget(cls, *args, **kwargs):
+        widget = cls(*args, **kwargs)
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.show()
+        qapp_utils.qWaitForWindowExposed(widget)
+        widgets.append(widget)
+
+        return widget
+
+    yield createWidget
+
+    qapp.processEvents()
+
+    for widget in widgets:
+        if isValid(widget):
+            widget.close()
+    qapp.processEvents()
+
+    # Wait some time for all widgets to be deleted
+    for _ in range(10):
+        validWidgets = [widget for widget in widgets if isValid(widget)]
+        if validWidgets:
+            qapp_utils.qWait(10)
+
+    validWidgets = [widget for widget in widgets if isValid(widget)]
+    assert not validWidgets, f"Some widgets were not destroyed: {validWidgets}"
+
+    del widgets
 
 
 @pytest.fixture

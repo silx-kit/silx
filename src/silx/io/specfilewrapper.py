@@ -282,7 +282,7 @@ class scandata(Scan):  # noqa
 
     def cols(self):
         """Return the number of data columns (number of detectors)"""
-        return super(scandata, self).data.shape[1]
+        return super().data.shape[1]
 
     def command(self):
         """Return the command called for this scan (``#S`` header line)"""
@@ -300,19 +300,19 @@ class scandata(Scan):  # noqa
 
             >>> scdata = sc.data()
             >>> data_sample = scdata[2, 17]"""
-        return super(scandata, self).data
+        return super().data
 
     def datacol(self, col):
         """Return a data column (all data for one detector)
 
         :param col: column number (1-based index)"""
-        return super(scandata, self).data[col - 1, :]
+        return super().data[col - 1, :]
 
     def dataline(self, line):
         """Return a data line (one sample for all detectors)
 
         :param line: line number (1-based index)"""
-        return super(scandata, self).data[:, line - 1]
+        return super().data[:, line - 1]
 
     def date(self):
         """Return the date from the scan header line ``#D``"""
@@ -356,7 +356,7 @@ class scandata(Scan):  # noqa
     def lines(self):
         """Return the number of data lines (number of data points per
         detector)"""
-        return super(scandata, self).data.shape[0]
+        return super().data.shape[0]
 
     def mca(self, number):
         """Return one MCA spectrum
@@ -364,8 +364,8 @@ class scandata(Scan):  # noqa
         :param number: MCA number (1-based index)
         :rtype: 1D numpy array"""
         # in the base class, mca is an object that can be indexed (but 0-based)
-        return super(scandata, self).mca[number - 1]
+        return super().mca[number - 1]
 
     def nbmca(self):
         """Return number of MCAs in this scan"""
-        return len(super(scandata, self).mca)
+        return len(super().mca)

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the Colormap object
-"""
+"""This module provides the Colormap object"""
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
@@ -430,6 +429,8 @@ class TestObjectAPI(ParametricTestCase):
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.STDDEV3)
         colormap.setAutoscaleMode(Colormap.MINMAX)
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
+        colormap.setAutoscaleMode(Colormap.PERCENTILE_1_99)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.PERCENTILE_1_99)
 
     def testStoreRestore(self):
         colormaps = [Colormap(name="viridis"), Colormap(normalization=Colormap.SQRT)]
@@ -447,8 +448,8 @@ class TestObjectAPI(ParametricTestCase):
     def testStorageV1(self):
         state = (
             b"\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00\x00"
-            b"\x00\x01\x00\x00\x00\x0E\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00"
-            b"\x00\x00\x00\x06\x00?\xF0\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x01\x00\x00\x00\x0e\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00"
+            b"\x00\x00\x00\x06\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00"
             b"\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00"
             b"l\x00o\x00g"
         )
@@ -592,6 +593,18 @@ class TestAutoscaleRange(ParametricTestCase):
             ),
             (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100]), (10, 100)),
             (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100]), (10, 100)),
+            (
+                Colormap.LINEAR,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 100]),
+                (10.9, 99.1),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 100]),
+                (10.9, 99.1),
+            ),
             # With nan
             (
                 Colormap.LINEAR,
@@ -617,6 +630,18 @@ class TestAutoscaleRange(ParametricTestCase):
                 data_std_inside_nan,
                 (1, 1.6733506885453602),
             ),
+            (
+                Colormap.LINEAR,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 20, 50, nan]),
+                (10.2, 49.4),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 50, 100, nan]),
+                (10.8, 99.0),
+            ),
             # With negative
             (
                 Colormap.LOGARITHM,
@@ -629,6 +654,19 @@ class TestAutoscaleRange(ParametricTestCase):
                 Colormap.STDDEV3,
                 numpy.array([10, 100, -10]),
                 (10, 100),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 50, 100, -50]),
+                (10.8, 99.0),
+            ),
+            # With inf
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_1_99,
+                numpy.array([10, 50, 100, float("inf")]),
+                (10.8, 99.0),
             ),
         ]
         for norm, mode, array, expectedRange in data:

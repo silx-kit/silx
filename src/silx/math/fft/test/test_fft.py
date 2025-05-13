@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,8 @@ import pytest
 from tempfile import TemporaryDirectory
 
 try:
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
+
     __have_scipy = True
 except ImportError:
     __have_scipy = False
@@ -92,7 +90,7 @@ def get_cuda_context(device_id=None, cleanup_at_exit=True):
 logger = logging.getLogger(__name__)
 
 
-class TransformInfos(object):
+class TransformInfos:
     def __init__(self):
         self.dimensions = [
             "1D",
@@ -132,7 +130,7 @@ class TransformInfos(object):
         self.sizes["batched_2D"] = self.sizes["3D"]
 
 
-class Data(object):
+class Data:
     def __init__(self):
         self.data = ascent().astype("float32")
         self.data1d = self.data[:, 0]  # non-contiguous data
@@ -209,7 +207,7 @@ class TestFFT(ParametricTestCase):
             mode,
             str(size),
         )
-        if size == "3D" and self.test_options.TEST_LOW_MEM:
+        if size == "3D" and not self.test_options.WITH_HIGH_MEM_TEST:
             self.skipTest("low mem")
 
         ndim = len(size)
@@ -250,7 +248,7 @@ class TestFFT(ParametricTestCase):
         res2 = F.ifft(res)
         mae = self.calc_mae(res2, input_data)
         self.assertTrue(
-            mae < tol, "IFFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
+            mae < tol, f"IFFT {mode}:{trdim}, MAE({backend}, numpy) = {mae:f}"
         )
 
     # Test normalizations. silx FFT has three normalization modes:
@@ -334,14 +332,14 @@ class TestFFT(ParametricTestCase):
             ref = self._compute_numpy_normalized_fft(data, fft.axes, norm)
             assert np.allclose(
                 res, ref, atol=tol, rtol=tol
-            ), "Something wrong with %s norm=%s" % (backend_name, norm)
+            ), f"Something wrong with {backend_name} norm={norm}"
 
             res2 = fft.ifft(res)
             ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
             # unscaled IFFT yields very large values. Use a relatively high "atol"
             assert np.allclose(
                 res2, ref2, atol=res2.max() / 1e6
-            ), "Something wrong with I%s norm=%s" % (backend_name, norm)
+            ), f"Something wrong with I{backend_name} norm={norm}"
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")

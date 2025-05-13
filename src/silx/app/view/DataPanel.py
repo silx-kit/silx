@@ -53,7 +53,7 @@ class _HeaderLabel(qt.QLabel):
         elif filename == "":
             text = path
         else:
-            text = "%s::%s" % (filename, path)
+            text = f"{filename}::{path}"
         self.setText(text)
         tooltip = ""
         template = "<li><b>%s</b>: %s</li>"
@@ -84,7 +84,7 @@ class _HeaderLabel(qt.QLabel):
         style.drawControl(qt.QStyle.CE_HeaderSection, opt, painter, None)
 
         # Frame border and text
-        super(_HeaderLabel, self).paintEvent(event)
+        super().paintEvent(event)
 
 
 class DataPanel(qt.QWidget):

@@ -148,7 +148,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         for i_edges, edges in enumerate(expected_edges):
             self.assertTrue(
                 np.array_equal(bin_edges[i_edges], expected_edges[i_edges]),
-                msg="Testing bin_edges for dim {0}" "".format(i_edges + 1),
+                msg=f"Testing bin_edges for dim {i_edges + 1}",
             )
 
     def test_nominal_wh_dtype(self):
@@ -562,7 +562,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         for i_edges, edges in enumerate(expected_edges):
             self.assertTrue(
                 np.array_equal(bin_edges[i_edges], expected_edges[i_edges]),
-                msg="Testing bin_edges for dim {0}" "".format(i_edges + 1),
+                msg=f"Testing bin_edges for dim {i_edges + 1}",
             )
 
     def test_nominal_wh_dtype(self):
@@ -756,7 +756,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         for i_edges, edges in enumerate(expected_edges):
             self.assertTrue(
                 np.array_equal(bin_edges[i_edges], expected_edges[i_edges]),
-                msg="Testing bin_edges for dim {0}" "".format(i_edges + 1),
+                msg=f"Testing bin_edges for dim {i_edges + 1}",
             )
 
     def test_accumulate(self):

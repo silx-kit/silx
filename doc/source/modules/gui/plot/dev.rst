@@ -77,14 +77,6 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.backends.BackendBase
    :members:
 
-:mod:`backends.BackendMatplotlib`
-+++++++++++++++++++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.backends.BackendMatplotlib
-
-.. automodule:: silx.gui.plot.backends.BackendMatplotlib
-   :members:
-
 :mod:`CurvesROIWidget`
 ++++++++++++++++++++++
 

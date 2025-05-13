@@ -50,7 +50,7 @@ class CameraExtrinsic(transform.Transform):
     def __init__(
         self, position=(0.0, 0.0, 0.0), direction=(0.0, 0.0, -1.0), up=(0.0, 1.0, 0.0)
     ):
-        super(CameraExtrinsic, self).__init__()
+        super().__init__()
         self._position = None
         self.position = position  # set _position
         self._side = 1.0, 0.0, 0.0
@@ -267,7 +267,7 @@ class Camera(transform.Transform):
         direction=(0.0, 0.0, -1.0),
         up=(0.0, 1.0, 0.0),
     ):
-        super(Camera, self).__init__()
+        super().__init__()
         self._intrinsic = transform.Perspective(fovy, near, far, size)
         self._intrinsic.addListener(self._transformChanged)
         self._extrinsic = CameraExtrinsic(position, direction, up)

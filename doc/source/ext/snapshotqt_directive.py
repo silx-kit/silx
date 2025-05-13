@@ -181,7 +181,7 @@ else:
 
             #
             # Use created image as in Figure
-            return super(SnapshotQtDirective, self).run()
+            return super().run()
 
     def setup(app):
         app.add_config_value("snapshotqt_image_type", "png", "env")

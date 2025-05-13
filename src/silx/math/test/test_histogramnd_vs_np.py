@@ -111,7 +111,7 @@ class _TestHistogramnd(unittest.TestCase):
 
         self.rng_state = np.random.get_state()
 
-        self.state_msg = "Current RNG state :\n" "{0}".format(self.rng_state)
+        self.state_msg = f"Current RNG state :\n{self.rng_state}"
 
         sample = np.random.randint(int_min, high=int_max, size=shape)
 
@@ -184,8 +184,7 @@ class _TestHistogramnd(unittest.TestCase):
             # of numpy
             self.assertTrue(
                 np.allclose(edges, result_np[1][i_edges]),
-                msg="{0}. Testing bin_edges for dim {1}."
-                "".format(self.state_msg, i_edges + 1),
+                msg=f"{self.state_msg}. Testing bin_edges for dim {i_edges + 1}.",
             )
 
     def test_last_bin_closed(self):
@@ -608,12 +607,13 @@ class _TestHistogramnd(unittest.TestCase):
         sample = np.repeat(self.sample, n_repeat)
         n_bins = int(1e6)
         result_c = histogramnd(sample, self.histo_range, n_bins, last_bin_closed=True)
-        result_np = np.histogramdd(sample, n_bins, range=self.histo_range.astype(np.float64))
+        result_np = np.histogramdd(
+            sample, n_bins, range=self.histo_range.astype(np.float64)
+        )
         for i_edges, edges in enumerate(result_c[2]):
             self.assertTrue(
                 np.allclose(edges, result_np[1][i_edges]),
-                msg="{0}. Testing bin_edges for dim {1}."
-                "".format(self.state_msg, i_edges + 1),
+                msg=f"{self.state_msg}. Testing bin_edges for dim {i_edges + 1}.",
             )
 
 

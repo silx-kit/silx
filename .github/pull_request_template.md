@@ -1,9 +1,4 @@
-<!--
-Thank you for your pull request!
-
-Please use a Pull Request title that follows the requested syntax since it will be included in the release notes), see:
-https://github.com/silx-kit/silx/blob/main/CONTRIBUTING.rst#pull-request-title-format
--->
+<!-- Thank you for your pull request! -->
 
 Checklist:
 

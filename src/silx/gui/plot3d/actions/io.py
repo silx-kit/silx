@@ -55,7 +55,7 @@ class CopyAction(Plot3DAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(CopyAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
 
         self.setIcon(getQIcon("edit-copy"))
         self.setText("Copy")
@@ -83,7 +83,7 @@ class SaveAction(Plot3DAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(SaveAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
 
         self.setIcon(getQIcon("document-save"))
         self.setText("Save...")
@@ -140,7 +140,7 @@ class PrintAction(Plot3DAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(PrintAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
 
         self.setIcon(getQIcon("document-print"))
         self.setText("Print...")
@@ -203,7 +203,7 @@ class VideoAction(Plot3DAction):
     MNG_FILTER = "Multiple-image Network Graphics file (*.mng)"
 
     def __init__(self, parent, plot3d=None):
-        super(VideoAction, self).__init__(parent, plot3d)
+        super().__init__(parent, plot3d)
         self.setText("Record video..")
         self.setIcon(getQIcon("camera"))
         self.setToolTip("Record a video of a 360 degrees rotation of the 3D scene.")

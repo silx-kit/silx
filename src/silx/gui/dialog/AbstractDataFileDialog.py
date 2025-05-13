@@ -55,7 +55,7 @@ default Qt list. This could allow to disable a behaviour known to segfault on
 some version of PyQt."""
 
 
-class _IconProvider(object):
+class _IconProvider:
     FileDialogToParentDir = qt.QStyle.SP_CustomBase + 1
 
     FileDialogToParentFile = qt.QStyle.SP_CustomBase + 2
@@ -128,7 +128,7 @@ class _SideBar(qt.QListView):
     """Sidebar containing shortcuts for common directories"""
 
     def __init__(self, parent=None):
-        super(_SideBar, self).__init__(parent)
+        super().__init__(parent)
         self.__iconProvider = qt.QFileIconProvider()
         self.setUniformItemSizes(True)
         model = qt.QStandardItemModel(self)
@@ -465,7 +465,7 @@ class _Browser(qt.QStackedWidget):
         return data
 
 
-class _FabioData(object):
+class _FabioData:
     def __init__(self, fabioFile):
         self.__fabioFile = fabioFile
 
@@ -509,7 +509,7 @@ class _CatchResizeEvent(qt.QObject):
     resized = qt.Signal(qt.QResizeEvent)
 
     def __init__(self, parent, target):
-        super(_CatchResizeEvent, self).__init__(parent)
+        super().__init__(parent)
         self.__target = target
         self.__target_oldResizeEvent = self.__target.resizeEvent
         self.__target.resizeEvent = self.__resizeEvent
@@ -549,7 +549,7 @@ class AbstractDataFileDialog(qt.QDialog):
     """Lazy loaded default icon provider"""
 
     def __init__(self, parent=None):
-        super(AbstractDataFileDialog, self).__init__(parent)
+        super().__init__(parent)
         self._init()
 
     def _init(self):
@@ -623,7 +623,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def done(self, result):
         self._clear()
-        super(AbstractDataFileDialog, self).done(result)
+        super().done(result)
 
     def _clear(self):
         """Explicit method to clear data stored in the dialog.
@@ -1125,7 +1125,7 @@ class AbstractDataFileDialog(qt.QDialog):
             self.__h5 = silx.io.open(filename)
             self.__openedFiles.append(self.__h5)
             self.__selectedFile = filename
-        except IOError as e:
+        except OSError as e:
             _logger.error("Error while loading file %s: %s", filename, e.args[0])
             _logger.debug("Backtrace", exc_info=True)
             self.__errorWhileLoadingFile = filename, e.args[0]
@@ -1305,10 +1305,7 @@ class AbstractDataFileDialog(qt.QDialog):
     def __updateDataInfo(self):
         if self.__errorWhileLoadingFile is not None:
             filename, message = self.__errorWhileLoadingFile
-            message = "<b>Error while loading file '%s'</b><hr/>%s" % (
-                filename,
-                message,
-            )
+            message = f"<b>Error while loading file '{filename}'</b><hr/>{message}"
             size = self.__dataInfo.height()
             icon = self.style().standardIcon(qt.QStyle.SP_MessageBoxCritical)
             pixmap = icon.pixmap(size, size)
@@ -1708,7 +1705,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
     @classmethod
     def qualifiedName(cls):
-        return "%s.%s" % (cls.__module__, cls.__name__)
+        return f"{cls.__module__}.{cls.__name__}"
 
     def restoreState(self, state):
         """Restores the dialogs's layout, history and current directory to the

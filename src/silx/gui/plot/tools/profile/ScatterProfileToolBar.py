@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module profile tools for scatter plots.
-"""
+"""This module profile tools for scatter plots."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -40,5 +39,5 @@ class ScatterProfileToolBar(toolbar.ProfileToolBar):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(ScatterProfileToolBar, self).__init__(parent, plot)
+        super().__init__(parent, plot)
         self.setScheme("scatter")

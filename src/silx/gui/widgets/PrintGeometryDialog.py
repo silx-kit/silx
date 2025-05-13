@@ -36,7 +36,7 @@ class PrintGeometryWidget(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(PrintGeometryWidget, self).__init__(parent)
+        super().__init__(parent)
         self.mainLayout = qt.QGridLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(2)

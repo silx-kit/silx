@@ -116,10 +116,12 @@ cdef inline double trilinear_interpolation(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def interp3d(_floating[:, :, :] values not None,
-             _floating_pts[:, :] xi not None,
-             str method='linear',
-             double fill_value=numpy.nan):
+def interp3d(
+    _floating[:, :, :] values not None,
+    _floating_pts[:, :] xi not None,
+    str method='linear',
+    double fill_value=numpy.nan
+):
     """Trilinear interpolation in a regular grid.
 
     Perform trilinear interpolation of the 3D dataset at given points

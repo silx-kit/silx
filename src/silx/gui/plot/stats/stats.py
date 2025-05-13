@@ -91,7 +91,7 @@ class Stats(dict):
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug(
-                    "kind %s not managed by statistic %s" % (context.kind, stat.name)
+                    f"kind {context.kind} not managed by statistic {stat.name}"
                 )
                 res[statName] = None
             else:
@@ -141,7 +141,7 @@ class Stats(dict):
         return context
 
 
-class _StatsContext(object):
+class _StatsContext:
     """
     The context is designed to be a simple buffer and avoid repetition of
     calculations that can appear during stats evaluation.
@@ -719,7 +719,7 @@ class _plot3DArrayContext(_StatsContext):
 BASIC_COMPATIBLE_KINDS = "curve", "image", "scatter", "histogram"
 
 
-class StatBase(object):
+class StatBase:
     """
     Base class for defining a statistic.
 

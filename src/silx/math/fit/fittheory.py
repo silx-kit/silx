@@ -32,7 +32,7 @@ __license__ = "MIT"
 __date__ = "09/08/2016"
 
 
-class FitTheory(object):
+class FitTheory:
     """This class defines a fit theory, which consists of:
 
     - a model function, the actual function to be fitted

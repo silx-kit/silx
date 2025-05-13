@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 
-""" Module SIFT: Scale Invariant Feature Transform ...
+"""Module SIFT: Scale Invariant Feature Transform ...
 
 used to align feature on images
 """

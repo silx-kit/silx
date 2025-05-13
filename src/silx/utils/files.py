@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utils function relative to files
-"""
+"""Utils function relative to files"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

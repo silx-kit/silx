@@ -34,7 +34,6 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "07/11/2023"
 __license__ = "MIT"
 
-from typing import Optional, Tuple
 import numpy
 import logging
 import weakref
@@ -87,12 +86,12 @@ class _StatWidget(qt.QWidget):
         )
         layout.addWidget(self.__valueWidget)
 
-    def setValue(self, value: Optional[float]):
+    def setValue(self, value: float | None):
         """Set the displayed value
 
         :param value:
         """
-        self.__valueWidget.setText("-" if value is None else "{:.5g}".format(value))
+        self.__valueWidget.setText("-" if value is None else f"{value:.5g}")
 
 
 class _IntEdit(qt.QLineEdit):
@@ -160,7 +159,7 @@ class _IntEdit(qt.QLineEdit):
             self.__value = value
             self.sigValueChanged.emit(value)
 
-    def getValue(self) -> Optional[int]:
+    def getValue(self) -> int | None:
         """Return current value (None if never set)."""
         return self.__value
 
@@ -168,7 +167,7 @@ class _IntEdit(qt.QLineEdit):
         """Set the range of valid values"""
         self.validator().setRange(bottom, top)
 
-    def getRange(self) -> Tuple[int, int]:
+    def getRange(self) -> tuple[int, int]:
         """Returns the current range of valid values
 
         :returns: (bottom, top)
@@ -200,7 +199,7 @@ class _IntEdit(qt.QLineEdit):
         if self.getCurrentValue() is None:
             self.__commitValue()
 
-    def getDefaultValue(self) -> Optional[int]:
+    def getDefaultValue(self) -> int | None:
         """Return the default value or the bottom one if not set"""
         try:
             return int(self.placeholderText())
@@ -218,7 +217,7 @@ class _IntEdit(qt.QLineEdit):
         self.setText(str(self.__validate(value, extend_range)))
         self.__commitValue()
 
-    def getCurrentValue(self) -> Optional[int]:
+    def getCurrentValue(self) -> int | None:
         """Returns the displayed value or None if not correct"""
         try:
             return int(self.text())
@@ -284,10 +283,10 @@ class HistogramWidget(qt.QWidget):
         statsLayout = qt.QHBoxLayout(statsWidget)
         statsLayout.setContentsMargins(4, 4, 4, 4)
 
-        self.__statsWidgets = dict(
-            (name, _StatWidget(parent=statsWidget, name=name))
+        self.__statsWidgets = {
+            name: _StatWidget(parent=statsWidget, name=name)
             for name in ("min", "max", "mean", "std", "sum")
-        )
+        }
 
         for widget in self.__statsWidgets.values():
             statsLayout.addWidget(widget)
@@ -306,11 +305,11 @@ class HistogramWidget(qt.QWidget):
         self.getPlotWidget().clear()
         self.setStatistics()
 
-    def getItem(self) -> Optional[items.Item]:
+    def getItem(self) -> items.Item | None:
         """Returns item used to display histogram and statistics."""
         return None if self.__itemRef is None else self.__itemRef()
 
-    def setItem(self, item: Optional[items.Item]):
+    def setItem(self, item: items.Item | None):
         """Set item from which to display histogram and statistics.
 
         :param item:
@@ -347,7 +346,7 @@ class HistogramWidget(qt.QWidget):
 
     def __rangeChanged(self, first, second):
         """Handle change of histogram range from the range slider"""
-        tooltip = "Histogram range:\n[%g, %g]" % (first, second)
+        tooltip = f"Histogram range:\n[{first:g}, {second:g}]"
         self.__rangeSlider.setToolTip(tooltip)
         self.__rangeLabel.setToolTip(tooltip)
 
@@ -465,11 +464,11 @@ class HistogramWidget(qt.QWidget):
 
     def setStatistics(
         self,
-        min_: Optional[float] = None,
-        max_: Optional[float] = None,
-        mean: Optional[float] = None,
-        std: Optional[float] = None,
-        sum_: Optional[float] = None,
+        min_: float | None = None,
+        max_: float | None = None,
+        mean: float | None = None,
+        std: float | None = None,
+        sum_: float | None = None,
     ):
         """Set displayed statistic indicators."""
         self.__statsWidgets["min"].setValue(min_)
@@ -539,7 +538,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _createToolWindow(self):
         return HistogramWidget(self.plot, qt.Qt.Window)
 
-    def getHistogram(self) -> Optional[numpy.ndarray]:
+    def getHistogram(self) -> numpy.ndarray | None:
         """Return the last computed histogram
 
         :return: the histogram displayed in the HistogramWidget

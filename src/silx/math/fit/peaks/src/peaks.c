@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -204,16 +204,22 @@ long seek(long begin_index,
                     if (n_peaks == max_npeaks) {
                         max_npeaks = max_npeaks + 100;
                         realloc_peaks = realloc(peaks0, max_npeaks * sizeof(double));
-                        realloc_relevances = realloc(relevances0, max_npeaks * sizeof(double));
-                        if (realloc_peaks == NULL || realloc_relevances == NULL) {
+                        if (realloc_peaks == NULL) {
                             printf("Error: failed to extend memory for peaks array.");
+                            return(-n_peaks);
+                        } else {
+                            peaks0 = realloc_peaks;
                             *peaks = peaks0;
-                            *relevances = relevances0;
+                        }
+
+                        realloc_relevances = realloc(relevances0, max_npeaks * sizeof(double));
+                        if (realloc_relevances == NULL) {
+                            printf("Error: failed to extend memory for peak relevances array.");
                             return(-n_peaks);
                         }
                         else {
-                            peaks0 = realloc_peaks;
                             relevances0 = realloc_relevances;
+                            *relevances = relevances0;
                         }
                     }
                     peaks0[n_peaks] = cch-1;
@@ -249,7 +255,5 @@ long seek(long begin_index,
         printf("index %g with y = %g\n", peaks0[i],data[(long ) peaks0[i]]);
       }
     }
-    *peaks = peaks0;
-    *relevances = relevances0;
     return (n_peaks);
 }

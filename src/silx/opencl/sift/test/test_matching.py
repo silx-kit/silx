@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2024  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -26,8 +26,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-"""Test suite for keypoint matching kernels
-"""
+"""Test suite for keypoint matching kernels"""
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
@@ -46,10 +45,7 @@ try:
 except ImportError:
     scipy = None
 else:
-    try:
-        from scipy.misc import ascent
-    except:
-        from scipy.datasets import ascent
+    from scipy.datasets import ascent
 
 
 # for Python implementation of tested functions
@@ -78,7 +74,7 @@ except ImportError:
 class TestMatching(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestMatching, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -93,7 +89,7 @@ class TestMatching(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestMatching, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -105,7 +101,7 @@ class TestMatching(unittest.TestCase):
             self.use_cpu = False
         kernel = "matching_gpu.cl" if not (self.use_cpu) else "matching_cpu.cl"
         kernel_src = os.linesep.join(
-            (get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel))
+            get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel)
         )
         self.program = pyopencl.Program(
             self.ctx, kernel_src

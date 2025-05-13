@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides markers item of the :class:`Plot`.
-"""
+"""This module provides markers item of the :class:`Plot`."""
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
@@ -31,7 +30,6 @@ __date__ = "06/03/2017"
 
 
 import logging
-import numpy
 
 from ....utils.proxy import docstring
 from .core import (
@@ -78,11 +76,19 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
         self._x = None
         self._y = None
+        self._symbol_size = 10.0
         self._bgColor: colors.RGBAColorType | None = None
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
 
-    def _addRendererCall(self, backend, symbol=None, linestyle="-", linewidth=1):
+    def _addRendererCall(
+        self,
+        backend,
+        symbol=None,
+        symbolsize=10.0,
+        linestyle="-",
+        linewidth=1,
+    ):
         """Perform the update of the backend renderer"""
         return backend.addMarker(
             x=self.getXPosition(),
@@ -90,6 +96,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             text=self.getText(),
             color=self.getColor(),
             symbol=symbol,
+            symbolsize=symbolsize,
             linestyle=linestyle,
             linewidth=linewidth,
             constraint=self.getConstraint(),
@@ -246,6 +253,9 @@ class Marker(MarkerBase, SymbolMixIn):
     _DEFAULT_SYMBOL = "+"
     """Default symbol of the marker"""
 
+    _DEFAULT_SYMBOL_SIZE = 10.0
+    """Default size of marker's symbol"""
+
     def __init__(self):
         MarkerBase.__init__(self)
         SymbolMixIn.__init__(self)
@@ -254,7 +264,11 @@ class Marker(MarkerBase, SymbolMixIn):
         self._y = 0.0
 
     def _addBackendRenderer(self, backend):
-        return self._addRendererCall(backend, symbol=self.getSymbol())
+        return self._addRendererCall(
+            backend,
+            symbol=self.getSymbol(),
+            symbolsize=self.getSymbolSize(),
+        )
 
     def _setConstraint(self, constraint):
         """Set the constraint function of the marker drag.
@@ -269,7 +283,7 @@ class Marker(MarkerBase, SymbolMixIn):
         elif constraint == "vertical":
             constraint = self._verticalConstraint
 
-        super(Marker, self)._setConstraint(constraint)
+        super()._setConstraint(constraint)
 
     def _horizontalConstraint(self, _, y):
         return self.getXPosition(), y

@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utils module for plot.
-"""
+"""Utils module for plot."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

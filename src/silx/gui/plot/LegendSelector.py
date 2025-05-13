@@ -54,7 +54,7 @@ class LegendIcon(LegendIconWidget):
     """
 
     def __init__(self, parent=None, curve=None):
-        super(LegendIcon, self).__init__(parent)
+        super().__init__(parent)
         self._curveRef = None
         self.setCurve(curve)
 
@@ -153,7 +153,7 @@ class LegendModel(qt.QAbstractListModel):
     itemRole = qt.Qt.UserRole + 6
 
     def __init__(self, legendList=None, parent=None):
-        super(LegendModel, self).__init__(parent)
+        super().__init__(parent)
         if legendList is None:
             legendList = []
         self.legendList = []
@@ -279,7 +279,7 @@ class LegendModel(qt.QAbstractListModel):
         """
         modelIndex = self.createIndex(row, 0)
         count = len(llist)
-        super(LegendModel, self).beginInsertRows(modelIndex, row, row + count)
+        super().beginInsertRows(modelIndex, row, row + count)
         head = self.legendList[0:row]
         tail = self.legendList[row:]
         new = []
@@ -313,7 +313,7 @@ class LegendModel(qt.QAbstractListModel):
             ]
             new.append(item)
         self.legendList = head + new + tail
-        super(LegendModel, self).endInsertRows()
+        super().endInsertRows()
         return True
 
     def insertRows(self, row, count, modelIndex=qt.QModelIndex()):
@@ -333,9 +333,9 @@ class LegendModel(qt.QAbstractListModel):
             )
         if count == 0:
             return False
-        super(LegendModel, self).beginRemoveRows(modelIndex, row, row + count)
+        super().beginRemoveRows(modelIndex, row, row + count)
         del self.legendList[row : row + count]
-        super(LegendModel, self).endRemoveRows()
+        super().endRemoveRows()
         return True
 
     def setEditor(self, event, editor):
@@ -356,7 +356,7 @@ class LegendListItemWidget(qt.QItemDelegate):
     # from QObject, it cannot emit signals!
 
     def __init__(self, parent=None, itemType=0):
-        super(LegendListItemWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # Dictionary to render checkboxes
         self.cbDict = {}
@@ -477,9 +477,7 @@ class LegendListItemWidget(qt.QItemDelegate):
             event.ignore()
             return True
         else:
-            return super(LegendListItemWidget, self).editorEvent(
-                event, model, option, modelIndex
-            )
+            return super().editorEvent(event, model, option, modelIndex)
 
     def createEditor(self, parent, option, idx):
         _logger.info("### Editor request ###")
@@ -507,7 +505,7 @@ class LegendListView(qt.QListView):
     __legendClickedEvent = "legendClicked"
 
     def __init__(self, parent=None, model=None, contextMenu=None):
-        super(LegendListView, self).__init__(parent)
+        super().__init__(parent)
         self.__lastButton = None
         self.__lastClickPos = None
         self.__lastModelIdx = None
@@ -616,7 +614,7 @@ class LegendListView(qt.QListView):
     def mousePressEvent(self, event):
         self.__lastButton = event.button()
         self.__lastPosition = event.pos()
-        super(LegendListView, self).mousePressEvent(event)
+        super().mousePressEvent(event)
         # call _handleMouseClick after editing was handled
         # If right click (context menu) is aborted, no
         # signal is emitted..
@@ -625,7 +623,7 @@ class LegendListView(qt.QListView):
     def mouseDoubleClickEvent(self, event):
         self.__lastButton = event.button()
         self.__lastPosition = event.pos()
-        super(LegendListView, self).mouseDoubleClickEvent(event)
+        super().mouseDoubleClickEvent(event)
         # call _handleMouseClick after editing was handled
         # If right click (context menu) is aborted, no
         # signal is emitted..
@@ -704,7 +702,7 @@ class LegendListContextMenu(qt.QMenu):
     """Signal emitting a dict upon contextual menu actions."""
 
     def __init__(self, model):
-        super(LegendListContextMenu, self).__init__(parent=None)
+        super().__init__(parent=None)
         self.model = model
 
         self.addAction("Set Active", self.setActiveAction)
@@ -728,7 +726,7 @@ class LegendListContextMenu(qt.QMenu):
         self._pointsAction.setChecked(modelIndex.data(LegendModel.showSymbolRole))
         self._linesAction.setChecked(modelIndex.data(LegendModel.showLineRole))
 
-        super(LegendListContextMenu, self).popup(pos)
+        super().popup(pos)
 
     def exec_(self, pos, idx):  # Qt5-like compatibility
         return self.exec(pos, idx)
@@ -852,7 +850,7 @@ class RenameCurveDialog(qt.QDialog):
     """Dialog box to input the name of a curve."""
 
     def __init__(self, parent=None, current="", curves=()):
-        super(RenameCurveDialog, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle("Rename Curve %s" % current)
         self.curves = curves
         layout = qt.QVBoxLayout(self)
@@ -908,7 +906,7 @@ class LegendsDockWidget(qt.QDockWidget):
         self._plotRef = weakref.ref(plot)
         self._isConnected = False  # True if widget connected to plot signals
 
-        super(LegendsDockWidget, self).__init__("Legends", parent)
+        super().__init__("Legends", parent)
 
         self._legendWidget = LegendListView()
 

@@ -50,7 +50,7 @@ class ZoomModeAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(ZoomModeAction, self).__init__(
+        super().__init__(
             plot,
             icon="zoom",
             text="Zoom mode",
@@ -113,7 +113,7 @@ class PanModeAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        super(PanModeAction, self).__init__(
+        super().__init__(
             plot,
             icon="pan",
             text="Pan mode",

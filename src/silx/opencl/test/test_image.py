@@ -57,7 +57,7 @@ except ImportError:
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(TestImage, cls).setUpClass()
+        super().setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             cls.lena = utilstest.getfile("lena.png")
@@ -66,7 +66,7 @@ class TestImage(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestImage, cls).tearDownClass()
+        super().tearDownClass()
         cls.ctx = None
         cls.lena = None
         cls.data = None

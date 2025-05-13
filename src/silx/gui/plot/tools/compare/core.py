@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides main objects shared by the compare image plot.
-"""
+"""This module provides main objects shared by the compare image plot."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Example illustrating the different profile tools.
-"""
+"""Example illustrating the different profile tools."""
 
 import numpy
 import scipy.signal

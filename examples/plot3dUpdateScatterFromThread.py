@@ -62,12 +62,12 @@ class UpdateScatterThread(threading.Thread):
         self.scatter3d = scatter3d
         self.running = False
         self.future_result = None
-        super(UpdateScatterThread, self).__init__()
+        super().__init__()
 
     def start(self):
         """Start the update thread"""
         self.running = True
-        super(UpdateScatterThread, self).start()
+        super().start()
 
     def _appendScatterData(self, x, y, z, value):
         """Add some data points to the Scatter3D item.

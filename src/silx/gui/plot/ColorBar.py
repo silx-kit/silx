@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Module containing several widgets associated to a colormap.
-"""
+"""Module containing several widgets associated to a colormap."""
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
@@ -79,7 +78,7 @@ class ColorBarWidget(qt.QWidget):
         self._colormap = None
         self._data = None
 
-        super(ColorBarWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.__buildGUI()
         self.setLegend(legend)
@@ -328,7 +327,7 @@ class ColorScaleBar(qt.QWidget):
     So the ColorScale should have the same margin in order for both to fit"""
 
     def __init__(self, parent=None, colormap=None, data=None, displayTicksValues=True):
-        super(ColorScaleBar, self).__init__(parent)
+        super().__init__(parent)
 
         self.minVal = None
         """Value set to the _minLabel"""
@@ -590,7 +589,7 @@ class _ColorScale(qt.QWidget):
         else:  # Qt6
             position = event.globalPosition().toPoint()
         qt.QToolTip.showText(position, tooltip, self)
-        super(_ColorScale, self).mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
 
     def _getRelativePosition(self, yPixel):
         """yPixel : pixel position into _ColorScale widget reference"""
@@ -677,7 +676,7 @@ class _TickBar(qt.QWidget):
         nticks=None,
         margin=5,
     ):
-        super(_TickBar, self).__init__(parent)
+        super().__init__(parent)
         self.margin = margin
         self._nticks = None
         self.ticks = ()

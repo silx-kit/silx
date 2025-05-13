@@ -118,7 +118,7 @@ class SafeFileIconProvider(qt.QFileIconProvider):
         if isinstance(info, qt.QFileIconProvider.IconType):
             # It's another C++ method signature:
             # QIcon QFileIconProvider::icon(QFileIconProvider::IconType type)
-            return super(SafeFileIconProvider, self).icon(info)
+            return super().icon(info)
         style = qt.QApplication.instance().style()
         path = info.filePath()
         if path in ["", "/"]:

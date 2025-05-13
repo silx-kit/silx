@@ -42,7 +42,7 @@ class ViewpointToolButton(qt.QToolButton):
     """
 
     def __init__(self, parent=None):
-        super(ViewpointToolButton, self).__init__(parent)
+        super().__init__(parent)
 
         self._plot3DRef = None
 

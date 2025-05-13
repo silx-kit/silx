@@ -57,7 +57,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
     """
 
     def __init__(self, parent=None, amplitudeRange=None, displayedRange=(None, 2)):
-        super(_AmplitudeRangeDialog, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowTitle("Set Displayed Amplitude Range")
 
         if amplitudeRange is not None:
@@ -70,7 +70,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
 
         if self._amplitudeRange is not None:
             min_, max_ = self._amplitudeRange
-            layout.addRow(qt.QLabel("Data Amplitude Range: [%g, %g]" % (min_, max_)))
+            layout.addRow(qt.QLabel(f"Data Amplitude Range: [{min_:g}, {max_:g}]"))
 
         self._maxLineEdit = FloatEdit(parent=self)
         self._maxLineEdit.validator().setBottom(0.0)
@@ -188,7 +188,7 @@ class _ComplexDataToolButton(qt.QToolButton):
     _RANGE_DIALOG_TEXT = "Set Amplitude Range..."
 
     def __init__(self, parent=None, plot=None):
-        super(_ComplexDataToolButton, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         assert plot is not None
         self._plot2DComplex = plot
@@ -275,7 +275,7 @@ class ComplexImageView(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        super(ComplexImageView, self).__init__(parent)
+        super().__init__(parent)
         if parent is None:
             self.setWindowTitle("ComplexImageView")
 

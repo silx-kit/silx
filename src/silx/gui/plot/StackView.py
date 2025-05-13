@@ -86,6 +86,8 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx._utils import NP_OPTIONAL_COPY
 from silx.gui.plot.actions import io as silx_io
+from silx.gui.plot.items.image_aggregated import ImageDataAggregated
+from silx.gui.plot.actions.image import AggregationModeAction
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
@@ -191,6 +193,7 @@ class StackView(qt.QMainWindow):
             self.setWindowTitle("StackView")
 
         self._stack = None
+        self._stack_name = None
         """Loaded stack, as a 3D array, a 3D dataset or a list of 2D arrays."""
         self.__transposed_view = None
         """View on :attr:`_stack` with the axes sorted, to have
@@ -290,6 +293,21 @@ class StackView(qt.QMainWindow):
             self._profileToolBar.clearProfile
         )
 
+        self.__aggregationModeAction = AggregationModeAction(parent=self)
+        self._plot.toolBar().addAction(self.__aggregationModeAction)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
+
+    def getAggregationModeAction(self) -> AggregationModeAction:
+        """Action toggling the aggregation mode action"""
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        self._stackItem.setAggregationMode(
+            self.getAggregationModeAction().getAggregationMode()
+        )
+
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
 
@@ -384,9 +402,7 @@ class StackView(qt.QMainWindow):
         y, x = (
             (1, 2)
             if self._perspective == 0
-            else (0, 2)
-            if self._perspective == 1
-            else (0, 1)
+            else (0, 2) if self._perspective == 1 else (0, 1)
         )
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])
@@ -529,7 +545,8 @@ class StackView(qt.QMainWindow):
         self._plot.setGraphTitle(self._titleCallback(frame_idx))
 
     def _defaultTitleCallback(self, index):
-        return "Image z=%g" % self._getImageZ(index)
+        title = self._stack_name or "Image"
+        return f"{title} z={self._getImageZ(index):g}"
 
     # public API, stack specific methods
     def setStack(self, stack, perspective=None, reset=True, calibrations=None):
@@ -650,6 +667,13 @@ class StackView(qt.QMainWindow):
 
         return self._stack, params
 
+    def setStackName(self, name: str | None):
+        """Set the 3D stack name.
+
+        :param name: Name of the 3D stack.
+        """
+        self._stack_name = name
+
     def getCurrentView(self, copy=True, returnNumpyArray=False):
         """Get the stack, as it is currently displayed.
 
@@ -692,7 +716,10 @@ class StackView(qt.QMainWindow):
             "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
-            return numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY), params
+            return (
+                numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY),
+                params,
+            )
         return self.__transposed_view, params
 
     def setFrameNumber(self, number):
@@ -762,6 +789,7 @@ class StackView(qt.QMainWindow):
         - clear the loaded data volume
         """
         self._stack = None
+        self._stack_name = None
         self.__transposed_view = None
         self._perspective = 0
         self._browser.setEnabled(False)
@@ -1078,7 +1106,7 @@ class PlanesWidget(qt.QWidget):
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(PlanesWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
         layout0 = qt.QHBoxLayout()
@@ -1163,7 +1191,7 @@ class StackViewMainWindow(StackView):
 
     def __init__(self, parent=None):
         self._dataInfo = None
-        super(StackViewMainWindow, self).__init__(parent)
+        super().__init__(parent)
         self.setWindowFlags(qt.Qt.Window)
 
         # Add toolbars and status bar
@@ -1245,5 +1273,5 @@ class StackViewMainWindow(StackView):
             self._dataInfo = None
 
         # Set the new stack in StackView widget
-        super(StackViewMainWindow, self).setStack(stack, *args, **kwargs)
+        super().setStack(stack, *args, **kwargs)
         self.setStatusBar(None)

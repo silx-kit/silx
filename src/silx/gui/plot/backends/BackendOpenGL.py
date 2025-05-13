@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -70,10 +70,10 @@ class _ShapeItem(dict):
         dashpattern,
         gapcolor,
     ):
-        super(_ShapeItem, self).__init__()
+        super().__init__()
 
         if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
-            raise NotImplementedError("Unsupported shape {0}".format(shape))
+            raise NotImplementedError(f"Unsupported shape {shape}")
 
         x = numpy.asarray(x)
         y = numpy.asarray(y)
@@ -110,6 +110,7 @@ class _MarkerItem(dict):
         text,
         color,
         symbol,
+        symbolsize,
         linewidth,
         dashoffset,
         dashpattern,
@@ -118,7 +119,7 @@ class _MarkerItem(dict):
         font,
         bgcolor,
     ):
-        super(_MarkerItem, self).__init__()
+        super().__init__()
 
         if symbol is None:
             symbol = "+"
@@ -136,6 +137,7 @@ class _MarkerItem(dict):
                 "color": colors.rgba(color),
                 "constraint": constraint if isConstraint else None,
                 "symbol": symbol,
+                "symbolsize": symbolsize,
                 "linewidth": linewidth,
                 "dashoffset": dashoffset,
                 "dashpattern": dashpattern,
@@ -287,7 +289,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def mousePressEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
-            return super(BackendOpenGL, self).mousePressEvent(event)
+            return super().mousePressEvent(event)
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMousePress(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
@@ -315,7 +317,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
-            return super(BackendOpenGL, self).mouseReleaseEvent(event)
+            return super().mouseReleaseEvent(event)
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseRelease(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
@@ -737,7 +739,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         (pixelPos[1],),
                         marker=item["symbol"],
                         color=color,
-                        size=11,
+                        size=item["symbolsize"],
                     )
                     context.matrix = self.matScreenProj
                     marker.render(context)
@@ -1012,7 +1014,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # TODO check if need more filtering of error (e.g., clip to positive)
 
         # TODO check and improve this
-        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+        if len(color) == 4 and type(color[3]) in [int, numpy.uint8, numpy.int8]:
             color = numpy.array(color, dtype=numpy.float32) / 255.0
 
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
@@ -1116,7 +1118,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             image = glutils.GLPlotRGBAImage(data, origin, scale, alpha)
 
         else:
-            raise RuntimeError("Unsupported data shape {0}".format(data.shape))
+            raise RuntimeError(f"Unsupported data shape {data.shape}")
 
         # TODO is this needed?
         if self._plotFrame.xAxis.isLog and image.xMin <= 0.0:
@@ -1184,6 +1186,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         text,
         color,
         symbol,
+        symbolsize: float,
         linestyle,
         linewidth,
         constraint,
@@ -1201,6 +1204,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             text,
             color,
             symbol,
+            symbolsize,
             linewidth,
             dashoffset,
             dashpattern,
@@ -1244,10 +1248,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setGraphCursorShape(self, cursor):
         if cursor is None:
-            super(BackendOpenGL, self).unsetCursor()
+            super().unsetCursor()
         else:
             cursor = self._QT_CURSORS[cursor]
-            super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
+            super().setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if linestyle != "-":
@@ -1415,35 +1419,34 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fileFormat not in ["png", "ppm", "svg", "tif", "tiff"]:
             raise NotImplementedError("Unsupported format: %s" % fileFormat)
 
+        width, height = self._plotFrame.size
+
         if not self.isValid():
             _logger.error("OpenGL 2.1 not available, cannot save OpenGL image")
-            width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
         else:
             self.makeCurrent()
 
             data = numpy.empty(
-                (self._plotFrame.size[1], self._plotFrame.size[0], 3),
+                (height, width, 3),
                 dtype=numpy.uint8,
                 order="C",
             )
+            framebufferTexture = glu.FramebufferTexture(
+                gl.GL_RGBA,
+                shape=(height, width),
+                minFilter=gl.GL_NEAREST,
+                magFilter=gl.GL_NEAREST,
+                wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
+            )
+            with framebufferTexture:
+                self.paintGL()
+                gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
+                gl.glReadPixels(
+                    0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data
+                )
 
-            context = self.context()
-            framebufferTexture = self._plotFBOs.get(context)
-            if framebufferTexture is None:
-                # Fallback, supports direct rendering mode: _paintDirectGL
-                # might have issues as it can read on-screen framebuffer
-                fboName = self.defaultFramebufferObject()
-                width, height = self._plotFrame.size
-            else:
-                fboName = framebufferTexture.name
-                height, width = framebufferTexture.shape
-
-            previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboName)
-            gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
+            framebufferTexture.discard()
 
             # glReadPixels gives bottom to top,
             # while images are stored as top to bottom
@@ -1537,13 +1540,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._ensureAspectRatio(keepDim)
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        assert xmin < xmax
-        assert ymin < ymax
-
         if y2min is None or y2max is None:
             y2Range = None
         else:
-            assert y2min < y2max
             y2Range = y2min, y2max
         self._setPlotBounds((xmin, xmax), (ymin, ymax), y2Range)
 
@@ -1551,7 +1550,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return self._plotFrame.dataRanges.x
 
     def setGraphXLimits(self, xmin, xmax):
-        assert xmin < xmax
         self._setPlotBounds(xRange=(xmin, xmax), keepDim="x")
 
     def getGraphYLimits(self, axis):
@@ -1562,7 +1560,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return self._plotFrame.dataRanges.y2
 
     def setGraphYLimits(self, ymin, ymax, axis):
-        assert ymin < ymax
         assert axis in ("left", "right")
 
         if axis == "left":

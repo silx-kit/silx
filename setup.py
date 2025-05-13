@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import sys
 import os
 import platform
 import logging
-from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,14 +38,6 @@ logger = logging.getLogger("silx.setup")
 
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
-
-try:
-    import numpy
-except ImportError:
-    raise ImportError(
-        "To install this package, you must install numpy first\n"
-        "(See https://pypi.org/project/numpy)"
-    )
 
 
 PROJECT = "silx"
@@ -68,7 +59,7 @@ export LC_ALL=en_US.utf-8
 # ############## #
 
 
-def parse_env_as_bool(key: str, default: Optional[bool] = None) -> Optional[bool]:
+def parse_env_as_bool(key: str, default: bool | None = None) -> bool | None:
     """Parse `key` env. var. and convert its value to a boolean or None.
 
     If it cannot parse it or if None, `default` is returned.
@@ -181,21 +172,29 @@ def get_project_configuration():
         "matplotlib>=3.1.0",
         "PyOpenGL",
         "python-dateutil",
-        "PyQt5",
+        "PySide6>=6.4",
         # extra
         "hdf5plugin",
         "scipy",
         "Pillow",
     ]
 
-    test_requires = ["pytest", "pytest-xvfb", "pytest-mock", "bitshuffle"]
+    test_requires = [
+        "pytest>=6.0",
+        "pytest-xvfb",
+        "pytest-mock",
+        # Remove bitshuffle until wheels with numpy 2 support are available
+        # "bitshuffle",
+        "scipy>=1.10",
+        "pooch",
+    ]
 
     doc_requires = {
         "nbsphinx",
         "pandoc",
         "pillow",
         "pydata_sphinx_theme",
-        "sphinx",
+        "sphinx<8.2",  # until https://github.com/spatialaudio/nbsphinx/issues/825 not fixed
         "sphinx-autodoc-typehints",
         "sphinx-design",
     }

@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,12 +44,12 @@ cdef extern from "filters.h":
                 int width)
 
     int strip(double* input,
-              long len_input,
+              int len_input,
               double c,
-              long niter,
+              int niter,
               int deltai,
-              long* anchors,
-              long len_anchors,
+              int* anchors,
+              int len_anchors,
               double* output)
 
     int SavitskyGolay(double* input,

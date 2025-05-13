@@ -22,8 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains utils relative to qt Signal
-"""
+"""This module contains utils relative to qt Signal"""
 
 from silx.gui import qt
 import weakref

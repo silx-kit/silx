@@ -71,7 +71,7 @@ class AspectToolButton(PlotToolButton):
             self.STATE[True, "state"] = "Aspect ratio is kept"
             self.STATE[True, "action"] = "Keep data aspect ratio"
 
-        super(AspectToolButton, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
         keepAction = self._createAction(True)
         keepAction.triggered.connect(self.keepDataAspectRatio)
@@ -141,7 +141,7 @@ class YAxisOriginToolButton(PlotToolButton):
             self.STATE[True, "state"] = "Y-axis is oriented upward"
             self.STATE[True, "action"] = "Orient Y-axis upward"
 
-        super(YAxisOriginToolButton, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
         upwardAction = self._createAction(True)
         upwardAction.triggered.connect(self.setYAxisUpward)
@@ -294,7 +294,7 @@ class ProfileToolButton(PlotToolButton):
             # Compute 1D profile
             # Compute 2D profile
 
-        super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
         self._dimension = 1
 
@@ -367,7 +367,7 @@ class _SymbolToolButtonBase(PlotToolButton):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(_SymbolToolButtonBase, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
     def _addSizeSliderToMenu(self, menu):
         """Add a slider to set size to the given menu
@@ -431,7 +431,7 @@ class SymbolToolButton(_SymbolToolButtonBase):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
         self.setToolTip("Set symbol size and marker")
         self.setIcon(icons.getQIcon("plot-symbols"))
@@ -453,7 +453,7 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(ScatterVisualizationToolButton, self).__init__(parent=parent, plot=plot)
+        super().__init__(parent=parent, plot=plot)
 
         self.setToolTip("Set scatter visualization mode, symbol marker and size")
         self.setIcon(icons.getQIcon("eye"))

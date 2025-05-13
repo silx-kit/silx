@@ -22,12 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Main window used to compare images
-"""
+"""Main window used to compare images"""
 
 import logging
 import numpy
-import typing
 import os.path
 
 import silx.io
@@ -48,7 +46,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-def _get_image_from_file(urlPath: str) -> typing.Optional[numpy.ndarray]:
+def _get_image_from_file(urlPath: str) -> numpy.ndarray | None:
     """Returns a dataset from an image file.
 
     The returned layout shape is supposed to be `rows, columns, channels (rgb[a])`.
@@ -156,7 +154,7 @@ class CompareImagesWindow(qt.QMainWindow):
 
         if not isinstance(data, numpy.ndarray):
             raise ValueError(f"URL '{urlPath}' does not link to a numpy array")
-        if data.dtype.kind not in set(["f", "u", "i", "b"]):
+        if data.dtype.kind not in {"f", "u", "i", "b"}:
             raise ValueError(f"URL '{urlPath}' does not link to a numeric numpy array")
 
         if data.ndim == 2:

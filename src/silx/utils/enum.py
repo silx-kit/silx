@@ -27,7 +27,7 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "29/04/2019"
 
-
+from silx.utils.deprecation import deprecated
 import enum
 
 
@@ -35,6 +35,7 @@ class Enum(enum.Enum):
     """Enum with additional class methods."""
 
     @classmethod
+    @deprecated(since_version="2.1.1", replacement="Enum(value)")
     def from_value(cls, value):
         """Convert a value to corresponding Enum member
 

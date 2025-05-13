@@ -227,7 +227,7 @@ class SinoFilter(OpenclProcessing):
             raise ValueError("Expected data type = numpy.float32")
         if arr.shape != self.sino_shape:
             raise ValueError(
-                "Expected sinogram shape %s, got %s" % (self.sino_shape, arr.shape)
+                f"Expected sinogram shape {self.sino_shape}, got {arr.shape}"
             )
         if not (isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
             raise ValueError("Expected either numpy.ndarray or " "pyopencl.array.Array")

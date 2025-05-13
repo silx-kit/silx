@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides tool bar helper.
-"""
+"""This module provides tool bar helper."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

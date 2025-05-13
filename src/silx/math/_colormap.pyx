@@ -201,8 +201,11 @@ cdef class LogarithmicNormalization(Normalization):
         # Initialize log approximation LUT
         self.lutsize = lutsize
         self.lut = numpy.log2(
-            numpy.linspace(0.5, 1., lutsize + 1,
-                           endpoint=True).astype(numpy.float64))
+            numpy.linspace(
+                0.5, 1.,
+                lutsize + 1,
+                endpoint=True
+            ).astype(numpy.float64))
         # index_lut can overflow of 1
         self.lut[lutsize] = self.lut[lutsize - 1]
 
@@ -302,12 +305,13 @@ cdef class PowerNormalization(Normalization):
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef image_types[:, ::1] compute_cmap(
-           default_types[:] data,
-           image_types[:, ::1] colors,
-           Normalization normalization,
-           double vmin,
-           double vmax,
-           image_types[::1] nan_color):
+    default_types[:] data,
+    image_types[:, ::1] colors,
+    Normalization normalization,
+    double vmin,
+    double vmax,
+    image_types[::1] nan_color
+):
     """Apply colormap to data.
 
     :param data: Input data
@@ -327,8 +331,10 @@ cdef image_types[:, ::1] compute_cmap(
     nb_channels = <int> colors.shape[1]
     length = <int> data.size
 
-    output = numpy.empty((length, nb_channels),
-                         dtype=numpy.asarray(colors).dtype)
+    output = numpy.empty(
+        (length, nb_channels),
+        dtype=numpy.asarray(colors).dtype
+    )
 
     normalized_vmin = normalization.apply_double(vmin, vmin, vmax)
     normalized_vmax = normalization.apply_double(vmax, vmin, vmax)
@@ -379,12 +385,13 @@ cdef image_types[:, ::1] compute_cmap(
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef image_types[:, ::1] compute_cmap_with_lut(
-               lut_types[:] data,
-               image_types[:, ::1] colors,
-               Normalization normalization,
-               double vmin,
-               double vmax,
-               image_types[::1] nan_color):
+    lut_types[:] data,
+    image_types[:, ::1] colors,
+    Normalization normalization,
+    double vmin,
+    double vmax,
+    image_types[::1] nan_color
+):
     """Convert data to colors using look-up table to speed the process.
 
     Only supports data of types: uint8, uint16, int8, int16.
@@ -458,12 +465,14 @@ _BASIC_NORMALIZATIONS = {
 @cython.boundscheck(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
-def _cmap(data_types[:] data,
-          image_types[:, ::1] colors,
-          Normalization normalization,
-          double vmin,
-          double vmax,
-          image_types[::1] nan_color):
+def _cmap(
+    data_types[:] data,
+    image_types[:, ::1] colors,
+    Normalization normalization,
+    double vmin,
+    double vmax,
+    image_types[::1] nan_color
+):
     """Implementation of colormap.
 
     Use :func:`cmap`.
@@ -493,17 +502,19 @@ def _cmap(data_types[:] data,
     return numpy.array(output, copy=False)
 
 
-def cmap(data not None,
-         colors not None,
-         double vmin,
-         double vmax,
-         normalization='linear',
-         nan_color=None):
+def cmap(
+    data not None,
+    colors not None,
+    double vmin,
+    double vmax,
+    normalization='linear',
+    nan_color=None
+):
     """Convert data to colors with provided colors look-up table.
 
     :param numpy.ndarray data: The input data
     :param numpy.ndarray colors: Color look-up table as a 2D array.
-       It MUST be of type uint8 or float32
+        It MUST be of type uint8 or float32
     :param vmin: Data value to map to the beginning of colormap.
     :param vmax: Data value to map to the end of the colormap.
     :param Union[str,Normalization] normalization:

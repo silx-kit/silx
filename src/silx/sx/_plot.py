@@ -21,8 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module adds convenient functions to use plot widgets from the console.
-"""
+"""This module adds convenient functions to use plot widgets from the console."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -410,7 +409,7 @@ class _GInputResult(tuple):
     """
 
     def __new__(cls, position, item, indices, data):
-        return super(_GInputResult, cls).__new__(cls, position)
+        return super().__new__(cls, position)
 
     def __init__(self, position, item, indices, data):
         self._itemRef = weakref.ref(item) if item is not None else None
@@ -461,7 +460,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
     """
 
     def __init__(self, plot, n, timeout):
-        super(_GInputHandler, self).__init__(plot)
+        super().__init__(plot)
 
         self._timeout = timeout
         self.__selections = {}
@@ -494,9 +493,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
             window.addToolBar(toolbar)
         toolbar.addAction(self.getInteractionModeAction(roi_items.PointROI))
 
-        super(_GInputHandler, self).exec(
-            roiClass=roi_items.PointROI, timeout=self._timeout
-        )
+        super().exec(roiClass=roi_items.PointROI, timeout=self._timeout)
 
         if isinstance(toolbar, InteractiveModeToolBar):
             toolbar.removeAction(self.getInteractionModeAction(roi_items.PointROI))

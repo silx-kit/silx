@@ -146,7 +146,7 @@ class DragAndDropExample(qt.QMainWindow):
     """Main window of the example"""
 
     def __init__(self, parent=None, urls=()):
-        super(DragAndDropExample, self).__init__(parent)
+        super().__init__(parent)
         centralWidget = qt.QWidget(self)
         layout = qt.QVBoxLayout()
         centralWidget.setLayout(layout)

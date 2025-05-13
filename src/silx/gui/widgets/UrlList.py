@@ -24,7 +24,6 @@
 
 from __future__ import annotations
 
-import typing
 import logging
 from collections.abc import Iterable
 from silx.io.url import DataUrl
@@ -103,7 +102,7 @@ class UrlList(qt.QListWidget):
         else:
             self.sigCurrentUrlChanged.emit(current.text())
 
-    def setUrl(self, url: typing.Optional[DataUrl]) -> None:
+    def setUrl(self, url: DataUrl | None) -> None:
         """Set the current URL.
 
         :param url: The new selected URL. Use `None` to clear the selection.

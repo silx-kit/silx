@@ -79,7 +79,7 @@ class _CustomProfileManager(manager.ProfileManager):
         if self.__profileWindow is not None:
             return self.__profileWindow
         else:
-            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+            return super().createProfileWindow(plot, roi)
 
     def clearProfileWindow(self, profileWindow):
         for specializedProfileWindow in self.__specializedProfileWindows.values():
@@ -90,7 +90,7 @@ class _CustomProfileManager(manager.ProfileManager):
         if self.__profileWindow is not None:
             self.__profileWindow.setProfile(None)
         else:
-            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
+            return super().clearProfileWindow(profileWindow)
 
 
 class ProfileToolBar(qt.QToolBar):
@@ -119,7 +119,7 @@ class ProfileToolBar(qt.QToolBar):
     """
 
     def __init__(self, parent=None, plot=None, profileWindow=None):
-        super(ProfileToolBar, self).__init__(parent)
+        super().__init__(parent)
         assert plot is not None
 
         self._plotRef = weakref.ref(plot)
@@ -231,9 +231,7 @@ class Profile3DToolBar(ProfileToolBar):
         :param parent: See :class:`QToolBar`.
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
-        super(Profile3DToolBar, self).__init__(
-            parent=parent, plot=stackview.getPlotWidget()
-        )
+        super().__init__(parent=parent, plot=stackview.getPlotWidget())
 
         self.stackView = stackview
         """:class:`StackView` instance"""
