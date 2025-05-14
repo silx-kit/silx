@@ -1,6 +1,4 @@
 subdir('marchingsquares')
-subdir('test')
-
 
 py.install_sources([
     '__init__.py',
@@ -23,3 +21,5 @@ py.extension_module('bilinear', 'bilinear.pyx',
 
 py.extension_module('shapes', 'shapes.pyx',
         dependencies : py_dep, install: true, subdir: 'silx/image')
+
+install_subdir('test', install_dir: silx_dir / 'image')

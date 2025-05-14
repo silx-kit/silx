@@ -8,7 +8,7 @@ project('silx',
 )
 
 py_mod = import('python')
-py = py_mod.find_installation()
+py = py_mod.find_installation(pure: false)
 os = import('fs')
 
 # Seek the backend
@@ -48,4 +48,7 @@ endif
 py_dep = py.dependency()
 
 
+silx_dir = py.get_install_dir() / 'silx'
+
 subdir('src/silx')
+install_subdir('examples', install_dir: silx_dir)
