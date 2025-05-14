@@ -1,6 +1,4 @@
-subdir('nxdata')
 subdir('specfile')
-subdir('test')
 
 
 py.install_sources([
@@ -25,3 +23,5 @@ pure: false,    # Will be installed next to binaries
 subdir: 'silx/io',  # Folder relative to site-packages to install to
 )
 
+install_subdir('nxdata', install_dir: silx_dir / 'io')
+install_subdir('test', install_dir: silx_dir / 'io')
