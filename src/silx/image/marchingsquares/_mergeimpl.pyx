@@ -5,7 +5,7 @@
 ##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
 
 # /*##########################################################################
-# Copyright (C) 2018-2024 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ cimport cython
 
 from libc.stdint cimport int8_t, uint8_t, int32_t, uint32_t
 
-from ...utils._have_openmp cimport COMPILED_WITH_OPENMP
+from ._have_openmp cimport COMPILED_WITH_OPENMP
 """Store in the module if it was compiled with OpenMP"""
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
