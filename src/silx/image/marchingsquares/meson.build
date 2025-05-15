@@ -1,6 +1,3 @@
-subdir('test')
-
-
 py.install_sources([
     '__init__.py',
     '_skimage.py',
@@ -17,3 +14,5 @@ py.extension_module('_mergeimpl', '_mergeimpl.pyx',
         dependencies : [py_dep, omp], 
         install: true, 
         )
+
+install_subdir('test', install_dir: silx_dir / 'image/marchingsquares')
