@@ -18,9 +18,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
+      - name: Build wheel
+        run: |
+          pip install --upgrade build
+          python -m build --wheel
+          ls dist
       - name: Check meson.build files
         run: |
-          python ./tools/check_meson.py
+          python ./tools/check_meson.py dist/silx-*.whl
 
   build:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
