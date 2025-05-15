@@ -8,7 +8,7 @@ subdir: 'silx/image/marchingsquares',  # Folder relative to site-packages to ins
 
 py.extension_module('_mergeimpl', '_mergeimpl.pyx',
         subdir: 'silx/image/marchingsquares',
-        include_directories: ['include', '../../utils/include/'],
+        include_directories: ['include'],
         override_options : ['cython_language=cpp'],
         dependencies : [py_dep, omp], 
         install: true, 

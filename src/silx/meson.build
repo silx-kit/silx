@@ -22,7 +22,7 @@ pure_subdirs = [
   'sx',
   'test',
   'third_party',
-  'utils',  # TODO haveopenmp
+  'utils',
 ]
 
 foreach subdir: pure_subdirs
