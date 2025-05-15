@@ -33,7 +33,6 @@ def mesonify(where, top=None):
         for f in pyfiles:
             txt.append(f"    '{f}',")
         txt.append("],")
-        txt.append("pure: false,    # Will be installed next to binaries")
         if len(path)>len(top):
             txt.append(f"subdir: '{where[len(top)+1:]}',  # Folder relative to site-packages to install to")
         txt.append(")")

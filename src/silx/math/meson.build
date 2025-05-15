@@ -11,7 +11,6 @@ py.install_sources([
     'combo.pyi',
     'histogram.py',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx/math',  # Folder relative to site-packages to install to
 )
 

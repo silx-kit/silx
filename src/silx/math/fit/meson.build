@@ -11,7 +11,6 @@ py.install_sources([
     'fittheory.py',
     'leastsq.py',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx/math/fit',  # Folder relative to site-packages to install to
 )
 
