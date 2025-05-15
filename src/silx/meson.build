@@ -11,7 +11,6 @@ py.install_sources([
     'conftest.py',
     'py.typed',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx',  # Folder relative to site-packages to install to
 )
 

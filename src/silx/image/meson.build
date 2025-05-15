@@ -12,7 +12,6 @@ py.install_sources([
     'tomography.py',
     'utils.py',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx/image',  # Folder relative to site-packages to install to
 )
 

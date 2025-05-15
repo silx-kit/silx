@@ -19,7 +19,6 @@ py.install_sources([
     'url.py',
     'utils.py',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx/io',  # Folder relative to site-packages to install to
 )
 
