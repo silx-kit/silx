@@ -1,10 +1,105 @@
-[build-system]
-requires = [
-    "wheel",
-    "setuptools",
-    "Cython>=0.29.31"
+[project]
+name = 'silx'
+dynamic = ['version',]
+license = {file = 'copyright'}
+requires-python = '>=3.10'
+readme = 'README.rst'
+description = 'Silx tool-kit: collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities'
+authors = [
+  { name = 'Data Analysis unit, ISDD, ESRF', email = 'silx@esrf.fr'},
+  { name = 'Data automation unit, ISDD, ESRF', email = 'silx@esrf.fr'},
+  { name = 'Algorithms & Data Analysis, ExpD, ESRF', email = 'silx@esrf.fr'},
 ]
-build-backend = "setuptools.build_meta"
+
+classifiers = ["Development Status :: 5 - Production/Stable",
+               "Environment :: Console",
+               "Environment :: MacOS X",
+               "Environment :: Win32 (MS Windows)",
+               "Environment :: X11 Applications :: Qt",
+               "Intended Audience :: Education",
+               "Intended Audience :: Science/Research",
+               "License :: OSI Approved :: MIT License",
+               "Natural Language :: English",
+               "Operating System :: MacOS",
+               "Operating System :: Microsoft :: Windows",
+               "Operating System :: POSIX",
+               "Programming Language :: Cython",
+               "Programming Language :: Python :: 3",
+               "Programming Language :: Python :: Implementation :: CPython",
+               "Topic :: Scientific/Engineering :: Physics",
+               "Topic :: Software Development :: Libraries :: Python Modules",
+               ]
+
+dependencies = [
+   'numpy>=1.10',
+   'packaging',
+   'h5py',
+   'fabio>0.9',
+]
+
+[build-system]
+build-backend = 'mesonpy'
+requires = [
+    'meson-python>=0.11',
+    "meson>=1.1",
+    'ninja',
+    'wheel',
+    'Cython>=0.29.31',
+    'pyproject-metadata>=0.5.0',
+    "tomli>=1.0.0; python_version < '3.12'",
+]
+
+
+[project.optional-dependencies]
+full = [  'pyopencl; platform_machine in "i386, x86_64, AMD64"', # For silx.opencl
+          'Mako',                                                # For pyopencl reduction
+          'qtconsole',                                           # For silx.gui.console
+          'matplotlib >= 3.1.0',                                 # For silx.gui.plot
+          'PyOpenGL',                                            # For silx.gui.plot3d
+          'python-dateutil',                                     # For silx.gui.plot
+          'scipy',                                               # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
+          'pooch',                                               # For scipy.datasets.ascent
+          'Pillow',                                              # For silx.opencl.image.test
+          'pint',                                                # For silx.io.dictdump
+          'PySide6 >= 6.4'                                       # PyQt6, PyQt5  # For silx.gui
+        ]
+test = ['build',                     # To build the project
+        'wheel',                     # To build wheels
+        'Sphinx',                    # To build the documentation in doc/
+        'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
+        'sphinx-design',             # For tabs and grid in documentation
+        'pillow',                    # For loading images in documentation generation
+        'pydata_sphinx_theme',       # Sphinx theme
+        'nbsphinx',                  # For converting ipynb in documentation
+        'pandoc',                    # For documentation Qt snapshot updates
+        'black[jupyter]',            # Formatting
+        'pytest',                    # For testing
+        'pytest-xvfb',               # For GUI testing
+        'pytest-cov',                # For coverage
+        'pytest-mock',
+        'hdf5plugin',                # For HDF5 compression filters handling
+        'pyinstaller>=6.0.0; sys_platform == "win32"',
+        ]
+opencl = [ "pyopencl", 
+           "Mako", 
+           "siphash24"]
+
+[project.urls]
+homepage = 'http://www.silx.org'
+documentation = 'http://www.silx.org/doc/silx/latest/'
+source = 'https://github.com/silx-kit/silx'
+download = 'https://github.com/silx-kit/silx/releases'
+tracker = 'https://github.com/silx-kit/silx/issues'
+
+
+[project.scripts]
+silx = 'silx.__main__:main'
+
+
+[tool.cibuildwheel]
+# Skip 32-bit builds and PyPy
+skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
+
 
 [tool.black]
 required-version = 25

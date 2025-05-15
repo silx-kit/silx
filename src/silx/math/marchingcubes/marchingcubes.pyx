@@ -35,7 +35,7 @@ __date__ = "16/08/2017"
 import numpy
 cimport cython
 
-cimport silx.math.mc as mc
+cimport mc
 
 
 cdef class MarchingCubes:
