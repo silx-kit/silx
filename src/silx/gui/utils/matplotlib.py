@@ -34,7 +34,7 @@ from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/05/2018"
+__date__ = "16/05/2025"
 
 
 import io
@@ -45,7 +45,7 @@ from .. import qt
 
 # This must be performed before any import from matplotlib
 if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
-    matplotlib.use("Qt5Agg", force=False)
+    matplotlib.use("QtAgg", force=False)
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
 else:
