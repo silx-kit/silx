@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -397,9 +397,12 @@ def getQFile(name):
 
     for format_ in _supported_formats:
         format_ = str(format_)
-        filename = silx.resources._resource_filename(
-            f"{name}.{format_}", default_directory="gui/icons"
-        )
+        try:
+            filename = silx.resources._resource_filename(
+                f"{name}.{format_}", default_directory="gui/icons"
+            )
+        except ValueError:
+            continue
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile
