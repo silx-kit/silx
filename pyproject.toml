@@ -31,58 +31,66 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                ]
 
 dependencies = [
-   'numpy>=1.10',
+   'numpy',
    'packaging',
    'h5py',
-   'fabio>0.9',
+   'fabio',
 ]
 
 [build-system]
 build-backend = 'mesonpy'
 requires = [
-    'meson-python>=0.11',
-    "meson>=1.1",
-    'ninja',
-    'wheel',
-    'Cython>=0.29.31',
-    'pyproject-metadata>=0.5.0',
-    "tomli>=1.0.0; python_version < '3.12'",
+    'meson-python',
+    'Cython',
 ]
 
 
 [project.optional-dependencies]
-full = [  'pyopencl; platform_machine in "i386, x86_64, AMD64"', # For silx.opencl
-          'Mako',                                                # For pyopencl reduction
-          'qtconsole',                                           # For silx.gui.console
-          'matplotlib >= 3.1.0',                                 # For silx.gui.plot
-          'PyOpenGL',                                            # For silx.gui.plot3d
-          'python-dateutil',                                     # For silx.gui.plot
-          'scipy',                                               # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
-          'pooch',                                               # For scipy.datasets.ascent
-          'Pillow',                                              # For silx.opencl.image.test
-          'pint',                                                # For silx.io.dictdump
-          'PySide6 >= 6.4'                                       # PyQt6, PyQt5  # For silx.gui
-        ]
-test = ['build',                     # To build the project
-        'wheel',                     # To build wheels
-        'Sphinx',                    # To build the documentation in doc/
-        'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
-        'sphinx-design',             # For tabs and grid in documentation
-        'pillow',                    # For loading images in documentation generation
-        'pydata_sphinx_theme',       # Sphinx theme
-        'nbsphinx',                  # For converting ipynb in documentation
-        'pandoc',                    # For documentation Qt snapshot updates
-        'black[jupyter]',            # Formatting
-        'pytest',                    # For testing
-        'pytest-xvfb',               # For GUI testing
-        'pytest-cov',                # For coverage
-        'pytest-mock',
-        'hdf5plugin',                # For HDF5 compression filters handling
-        'pyinstaller>=6.0.0; sys_platform == "win32"',
-        ]
-opencl = [ "pyopencl", 
-           "Mako", 
-           "siphash24"]
+opencl = [
+    'pyopencl', # For silx.opencl
+    'Mako',     # For pyopencl reduction
+]
+full = [
+    'silx[opencl]',
+    'qtconsole',             # For silx.gui.console
+    'matplotlib',            # For silx.gui.plot
+    'PyOpenGL',              # For silx.gui.plot3d
+    'python-dateutil',       # For silx.gui.plot
+    'scipy',                 # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
+    'pooch',                 # For scipy.datasets.ascent
+    'Pillow',                # For silx.opencl.image.test
+    'pint',                  # For silx.io.dictdump
+    'PySide6 >= 6.4',        # PyQt6, PyQt5  # For silx.gui
+    'hdf5plugin',            # For HDF5 compression filters handling
+]
+doc =[
+    'silx[full]',
+    'Sphinx',                    # To build the documentation in doc/
+    'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
+    'sphinx-copybutton',         # Add copy to clipboard button to code blocks
+    'sphinx-design',             # For tabs and grid in documentation
+    'pydata_sphinx_theme',       # Sphinx theme
+    'nbsphinx',                  # For converting ipynb in documentation
+    'pandoc',                    # For documentation Qt snapshot updates
+]
+test = [
+    'silx[full]',
+    'pytest',                    # For testing
+    'pytest-xvfb',               # For GUI testing
+    'pytest-cov',                # For coverage
+    'pytest-mock',
+]
+dev = [
+    'silx[full,doc,test]',
+    'build',                                  # To build the project
+    'wheel',                                  # To build wheels
+    'meson-python',
+    'ninja',
+    'cython',
+    "tomli>=1.0.0; python_version < '3.11'",  # For bootstrap.py and build_man_page.py
+    'black[jupyter]',                         # Formatting
+    'pyinstaller>=6.0.0; sys_platform == "win32"',
+]
 
 [project.urls]
 homepage = 'http://www.silx.org'
