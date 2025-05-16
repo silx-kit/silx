@@ -67,6 +67,7 @@ doc =[
     'silx[full]',
     'Sphinx',                    # To build the documentation in doc/
     'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
+    'sphinx-copybutton',         # Add copy to clipboard button to code blocks
     'sphinx-design',             # For tabs and grid in documentation
     'pydata_sphinx_theme',       # Sphinx theme
     'nbsphinx',                  # For converting ipynb in documentation

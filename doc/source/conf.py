@@ -67,6 +67,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
     "sphinx.ext.inheritance_diagram",
+    "sphinx_copybutton",
     "sphinx_design",
     "sphinxext-archive",
     "snapshotqt_directive",

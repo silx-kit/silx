@@ -34,6 +34,7 @@ Build-Depends: cython3 (>= 0.23.2),
                python3-scipy,
                python3-mesonpy,
                python3-sphinx,
+               python3-sphinx-copybutton,
                python3-sphinxcontrib.programoutput,
                xauth,
                xvfb
