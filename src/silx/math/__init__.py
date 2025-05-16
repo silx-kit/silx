@@ -33,6 +33,6 @@ __authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "11/05/2017"
 
-from .histogram import Histogramnd  # noqa
-from .histogram import HistogramndLut  # noqa
-from .medianfilter import medfilt, medfilt1d, medfilt2d
+from .histogram import Histogramnd  # noqa: F401
+from .histogram import HistogramndLut  # noqa: F401
+from .medianfilter import medfilt, medfilt1d, medfilt2d  # noqa: F401
