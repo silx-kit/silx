@@ -809,8 +809,6 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
 
         Can be used to add or regenerate `STATE_VERSION1_QT4` or
         `STATE_VERSION1_QT5`.
-
-        >>> ./run_tests.py -v silx.gui.dialog.test.test_datafiledialog.TestDataFileDialogApi.printState
         """
         dialog = self.createDialog()
         dialog.setDirectory("")
