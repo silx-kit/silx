@@ -1,9 +1,7 @@
 subdir('marchingcubes')
 subdir('medianfilter')
 subdir('fit')
-subdir('fft')
 subdir('histogramnd')
-subdir('test')
 
 
 py.install_sources([
@@ -13,7 +11,6 @@ py.install_sources([
     'combo.pyi',
     'histogram.py',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx/math',  # Folder relative to site-packages to install to
 )
 
@@ -36,3 +33,6 @@ py.extension_module('interpolate', 'interpolate.pyx',
         dependencies : [py_dep, omp],
         install: true, 
         )
+
+install_subdir('fft', install_dir: silx_dir / 'math')
+install_subdir('test', install_dir: silx_dir / 'math')

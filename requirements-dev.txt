@@ -2,8 +2,15 @@
 # Those ARE NOT required for installation or at runtime
 
 -r requirements.txt
-build             # To build the project
-wheel             # To build wheels
+build
+wheel
+meson-python
+meson
+ninja
+cython
+pyproject-metadata
+tomli; python_version < "3.12"
+
 Sphinx            # To build the documentation in doc/
 sphinx-autodoc-typehints  # For leveraging Python type hints from Sphinx
 sphinx-design     # For tabs and grid in documentation

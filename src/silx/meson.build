@@ -1,15 +1,6 @@
-subdir('sx')
-subdir('opencl')
-subdir('gui')
 subdir('io')
-subdir('resources')
-subdir('app')
-subdir('utils')
 subdir('math')
-subdir('third_party')
 subdir('image')
-subdir('test')
-
 
 py.install_sources([
     '__init__.py',
@@ -20,6 +11,20 @@ py.install_sources([
     'conftest.py',
     'py.typed',
 ],
-pure: false,    # Will be installed next to binaries
 subdir: 'silx',  # Folder relative to site-packages to install to
 )
+
+pure_subdirs = [
+  'app',
+  'gui',
+  'opencl',
+  'resources',
+  'sx',
+  'test',
+  'third_party',
+  'utils',
+]
+
+foreach subdir: pure_subdirs
+  install_subdir(subdir, install_dir: silx_dir)
+endforeach

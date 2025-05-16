@@ -8,7 +8,7 @@ project('silx',
 )
 
 py_mod = import('python')
-py = py_mod.find_installation()
+py = py_mod.find_installation(pure: false)
 os = import('fs')
 
 # Seek the backend
@@ -24,16 +24,12 @@ endif
 
 # How to disable OpenMP:
 # The 'SILX_WITH_OPENMP' file should contain 'False'
-if os.is_file('SILX_WITH_OPENMP')
-  openmp_var = os.read('SILX_WITH_OPENMP').strip()
+res = run_command(py, '-c', 'import os; print(os.environ["SILX_WITH_OPENMP"])',
+                  check:false)
+if res.returncode() == 0
+  openmp_var = res.stdout().strip()
 else
-  res = run_command(py, '-c', 'import os; print(os.environ["SILX_WITH_OPENMP"])',
-                    check:false)
-  if res.returncode() == 0
-    openmp_var = res.stdout().strip()
-  else
-    openmp_var = ''
-  endif
+  openmp_var = ''
 endif
 omp = dependency('openmp', required: get_option('use_openmp').disable_auto_if(openmp_var=='False'))
 
@@ -52,4 +48,7 @@ endif
 py_dep = py.dependency()
 
 
+silx_dir = py.get_install_dir() / 'silx'
+
 subdir('src/silx')
+install_subdir('examples', install_dir: silx_dir)
