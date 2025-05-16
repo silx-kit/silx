@@ -10,7 +10,7 @@ which is described in other projects like `scikit-image <https://scikit-image.or
 
 1. Create your `GitHub <https://github.com/>`_ account and upload your SSH keys.
 
-2. Fork the silx project from https://github.com/silx-kit/silx/fork.
+2. `Fork the silx project <https://github.com/silx-kit/silx/fork>`_.
 
 3. Clone your GitHub repository on your local computer:
 
@@ -45,11 +45,11 @@ If you encounter any problems or have any questions you can always ask on the `I
 Install silx for development
 ----------------------------
 
-1. Install `first build dependencies <https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html#build-dependencies>`_::
+1. Install `build dependencies <https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html#build-dependencies>`_::
 
       pip install meson-python ninja cython
 
-2. Install silx in `editable mode <https://peps.python.org/pep-0660/>`_ together with the development dependencies::
+2. Install silx in `editable mode <https://peps.python.org/pep-0660/>`_ with the development dependencies::
 
       pip install --no-build-isolation --editable .[dev]
 
@@ -65,7 +65,9 @@ Install silx for development
 Format the code
 ---------------
 
-To format the code, use `black <https://black.readthedocs.io>`_.
+To format the code, use `black <https://black.readthedocs.io>`_::
+
+    black .
 
 
 Build the documentation
@@ -88,6 +90,12 @@ Run the tests
 - `Install silx for development`_.
 - From the silx project root folder, use `pytest <https://docs.pytest.org/en/stable/how-to/usage.html>`_:
 
+.. warning::
+     
+     GUI tests are part of the complete test suite and will make windows appear and disappear very quickly.
+     
+      **Do not run these if you have a history of epilepsy or motion sickness** 
+      
   * To run the complete test suite::
 
       pytest
@@ -97,7 +105,7 @@ Run the tests
       pytest <src/silx/path/to/test_file.py>  # or
       pytest --pyargs <silx.subpackage.test.test_module>
 
-To run the tests of an installed version of *silx*, run the following from the python interpreter:
+To run the tests of an installed version of *silx*, run the following from the Python interpreter:
 
 .. code-block:: python
 
@@ -122,7 +130,7 @@ With:
   - A topic: If changes do not affect a particular subpackage or module, provide the topic of the change.
     This can be for example: ``Build``, ``Documentation``, ``CI``,... or the name of a silx application (e.g., ``silx view``).
 
-- **Action**: How the changes affects the project from a silx user point of view.
+- **Action**: How the changes affect the project from a silx user point of view.
   Prefer using one of the following actions:
 
   - **Added**: For new feature or new APIs
@@ -132,9 +140,8 @@ With:
   - **Improved**
   - **Refactored**
   - **Fixed**
-  - More: If none of the previous actions match your changes, please use another keyword.
 
-- **Summary**: A short description of the main change as you would like to read it from release notes.
+- **Summary**: A short description of the main change that will be included in the release notes.
 
 
 How-to make a release
