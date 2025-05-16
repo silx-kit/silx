@@ -2,7 +2,7 @@
 .. currentmodule:: silx.gui.widgets
 
 :mod:`ButtonOverlay`
--------------------
+--------------------
 
 .. automodule:: silx.gui.widgets.ButtonOverlay
 
@@ -12,7 +12,7 @@
 
 
 :mod:`WaitingOverlay`
--------------------
+---------------------
 
 .. automodule:: silx.gui.widgets.WaitingOverlay
 
