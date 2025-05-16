@@ -274,14 +274,14 @@ class Axis(qt.QObject):
         flag = bool(flag)
         self.setScale(self.LOGARITHMIC if flag else self.LINEAR)
 
-    def getTimeZone(self) -> datetime.tzinfo | None:
+    def getTimeZone(self) -> dt.tzinfo | None:
         """Sets tzinfo that is used if this axis plots date times.
 
         None means the datetimes are interpreted as local time.
         """
         raise NotImplementedError()
 
-    def setTimeZone(self, tz) -> datetime.tzinfo | typing.Literal["UTC"] | None:
+    def setTimeZone(self, tz) -> dt.tzinfo | typing.Literal["UTC"] | None:
         """Sets tzinfo that is used if this axis' tickMode is TIME_SERIES
 
         The tz must be a descendant of the datetime.tzinfo class, "UTC" or None.
