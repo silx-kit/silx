@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -237,9 +237,11 @@ def _get_resource_filename(package: str, resource: str) -> str:
     :return: Abolute resource path in the file system
     """
     # Caching prevents extracting the resource twice
-    file_context = importlib_resources.as_file(
-        importlib_resources.files(package) / resource
-    )
+    traversable = importlib_resources.files(package).joinpath(resource)
+    if not traversable.is_file() and not traversable.is_dir():
+        raise ValueError(f"Resource {resource} does not exists in {package}")
+    file_context = importlib_resources.as_file(traversable)
+
     path = _file_manager.enter_context(file_context)
     return str(path.absolute())
 
