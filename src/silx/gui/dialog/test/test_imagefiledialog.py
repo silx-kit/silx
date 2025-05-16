@@ -625,8 +625,6 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
 
         Can be used to add or regenerate `STATE_VERSION1_QT4` or
         `STATE_VERSION1_QT5`.
-
-        >>> ./run_tests.py -v silx.gui.dialog.test.test_imagefiledialog.TestImageFileDialogApi.printState
         """
         dialog = self.createDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
