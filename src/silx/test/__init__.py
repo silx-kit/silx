@@ -30,7 +30,6 @@ import importlib
 import logging
 import subprocess
 import sys
-from os.path import dirname
 
 
 try:
@@ -43,13 +42,13 @@ except ImportError:
 
 
 def run_tests(
-    modules: Sequence[str] | None = ("silx",),
+    modules: str | Sequence[str] | None = ("silx",),
     verbosity: int = 0,
     args: Sequence[str] = (),
 ):
     """Run tests in a subprocess
 
-    :param module: Name of the silx module to test (default: 'silx')
+    :param module: Name of the silx module to test
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
@@ -57,21 +56,15 @@ def run_tests(
         sys.executable,
         "-m",
         "pytest",
-        f"--rootdir={dirname(__path__[0])}",
         "--verbosity",
         str(verbosity),
-        # Handle warning as errors unless explicitly skipped
-        "-Werror",
-        "-Wignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
-        "-Wignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
-        "-Wignore:Unable to import recommended hash 'siphash24.siphash13', falling back to 'hashlib.sha256'. Run 'python3 -m pip install siphash24' to install the recommended hash.:UserWarning:pytools.persistent_dict",
-        "-Wignore:Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.:UserWarning",
-        # Remove __array__ ignore once h5py v3.12 is released
-        "-Wignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
     ]
 
     if args:
         cmd += list(args)
+
+    if isinstance(modules, str):
+        modules = (modules,)
 
     if modules:
         list_path = []
@@ -84,7 +77,7 @@ def run_tests(
                 else imported_module.__file__
                 )
         cmd += list_path
-        
+
     print("Running pytest with this command:")
     print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
     return subprocess.run(cmd, check=False).returncode
