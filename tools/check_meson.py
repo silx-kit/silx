@@ -15,7 +15,7 @@ EXCLUDED_FILES = {
     "src/silx/math/histogramnd/README",
     "src/silx/math/histogramnd/src/histogramnd_template.c",
 }
-EXCLUDED_FILES = tuple(map(Path, EXCLUDED_FILES))
+EXCLUDED_FILES = set(map(Path, EXCLUDED_FILES))
 """Files to ignore during the check"""
 
 
@@ -28,7 +28,6 @@ def get_repository_files(root: str) -> set[Path]:
     """list of all files in the git repo
 
     :param root: root of the project
-    :return: list of file path in the repo
     """
     process = subprocess.run(["git", "ls-files"], cwd=root, stdout=subprocess.PIPE)
     if process.returncode != 0:
