@@ -55,11 +55,11 @@ def pytest_addoption(parser):
         help="Disable the test of the OpenCL part",
     )
     parser.addoption(
-        "--no-high-mem",
+        "--high-mem",
         dest="high_mem",
-        default=True,
-        action="store_false",
-        help="Disable tests with large memory consumption (>100Mbytes)",
+        default=False,
+        action="store_true",
+        help="Enable tests with large memory consumption (>100Mbytes)",
     )
 
 
@@ -112,7 +112,7 @@ def use_opencl(test_options):
 def use_large_memory(test_options):
     """Fixture to flag test using a large memory consumption.
 
-    This can be skipped with `--no-high-mem`.
+    This can be enabled with `--high-mem`.
     """
     if not test_options.WITH_HIGH_MEM_TEST:
         pytest.skip(test_options.WITH_HIGH_MEM_TEST_REASON, allow_module_level=True)
