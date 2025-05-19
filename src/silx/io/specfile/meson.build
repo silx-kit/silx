@@ -1,22 +1,16 @@
 # Definitions of macros specific to specfile
-macros = []
 if target_machine.system() == 'windows'
     macros = [ '-DSPECFILE_POSIX', '-DWIN32']
 elif target_machine.system() in ['linux', 'darwin', 'dragonfly', 'freebsd', 'gnu']
-    res = run_command(py, '-c', 'import os; print(os.environ["SPECFILE_USE_GNU_SOURCE"])',
-                      check:false)
-    if res.returncode() == 0
-        specfile_use_gnu = res.stdout().strip()
+    use_gnu_source = get_option('specfile_use_gnu_source')
+    if use_gnu_source
+        macros = ['-D_GNU_SOURCE=1']
     else
-        specfile_use_gnu = ''
+        macros = ['-DSPECFILE_POSIX']
     endif
-    if specfile_use_gnu in ['1', 'true', 'True', 'TRUE']
-        macros += ['-D_GNU_SOURCE=1']
-    else
-        macros += ['-DSPECFILE_POSIX']
-    endif
+else
+    macros = []
 endif
-
 
 
 py.extension_module('specfile', 

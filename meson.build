@@ -16,22 +16,8 @@ if meson.backend() != 'ninja'
   error('Ninja backend required')
 endif
 
-# OpenMP can be used? several ways to disable it:
-#  -> use -Duse_openmp=disabled
-#  -> or the file SILX_WITH_OPENMP should contain False
-#  -> or OpenMP can be unsuported on your achitecture/compiler
 
-
-# How to disable OpenMP:
-# The 'SILX_WITH_OPENMP' file should contain 'False'
-res = run_command(py, '-c', 'import os; print(os.environ["SILX_WITH_OPENMP"])',
-                  check:false)
-if res.returncode() == 0
-  openmp_var = res.stdout().strip()
-else
-  openmp_var = ''
-endif
-omp = dependency('openmp', required: get_option('use_openmp').disable_auto_if(openmp_var=='False'))
+omp = dependency('openmp', required: get_option('use_openmp'))
 
 
 cc = meson.get_compiler('c')
