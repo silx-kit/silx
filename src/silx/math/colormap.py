@@ -29,7 +29,6 @@ __date__ = "25/08/2021"
 
 
 import collections
-import numbers  # noqa: F401
 from typing import NamedTuple, Literal
 import warnings
 import numpy
@@ -354,7 +353,6 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
         :returns: (vmin, vmax)
         """
         if data.dtype.kind == "f":  # Replaces inf by NaN
-            data = numpy.array(data, copy=True)  # Work on a copy
             data = numpy.where(numpy.isfinite(data), data, numpy.nan)
         if data.size == 0:  # Fallback
             return None, None

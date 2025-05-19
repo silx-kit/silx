@@ -93,7 +93,6 @@ class BaseFFT:
     def __calc_shape(self):
         # TODO allow for C2C even for real input data (?)
         if self.dtype_in in [np.float32, np.float64]:
-            last_dim = self.shape[-1] // 2 + 1  # noqa: F841
             # FFTW convention
             self.shape_out = self.shape[:-1] + (self.shape[-1] // 2 + 1,)
         else:
