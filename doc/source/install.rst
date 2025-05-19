@@ -158,12 +158,9 @@ The GUI widgets depend on the following extra packages:
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
 * `Mako <http://www.makotemplates.org/>`_
 
-List of dependencies with minimum required versions:
-
-.. include:: ../../requirements.txt
-   :literal:
 
 Build dependencies
 ++++++++++++++++++
 
-In addition to run-time dependencies, building *silx* requires a C/C++ compiler and `cython <http://cython.org>`_.
+*silx* uses `meson-python <https://mesonbuild.com/meson-python/>`_ build backend and
+requires `cython <http://cython.org>`_ and a C/C++ compiler.
