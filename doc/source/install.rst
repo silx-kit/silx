@@ -100,12 +100,6 @@ To install silx from source, run:
        export LC_ALL=en_US.UTF-9
        export LANG=en_US.UTF-9
 
-Build options can be set through environment variables, for example:
-
-.. code-block::
-
-   SILX_WITH_OPENMP=False pip install silx --no-binary silx
-
 
 Build options
 +++++++++++++
@@ -114,20 +108,25 @@ Build options
    :widths: 1 4
    :header-rows: 1
 
-   * - Environment variable
+   * - Build option
      - Description
-   * - ``SILX_WITH_OPENMP``
-     - Whether or not to compile Cython code with OpenMP support (default: ``True`` except on macOS where it is ``False``)
-   * - ``SILX_FORCE_CYTHON``
-     - Whether or not to force re-generating the C/C++ source code from Cython files (default: ``False``).
-   * - ``SPECFILE_USE_GNU_SOURCE``
-     - Whether or not to use a cleaner locale independent implementation of :mod:`silx.io.specfile` by using `_GNU_SOURCE=1`
-       (default: ``False``; POSIX operating system only).
-   * - ``SILX_FULL_INSTALL_REQUIRES``
-     - Set it to put all dependencies as ``install_requires`` (For packaging purpose).
-   * - ``SILX_INSTALL_REQUIRES_STRIP``
-     - Comma-separated list of package names to remove from ``install_requires`` (For packaging purpose).
-.. note:: Boolean options are passed as ``True`` or ``False``.
+   * - ``use_openmp``
+     - Whether or not to compile Cython code with OpenMP support.
+       Accepted values: ``auto`` (default), ``enabled``, ``disabled``.
+   * - ``specfile_use_gnu_source``
+     - Whether or not to use a cleaner locale independent implementation of :mod:`silx.io.specfile` by using `_GNU_SOURCE=1`.
+       Only used on POSIX operating systems.
+       Accepted values: ``false`` (default), ``true``.
+
+
+Build options can be passed to
+`meson's setup-args <https://mesonbuild.com/meson-python/reference/config-settings.html#cmdoption-arg-setup-args>`_
+through `pip install -C <https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-C>`_,
+for example:
+
+.. code-block:: bash
+
+   pip install silx --no-binary silx -Csetup-args="-Duse-openmp=disabled"
 
 
 .. _dependencies:
