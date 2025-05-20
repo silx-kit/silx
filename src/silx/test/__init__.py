@@ -28,6 +28,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 import importlib
 import logging
+import os.path
 import subprocess
 import sys
 
@@ -69,13 +70,16 @@ def run_tests(
     if modules:
         list_path = []
         for module in modules:
-        # Retrieve folder for packages and file for modules
+            # Retrieve folder for packages and file for modules
             imported_module = importlib.import_module(module)
-            list_path.append(
-                imported_module.__path__[0]
-                if hasattr(imported_module, "__path__")
-                else imported_module.__file__
-                )
+            if getattr(imported_module, "__path__", None):
+                module_path = imported_module.__path__[0]
+            elif os.path.basename(imported_module.__file__) == "__init__.py":
+                module_path = os.path.dirname(imported_module.__file__)
+            else:
+                module_path = imported_module.__file__
+
+            list_path.append(module_path)
         cmd += list_path
 
     print("Running pytest with this command:")
