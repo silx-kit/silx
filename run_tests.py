@@ -175,7 +175,7 @@ parser.add_argument("--no-opencl",
                     action="store_false", dest="opencl", default=True,
                     help="Disable tests using OpenCL")
 parser.add_argument("--high-mem",
-                    action="store_false", dest="low_mem", default=True,
+                    action="store_true", dest="high_mem", default=False,
                     help="Enable tests requiring large amounts of data (>100Mb)")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
@@ -235,8 +235,8 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
         pytest_options.append("--no-opencl")
     if options.opengl is False:
         pytest_options.append("--no-opengl")
-    if options.low_mem is True:
-        pytest_options.append("--no-high-mem")
+    if options.high_mem is True:
+        pytest_options.append("--high-mem")
 
     def path2module(option):
         if option.endswith(".py"):

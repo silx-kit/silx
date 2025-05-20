@@ -118,12 +118,12 @@ class _TestOptions:
                 self.WITH_GL_TEST = False
                 self.WITH_GL_TEST_REASON = "OpenGL package not available"
 
-        if parsed_options is not None and not parsed_options.high_mem:
-            self.WITH_HIGH_MEM_TEST = False
-            self.WITH_HIGH_MEM_TEST_REASON = "Skipped by command line"
-        elif os.environ.get("WITH_HIGH_MEM_TEST") == "False":
-            self.WITH_HIGH_MEM_TEST = False
-            self.WITH_HIGH_MEM_TEST_REASON = "Skipped by WITH_HIGH_MEM_TEST env var"
+        if parsed_options is not None and parsed_options.high_mem:
+            self.WITH_HIGH_MEM_TEST = True
+            self.WITH_HIGH_MEM_TEST_REASON = ""
+        elif os.environ.get("WITH_HIGH_MEM_TEST") == "True":
+            self.WITH_HIGH_MEM_TEST = True
+            self.WITH_HIGH_MEM_TEST_REASON = ""
 
         if self.WITH_QT_TEST:
             try:
