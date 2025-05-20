@@ -3,16 +3,12 @@ macros = []
 if target_machine.system() == 'windows'
     macros = [ '-DSPECFILE_POSIX', '-DWIN32']
 elif target_machine.system() in ['linux', 'darwin', 'dragonfly', 'freebsd', 'gnu']
-    if os.is_file('SPECFILE_USE_GNU_SOURCE')
-        specfile_use_gnu = os.read('SPECFILE_USE_GNU_SOURCE').strip()
+    res = run_command(py, '-c', 'import os; print(os.environ["SPECFILE_USE_GNU_SOURCE"])',
+                      check:false)
+    if res.returncode() == 0
+        specfile_use_gnu = res.stdout().strip()
     else
-        res = run_command(py, '-c', 'import os; print(os.environ["SPECFILE_USE_GNU_SOURCE"])',
-                          check:false)
-        if res.returncode() == 0
-            specfile_use_gnu = res.stdout().strip()
-        else
-            specfile_use_gnu = ''
-        endif
+        specfile_use_gnu = ''
     endif
     if specfile_use_gnu in ['1', 'true', 'True', 'TRUE']
         macros += ['-D_GNU_SOURCE=1']
