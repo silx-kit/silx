@@ -104,6 +104,10 @@ tracker = 'https://github.com/silx-kit/silx/issues'
 silx = 'silx.__main__:main'
 
 
+[tool.meson-python.args]
+setup = ['--vsenv']
+
+
 [tool.cibuildwheel]
 # Skip 32-bit builds and PyPy
 skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
