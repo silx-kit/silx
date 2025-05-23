@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-########################################################################### */
+# ########################################################################## */
 """
 This module defines the :class:`FitTheory` object that is used by
 :class:`silx.math.fit.FitManager` to define fit functions and background

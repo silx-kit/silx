@@ -26,11 +26,11 @@ __license__ = "MIT"
 __date__ = "22/06/2016"
 
 
-from .leastsq import leastsq, chisq_alpha_beta
-from .leastsq import CFREE, CPOSITIVE, CQUOTED, CFIXED, CFACTOR, CDELTA, CSUM
+from .leastsq import leastsq, chisq_alpha_beta  # noqa: F401
+from .leastsq import CFREE, CPOSITIVE, CQUOTED, CFIXED, CFACTOR, CDELTA, CSUM  # noqa: F401
 
-from .functions import *
-from .filters import *
-from .peaks import peak_search, guess_fwhm
-from .fitmanager import FitManager
-from .fittheory import FitTheory
+from .functions import *  # noqa: F403,F401
+from .filters import *  # noqa: F403,F401
+from .peaks import peak_search, guess_fwhm  # noqa: F401
+from .fitmanager import FitManager  # noqa: F401
+from .fittheory import FitTheory  # noqa: F401

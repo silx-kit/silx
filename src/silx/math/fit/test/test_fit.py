@@ -140,7 +140,7 @@ class Test_leastsq(unittest.TestCase):
     def testDerivativeFunction(self):
         parameters_actual = [10.5, 2, 10000.0, 20.0, 150, 5000, 900.0, 300]
         x = numpy.arange(10000.0)
-        y = self.gauss(x, *parameters_actual)
+        # y = self.gauss(x, *parameters_actual)
         delta = numpy.sqrt(numpy.finfo(numpy.float64).eps)
         for i in range(len(parameters_actual)):
             p = parameters_actual * 1

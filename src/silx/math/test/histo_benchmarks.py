@@ -108,9 +108,7 @@ def benchmark(
     sample = sample.astype(dtype)
 
     if do_weights:
-        weights = np.random.randint(
-            int_min, high=int_max, size=(ssetup.pyample_shape[0],)
-        )
+        weights = np.random.randint(int_min, high=int_max, size=(sample_shape[0],),)
         weights = weights.astype(np.double)
         weights = weights_rng[0] + (weights - int_min) * (
             weights_rng[1] - weights_rng[0]
