@@ -35,7 +35,7 @@ from silx.utils.testutils import ParametricTestCase
 
 try:
     import scipy
-except:
+except ImportError:
     scipy = None
 else:
     from scipy.datasets import ascent

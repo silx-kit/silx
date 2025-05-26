@@ -410,7 +410,7 @@ class TestPolynomials(unittest.TestCase):
         fm.loadtheories(fittheories)
         fm.settheory("Gaussians")
         fm.setbackground("Degree 2 Polynomial")
-        esti_params = fm.estimate()
+        fm.estimate()
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
@@ -427,7 +427,7 @@ class TestPolynomials(unittest.TestCase):
         fm.loadtheories(fittheories)
         fm.settheory("Gaussians")
         fm.setbackground("Degree 3 Polynomial")
-        esti_params = fm.estimate()
+        fm.estimate()
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
@@ -444,7 +444,7 @@ class TestPolynomials(unittest.TestCase):
         fm.loadtheories(fittheories)
         fm.settheory("Gaussians")
         fm.setbackground("Degree 4 Polynomial")
-        esti_params = fm.estimate()
+        fm.estimate()
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
@@ -459,7 +459,7 @@ class TestPolynomials(unittest.TestCase):
         fm.loadbgtheories(bgtheories)
         fm.loadtheories(fittheories)
         fm.settheory(theory)
-        esti_params = fm.estimate()
+        fm.estimate()
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params, fit_params):
