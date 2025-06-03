@@ -67,6 +67,7 @@ import os
 import sys
 from typing import NamedTuple
 
+import importlib
 import importlib.resources as importlib_resources
 
 
@@ -239,11 +240,8 @@ def _get_resource_filename(package: str, resource: str) -> str:
     # Caching prevents extracting the resource twice
     traversable = importlib_resources.files(package).joinpath(resource)
     if not traversable.is_file() and not traversable.is_dir():
-        package_dir_context = importlib_resources.as_file(
-            importlib_resources.files(package)
-        )
-        path = _file_manager.enter_context(package_dir_context)
-        return str(path.absolute() / resource)
+        module = importlib.import_module(package)
+        return os.path.join(os.path.dirname(module.__file__), resource)
 
     file_context = importlib_resources.as_file(traversable)
 
