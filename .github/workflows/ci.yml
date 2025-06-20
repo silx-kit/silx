@@ -76,10 +76,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4        
-      - name: Set up MSVC environment if applicable
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -89,14 +85,7 @@ jobs:
         run: |
           pip install --upgrade --pre build wheel 
 
-      - name: Build Wheel (Windows)
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          python -m build
-
-      - name: Build Wheel (Unix)
-        if: runner.os != 'Windows'
+      - name: Build Wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
