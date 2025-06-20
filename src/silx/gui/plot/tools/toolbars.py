@@ -53,6 +53,11 @@ class InteractiveModeToolBar(qt.QToolBar):
         self._panModeAction = actions.mode.PanModeAction(parent=self, plot=plot)
         self.addAction(self._panModeAction)
 
+        self._dynamicColormapAction = actions.mode.DynamicColormapAction(
+            parent=self, plot=plot
+        )
+        self.addAction(self._dynamicColormapAction)
+
     def getZoomModeAction(self):
         """Returns the zoom mode QAction.
 
@@ -66,6 +71,9 @@ class InteractiveModeToolBar(qt.QToolBar):
         :rtype: PlotAction
         """
         return self._panModeAction
+
+    def getDynamicColormapAction(self):
+        return self._dynamicColormapAction
 
 
 class OutputToolBar(qt.QToolBar):
