@@ -33,6 +33,8 @@ from typing import NamedTuple, Literal
 import warnings
 import numpy
 
+from silx.utils.deprecation import deprecated
+
 from ..resources import resource_filename as _resource_filename
 from .combo import min_max as _min_max
 from . import _colormap
@@ -322,6 +324,12 @@ class _NormalizationMixIn:
         return self.revert(mean - 3 * std, 0.0, 1.0), self.revert(
             mean + 3 * std, 0.0, 1.0
         )
+
+    @deprecated(since_version="3.0", replacement="autoscale_percentile")
+    def autoscale_percentile_1_99(
+        self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
+        return self.autoscale_percentile(data=data, q=(1, 99))
 
     def autoscale_percentile(
         self, data: numpy.ndarray, q: tuple[float]
