@@ -102,8 +102,7 @@ Run the tests
 
   * To run a specfic test::
 
-      pytest <src/silx/path/to/test_file.py>  # or
-      pytest --pyargs <silx.subpackage.test.test_module>
+      pytest <src/silx/path/to/test_file.py::test_function>
 
 To run the tests of an installed version of *silx*, run the following from the Python interpreter:
 
