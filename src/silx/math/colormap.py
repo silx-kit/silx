@@ -210,7 +210,9 @@ def get_colormap_lut(name: str) -> numpy.ndarray:
     return _COLORMAP_CACHE[name]
 
 
-AutoScaleModeType = Literal["minmax", "stddev3", "percentile_1_99"]
+AutoScaleModeType = Literal[
+    "minmax", "stddev3", "percentile_1_99", "percentile_17.5_82.5"
+]
 
 
 # Normalizations
@@ -269,6 +271,8 @@ class _NormalizationMixIn:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile_1_99":
             vmin, vmax = self.autoscale_percentile(data, q=(1.0, 99.0))
+        elif mode == "percentile_17.5_82.5":
+            vmin, vmax = self.autoscale_percentile(data, q=(17.5, 82.5))
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
