@@ -90,6 +90,9 @@ class Program:
         attributes = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_ATTRIBUTES)):
             name = gl.glGetActiveAttrib(program, index)[0]
+            # bug fix for numpy 2.3 See https://github.com/silx-kit/silx/issues/4342
+            if isinstance(name, numpy.ndarray):
+                name = name.tobytes().rstrip(b'\000')
             if isinstance(name, bytes):
                 namestr = name.decode("ascii")
             else:
@@ -99,7 +102,11 @@ class Program:
         uniforms = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_UNIFORMS)):
             name = gl.glGetActiveUniform(program, index)[0]
+            # bug fix for numpy 2.3 See https://github.com/silx-kit/silx/issues/4342
+            if isinstance(name, numpy.ndarray):
+                name = name.tobytes().rstrip(b'\000')
             if isinstance(name, bytes):
+                # numpy < 2.3.0
                 namestr = name.decode("ascii")
             else:
                 raise TypeError(f"name is expected to be bytes. got {type(name)} - value: {name}")
