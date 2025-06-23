@@ -90,13 +90,19 @@ class Program:
         attributes = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_ATTRIBUTES)):
             name = gl.glGetActiveAttrib(program, index)[0]
-            namestr = name.decode("ascii")
+            if isinstance(name, bytes):
+                namestr = name.decode("ascii")
+            else:
+                raise TypeError(f"name is expected to be bytes. got {type(name)} - value: {name}")
             attributes[namestr] = gl.glGetAttribLocation(program, name)
 
         uniforms = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_UNIFORMS)):
             name = gl.glGetActiveUniform(program, index)[0]
-            namestr = name.decode("ascii")
+            if isinstance(name, bytes):
+                namestr = name.decode("ascii")
+            else:
+                raise TypeError(f"name is expected to be bytes. got {type(name)} - value: {name}")
             uniforms[namestr] = gl.glGetUniformLocation(program, name)
 
         return program, attributes, uniforms
