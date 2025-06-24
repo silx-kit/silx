@@ -187,7 +187,7 @@ parser.add_argument("--qt-binding", dest="qt_binding", default=None,
 
 options = parser.parse_args()
 
-test_verbosity = 2
+test_verbosity = 1
 use_buffer = True
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
@@ -237,7 +237,6 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
         pytest_options.append("--no-opengl")
     if options.high_mem is True:
         pytest_options.append("--high-mem")
-    pytest_options.append("-vv")
 
     def path2module(option):
         if option.endswith(".py"):
