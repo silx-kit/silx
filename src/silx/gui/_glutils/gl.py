@@ -32,6 +32,7 @@ from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
 import sys
+import numpy
 
 from packaging.version import Version
 
@@ -181,6 +182,8 @@ def glGetActiveAttrib(program, index):
     name = (GLchar * bufsize)()
 
     _GL.glGetActiveAttrib(program, index, bufsize, length, size, type_, name)
+    if isinstance(name, numpy.ndarray):
+        name.value = name.value.tobytes().rstrip(b'\000')
     return name.value, size.value, type_.value
 
 
