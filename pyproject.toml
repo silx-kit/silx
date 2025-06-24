@@ -54,7 +54,7 @@ full = [
     'silx[opencl]',
     'qtconsole',             # For silx.gui.console
     'matplotlib',            # For silx.gui.plot
-    'PyOpenGL',              # For silx.gui.plot3d
+    'PyOpenGL@git+https://github.com/chrishavlin/pyopengl.git@add_tobytes_for_np_arrays',              # For silx.gui.plot3d
     'python-dateutil',       # For silx.gui.plot
     'scipy',                 # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
     'pooch',                 # For scipy.datasets.ascent
