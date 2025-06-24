@@ -480,6 +480,9 @@ class GLLines2D:
 
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
+        print("context matrix is", context.matrix)
+        print("self.offset is", self.offset)
+        print("mat4Translate is", mat4Translate(*self.offset))
         matrix = numpy.dot(context.matrix, mat4Translate(*self.offset)).astype(
             numpy.float32
         )
