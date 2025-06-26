@@ -72,7 +72,7 @@ def pytest_configure(config):
 
 _FILTERWARNINGS = (
     "error",
-    "ignore:tostring() is deprecated. Use tobytes() instead.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
+    "ignore:tostring\(\) is deprecated\. Use tobytes\(\) instead\.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
     "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
     "ignore:Unable to import recommended hash 'siphash24.siphash13', falling back to 'hashlib.sha256'. Run 'python3 -m pip install siphash24' to install the recommended hash.:UserWarning:pytools.persistent_dict",
     "ignore:Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.:UserWarning",
