@@ -237,6 +237,10 @@ class _AutoscaleModeComboBox(qt.QComboBox):
             "Percentile 1-99",
             "Use 1st to 99th percentile of data",
         ),
+        Colormap.PERCENTILE_17_5_82_5: (
+            "Percentile 17.5-82.5",
+            "Use 17.5 to 82.5 percentile of data",
+        ),
     }
 
     def __init__(self, parent: qt.QWidget):

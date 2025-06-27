@@ -431,6 +431,8 @@ class TestObjectAPI(ParametricTestCase):
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
         colormap.setAutoscaleMode(Colormap.PERCENTILE_1_99)
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.PERCENTILE_1_99)
+        colormap.setAutoscaleMode(Colormap.PERCENTILE_17_5_82_5)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.PERCENTILE_17_5_82_5)
 
     def testStoreRestore(self):
         colormaps = [Colormap(name="viridis"), Colormap(normalization=Colormap.SQRT)]
@@ -605,6 +607,18 @@ class TestAutoscaleRange(ParametricTestCase):
                 numpy.array([10, 100]),
                 (10.9, 99.1),
             ),
+            (
+                Colormap.LINEAR,
+                Colormap.PERCENTILE_17_5_82_5,
+                numpy.array([10, 100]),
+                (25.75, 84.25),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_17_5_82_5,
+                numpy.array([10, 100]),
+                (25.75, 84.25),
+            ),
             # With nan
             (
                 Colormap.LINEAR,
@@ -642,6 +656,18 @@ class TestAutoscaleRange(ParametricTestCase):
                 numpy.array([10, 50, 100, nan]),
                 (10.8, 99.0),
             ),
+            (
+                Colormap.LINEAR,
+                Colormap.PERCENTILE_17_5_82_5,
+                numpy.array([10, 20, 50, nan]),
+                (13.5, 39.5),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_17_5_82_5,
+                numpy.array([10, 50, 100, nan]),
+                (24.0, 82.5),
+            ),
             # With negative
             (
                 Colormap.LOGARITHM,
@@ -660,6 +686,12 @@ class TestAutoscaleRange(ParametricTestCase):
                 Colormap.PERCENTILE_1_99,
                 numpy.array([10, 50, 100, -50]),
                 (10.8, 99.0),
+            ),
+            (
+                Colormap.LOGARITHM,
+                Colormap.PERCENTILE_17_5_82_5,
+                numpy.array([10, 50, 100, -50]),
+                (24.0, 82.5),
             ),
             # With inf
             (

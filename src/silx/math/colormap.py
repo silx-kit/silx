@@ -33,6 +33,8 @@ from typing import NamedTuple, Literal
 import warnings
 import numpy
 
+from silx.utils.deprecation import deprecated
+
 from ..resources import resource_filename as _resource_filename
 from .combo import min_max as _min_max
 from . import _colormap
@@ -208,7 +210,9 @@ def get_colormap_lut(name: str) -> numpy.ndarray:
     return _COLORMAP_CACHE[name]
 
 
-AutoScaleModeType = Literal["minmax", "stddev3", "percentile_1_99"]
+AutoScaleModeType = Literal[
+    "minmax", "stddev3", "percentile_1_99", "percentile_17.5_82.5"
+]
 
 
 # Normalizations
@@ -266,7 +270,9 @@ class _NormalizationMixIn:
             else:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile_1_99":
-            vmin, vmax = self.autoscale_percentile_1_99(data)
+            vmin, vmax = self.autoscale_percentile(data, q=(1.0, 99.0))
+        elif mode == "percentile_17.5_82.5":
+            vmin, vmax = self.autoscale_percentile(data, q=(17.5, 82.5))
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
@@ -323,8 +329,14 @@ class _NormalizationMixIn:
             mean + 3 * std, 0.0, 1.0
         )
 
+    @deprecated(since_version="3.0", replacement="autoscale_percentile")
     def autoscale_percentile_1_99(
         self, data: numpy.ndarray
+    ) -> tuple[float, float] | tuple[None, None]:
+        return self.autoscale_percentile(data=data, q=(1, 99))
+
+    def autoscale_percentile(
+        self, data: numpy.ndarray, q: tuple[float]
     ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using [1st, 99th] percentiles
 
@@ -336,7 +348,7 @@ class _NormalizationMixIn:
             data = data[numpy.isfinite(data)]
         if data.size == 0:
             return None, None
-        return numpy.nanpercentile(data, (1, 99))
+        return numpy.nanpercentile(data, q)
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
