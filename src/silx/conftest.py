@@ -77,6 +77,7 @@ _FILTERWARNINGS = (
     "ignore:Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.:UserWarning",
     # Remove __array__ ignore once h5py v3.12 is released
     "ignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
+    "ignore::pyopencl.RepeatedKernelRetrieval",
 )
 
 
