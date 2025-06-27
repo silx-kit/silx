@@ -70,6 +70,25 @@ def pytest_configure(config):
     _set_qt_binding(config.option.qt_binding)
 
 
+_FILTERWARNINGS = (
+    r"ignore:tostring\(\) is deprecated\. Use tobytes\(\) instead\.:DeprecationWarning:OpenGL.GL.VERSION.GL_2_0",
+    "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
+    "ignore:Unable to import recommended hash 'siphash24.siphash13', falling back to 'hashlib.sha256'. Run 'python3 -m pip install siphash24' to install the recommended hash.:UserWarning:pytools.persistent_dict",
+    "ignore:Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.:UserWarning",
+    # Remove __array__ ignore once h5py v3.12 is released
+    "ignore:__array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments.:DeprecationWarning",
+    "ignore::pyopencl.RepeatedKernelRetrieval",
+)
+
+
+def pytest_collection_modifyitems(items):
+    """Add warnings filters to all tests"""
+    for item in items:
+        item.add_marker(pytest.mark.filterwarnings("error"), append=False)
+        for filter_string in _FILTERWARNINGS:
+            item.add_marker(pytest.mark.filterwarnings(filter_string))
+
+
 @pytest.fixture(scope="session")
 def test_options(request):
     from .test import utils

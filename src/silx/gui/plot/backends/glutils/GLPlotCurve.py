@@ -1218,7 +1218,10 @@ class GLPlotCurve2D(GLPlotItem):
         # Handle data offset
         if xData.itemsize > 4 or yData.itemsize > 4:  # Use normalization
             # offset data, do not offset error as it is relative
-            self.offset = self.xMin, self.yMin
+            self.offset = (
+                self.xMin if numpy.isfinite(self.xMin) else 0.0,
+                self.yMin if numpy.isfinite(self.yMin) else 0.0,
+            )
             with numpy.errstate(invalid="ignore"):
                 self.xData = (xData - self.offset[0]).astype(numpy.float32)
                 self.yData = (yData - self.offset[1]).astype(numpy.float32)

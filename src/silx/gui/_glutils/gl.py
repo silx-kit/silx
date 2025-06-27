@@ -74,6 +74,8 @@ except NameError:
 
     GLchar = c_char
 
+import numpy as np
+
 
 def getPlatform() -> str | None:
     """Returns the name of the PyOpenGL class handling the platform.
@@ -182,6 +184,14 @@ def glGetActiveAttrib(program, index):
 
     _GL.glGetActiveAttrib(program, index, bufsize, length, size, type_, name)
     return name.value, size.value, type_.value
+
+
+def glGetActiveUniform(program, index):
+    """Wrap PyOpenGL glGetActiveUniform"""
+    name, size, type_ = _GL.glGetActiveUniform(program, index)
+    if isinstance(name, np.ndarray):
+        name = name.tobytes().rstrip(b"\000")
+    return name, size, type_
 
 
 def glDeleteRenderbuffers(buffers):
