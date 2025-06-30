@@ -38,6 +38,7 @@ from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
 from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
+from ...io.url import DataUrl
 
 import h5py
 
@@ -564,6 +565,56 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
+
+    def _find_node(
+        self, start_index: qt.QModelIndex, name: str
+    ) -> qt.QModelIndex | None:
+        matching_items = self.match(
+            start_index,
+            qt.Qt.DisplayRole,
+            name,
+        )
+        if len(matching_items) == 0:
+            return None
+        if len(matching_items) > 0:
+            _logger.warning(
+                f"More than one item found matching {name}. Pick the first one"
+            )
+
+        return matching_items[0]
+
+    def _find_children(
+        self, parent_node: Hdf5Item, child_node_name: str
+    ) -> Hdf5Item | None:
+        # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
+        "cannot use the default 'search' function as the item is not inheriting from the default QTreeItem..."
+        for i in range(parent_node.childCount()):
+            if parent_node.child(i).basename == child_node_name:
+                return parent_node.child(i)
+
+    def findHdf5Object(self, url: DataUrl) -> Hdf5Item | None:
+        """Return the Hdf5Object matching the url if exists in the model. Else None"""
+
+        # 1.0 find file name
+        file_name = url.file_path()
+
+        start_index = self._find_node(
+            start_index=self.index(0, 0), name=os.path.basename(file_name)
+        )
+        if start_index is None:
+            return None
+        node = self.nodeFromIndex(start_index)
+
+        # 2.0 find data path node
+        node_names = filter(None, url.data_path().split("/"))
+
+        for node_name in node_names:
+            # find file name
+            if node is None:
+                return None
+            node = self._find_children(parent_node=node, child_node_name=node_name)
+
+        return node
 
     def _closeFileIfOwned(self, node):
         """Close the file if it was loaded from a filename or a
