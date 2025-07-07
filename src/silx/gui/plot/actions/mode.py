@@ -137,3 +137,39 @@ class PanModeAction(PlotAction):
         plot = self.plot
         if plot is not None:
             plot.setInteractiveMode("pan", source=self)
+
+
+class DynamicColormapAction(PlotAction):
+    """QAction controlling the colormap mode of a :class:`.PlotWidget`.
+    This mode adjusts the colormap based on a small region around the 
+    mouse position in the plot.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super().__init__(
+            plot,
+            icon="dynamic_colormap",  # TODO: add a dedicated icon
+            text="Dynamic Colormap mode",
+            tooltip="Update the colormap according to the mouse position in the plot",
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent,
+        )
+        # Listen to mode change
+        self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
+        # Init the state
+        self._modeChanged(None)
+
+    def _modeChanged(self, source):
+        modeDict = self.plot.getInteractiveMode()
+        old = self.blockSignals(True)
+        self.setChecked(modeDict["mode"] == "dynamic_colormap")
+        self.blockSignals(old)
+
+    def _actionTriggered(self, checked=False):
+        plot = self.plot
+        if plot is not None:
+            plot.setInteractiveMode("dynamic_colormap", source=self)
