@@ -182,7 +182,7 @@ def mainQt(options):
     for url in parseutils.filenames_to_dataurls(options.files, options.slices):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
-            window.appendFile(url.path())
+            window.appendFile(url if isinstance(url, str) else url.path())
         except OSError as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
