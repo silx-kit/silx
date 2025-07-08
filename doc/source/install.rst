@@ -126,7 +126,7 @@ for example:
 
 .. code-block:: bash
 
-   pip install silx --no-binary silx -Csetup-args="-Duse-openmp=disabled"
+   pip install silx --no-binary silx -Csetup-args="-Duse_openmp=disabled"
 
 
 .. _dependencies:

@@ -103,7 +103,6 @@ jobs:
       - name: Test
         env:
           QT_API: ${{ matrix.QT_API }}
-          SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          python run_tests.py --installed --qt-binding=${{ matrix.QT_API }}
+          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
