@@ -32,6 +32,7 @@ import os
 import sys
 import time
 import logging
+import urllib.parse
 from collections.abc import Generator
 
 import numpy
@@ -48,6 +49,12 @@ try:
     import h5pyd
 except ImportError as e:
     h5pyd = None
+
+try:
+    from .zarrh5 import ZarrH5
+except ImportError as e:
+    ZarrH5 = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -689,34 +696,46 @@ def open(filename):  # pylint:disable=redefined-builtin
     :raises: IOError if the file can't be loaded or path can't be found
     :rtype: h5py-like node
     """
-    url = DataUrl(filename)
+    url = urllib.parse.urlparse(filename)
+    if url.scheme.startswith("zarr+"):
+        if ZarrH5 is None:
+            raise IOError(
+                f"Zarr support is not available, please install zarr, cannot open: {filename}"
+            )
+        try:
+            return ZarrH5(filename)
+        except Exception as e:
+            raise IOError(f"Failed to open URL with zarr: {type(e)} {e}")
 
-    if url.scheme() in [None, "file", "silx"]:
+    data_url = DataUrl(filename)
+    if data_url.scheme() in [None, "file", "silx"]:
         # That's a local file
-        if not url.is_valid():
+        if not data_url.is_valid():
             raise OSError("URL '%s' is not valid" % filename)
-        h5_file = _open_local_file(url.file_path())
-    elif url.scheme() in ("http", "https"):
+        h5_file = _open_local_file(data_url.file_path())
+    elif data_url.scheme() in ("http", "https"):
         return _open_url_with_h5pyd(filename)
     else:
-        raise OSError(f"Unsupported URL scheme {url.scheme}: {filename}")
+        raise OSError(f"Unsupported URL scheme {data_url.scheme}: {filename}")
 
-    if url.data_path() in [None, "/", ""]:  # The full file is requested
-        if url.data_slice():
+    if data_url.data_path() in [None, "/", ""]:  # The full file is requested
+        if data_url.data_slice():
             raise OSError(f"URL '{filename}' containing slicing is not supported")
         return h5_file
     else:
         # Only a children is requested
-        if url.data_path() not in h5_file:
-            msg = f"File '{filename}' does not contain path '{url.data_path()}'."
+        if data_url.data_path() not in h5_file:
+            msg = f"File '{filename}' does not contain path '{data_url.data_path()}'."
             raise OSError(msg)
-        node = h5_file[url.data_path()]
+        node = h5_file[data_url.data_path()]
 
-        if url.data_slice() is not None:
+        if data_url.data_slice() is not None:
             from . import _sliceh5  # Lazy-import to avoid circular dependency
 
             try:
-                return _sliceh5.DatasetSlice(node, url.data_slice(), attrs=node.attrs)
+                return _sliceh5.DatasetSlice(
+                    node, data_url.data_slice(), attrs=node.attrs
+                )
             except ValueError:
                 raise OSError(
                     f"URL {filename} contains slicing, but it is not a dataset"

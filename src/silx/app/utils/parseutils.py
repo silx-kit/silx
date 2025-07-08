@@ -31,6 +31,7 @@ __date__ = "28/05/2018"
 from collections.abc import Sequence
 import glob
 import logging
+import urllib.parse
 from typing import Any
 from collections.abc import Generator, Iterable
 from pathlib import Path
@@ -76,7 +77,7 @@ def to_bool(thing: Any, default: bool | None = None) -> bool:
 def filenames_to_dataurls(
     filenames: Iterable[str | Path],
     slices: Sequence[int] = tuple(),
-) -> Generator[object]:
+) -> Generator["DataUrl" | str]:
     """Expand filenames and HDF5 data path in files input argument"""
     # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
     import silx.io
@@ -87,6 +88,12 @@ def filenames_to_dataurls(
     extra_slices = tuple(slices)
 
     for filename in filenames:
+        if isinstance(filename, str) and urllib.parse.urlparse(
+            filename
+        ).scheme.startswith("zarr+"):
+            yield filename
+            continue
+
         url = DataUrl(filename)
 
         for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
