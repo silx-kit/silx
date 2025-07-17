@@ -1,6 +1,6 @@
 from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.gui import qt
-from ._OverlayMixIn import OverlayMixIn as _OverlayMixIn
+from .OverlayMixIn import OverlayMixIn as _OverlayMixIn
 
 
 class WaitingOverlay(_OverlayMixIn, WaitingPushButton):
