@@ -32,14 +32,25 @@ def test_show(qapp, qapp_utils, widget_parent):
     qapp.processEvents()
 
 
+@pytest.mark.parametrize(
+    "alignment",
+    (
+        qt.Qt.AlignLeft,
+        qt.Qt.AlignRight | qt.Qt.AlignTop,
+        qt.Qt.AlignCenter,
+        qt.Qt.AlignLeft | qt.Qt.AlignBottom,
+    ),
+)
 @pytest.mark.parametrize("widget_parent", (Plot2D, qt.QFrame))
 @pytest.mark.parametrize("constructor", (LabelOverlay, ButtonOverlay))
-def test_overlay_widgets(qapp, qapp_utils, widget_parent, constructor):
+def test_overlay_widgets(qapp, qapp_utils, widget_parent, constructor, alignment):
     widget = widget_parent()
     widget.setAttribute(qt.Qt.WA_DeleteOnClose)
 
     overlayWidget = constructor(widget)
     overlayWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    overlayWidget.setAlignment(alignment)
+    assert overlayWidget.getAlignment() == alignment
 
     widget.show()
     qapp_utils.qWaitForWindowExposed(widget)
