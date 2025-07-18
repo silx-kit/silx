@@ -4,7 +4,13 @@ from silx.gui.plot import PlotWidget
 
 
 class OverlayMixIn:
-    "MixIn class for overlay widget"
+    """
+    MixIn class for overlay widget.
+
+    For usage examples refer to :class:`WaitingOverlay`, :class:`LabelOverlay` and :class:`ButtonOverlay`
+
+    .. warning:: Any class inheriting from this mixin must also inherit from a QWidget.
+    """
 
     def __init__(self, parent):
         self._registerParent(parent=parent)
