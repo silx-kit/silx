@@ -1,6 +1,6 @@
 from silx.gui import qt
 
-from ._OverlayMixIn import OverlayMixIn as _OverlayMixIn
+from .OverlayMixIn import OverlayMixIn as _OverlayMixIn
 
 
 class ButtonOverlay(_OverlayMixIn, qt.QPushButton):
