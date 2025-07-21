@@ -16,7 +16,7 @@ class OverlayMixIn:
         self,
         parent,
         alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter,
-        alignment_offsets: tuple[int] = (0, 0),
+        alignment_offsets: tuple[int, int] = (0, 0),
     ):
         """
         :param parent: parent widget
@@ -24,7 +24,7 @@ class OverlayMixIn:
         :param alignment_offsets: alignment offset as (horizontal offset, vertical offset). Values can be positive or negative. It will offset the alignment of this value
         """
         self._alignment: qt.Qt.AlignmentFlag = alignment
-        self._alignment_offsets: tuple[int] = alignment_offsets
+        self._alignment_offsets: tuple[int, int] = alignment_offsets
         self._registerParent(parent=parent)
 
     def getAlignment(self) -> qt.Qt.AlignmentFlag:
