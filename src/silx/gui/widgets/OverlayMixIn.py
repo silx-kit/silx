@@ -17,7 +17,7 @@ class OverlayMixIn:
         parent,
     ):
         self._alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter
-        self._alignment_offsets: tuple[int, int] = (0, 0)
+        self._alignmentOffsets: tuple[int, int] = (0, 0)
         self._registerParent(parent=parent)
 
     def getAlignment(self) -> qt.Qt.AlignmentFlag:
@@ -28,10 +28,10 @@ class OverlayMixIn:
         self.update()
 
     def getAlignmentOffsets(self) -> tuple[int, int]:
-        return self._alignment_offsets
+        return self._alignmentOffsets
 
     def setAlignmentOffsets(self, offsets: tuple[int, int]):
-        self._alignment_offsets = offsets
+        self._alignmentOffsets = offsets
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
@@ -70,43 +70,43 @@ class OverlayMixIn:
         if parent is None:
             return None
 
-        overlay_size = self.sizeHint()
+        overlaySize = self.sizeHint()
         if isinstance(parent, PlotWidget):
             offset = parent.getWidgetHandle().mapTo(parent, qt.QPoint(0, 0))
-            canvas_left, canvas_top, canvas_width, canvas_height = (
+            canvasLeft, canvasTop, canvasWidth, canvasHeight = (
                 parent.getPlotBoundsInPixels()
             )
-            canvas_left += offset.x()
-            canvas_top += offset.y()
+            canvasLeft += offset.x()
+            canvasTop += offset.y()
         else:
-            canvas_width = parent.size().width()
-            canvas_height = parent.size().height()
-            canvas_left = 0
-            canvas_top = 0
+            canvasWidth = parent.size().width()
+            canvasHeight = parent.size().height()
+            canvasLeft = 0
+            canvasTop = 0
 
         # calculate left position
         if self._alignment & qt.Qt.AlignTop:
-            top = canvas_top
+            top = canvasTop
         elif self._alignment & qt.Qt.AlignBottom:
-            top = canvas_top + canvas_height - overlay_size.height()
+            top = canvasTop + canvasHeight - overlaySize.height()
         else:
-            top = canvas_top + (canvas_height - overlay_size.height()) / 2
+            top = canvasTop + (canvasHeight - overlaySize.height()) / 2
 
         # calculate top position
         if self._alignment & qt.Qt.AlignLeft:
-            left = canvas_left
+            left = canvasLeft
         elif self._alignment & qt.Qt.AlignRight:
-            left = canvas_left + canvas_width - overlay_size.width()
+            left = canvasLeft + canvasWidth - overlaySize.width()
         else:
-            left = canvas_left + (canvas_width - overlay_size.width()) / 2
+            left = canvasLeft + (canvasWidth - overlaySize.width()) / 2
 
         topLeft = qt.QPoint(
-            int(left + self._alignment_offsets[0]),
-            int(top + self._alignment_offsets[1]),
+            int(left + self._alignmentOffsets[0]),
+            int(top + self._alignmentOffsets[1]),
         )
         return qt.QRect(
             topLeft,
-            overlay_size,
+            overlaySize,
         )
 
     def _resize(self):
