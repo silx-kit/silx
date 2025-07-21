@@ -64,10 +64,12 @@ class OverlayMixIn:
         super().setParent(parent)
         self._registerParent(parent)
 
-    def _getGeometryTopLeft(self) -> tuple[int]:
+    def _getGeometry(self) -> qt.QRect | None:
         """Return the top left corner of the geometry to set up the geometry"""
 
         parent = self.parent()
+        if parent is None:
+            return None
 
         overlay_size: qt.QSize = self.sizeHint()
         if isinstance(parent, PlotWidget):
@@ -99,21 +101,22 @@ class OverlayMixIn:
         else:
             left = canvas_left + (canvas_width - overlay_size.width()) / 2
 
-        return qt.QPoint(
+        topLeft = qt.QPoint(
             int(left + self._alignment_offsets[0]),
             int(top + self._alignment_offsets[1]),
+        )
+        return qt.QRect(
+            topLeft,
+            overlay_size,
         )
 
     def _resize(self):
         if not qt_inspect.isValid(self):
             return  # For _resizeLater in case the widget has been deleted
 
-        parent = self.parent()
-        if parent is None:
+        rect = self._getGeometry()
+        if rect is None:
             return
-
-        size = self.sizeHint()
-        rect = qt.QRect(self._getGeometryTopLeft(), size)
 
         self.setGeometry(rect)
         self.raise_()
