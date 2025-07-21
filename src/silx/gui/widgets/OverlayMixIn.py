@@ -32,7 +32,7 @@ class OverlayMixIn:
 
     def setAlignment(self, alignment: qt.Qt.AlignmentFlag):
         self._alignment = alignment
-        self.repaint()
+        self.update()
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
