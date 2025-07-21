@@ -14,7 +14,7 @@ class OverlayMixIn:
 
     def __init__(
         self,
-        parent,
+        parent: qt.QWidget | None = None,
     ):
         self._alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter
         self._alignmentOffsets: tuple[int, int] = (0, 0)
