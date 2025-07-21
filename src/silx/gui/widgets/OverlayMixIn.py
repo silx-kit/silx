@@ -64,7 +64,6 @@ class OverlayMixIn:
         self._registerParent(parent)
 
     def _getGeometry(self) -> qt.QRect | None:
-        """Return the top left corner of the geometry to set up the geometry"""
 
         parent = self.parent()
         if parent is None:
