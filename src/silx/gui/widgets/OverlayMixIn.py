@@ -71,7 +71,7 @@ class OverlayMixIn:
         if parent is None:
             return None
 
-        overlay_size: qt.QSize = self.sizeHint()
+        overlay_size = self.sizeHint()
         if isinstance(parent, PlotWidget):
             offset = parent.getWidgetHandle().mapTo(parent, qt.QPoint(0, 0))
             canvas_left, canvas_top, canvas_width, canvas_height = (
