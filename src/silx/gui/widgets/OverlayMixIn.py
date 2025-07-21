@@ -79,7 +79,7 @@ class OverlayMixIn:
             canvas_top += offset.y()
         else:
             canvas_width = parent.size().width()
-            canvas_top = canvas_height = parent.size().height()
+            canvas_height = parent.size().height()
             canvas_left = 0
             canvas_top = 0
 
