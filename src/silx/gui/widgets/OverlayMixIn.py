@@ -15,16 +15,9 @@ class OverlayMixIn:
     def __init__(
         self,
         parent,
-        alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter,
-        alignment_offsets: tuple[int, int] = (0, 0),
     ):
-        """
-        :param parent: parent widget
-        :param alignment: alignment of the overlay.
-        :param alignment_offsets: alignment offset as (horizontal offset, vertical offset). Values can be positive or negative. It will offset the alignment of this value
-        """
-        self._alignment: qt.Qt.AlignmentFlag = alignment
-        self._alignment_offsets: tuple[int, int] = alignment_offsets
+        self._alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter
+        self._alignment_offsets: tuple[int, int] = (0, 0)
         self._registerParent(parent=parent)
 
     def getAlignment(self) -> qt.Qt.AlignmentFlag:
@@ -33,6 +26,12 @@ class OverlayMixIn:
     def setAlignment(self, alignment: qt.Qt.AlignmentFlag):
         self._alignment = alignment
         self.update()
+
+    def getAlignmentOffsets(self) -> tuple[int, int]:
+        return self._alignment_offsets
+
+    def setAlignmentOffsets(self, offsets: tuple[int, int]):
+        self._alignment_offsets = offsets
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
