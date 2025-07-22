@@ -526,7 +526,7 @@ class Colormap(event.Notifier, ProgramFunction):
             texUnit=self._COLORMAP_TEXTURE_UNIT,
             minFilter=gl.GL_NEAREST,
             magFilter=gl.GL_NEAREST,
-            wrap=gl.GL_CLAMP_TO_EDGE,
+            wrap=gl.GL_MIRRORED_REPEAT,
         )
 
         self.notify()
