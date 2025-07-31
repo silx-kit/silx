@@ -217,6 +217,8 @@ class StatsHandler:
             data_changed=data_changed,
             roi_changed=roi_changed,
         )
-        for resName, resValue in list(res.items()):
-            res[resName] = self.format(resName, res[resName])
+        for resName, resValue in res.items():
+            if isinstance(resValue, tuple) and len(resValue) == 1:
+                resValue = resValue[0]
+            res[resName] = self.format(resName, resValue)
         return res
