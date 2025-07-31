@@ -633,6 +633,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
+        horizontalHeader.setStretchLastSection(True)
+
         self._updateItemObserve()
 
     def setPlot(self, plot):
