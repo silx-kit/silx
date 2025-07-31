@@ -817,6 +817,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             for column, tableItem in enumerate(tableItems):
                 tableItem.setData(qt.Qt.UserRole, _Container(item))
                 tableItem.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+                tableItem.setTextAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
                 self.setItem(row, column, tableItem)
 
             # Update table items content
