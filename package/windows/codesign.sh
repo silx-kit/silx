@@ -47,7 +47,7 @@ security set-key-partition-list \
 security find-certificate ${ROOT}/notarize.keychain-db
 
 log "Codesigning the application bundle."
-codesign --verbose --force --deep --options=runtime \
+codesign -vvv --force --deep --strict --options=runtime \
   --entitlements ./entitlements.plist \
   --keychain "${KEYCHAIN_PATH}" \
   --timestamp "${APP_PATH}" \
