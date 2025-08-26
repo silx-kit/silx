@@ -5,7 +5,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 # Print commands and their arguments as they are executed (debug mode)
-set -x
+# set -x
 
 log() {
   echo "$(date "+%Y-%m-%d %H:%M:%S") INFO [codesign] $1"
@@ -35,9 +35,9 @@ log "Certificate SHA-256: $(shasum -a 256 "${CERTIFICATE_PATH}" | awk '{print $1
 log "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" \
   -P "${CERTIFICATE_PASSWORD}" \
-  # -A -t cert -f pkcs12 \
   -T /usr/bin/codesign \
   -k "${KEYCHAIN_PATH}"
+  # -A -t cert -f pkcs12 \
 
 log "Configuring keychain access control for codesigning without UI prompts."
 security set-key-partition-list \
