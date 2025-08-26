@@ -23,8 +23,14 @@ security create-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 security set-keychain-settings -lut 21600 "${KEYCHAIN_PATH}"
 security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
+log "Calculate the SHA-256 hash of the keychain password."
+log "Keychain password SHA-256: $(echo -n "${KEYCHAIN_PASSWORD}" | shasum -a 256 | awk '{print $1}')"
+
 log "Importing the certificate from the base64 string."
 echo "${CERTIFICATE_BASE64}" | base64 --decode -o "${CERTIFICATE_PATH}"
+
+log "Calculate the SHA-256 hash of the certificate."
+log "Certificate SHA-256: $(shasum -a 256 "${CERTIFICATE_PATH}" | awk '{print $1}')"
 
 log "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" \
