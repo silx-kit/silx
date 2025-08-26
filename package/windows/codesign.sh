@@ -35,8 +35,7 @@ log "Certificate SHA-256: $(shasum -a 256 "${CERTIFICATE_PATH}" | awk '{print $1
 log "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" \
   -P "${CERTIFICATE_PASSWORD}" \
-  -A -t cert -f pkcs12 \
-  -k "${KEYCHAIN_PATH}"
+  -A -t cert -f pkcs12
 
 log "Configuring keychain access control for codesigning without UI prompts."
 security set-key-partition-list \
@@ -51,9 +50,9 @@ security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 log "Codesigning the application bundle."
 codesign -vvv --force --deep --strict --options=runtime \
   --entitlements "./entitlements.plist" \
-  --keychain "${KEYCHAIN_PATH}" \
-  --timestamp "${APP_PATH}" \
-  --sign "${APPLE_SIGNING_ID}"
+  --timestamp \
+  --sign "${APPLE_SIGNING_ID}" \
+  "${APP_PATH}"
   # --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 log "Removing the certificate file and keychain."
