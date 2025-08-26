@@ -8,7 +8,7 @@ set -e
 set -x
 
 log() {
-  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO [codesign] $1"
+  echo "$(date "+%Y-%m-%d %H:%M:%S") INFO [codesign] $1"
 }
 
 log "Setting the required environment variables."
@@ -40,20 +40,21 @@ security import "${CERTIFICATE_PATH}" \
 
 log "Configuring keychain access control for codesigning without UI prompts."
 security set-key-partition-list \
-  -S apple-tool:,apple: \
+  -S "apple-tool:,apple:" \
   -k "${KEYCHAIN_PASSWORD}" \
   "${KEYCHAIN_PATH}"
 
-security find-certificate ${ROOT}/notarize.keychain-db
+security find-certificate "${ROOT}/notarize.keychain-db"
 
 security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
 log "Codesigning the application bundle."
 codesign -vvv --force --deep --strict --options=runtime \
-  --entitlements ./entitlements.plist \
+  --entitlements "./entitlements.plist" \
   --keychain "${KEYCHAIN_PATH}" \
   --timestamp "${APP_PATH}" \
-  --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
+  --sign "${APPLE_SIGNING_ID}"
+  # --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 log "Removing the certificate file and keychain."
 rm "${CERTIFICATE_PATH}"
