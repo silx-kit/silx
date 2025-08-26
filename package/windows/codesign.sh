@@ -46,6 +46,8 @@ security set-key-partition-list \
 
 security find-certificate ${ROOT}/notarize.keychain-db
 
+security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+
 log "Codesigning the application bundle."
 codesign -vvv --force --deep --strict --options=runtime \
   --entitlements ./entitlements.plist \
