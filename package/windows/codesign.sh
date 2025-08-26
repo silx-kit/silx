@@ -35,7 +35,9 @@ log "Certificate SHA-256: $(shasum -a 256 "${CERTIFICATE_PATH}" | awk '{print $1
 log "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" \
   -P "${CERTIFICATE_PASSWORD}" \
-  -A -t cert -f pkcs12
+  # -A -t cert -f pkcs12 \
+  -T /usr/bin/codesign \
+  -k "${KEYCHAIN_PATH}"
 
 log "Configuring keychain access control for codesigning without UI prompts."
 security set-key-partition-list \
@@ -45,18 +47,16 @@ security set-key-partition-list \
 
 security find-certificate "${ROOT}/notarize.keychain-db"
 
-security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
-
 log "Codesigning the application bundle."
 codesign -vvv --force --deep --strict --options=runtime \
   --entitlements "./entitlements.plist" \
-  --timestamp \
-  --sign "${APPLE_SIGNING_ID}" \
-  "${APP_PATH}"
+  --keychain "${KEYCHAIN_PATH}" \
+  --timestamp "${APP_PATH}" \
+  --sign "${APPLE_SIGNING_ID}"
   # --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 log "Removing the certificate file and keychain."
 rm "${CERTIFICATE_PATH}"
-security delete-keychain "${KEYCHAIN_PATH}"
+# security delete-keychain "${KEYCHAIN_PATH}"
 
 log "Codesigning completed successfully."
