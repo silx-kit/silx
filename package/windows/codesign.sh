@@ -41,12 +41,11 @@ security set-key-partition-list \
 security find-certificate ${ROOT}/notarize.keychain-db
 
 log "Codesigning the application bundle."
-# --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})" 
 codesign --verbose --force --deep --options=runtime \
   --entitlements ./entitlements.plist \
   --keychain "${KEYCHAIN_PATH}" \
   --timestamp "${APP_PATH}" \
-  --sign \""Developer ID Application: MARIUS SEPTIMIU RETEGAN (2YU2GQDPHY)\""
+  --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 log "Removing the certificate file and keychain."
 rm "${CERTIFICATE_PATH}"
