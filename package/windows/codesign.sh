@@ -35,17 +35,28 @@ log "Certificate SHA-256: $(shasum -a 256 "${CERTIFICATE_PATH}" | awk '{print $1
 log "Importing the certificate to the keychain."
 security import "${CERTIFICATE_PATH}" \
   -P "${CERTIFICATE_PASSWORD}" \
+  -A -t cert -f pkcs12 \
   -T /usr/bin/codesign \
+  -T /usr/bin/security \
   -k "${KEYCHAIN_PATH}"
-  # -A -t cert -f pkcs12 \
+
+# Disable keychain auto-lock.
+security set-keychain-settings "$KEYCHAIN_NAME"
+
+security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+
+APPLE_SIGNING_ID="Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
+echo $APPLE_SIGNING_ID
 
 log "Configuring keychain access control for codesigning without UI prompts."
 security set-key-partition-list \
-  -S "apple-tool:,apple:" \
-  -k "${KEYCHAIN_PASSWORD}" \
+  -S "apple-tool:,apple:,codesign:" \
+  -s -k "${KEYCHAIN_PASSWORD}" \
   "${KEYCHAIN_PATH}"
+  -D ${APPLE_SIGNING_ID}
+  -t private
 
-security find-certificate "${ROOT}/notarize.keychain-db"
+# security find-certificate "${ROOT}/notarize.keychain-db"
 
 log "Codesigning the application bundle."
 codesign -vvv --force --deep --strict --options=runtime \
@@ -53,7 +64,6 @@ codesign -vvv --force --deep --strict --options=runtime \
   --keychain "${KEYCHAIN_PATH}" \
   --timestamp "${APP_PATH}" \
   --sign "${APPLE_SIGNING_ID}"
-  # --sign "Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 log "Removing the certificate file and keychain."
 rm "${CERTIFICATE_PATH}"
