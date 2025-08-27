@@ -80,7 +80,6 @@ jobs:
           CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
           APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APPLICATION_SPECIFIC_PASSWORD }}
-          APPLE_SIGNING_ID: ${{ vars.APPLE_SIGNING_ID }}
         run: |
           cd package/windows
           pyinstaller pyinstaller.spec
