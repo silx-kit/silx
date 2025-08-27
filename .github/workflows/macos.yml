@@ -30,7 +30,15 @@ jobs:
         env:
           PYINSTALLER_COMPILE_BOOTLOADER: "1"
         run: pip install pyinstaller --no-binary pyinstaller
-      - name: Build app (without signing for testing)
+      - name: Build app 
+        env:
+          ACTIONS_STEP_DEBUG: true
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APPLICATION_SPECIFIC_PASSWORD }}
         run: |
           cd package/pyinstaller
           pyinstaller pyinstaller.spec
