@@ -1,0 +1,66 @@
+name: macOS builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - macos-app
+
+jobs:
+  build_and_notarize_macos_app:
+    name: Build macOS app on ${{ matrix.runner }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install silx
+        run: pip install .[full]
+      - name: Install pyinstaller
+        # Install PyInstaller from source and compile bootloader.
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+        run: pip install pyinstaller --no-binary pyinstaller
+      - name: Build app (without signing for testing)
+        run: |
+          cd package/pyinstaller
+          pyinstaller pyinstaller.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-${{ matrix.arch }}
+          path: |
+            ./package/pyinstaller/artifacts/*.dmg
+
+  test_macos_app:
+    needs: [build_and_notarize_macos_app]
+    name: Test macOS app on ${{ matrix.runner }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-app-${{ matrix.arch }}
+      - name: Mount DMG
+        run: hdiutil attach *.dmg
+      - name: Test app
+        run: |
+          VOLUME=$(hdiutil info | grep "/Volumes/" | tail -1 | awk '{print $3}')
+          cd "$VOLUME"
+          ./silx-view --help
+          ./silx --help
+          hdiutil detach "$VOLUME"
