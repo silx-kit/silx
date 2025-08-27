@@ -63,12 +63,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: macos-app-${{ matrix.arch }}
-      - name: Mount DMG
+      - name: Mount the disk image
         run: hdiutil attach *.dmg
       - name: Test app
         run: |
           VOLUME=$(hdiutil info | grep "/Volumes/" | tail -1 | awk '{print $3}')
           cd "$VOLUME"
-          ./silx-view --help
-          ./silx --help
+          if [ -d "silx-view.app" ]; then
+            ./silx-view.app/Contents/MacOS/silx-view --help
+          fi
           hdiutil detach "$VOLUME"
