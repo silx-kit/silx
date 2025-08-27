@@ -162,13 +162,16 @@ create_license_file("LICENSE")
 
 if sys.platform == "darwin":
     # Codesign the application.
-    subprocess.call(["bash", "codesign.sh"])
+    if subprocess.call(["bash", "codesign.sh"]) != 0:
+        sys.exit(1)
 
     # Pack the application in a .dmg image.
-    subprocess.call(["bash", "create-dmg.sh"])
+    if subprocess.call(["bash", "create-dmg.sh"]) != 0:
+        sys.exit(1)
 
     # Submit the image for notarization.
-    subprocess.call(["bash", "notarize.sh"])
+    if subprocess.call(["bash", "notarize.sh"]) != 0:
+        sys.exit(1)
 
     # Rename the created .dmg image.
     os.rename(
