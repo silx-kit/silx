@@ -1,7 +1,9 @@
+#!/usr/bin/env bash
+
 # Script to convert SVG files to macOS .icns format.
 # Adapted from https://github.com/magnusviri/svg2icns.
-
-#!/usr/bin/env bash
+# Copyright (c) 2021 James Reynolds
+# Licensed under the MIT License.
 
 # Exit immediately if a command fails.
 set -e
