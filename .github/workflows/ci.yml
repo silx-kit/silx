@@ -1,4 +1,4 @@
-name: continuous-integration
+name: Continuous integration
 
 on:
   push:
@@ -11,81 +11,98 @@ defaults:
     shell: bash
 
 jobs:
-  # build_windows_installer:
-  #   name: Build the Windows installer
-  #   runs-on: windows-2022
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.11"
-  #         cache: "pip"
-  #     - name: Install silx
-  #       run: pip install .[full,test]
-  #     - name: Install pyinstaller
-  #       # Install PyInstaller from source and compile bootloader.
-  #       env:
-  #         PYINSTALLER_COMPILE_BOOTLOADER: "1"
-  #         PYINSTALLER_BOOTLOADER_WAF_ARGS: "--msvc_target=x64"
-  #       run: pip install pyinstaller --no-binary pyinstaller
-  #     - name: Build the package with all dependencies
-  #       run: |
-  #         cd package/windows
-  #         pyinstaller pyinstaller.spec
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: windows-installer
-  #         path: |
-  #           ./package/windows/artifacts/silx-*.exe
-  #           ./package/windows/artifacts/silx-*.zip
-
-  # test_windows_installer:
-  #   needs: [build_windows_installer]
-  #   name: Test the Windows installer
-  #   runs-on: windows-2022
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         name: windows-installer
-  #     - name: Unzip
-  #       run: 7z x silx-*.zip
-  #     - name: Test
-  #       run: |
-  #         cd silx
-  #         ./silx-view.exe --help
-  #         ./silx.exe --help
-
-  build_and_notarize_macos_app:
-    name: Build the macOS app
-    runs-on: macos-13
+  check:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
-      - name: Install silx
-        run: pip install .[full]
-      - name: Install pyinstaller
-        # Install PyInstaller from source and compile bootloader.
-        env:
-          PYINSTALLER_COMPILE_BOOTLOADER: "1"
-        run: pip install pyinstaller --no-binary pyinstaller
-      - name: Build the package with all dependencies
-        env:
-          ACTIONS_STEP_DEBUG: true
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
-          CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-          APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+      - name: Build wheel
         run: |
-          cd package/windows
-          pyinstaller pyinstaller.spec
-      - uses: actions/upload-artifact@v4
+          pip install --upgrade build
+          python -m build --wheel
+          ls dist
+      - name: Check meson.build files
+        run: |
+          python ./tools/check_meson.py dist/silx-*.whl
+
+  build:
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+            QT_API: PySide6
+            with_opencl: false
+          #- os: ubuntu-22.04
+          #  python-version: "3.11"
+          #  QT_API: PyQt6
+          #  with_opencl: true
+          #- os: ubuntu-22.04
+          #  python-version: "3.13"
+          #  QT_API: PySide6
+          #  with_opencl: true
+
+          #- os: macos-13
+          #  python-version: "3.12"
+          #  QT_API: PyQt5
+          #  with_opencl: true
+          - os: macos-13
+            python-version: "3.13"
+            QT_API: PyQt6
+            with_opencl: true
+          #- os: macos-13
+          #  python-version: "3.10"
+          #  QT_API: PySide6
+          #  with_opencl: true
+
+          #- os: windows-latest
+          #  python-version: "3.13"
+          #  QT_API: PyQt5
+          #  with_opencl: false
+          #- os: windows-latest
+          #  python-version: "3.10"
+          #  QT_API: PyQt6
+          #  with_opencl: false
+          - os: windows-latest
+            python-version: "3.12"
+            QT_API: PyQt5
+            with_opencl: false
+
+    steps:
+      - uses: actions/checkout@v4        
+      - uses: actions/setup-python@v5
         with:
-          name: macos-app
-          path: |
-            package/windows/dist/*.app
-            package/windows/artifacts/*.dmg
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - uses: ./.github/actions/setup-system
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade --pre build wheel 
+
+      - name: Build wheel
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+        run: |
+          python -m build
+          ls dist
+
+      - name: Install
+        run: |
+          pip install -r ci/requirements-pinned.txt
+          pip install --pre "${{ matrix.QT_API }}"
+          pip install --pre "$(ls dist/silx*.whl)[full,test]"
+          python ./ci/info_platform.py
+          pip list
+
+      - name: Test
+        env:
+          QT_API: ${{ matrix.QT_API }}
+          SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
+        run: |
+          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
