@@ -160,18 +160,18 @@ It includes mainy software packages with different licenses:
 create_license_file("LICENSE")
 
 
+def run_script(script_name: str, description: str):
+    """Run a bash script and exit on failure."""
+    print(f"{description}...")
+    if subprocess.call(["bash", script_name]) != 0:
+        print(f"Error: {description} failed")
+        sys.exit(1)
+
+
 if sys.platform == "darwin":
-    # Codesign the application.
-    if subprocess.call(["bash", "codesign.sh"]) != 0:
-        sys.exit(1)
-
-    # Pack the application in a .dmg image.
-    if subprocess.call(["bash", "create-dmg.sh"]) != 0:
-        sys.exit(1)
-
-    # Submit the image for notarization.
-    if subprocess.call(["bash", "notarize.sh"]) != 0:
-        sys.exit(1)
+    run_script("codesign.sh", "Codesigning the application")
+    run_script("create-dmg.sh", "Packing the application in a .dmg image")
+    run_script("notarize.sh", "Submitting the image for notarization")
 
     # Rename the created .dmg image.
     os.rename(
