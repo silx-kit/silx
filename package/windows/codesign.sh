@@ -17,6 +17,7 @@ ROOT="${PWD}"
 APP_PATH="${ROOT}/dist/${APP_NAME}.app"
 KEYCHAIN_PATH="${ROOT}/notarize.keychain-db"
 CERTIFICATE_PATH="${ROOT}/certificate.p12"
+APPLE_SIGNING_ID="Developer ID Application: MARIUS SEPTIMIU RETEGAN (${APPLE_TEAM_ID})"
 
 # Ensure cleanup always runs: remove certificate file and delete temporary keychain
 cleanup() {
@@ -30,7 +31,6 @@ cleanup() {
 
   # Try deleting the temporary keychain if it exists
   if [ -n "${KEYCHAIN_PATH}" ]; then
-    # security delete-keychain returns non-zero when the keychain does not exist; ignore errors
     security delete-keychain "${KEYCHAIN_PATH}" >/dev/null 2>&1 || true
   fi
 }
@@ -50,22 +50,15 @@ security import "${CERTIFICATE_PATH}" \
   -P "${CERTIFICATE_PASSWORD}" \
   -A -t cert -f pkcs12 \
   -k "${KEYCHAIN_PATH}"
-  
-  # -A -t cert -f pkcs12 \
-  # -T /usr/bin/codesign \
-  # -T /usr/bin/security \
 
-# security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
-APPLE_SIGNING_ID="CCE0C936E0F330BF8058D5C5636025F3095E0A82"
-
-# log "Configuring keychain access control for codesigning without UI prompts."
-# security set-key-partition-list \
-#   -S "apple-tool:,apple:,codesign:" \
-#   -s -k "${KEYCHAIN_PASSWORD}" \
-#   -D "${APPLE_SIGNING_ID}" \
-#   -t private \
-#   "${KEYCHAIN_PATH}"
+log "Configuring keychain access control for codesigning without UI prompts."
+security set-key-partition-list \
+  -S "apple-tool:,apple:,codesign:" \
+  -s -k "${KEYCHAIN_PASSWORD}" \
+  -D "${APPLE_SIGNING_ID}" \
+  -t private \
+  "${KEYCHAIN_PATH}"
   
 # security find-certificate "${ROOT}/notarize.keychain-db"
 security list-keychains -s "${KEYCHAIN_PATH}"
