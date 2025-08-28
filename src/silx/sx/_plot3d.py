@@ -54,7 +54,8 @@ def contour3d(
     opacity=1.0,
 ):
     """
-    Plot isosurfaces of a 3D scalar field in a :class:`~silx.gui.plot3d.ScalarFieldView.ScalarFieldView` widget.
+    Plot isosurfaces of a 3D scalar field in a
+    :class:`~silx.gui.plot3d.ScalarFieldView.ScalarFieldView` widget.
 
     How to use:
 
@@ -183,7 +184,8 @@ def points3d(
     mode=None,
 ):
     """
-    Plot a 3D scatter plot in a :class:`~silx.gui.plot3d.SceneWindow.SceneWindow` widget.
+    Plot a 3D scatter plot in a :class:`~silx.gui.plot3d.SceneWindow.SceneWindow`
+    widget.
 
     How to use:
 

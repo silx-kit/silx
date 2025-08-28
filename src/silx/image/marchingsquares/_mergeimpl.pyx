@@ -5,7 +5,7 @@
 ##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
 
 # /*##########################################################################
-# Copyright (C) 2018-2024 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ cimport cython
 
 from libc.stdint cimport int8_t, uint8_t, int32_t, uint32_t
 
-from ...utils._have_openmp cimport COMPILED_WITH_OPENMP
+from ._have_openmp cimport COMPILED_WITH_OPENMP
 """Store in the module if it was compiled with OpenMP"""
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
@@ -241,10 +241,12 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef inline void merge_array_contexts(self,
-                                          TileContext **contexts,
-                                          int index1,
-                                          int index2) noexcept nogil:
+    cdef inline void merge_array_contexts(
+        self,
+        TileContext **contexts,
+        int index1,
+        int index2
+    ) noexcept nogil:
         """
         Merge contexts from `index2` to `index1` and delete the one from index2.
         If the one from index1 was NULL, the one from index2 is moved to index1
@@ -270,9 +272,11 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void sequencial_reduction(self,
-                                   int nb_contexts,
-                                   TileContext **contexts) noexcept nogil:
+    cdef void sequencial_reduction(
+        self,
+        int nb_contexts,
+        TileContext **contexts
+    ) noexcept nogil:
         """
         Reduce the problem sequencially without taking care of the topology
 
@@ -291,9 +295,11 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void marching_squares_mp(self,
-                                  TileContext *context,
-                                  double level) noexcept nogil:
+    cdef void marching_squares_mp(
+        self,
+        TileContext *context,
+        double level
+    ) noexcept nogil:
         """
         Main entry of the marching squares algorithm for each threads.
 
@@ -328,10 +334,10 @@ cdef class _MarchingSquaresAlgorithm(object):
                 # Resolve ambiguity
                 if pattern == 5 or pattern == 10:
                     # Calculate value of cell center (i.e. average of corners)
-                    tmpf = 0.25 * (image_ptr[0] +
-                                   image_ptr[1] +
-                                   image_ptr[self._dim_x] +
-                                   image_ptr[self._dim_x + 1])
+                    tmpf = 0.25 * (image_ptr[0]
+                        + image_ptr[1]
+                        + image_ptr[self._dim_x]
+                        + image_ptr[self._dim_x + 1])
                     # If below level, swap
                     if tmpf <= level:
                         if pattern == 5:
@@ -381,12 +387,14 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void insert_pattern(self,
-                             TileContext *context,
-                             int x,
-                             int y,
-                             int pattern,
-                             double level) noexcept nogil:
+    cdef void insert_pattern(
+        self,
+        TileContext *context,
+        int x,
+        int y,
+        int pattern,
+        double level
+    ) noexcept nogil:
         """
         Called by the marching squares algorithm each time a pattern is found.
 
@@ -416,11 +424,13 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef TileContext** create_contexts(self,
-                                       double level,
-                                       int* dim_x,
-                                       int* dim_y,
-                                       int* nb_valid_contexts) noexcept nogil:
+    cdef TileContext** create_contexts(
+        self,
+        double level,
+        int* dim_x,
+        int* dim_y,
+        int* nb_valid_contexts
+    ) noexcept nogil:
         """
         Create and initialize a 2d-array of contexts.
 
@@ -476,11 +486,13 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef TileContext *create_context(self,
-                                     int x,
-                                     int y,
-                                     int dim_x,
-                                     int dim_y) noexcept nogil:
+    cdef TileContext *create_context(
+        self,
+        int x,
+        int y,
+        int dim_x,
+        int dim_y
+    ) noexcept nogil:
         """
         Allocate and initialize a context.
 
@@ -553,12 +565,14 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void compute_ipoint(self,
-                             uint32_t x,
-                             uint32_t y,
-                             uint8_t edge,
-                             double level,
-                             coord_t *result_coord) noexcept nogil:
+    cdef void compute_ipoint(
+        self,
+        uint32_t x,
+        uint32_t y,
+        uint8_t edge,
+        double level,
+        coord_t *result_coord
+    ) noexcept nogil:
         """
         Compute the location of pixel which contains the point of the polygons
         according to the level and the neighbours.
@@ -635,12 +649,14 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void insert_pattern(self,
-                             TileContext *context,
-                             int x,
-                             int y,
-                             int pattern,
-                             double level) noexcept nogil:
+    cdef void insert_pattern(
+        self,
+        TileContext *context,
+        int x,
+        int y,
+        int pattern,
+        double level
+    ) noexcept nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
@@ -651,11 +667,14 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void insert_segment(self, TileContext *context,
-                             int x, int y,
-                             uint8_t begin_edge,
-                             uint8_t end_edge,
-                             double level) noexcept nogil:
+    cdef void insert_segment(
+        self, TileContext *context,
+        int x,
+        int y,
+        uint8_t begin_edge,
+        uint8_t end_edge,
+        double level
+    ) noexcept nogil:
         cdef:
             int i, yx
             point_t point
@@ -726,8 +745,10 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                 context.polygons.erase(end)
                 context.final_polygons.push_back(description_begin)
             else:
-                if ((begin == description_begin.begin or end == description_begin.begin) and
-                   (begin == description_end.end or end == description_end.end)):
+                if (
+                    (begin == description_begin.begin or end == description_begin.begin)
+                    and (begin == description_end.end or end == description_end.end)
+                ):
                     # worst case, let's make it faster
                     description = description_end
                     description_end = description_begin
@@ -930,12 +951,14 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void insert_pattern(self,
-                             TileContext *context,
-                             int x,
-                             int y,
-                             int pattern,
-                             double level) noexcept nogil:
+    cdef void insert_pattern(
+        self,
+        TileContext *context,
+        int x,
+        int y,
+        int pattern,
+        double level
+    ) noexcept nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
@@ -946,11 +969,14 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void insert_segment(self, TileContext *context,
-                             int x, int y,
-                             uint8_t begin_edge,
-                             uint8_t end_edge,
-                             double level) noexcept nogil:
+    cdef void insert_segment(
+        self, TileContext *context,
+        int x,
+        int y,
+        uint8_t begin_edge,
+        uint8_t end_edge,
+        double level
+    ) noexcept nogil:
         cdef:
             coord_t coord
         self.compute_ipoint(x, y, begin_edge, level, &coord)
@@ -1127,10 +1153,13 @@ cdef class MarchingSquaresMergeImpl(object):
     cdef _MarchingSquaresContours _contours_algo
     cdef _MarchingSquaresPixels _pixels_algo
 
-    def __init__(self,
-                 image, mask=None,
-                 group_size=256,
-                 use_minmax_cache=False):
+    def __init__(
+        self,
+        image,
+        mask=None,
+        group_size=256,
+        use_minmax_cache=False
+    ):
         if not isinstance(image, numpy.ndarray) or len(image.shape) != 2:
             raise ValueError("Only 2D arrays are supported.")
         if image.shape[0] < 2 or image.shape[1] < 2:

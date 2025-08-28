@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,7 @@
 #
 # ###########################################################################*/
 
-"""
-Store in a Cython module if it was compiled with OpenMP
-
-You have to patch the setup module like that:
-
-.. code-block:: python
-
-    silx_include = os.path.join(top_path, "src", ""silx", "utils", "include")
-    config.add_extension('my_extension',
-                         include_dirs=[silx_include],
-                         ...)
-
-Then you can include it like that in your Cython module:
-
-.. code-block:: python
-
-    include "../../utils/_have_openmp.pxi"
-
-"""
+"""Store in a Cython module if it was compiled with OpenMP"""
 
 
 cdef extern from "silx_store_openmp.h":

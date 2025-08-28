@@ -116,7 +116,7 @@ _logger = logging.getLogger(__name__)
 cimport cython
 from libc.stdlib cimport free
 
-cimport silx.io.specfile_wrapper as specfile_wrapper
+cimport specfile_wrapper
 
 
 SF_ERR_NO_ERRORS = 0
@@ -381,8 +381,11 @@ class Scan(object):
             except SfErrLineNotFound:
                 # SpecFile.labels raises an IndexError when encountering
                 # a Scan with no data, even if the header exists.
-                L_header = re.sub(r" {2,}", "  ",             # max. 2 spaces
-                                  self._scan_header_dict["L"])
+                L_header = re.sub(
+                    r" {2,}",
+                    "  ",             # max. 2 spaces
+                    self._scan_header_dict["L"]
+                )
                 self._labels = L_header.split("  ")
 
         self._file_header_dict = {}
@@ -533,7 +536,7 @@ class Scan(object):
         header isn't defined in the SpecFile.
 
         :param record: single upper case letter corresponding to the
-                       header you want to test (e.g. ``L`` for labels)
+            header you want to test (e.g. ``L`` for labels)
         :type record: str
 
         :return: True or False
@@ -587,7 +590,7 @@ class Scan(object):
         """Returns the position for a given motor
 
         :param name: Name of motor, as defined on the ``#O`` line of the
-           file header.
+            file header.
         :type name: str
 
         :return: Motor position
@@ -715,8 +718,10 @@ cdef class SpecFile(object):
                 scan_index = self.index(number, order)
             except (ValueError, SfErrScanNotFound, KeyError):
                 # int() can raise a value error
-                raise KeyError(msg + "\nValid keys: '" +
-                               "', '".join(self.keys()) + "'")
+                raise KeyError(
+                    msg + "\nValid keys: '" +
+                    "', '".join(self.keys()) + "'"
+                )
             except AttributeError:
                 # e.g. "AttrErr: 'float' object has no attribute 'split'"
                 raise TypeError(msg)
@@ -748,7 +753,8 @@ cdef class SpecFile(object):
 
     def __contains__(self, key):
         """Return ``True`` if ``key`` is a valid scan key.
-         Valid keys can be a string such as ``"1.1"`` or a 0-based scan index.
+
+        Valid keys can be a string such as ``"1.1"`` or a 0-based scan index.
         """
         return key in (self.keys() + list(range(len(self))))
 
@@ -818,7 +824,7 @@ cdef class SpecFile(object):
         :type scan_index: int
 
         :return: Scan order (sequential number incrementing each time a
-                 non-unique occurrence of a scan number is encountered).
+            non-unique occurrence of a scan number is encountered).
         :rtype: int
         """
         ordr = specfile_wrapper.SfOrder(self.handle, scan_index + 1)
@@ -872,11 +878,12 @@ cdef class SpecFile(object):
             long nlines, ncolumns, regular
             double[:, :] ret_array
 
-        sfdata_error = specfile_wrapper.SfData(self.handle,
-                                               scan_index + 1,
-                                               &mydata,
-                                               &data_info,
-                                               &error)
+        sfdata_error = specfile_wrapper.SfData(
+            self.handle,
+            scan_index + 1,
+            &mydata,
+            &data_info,
+            &error)
         if sfdata_error == -1 and not error:
             # this has happened in some situations with empty scans (#1759)
             _logger.warning("SfData returned -1 without an error."
@@ -924,11 +931,12 @@ cdef class SpecFile(object):
 
         label = _string_to_char_star(label)
 
-        nlines = specfile_wrapper.SfDataColByName(self.handle,
-                                                  scan_index + 1,
-                                                  label,
-                                                  &data_column,
-                                                  &error)
+        nlines = specfile_wrapper.SfDataColByName(
+            self.handle,
+            scan_index + 1,
+            label,
+            &data_column,
+            &error)
         self._handle_error(error)
 
         if nlines == -1:
@@ -959,11 +967,12 @@ cdef class SpecFile(object):
             char** lines
             int error = SF_ERR_NO_ERRORS
 
-        nlines = specfile_wrapper.SfHeader(self.handle,
-                                           scan_index + 1,
-                                           "",           # no pattern matching
-                                           &lines,
-                                           &error)
+        nlines = specfile_wrapper.SfHeader(
+            self.handle,
+            scan_index + 1,
+            "",           # no pattern matching
+            &lines,
+            &error)
 
         self._handle_error(error)
 
@@ -995,11 +1004,12 @@ cdef class SpecFile(object):
             char** lines
             int error = SF_ERR_NO_ERRORS
 
-        nlines = specfile_wrapper.SfFileHeader(self.handle,
-                                               scan_index + 1,
-                                               "",          # no pattern matching
-                                               &lines,
-                                               &error)
+        nlines = specfile_wrapper.SfFileHeader(
+            self.handle,
+            scan_index + 1,
+            "",          # no pattern matching
+            &lines,
+            &error)
         self._handle_error(error)
 
         lines_list = []
@@ -1044,9 +1054,10 @@ cdef class SpecFile(object):
         cdef:
             int error = SF_ERR_NO_ERRORS
 
-        s_record = <bytes> specfile_wrapper.SfCommand(self.handle,
-                                                      scan_index + 1,
-                                                      &error)
+        s_record = <bytes> specfile_wrapper.SfCommand(
+            self.handle,
+            scan_index + 1,
+            &error)
         self._handle_error(error)
 
         return s_record.decode()
@@ -1064,9 +1075,10 @@ cdef class SpecFile(object):
         cdef:
             int error = SF_ERR_NO_ERRORS
 
-        d_line = <bytes> specfile_wrapper.SfDate(self.handle,
-                                                 scan_index + 1,
-                                                 &error)
+        d_line = <bytes> specfile_wrapper.SfDate(
+            self.handle,
+            scan_index + 1,
+            &error)
         self._handle_error(error)
 
         return d_line.decode()
@@ -1085,10 +1097,11 @@ cdef class SpecFile(object):
             char** all_labels
             int error = SF_ERR_NO_ERRORS
 
-        nlabels = specfile_wrapper.SfAllLabels(self.handle,
-                                               scan_index + 1,
-                                               &all_labels,
-                                               &error)
+        nlabels = specfile_wrapper.SfAllLabels(
+            self.handle,
+            scan_index + 1,
+            &all_labels,
+            &error)
         self._handle_error(error)
 
         labels_list = []
@@ -1116,10 +1129,11 @@ cdef class SpecFile(object):
             char** all_motors
             int error = SF_ERR_NO_ERRORS
 
-        nmotors = specfile_wrapper.SfAllMotors(self.handle,
-                                               scan_index + 1,
-                                               &all_motors,
-                                               &error)
+        nmotors = specfile_wrapper.SfAllMotors(
+            self.handle,
+            scan_index + 1,
+            &all_motors,
+            &error)
         self._handle_error(error)
 
         motors_list = []
@@ -1143,10 +1157,11 @@ cdef class SpecFile(object):
             double* motor_positions
             int error = SF_ERR_NO_ERRORS
 
-        nmotors = specfile_wrapper.SfAllMotorPos(self.handle,
-                                                 scan_index + 1,
-                                                 &motor_positions,
-                                                 &error)
+        nmotors = specfile_wrapper.SfAllMotorPos(
+            self.handle,
+            scan_index + 1,
+            &motor_positions,
+            &error)
         self._handle_error(error)
 
         motor_positions_list = []
@@ -1171,10 +1186,11 @@ cdef class SpecFile(object):
 
         name = _string_to_char_star(name)
 
-        motor_position = specfile_wrapper.SfMotorPosByName(self.handle,
-                                                           scan_index + 1,
-                                                           name,
-                                                           &error)
+        motor_position = specfile_wrapper.SfMotorPosByName(
+            self.handle,
+            scan_index + 1,
+            name,
+            &error)
         self._handle_error(error)
 
         return motor_position
@@ -1192,13 +1208,16 @@ cdef class SpecFile(object):
         cdef:
             int error = SF_ERR_NO_ERRORS
 
-        num_mca = specfile_wrapper.SfNoMca(self.handle,
-                                           scan_index + 1,
-                                           &error)
+        num_mca = specfile_wrapper.SfNoMca(
+            self.handle,
+            scan_index + 1,
+            &error)
         # error code updating isn't implemented in SfNoMCA
         if num_mca == -1:
-            raise SfNoMcaError("Failed to retrieve number of MCA " +
-                               "(SfNoMca returned -1)")
+            raise SfNoMcaError(
+                "Failed to retrieve number of MCA " +
+                "(SfNoMca returned -1)"
+            )
         return num_mca
 
     def mca_calibration(self, scan_index):
@@ -1217,10 +1236,11 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             double* mca_calib
 
-        mca_calib_error = specfile_wrapper.SfMcaCalib(self.handle,
-                                                      scan_index + 1,
-                                                      &mca_calib,
-                                                      &error)
+        mca_calib_error = specfile_wrapper.SfMcaCalib(
+            self.handle,
+            scan_index + 1,
+            &mca_calib,
+            &error)
 
         # error code updating isn't implemented in SfMcaCalib
         if mca_calib_error:

@@ -207,7 +207,7 @@ class TestFFT(ParametricTestCase):
             mode,
             str(size),
         )
-        if size == "3D" and self.test_options.TEST_LOW_MEM:
+        if size == "3D" and not self.test_options.WITH_HIGH_MEM_TEST:
             self.skipTest("low mem")
 
         ndim = len(size)

@@ -51,7 +51,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
     size_t elem_idx = 0;
 
     HISTO_WEIGHT_T * weight_ptr = 0;
-    HISTO_SAMPLE_T elem_coord = 0.;
+    HISTO_SAMPLE_T elem_coord = (HISTO_SAMPLE_T)0;
 
     /* computed bin index (i_sample -> grid) */
     long bin_idx = 0;

@@ -41,7 +41,6 @@ import h5py
 
 from .._version import calc_hexversion
 from ..utils import retry as retry_mod
-from silx.utils.deprecation import deprecated_warning
 
 _logger = logging.getLogger(__name__)
 
@@ -358,7 +357,6 @@ class File(h5py.File):
         filename: str,
         mode: str | None = None,
         locking: bool | str | None = None,
-        enable_file_locking: bool | None = None,
         swmr: bool | None = None,
         libver: str | Sequence[str] | None = None,
         **kwargs,
@@ -371,7 +369,6 @@ class File(h5py.File):
         :param locking: by default it is disabled for `mode='r'`
                         and `swmr=False` and enabled when supported
                         for all other modes.
-        :param enable_file_locking: deprecated
         :param swmr: try both modes when `mode='r'` and `swmr=None`
         :param libver:
         :param \**kwargs: see `h5py.File.__init__`
@@ -394,15 +391,6 @@ class File(h5py.File):
         if swmr and libver is None:
             libver = self._SWMR_LIBVER
 
-        if enable_file_locking is not None:
-            deprecated_warning(
-                type_="argument",
-                name="enable_file_locking",
-                replacement="locking",
-                since_version="1.0",
-            )
-            if locking is None:
-                locking = enable_file_locking
         locking = _hdf5_file_locking(
             mode=mode, locking=locking, swmr=swmr, libver=libver
         )

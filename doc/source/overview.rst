@@ -42,6 +42,6 @@ Project
 Additional Material
 -------------------
 
-- Code Camp held before releases: `The PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
+- Code Camp held before releases: `The PDFs of the talks are available for download <https://www.silx.org/doc/silx/talks/>`_
 
 

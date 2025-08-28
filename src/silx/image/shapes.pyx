@@ -58,7 +58,7 @@ cdef class Polygon(object):
     def __init__(self, vertices):
         self.vertices = numpy.ascontiguousarray(vertices, dtype=numpy.float32)
         if self.vertices.ndim != 2 or self.vertices.shape[1] != 2:
-             raise ValueError("A list of 2d vertices is expected (n,2 dimensional array)")
+            raise ValueError("A list of 2d vertices is expected (n,2 dimensional array)")
         self.nvert = self.vertices.shape[0]
 
     def is_inside(self, row, col):
@@ -140,8 +140,9 @@ cdef class Polygon(object):
                     if ((pt1y <= row and row < pt2y) or
                             (pt2y <= row and row < pt1y)):
                         # Intersection casted to int so that ]x, x+1] => x
-                        xinters = (<int>ceil(pt1x + (row - pt1y) *
-                                   (pt2x - pt1x) / (pt2y - pt1y))) - 1
+                        xinters = (
+                            <int>ceil(pt1x + (row - pt1y) * (pt2x - pt1x) / (pt2y - pt1y))
+                        ) - 1
 
                         # Update column range to patch
                         if xinters < col_min:
@@ -206,7 +207,7 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
     :param int row1: End point row
     :param int col1: End point col
     :param int width: Thickness of the line in pixels (default 1)
-                      Width must be at least 1.
+        Width must be at least 1.
     :return: Array coordinates of points inside the line (might be negative)
     :rtype: 2-tuple of numpy.ndarray (rows, cols)
     """
@@ -287,12 +288,14 @@ def circle_fill(int crow, int ccol, float radius):
     radius = fabs(radius)
     i_radius = <int>radius
 
-    coords = numpy.arange(-i_radius, ceil(radius) + 1,
-                          dtype=numpy.float32) ** 2
+    coords = numpy.arange(
+        -i_radius, ceil(radius) + 1,
+        dtype=numpy.float32) ** 2
     len_coords = len(coords)
     # rows, cols = where(row**2 + col**2 < radius**2)
-    rows, cols = numpy.where(coords.reshape(1, len_coords) +
-                             coords.reshape(len_coords, 1) < radius ** 2)
+    rows, cols = numpy.where(
+        coords.reshape(1, len_coords) + coords.reshape(len_coords, 1) < radius ** 2
+    )
     return rows + crow - i_radius, cols + ccol - i_radius
 
 

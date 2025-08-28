@@ -565,11 +565,14 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
 
     def eventFilter(self, watched, event):
         eventType = event.type()
-        if eventType == qt.QEvent.FocusIn:
-            watched.selectAll()
-            qt.QTimer.singleShot(0, watched.selectAll)
-        elif eventType == qt.QEvent.FocusOut:
-            watched.deselect()
+        if isinstance(
+            watched, qt.QLineEdit
+        ):  # fixes issue #4252 as it is only expect QLineEdit (but somehow one manage to have QSpinBox here)
+            if eventType == qt.QEvent.FocusIn:
+                watched.selectAll()
+                qt.QTimer.singleShot(0, watched.selectAll)
+            elif eventType == qt.QEvent.FocusOut:
+                watched.deselect()
         return super().eventFilter(watched, event)
 
 
@@ -581,6 +584,7 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         self.setModel(Hdf5TableModel(self))
         self.setItemDelegate(Hdf5TableItemDelegate(self))
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
+        self.setHorizontalScrollMode(qt.QAbstractItemView.ScrollPerPixel)
 
     def isSupportedData(self, data):
         """

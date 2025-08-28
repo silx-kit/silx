@@ -5,7 +5,7 @@ Pre-requisites
 --------------
 
 - `PyInstaller <https://pyinstaller.readthedocs.io/>`_ must be installed.
-  Run: ``pip install -r requirements-dev.txt``
+  Run: ``pip install pyinstaller``
 - `InnoSetup <https://jrsoftware.org/isinfo.php>`_ must be installed and in the ``PATH``.
 - silx and all its dependencies must be INSTALLED::
 

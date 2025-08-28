@@ -276,7 +276,7 @@ def leastsq(
                 else:
                     filter_xdata = False
                 evaluation = None
-            except:
+            except Exception:
                 # function cannot handle input data
                 filter_xdata = True
         if filter_xdata:

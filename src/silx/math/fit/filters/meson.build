@@ -1,0 +1,12 @@
+py.extension_module('filters', 
+        ['filters.pyx',
+         'src/smoothnd.c',
+         'src/snip1d.c',
+         'src/snip2d.c',
+         'src/snip3d.c',
+         'src/strip.c'],
+        subdir: 'silx/math/fit',
+        include_directories: ['include'], 
+        dependencies : [py_dep],
+        install: true, 
+        )

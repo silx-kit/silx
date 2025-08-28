@@ -38,7 +38,7 @@ _logger = logging.getLogger(__name__)
 cimport cython
 from libc.stdlib cimport free
 
-cimport silx.math.fit.peaks_wrapper as peaks_wrapper
+cimport peaks_wrapper
 
 
 def peak_search(y, fwhm, sensitivity=3.5,
@@ -54,7 +54,7 @@ def peak_search(y, fwhm, sensitivity=3.5,
         with amplitudes higher than ``σ * sensitivity`` - where ``σ`` is the
         standard deviation of the noise - qualify as peaks.
     :param begin_index: Index of the first sample of the region of interest
-         in the ``y`` array. If ``None``, start from the first sample.
+        in the ``y`` array. If ``None``, start from the first sample.
     :param end_index: Index of the last sample of the region of interest in
         the ``y`` array. If ``None``, process until the last sample.
     :param debug: If ``True``, print debug messages. Default: ``False``
@@ -74,10 +74,11 @@ def peak_search(y, fwhm, sensitivity=3.5,
         double* peaks_c
         double* relevances_c
 
-    y_c = numpy.array(y,
-                      copy=True,
-                      dtype=numpy.float64,
-                      order='C').reshape(-1)
+    y_c = numpy.array(
+        y,
+        copy=True,
+        dtype=numpy.float64,
+        order='C').reshape(-1)
     if debug:
         debug = 1
     else:
@@ -88,9 +89,10 @@ def peak_search(y, fwhm, sensitivity=3.5,
     if end_index is None:
         end_index = y_c.size - 1
 
-    n_peaks = peaks_wrapper.seek(begin_index, end_index, y_c.size,
-                                 fwhm, sensitivity, debug,
-                                 &y_c[0], &peaks_c, &relevances_c)
+    n_peaks = peaks_wrapper.seek(
+        begin_index, end_index, y_c.size,
+        fwhm, sensitivity, debug,
+        &y_c[0], &peaks_c, &relevances_c)
 
 
     # A negative return value means that peaks were found but not enough
@@ -110,13 +112,18 @@ def peak_search(y, fwhm, sensitivity=3.5,
     # Special value -123456 is returned if the initial memory allocation
     # fails, before any search could be performed
     elif n_peaks == -123456:
-        raise MemoryError("Failed to allocate initial memory for " +
-                          "output arrays")
+        raise MemoryError(
+            "Failed to allocate initial memory for output arrays"
+        )
 
-    peaks = numpy.empty(shape=(n_peaks,),
-                        dtype=numpy.float64)
-    relevances = numpy.empty(shape=(n_peaks,),
-                             dtype=numpy.float64)
+    peaks = numpy.empty(
+        shape=(n_peaks,),
+        dtype=numpy.float64
+    )
+    relevances = numpy.empty(
+        shape=(n_peaks,),
+        dtype=numpy.float64
+    )
 
     for i in range(n_peaks):
         peaks[i] = peaks_c[i]

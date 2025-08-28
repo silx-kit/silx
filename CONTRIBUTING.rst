@@ -10,30 +10,23 @@ which is described in other projects like `scikit-image <https://scikit-image.or
 
 1. Create your `GitHub <https://github.com/>`_ account and upload your SSH keys.
 
-2. Fork the silx project from https://github.com/silx-kit/silx/.
+2. `Fork the silx project <https://github.com/silx-kit/silx/fork>`_.
 
-3. Clone your GitHub repository on yout local computer.
+3. Clone your GitHub repository on your local computer:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   git clone git@github.com/<your_user_name>/silx
-   cd silx
+      git clone git@github.com:<your_user_name>/silx
+      cd silx
 
-4. Install the dependencies defined in *requirements-dev.txt*.
+4. `Install silx for development`_.
 
-.. code-block:: bash
-
-   pip install -r requirements-dev.txt
-
-5. Make sure the silx test suite pass on your computer using the ``python3 run_tests.py`` or
-   ``python3 run_tests.py silx.gui.test.test_qt`` if you want to test only a subset of it. 
-   You can use ``python /path/to/silx/bootstrap.py script.py`` to test your scripts without
-   installing silx, but the test suite is required to pass.
+5. `Run the tests`_ to make sure the silx test suite pass on your computer.
 
 6. Open an issue in ``https://github.com/silx-kit/silx/issues`` to inform the
    maintainers of your intentions.
 
-7. Create a local branch to start working on your issue ``git branch my_feature``.
+7. Create a local branch to start working on your issue: ``git branch my_feature``.
 
 8. Code, enjoy but ensure that the new code is tested and does not break
    the current test suite.
@@ -47,6 +40,76 @@ which is described in other projects like `scikit-image <https://scikit-image.or
 11. Discuss with the maintainer who is reviewing your code using the GitHub interface.
 
 If you encounter any problems or have any questions you can always ask on the `Issues page <https://github.com/silx-kit/silx/issues>`_.
+
+
+Install silx for development
+----------------------------
+
+1. Install `build dependencies <https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html#build-dependencies>`_::
+
+      pip install meson-python ninja cython
+
+2. Install silx in `editable mode <https://peps.python.org/pep-0660/>`_ with the development dependencies::
+
+      pip install --no-build-isolation --editable .[dev]
+
+.. note::
+
+    If the project "entry points" are modified, the project must be re-installed.
+
+.. seealso::
+
+    `Meson editable installs <https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html>`_
+
+
+Format the code
+---------------
+
+To format the code, use `black <https://black.readthedocs.io>`_::
+
+    black .
+
+
+Build the documentation
+-----------------------
+
+- `Install silx for development`_.
+- From the silx project root folder, run `Sphinx <http://www.sphinx-doc.org/>`_::
+
+    sphinx-build doc/source/ build/html
+
+.. note::
+
+    To re-generate the example script screenshots, build the documentation with the
+    environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
+
+
+Run the tests
+-------------
+
+- `Install silx for development`_.
+- From the silx project root folder, use `pytest <https://docs.pytest.org/en/stable/how-to/usage.html>`_:
+
+.. warning::
+     
+     GUI tests are part of the complete test suite and will make windows appear and disappear very quickly.
+     
+      **Do not run these if you have a history of epilepsy or motion sickness** 
+      
+  * To run the complete test suite::
+
+      pytest
+
+  * To run a specfic test::
+
+      pytest <src/silx/path/to/test_file.py::test_function>
+
+To run the tests of an installed version of *silx*, run the following from the Python interpreter:
+
+.. code-block:: python
+
+     import silx.test
+     silx.test.run_tests()
 
 
 Pull Request title format
@@ -66,7 +129,7 @@ With:
   - A topic: If changes do not affect a particular subpackage or module, provide the topic of the change.
     This can be for example: ``Build``, ``Documentation``, ``CI``,... or the name of a silx application (e.g., ``silx view``).
 
-- **Action**: How the changes affects the project from a silx user point of view.
+- **Action**: How the changes affect the project from a silx user point of view.
   Prefer using one of the following actions:
 
   - **Added**: For new feature or new APIs
@@ -76,49 +139,8 @@ With:
   - **Improved**
   - **Refactored**
   - **Fixed**
-  - More: If none of the previous actions match your changes, please use another keyword.
 
-- **Summary**: A short description of the main change as you would like to read it from release notes.
-
-
-Code formatting
----------------
-
-To format the code, use `black <https://black.readthedocs.io>`_.
-
-
-How-to build the documentation
-------------------------------
-
-To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_, run:
-
-.. code-block:: bash
-
-    pip install .  # Make sure to install the same version as the source
-    sphinx-build doc/source/ build/html
-
-.. note::
-
-    To re-generate the example script screenshots, build the documentation with the
-    environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
-
-
-How-to run the tests
---------------------
-
-To run the tests of an installed version of *silx*, run the following on the python interpreter:
-
-.. code-block:: python
-
-     import silx.test
-     silx.test.run_tests()
-
-To run the test suite of a development version, use the *run_tests.py* script at
-the root of the source project.
-
-.. code-block:: bash
-
-     python ./run_tests.py
+- **Summary**: A short description of the main change that will be included in the release notes.
 
 
 How-to make a release

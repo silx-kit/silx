@@ -70,11 +70,11 @@ class _TestOptions:
         self.WITH_GL_TEST_REASON = ""
         """Reason for OpenGL tests are disabled if any"""
 
-        self.TEST_LOW_MEM = False
+        self.WITH_HIGH_MEM_TEST = False
         """Skip tests using too much memory"""
 
-        self.TEST_LOW_MEM_REASON = ""
-        """Reason for low_memory tests are disabled if any"""
+        self.WITH_HIGH_MEM_TEST_REASON = "Skipped by default"
+        """Reason for high memory are disabled if any"""
 
     def configure(self, parsed_options=None):
         """Configure the TestOptions class from the command line arguments and the
@@ -113,27 +113,24 @@ class _TestOptions:
             self.WITH_GL_TEST_REASON = "DISPLAY env variable not set"
         else:
             try:
-                import OpenGL
+                import OpenGL  # noqa: F401
             except ImportError:
                 self.WITH_GL_TEST = False
                 self.WITH_GL_TEST_REASON = "OpenGL package not available"
 
-        if parsed_options is not None and parsed_options.low_mem:
-            self.TEST_LOW_MEM = True
-            self.TEST_LOW_MEM_REASON = "Skipped by command line"
-        elif os.environ.get("SILX_TEST_LOW_MEM", "True") == "False":
-            self.TEST_LOW_MEM = True
-            self.TEST_LOW_MEM_REASON = "Skipped by SILX_TEST_LOW_MEM env var"
+        if parsed_options is not None and parsed_options.high_mem:
+            self.WITH_HIGH_MEM_TEST = True
+            self.WITH_HIGH_MEM_TEST_REASON = ""
+        elif os.environ.get("WITH_HIGH_MEM_TEST") == "True":
+            self.WITH_HIGH_MEM_TEST = True
+            self.WITH_HIGH_MEM_TEST_REASON = ""
 
         if self.WITH_QT_TEST:
             try:
-                from silx.gui import qt
+                from silx.gui import qt  # noqa: F401
             except ImportError:
                 self.WITH_QT_TEST = False
                 self.WITH_QT_TEST_REASON = "Qt is not installed"
-            else:
-                if sys.platform == "win32" and qt.qVersion() == "5.9.2":
-                    self.SKIP_TEST_FOR_ISSUE_936 = True
 
 
 # Temporary directory context #################################################

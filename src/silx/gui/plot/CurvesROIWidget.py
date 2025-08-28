@@ -52,6 +52,7 @@ import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from . import items
 from .items.roi import _RegionOfInterestBase
+from silx.utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ class CurvesROIWidget(qt.QWidget):
         if name is not None:
             self.setWindowTitle(name)
         self.__lastSigROISignal = None
-        """Store the last value emitted for the sigRoiSignal. In the case the
+        """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
         This come from the fact sigROISignal is connected to the 
@@ -1530,11 +1531,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
     :param name: See :class:`QDockWidget`
     """
 
-    sigROISignal = qt.Signal(object)
-    """Deprecated signal for backward compatibility with silx < 0.7.
-    Prefer connecting directly to :attr:`CurvesRoiWidget.sigRoiSignal`
-    """
-
     def __init__(self, parent=None, plot=None, name=None):
         super().__init__(name, parent)
 
@@ -1543,24 +1539,11 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self.roiWidget = CurvesROIWidget(self, name, plot=plot)
         """Main widget of type :class:`CurvesROIWidget`"""
 
-        # convenience methods to offer a simpler API allowing to ignore
-        # the details of the underlying implementation
-        # (ALL DEPRECATED)
-        self.calculateROIs = self.calculateRois = self.roiWidget.calculateRois
-        self.setRois = self.roiWidget.setRois
-        self.getRois = self.roiWidget.getRois
-
-        self.roiWidget.sigROISignal.connect(self._forwardSigROISignal)
-
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self.roiWidget)
 
         self.setAreaVisible = self.roiWidget.roiTable.setAreaVisible
         self.setCountsVisible = self.roiWidget.roiTable.setCountsVisible
-
-    def _forwardSigROISignal(self, ddict):
-        # emit deprecated signal for backward compatibility (silx < 0.7)
-        self.sigROISignal.emit(ddict)
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
@@ -1574,3 +1557,19 @@ class CurvesROIDockWidget(qt.QDockWidget):
     @property
     def currentROI(self):
         return self.roiWidget.currentRoi
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateROIs(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.calculateRois")
+    def calculateRois(self):
+        return self.roiWidget.calculateRois()
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.getRois")
+    def getRois(self, order=None):
+        return self.roiWidget.getRois(order)
+
+    @deprecated(since_version="2.2.2", replacement="roiWidget.setRois")
+    def setRois(self, rois, order=None):
+        return self.roiWidget.setRois(rois, order)
