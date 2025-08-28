@@ -72,4 +72,3 @@ jobs:
           if [ -d "silx-view.app" ]; then
             ./silx-view.app/Contents/MacOS/silx-view --help
           fi
-          hdiutil detach "$VOLUME"
