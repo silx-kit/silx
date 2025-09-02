@@ -18,10 +18,10 @@ jobs:
           - runner: macos-14
             arch: arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install silx
         run: pip install .[full]
@@ -42,7 +42,7 @@ jobs:
         run: |
           cd package/pyinstaller
           pyinstaller pyinstaller.spec
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: macos-app-${{ matrix.arch }}
           path: |
@@ -60,7 +60,7 @@ jobs:
           - runner: macos-14
             arch: arm64
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: macos-app-${{ matrix.arch }}
       - name: Mount the disk image
