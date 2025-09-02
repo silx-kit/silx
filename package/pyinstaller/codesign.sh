@@ -11,6 +11,12 @@ log() {
   echo "$(date "+%Y-%m-%d %H:%M:%S") INFO [codesign] $1"
 }
 
+# Check if required environment variables are set,
+if [[ -z "${APPLE_TEAM_ID}" || -z "${KEYCHAIN_PASSWORD}" || -z "${CERTIFICATE_BASE64}" || -z "${CERTIFICATE_PASSWORD}" ]]; then
+  log "Skipping code signing; the required environment variables (APPLE_TEAM_ID, KEYCHAIN_PASSWORD, CERTIFICATE_BASE64, CERTIFICATE_PASSWORD) are not set."
+  exit 0
+fi
+
 log "Setting the required environment variables."
 APP_NAME="silx-view"
 ROOT="${PWD}"
