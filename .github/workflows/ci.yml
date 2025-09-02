@@ -1,4 +1,4 @@
-name: CI
+name: Continuous integration
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -75,7 +75,7 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v4        
+      - uses: actions/checkout@v5        
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -85,7 +85,7 @@ jobs:
         run: |
           pip install --upgrade --pre build wheel 
 
-      - name: Build Wheel
+      - name: Build wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
