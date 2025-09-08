@@ -27,7 +27,15 @@ __date__ = "22/06/2016"
 
 
 from .leastsq import leastsq, chisq_alpha_beta  # noqa: F401
-from .leastsq import CFREE, CPOSITIVE, CQUOTED, CFIXED, CFACTOR, CDELTA, CSUM  # noqa: F401
+from .leastsq import (
+    CFREE,
+    CPOSITIVE,
+    CQUOTED,
+    CFIXED,
+    CFACTOR,
+    CDELTA,
+    CSUM,
+)  # noqa: F401
 
 from .functions import *  # noqa: F403,F401
 from .filters import *  # noqa: F403,F401
