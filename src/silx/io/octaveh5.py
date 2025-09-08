@@ -49,13 +49,14 @@ Here is an example of a simple read and write :
 
 import logging
 
-logger = logging.getLogger(__name__)
 import numpy as np
 import h5py
 
 __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"
 __date__ = "05/10/2016"
+
+logger = logging.getLogger(__name__)
 
 
 class Octaveh5:

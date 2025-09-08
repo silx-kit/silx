@@ -32,8 +32,6 @@ import unittest
 import tempfile
 import shutil
 
-_logger = logging.getLogger(__name__)
-
 import silx.io
 import silx.io.utils
 import h5py
@@ -42,6 +40,8 @@ try:
     from .. import commonh5
 except ImportError:
     commonh5 = None
+
+_logger = logging.getLogger(__name__)
 
 
 class _TestCommonFeatures(unittest.TestCase):
