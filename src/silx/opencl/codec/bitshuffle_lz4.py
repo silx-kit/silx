@@ -95,7 +95,7 @@ class BitshuffleLz4(OpenclProcessing):
         if self.block_size is None:
             try:
                 self.block_size = self.ctx.devices[0].preferred_work_group_size_multiple
-            except:
+            except Exception:
                 self.block_size = self.device.max_work_group_size
 
         self.cmp_size = numpy.uint64(cmp_size)

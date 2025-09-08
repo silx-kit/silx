@@ -59,7 +59,7 @@ Result = namedtuple("Result", ["size", "error", "sp_time", "oc_time"])
 
 try:
     from scipy.datasets import ascent
-except:
+except ImportError:
 
     def ascent():
         """Dummy image from random data"""
@@ -70,7 +70,7 @@ try:
     from scipy.ndimage import median_filter
 
     HAS_SCIPY = True
-except:
+except ImportError:
     HAS_SCIPY = False
     from silx.math import medfilt2d as median_filter
 
@@ -129,7 +129,7 @@ class TestMedianFilter(unittest.TestCase):
             import PyQt5
             from ...gui.matplotlib import pylab
             from ...gui.utils import update_fig
-        except:
+        except ImportError:
             pylab = None
 
             def update_fig(*ag, **kwarg):
