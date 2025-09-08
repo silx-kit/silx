@@ -28,17 +28,17 @@ __license__ = "MIT"
 __date__ = "15/11/2017"
 
 
-from .core import DataItem3D, Item3D, GroupItem, GroupWithAxesItem  # noqa
-from .core import ItemChangedType, Item3DChangedType  # noqa
-from .mixins import (
+from .core import DataItem3D, Item3D, GroupItem, GroupWithAxesItem  # noqa: F401
+from .core import ItemChangedType, Item3DChangedType  # noqa: F401
+from .mixins import (  # noqa: F401
     ColormapMixIn,
     ComplexMixIn,
-    InterpolationMixIn,  # noqa
+    InterpolationMixIn,
     PlaneMixIn,
     SymbolMixIn,
-)  # noqa
-from .clipplane import ClipPlane  # noqa
-from .image import ImageData, ImageRgba, HeightMapData, HeightMapRGBA  # noqa
-from .mesh import Mesh, ColormapMesh, Box, Cylinder, Hexagon  # noqa
-from .scatter import Scatter2D, Scatter3D  # noqa
-from .volume import ComplexField3D, ScalarField3D  # noqa
+)
+from .clipplane import ClipPlane  # noqa: F401
+from .image import ImageData, ImageRgba, HeightMapData, HeightMapRGBA  # noqa: F401
+from .mesh import Mesh, ColormapMesh, Box, Cylinder, Hexagon  # noqa: F401
+from .scatter import Scatter2D, Scatter3D  # noqa: F401
+from .volume import ComplexField3D, ScalarField3D  # noqa: F401
