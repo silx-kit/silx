@@ -30,15 +30,16 @@ import tempfile
 import numpy
 import h5py
 
-logging.basicConfig()
-_logger = logging.getLogger("customHdf5TreeModel")
-"""Module logger"""
-
 from silx.gui import qt
 import silx.gui.hdf5
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
+
+
+logging.basicConfig()
+_logger = logging.getLogger("customHdf5TreeModel")
+"""Module logger"""
 
 
 class CustomTooltips(qt.QIdentityProxyModel):
