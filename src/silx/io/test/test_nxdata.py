@@ -445,8 +445,8 @@ class TestLegacyNXdata(unittest.TestCase):
         ds0.attrs["signal"] = 1
         ds0.attrs["axes"] = "yaxis:xaxis"
 
-        ds1 = g.create_dataset("yaxis", data=numpy.arange(4))
-        ds2 = g.create_dataset("xaxis", data=numpy.arange(6))
+        _ = g.create_dataset("yaxis", data=numpy.arange(4))
+        _ = g.create_dataset("xaxis", data=numpy.arange(6))
 
         nxd = nxdata.NXdata(self.h5f["2D"])
 

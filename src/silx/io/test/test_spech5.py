@@ -270,7 +270,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaisesRegex(
             AttributeError, "SpecH5Dataset has no attribute tOTo"
         ):
-            dummy = self.sfh5["/1.1/start_time"].tOTo
+            _ = self.sfh5["/1.1/start_time"].tOTo
 
     def testGet(self):
         """Test :meth:`SpecH5Group.get`"""

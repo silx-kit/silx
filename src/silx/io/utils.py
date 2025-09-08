@@ -46,7 +46,7 @@ import h5py.h5a
 
 try:
     import h5pyd
-except ImportError as e:
+except ImportError:
     h5pyd = None
 
 logger = logging.getLogger(__name__)
@@ -543,7 +543,7 @@ def _open_local_file(filename):
                 from . import rawh5
 
                 return rawh5.NumpyFile(filename)
-            except (OSError, ValueError) as e:
+            except (OSError, ValueError):
                 debugging_info.append(
                     (
                         sys.exc_info(),
