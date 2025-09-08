@@ -11,27 +11,24 @@ except ImportError:
 
 from ..dictdumplinks import link_from_hdf5
 from ..dictdumplinks import link_from_serialized
-from ..dictdumplinks import VDSLink
 from ..dictdumplinks import ExternalBinaryLink
-from ..dictdumplinks import InternalLink
-from ..dictdumplinks import ExternalLink
 
 
 def test_soft_link_from_str(tmp_path):
     data_file = str(tmp_path / "data.h5")
     link1 = link_from_serialized(f"{data_file}::/group2/link", "../group1/dataset")
-    assert isinstance(link1, InternalLink)
-    assert link1.data_path == "/group1/dataset"
+    assert isinstance(link1, h5py.SoftLink)
+    assert link1.path == "/group1/dataset"
 
     with h5py.File(data_file, mode="w") as fh:
         fh["/group1/dataset"] = 42
-        link1.create(fh, "/group2/link")
+        fh["/group2/link"] = link1
 
     with h5py.File(data_file, mode="r") as fh:
         assert fh["/group2/link"][()] == 42
         link2 = link_from_hdf5(fh, "/group2/link")
 
-    assert link1 == link2
+    assert link1.path == link2.path
 
 
 def test_external_link_from_str(tmp_path):
@@ -43,18 +40,19 @@ def test_external_link_from_str(tmp_path):
     link1 = link_from_serialized(
         f"{master_file}::/group/link", "data.h5::/group/dataset"
     )
-    assert isinstance(link1, ExternalLink)
-    assert link1.file_path == "data.h5"
-    assert link1.data_path == "/group/dataset"
+    assert isinstance(link1, h5py.ExternalLink)
+    assert link1.filename == "data.h5"
+    assert link1.path == "/group/dataset"
 
     with h5py.File(master_file, mode="w") as fh:
-        link1.create(fh, "/group/link")
+        fh["/group/link"] = link1
 
     with h5py.File(master_file, mode="r") as fh:
         assert fh["/group/link"][()] == 42
         link2 = link_from_hdf5(fh, "/group/link")
 
-    assert link1 == link2
+    assert link1.filename == link2.filename
+    assert link1.path == link2.path
 
 
 @pytest.mark.parametrize(
@@ -134,12 +132,12 @@ def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
 
     master_file = str(tmp_path / "master.h5")
     link1 = link_from_serialized(f"{master_file}::/group/link", target)
-    assert isinstance(link1, VDSLink)
+    assert isinstance(link1, h5py.VirtualLayout)
     assert link1.shape == concat_data.shape
     assert link1.dtype == concat_data.dtype
 
     with h5py.File(master_file, mode="a") as fh:
-        link1.create(fh, "/group/link")
+        fh.create_virtual_dataset("/group/link", link1)
 
     with h5py.File(master_file, mode="r") as fh:
         vds_data = fh["/group/link"][()]

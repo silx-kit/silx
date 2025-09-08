@@ -55,7 +55,8 @@ from .utils import h5py_read_dataset
 from .utils import H5pyAttributesReadWrapper
 from .dictdumplinks import link_from_hdf5
 from .dictdumplinks import link_from_serialized
-from .dictdumplinks import LinkInterface
+from .dictdumplinks import ExternalBinaryLink
+from .dictdumplinks._link_types import Hdf5LinkType
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -323,21 +324,8 @@ def dicttoh5(
                     )
                 elif not exists:
                     h5f.create_group(h5name)
-            elif isinstance(value, LinkInterface):
-                # HDF5 soft link, external link or virtual dataset
-                if exists and update_mode == "replace":
-                    del h5f[h5name]
-                    exists = False
-                if not exists:
-                    value.create(h5f, h5name)
             elif is_softlink(value):
                 # HDF5 soft link
-                deprecated_warning(
-                    "Type",
-                    "h5py.SoftLink",
-                    replacement="silx.io.dictdumplinks.InternalLink",
-                    since_version="3.0.0",
-                )
                 if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
@@ -346,18 +334,27 @@ def dicttoh5(
                     h5f[h5name] = value
             elif is_externallink(value):
                 # HDF5 external link
-                deprecated_warning(
-                    "Type",
-                    "h5py.ExternalLink",
-                    replacement="silx.io.dictdumplinks.ExternalLink",
-                    since_version="3.0.0",
-                )
                 if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
                 if not exists:
                     # Create link from h5py link object
                     h5f[h5name] = value
+            elif isinstance(value, h5py.VirtualLayout):
+                # HDF5 virtual dataset
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if not exists:
+                    # Create link from h5py VDS layout object
+                    h5f.create_virtual_dataset(h5name, value)
+            elif isinstance(value, ExternalBinaryLink):
+                # HDF5 soft link, external link or virtual dataset
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if not exists:
+                    value.create(h5f, h5name)
             else:
                 # HDF5 dataset
                 if exists and not change_allowed:
@@ -458,7 +455,7 @@ def nexus_to_h5_dict(
 ):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
-        * key with ">{url}" notation: strip ">" and convert value to `LinkInterface`
+        * key with ">{url}" notation: strip ">" and convert value to a link class instance
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -480,12 +477,7 @@ def nexus_to_h5_dict(
             key = tuple(key.rsplit("@", 1))
         elif key.startswith(">"):
             if file_path:
-                source = file_path + "::" + "/".join(parents + (key[1:],))
-                target = value
-                link_value = link_from_serialized(source, target)
-                if link_value is not None:
-                    key = key[1:]
-                    value = link_value
+                link_value = _link_from_serialized(file_path, key, value, parents)
             else:
                 deprecated_warning(
                     "Argument",
@@ -493,9 +485,9 @@ def nexus_to_h5_dict(
                     since_version="3.0.0",
                 )
                 link_value = _deprecated_link_from_serialized(value, parents)
-                if link_value is not None:
-                    key = key[1:]
-                    value = link_value
+            if link_value is not None:
+                key = key[1:]
+                value = link_value
 
         if isinstance(value, Mapping):
             # HDF5 group
@@ -521,12 +513,18 @@ def nexus_to_h5_dict(
     return copy
 
 
+def _link_from_serialized(
+    file_path: str, key: str, target: Any, parents: tuple[str, ...]
+) -> Hdf5LinkType | None:
+    source = file_path + "::" + "/".join(parents + (key[1:],))
+    return link_from_serialized(source, target)
+
+
 def _deprecated_link_from_serialized(
-    value: Any, parents: tuple[str, ...]
+    target: Any, parents: tuple[str, ...]
 ) -> h5py.SoftLink | h5py.ExternalLink | None:
-    if isinstance(value, str):
-        key = key[1:]
-        first, sep, second = value.partition("::")
+    if isinstance(target, str):
+        first, sep, second = target.partition("::")
         if sep:
             return h5py.ExternalLink(first, second)
         else:
@@ -542,8 +540,8 @@ def _deprecated_link_from_serialized(
                         parts.append(p)
                 first = "/" + "/".join(parts)
             return h5py.SoftLink(first)
-    elif is_link(value):
-        return value
+    elif is_link(target):
+        return target
     else:
         return None
 
@@ -551,12 +549,9 @@ def _deprecated_link_from_serialized(
 def h5_to_nexus_dict(treedict):
     """The following conversions are applied:
         * 2-tuple key: converted to string ("@" notation)
-        * silx.io.dictdumplinks.InternalLink value: converted to string (">" key prefix)
-        * silx.io.dictdumplinks.ExternalLink value: converted to string (">" key prefix)
+        * h5py.Softlink value: converted to string (">" key prefix)
+        * h5py.ExternalLink value: converted to string (">" key prefix)
         * silx.io.dictdumplinks.ExternalBinaryLink value: converted to dictionary (">" key prefix)
-        * silx.io.dictdumplinks.VDSLink value: converted to dictionary (">" key prefix)
-        * h5py.Softlink value (DEPRECATED): converted to string (">" key prefix)
-        * h5py.ExternalLink value (DEPRECATED): converted to string (">" key prefix)
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -570,27 +565,15 @@ def h5_to_nexus_dict(treedict):
             if len(key) != 2:
                 raise ValueError("HDF5 attribute must be described by 2 values")
             key = f"{key[0]}@{key[1]}"
-        elif isinstance(value, LinkInterface):
-            key = ">" + key
-            value = value.serialize()
         elif is_softlink(value):
-            deprecated_warning(
-                "Type",
-                "h5py.SoftLink",
-                replacement="silx.io.dictdumplinks.InternalLink",
-                since_version="3.0.0",
-            )
             key = ">" + key
             value = value.path
         elif is_externallink(value):
-            deprecated_warning(
-                "Type",
-                "h5py.ExternalLink",
-                replacement="silx.io.dictdumplinks.ExternalLink",
-                since_version="3.0.0",
-            )
             key = ">" + key
             value = value.filename + "::" + value.path
+        elif isinstance(value, ExternalBinaryLink):
+            key = ">" + key
+            value = value.serialize()
 
         if isinstance(value, Mapping):
             copy[key] = h5_to_nexus_dict(value)
@@ -824,7 +807,7 @@ def nxtodict(h5file, include_attributes=True, **kw):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
-    As opposed to h5todict, all keys will be strings and no h5py of LinkInterface
+    As opposed to h5todict, all keys will be strings and no h5py or ExternalBinaryLink
     objects are present in the tree.
 
     The named parameters are passed to h5todict.

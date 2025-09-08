@@ -1,5 +1,5 @@
 import os
-from typing import TypeAlias, Any, cast, Dict
+from typing import Any, cast, Dict
 from collections.abc import Mapping, Sequence
 
 import h5py
@@ -11,26 +11,16 @@ from numpy.typing import DTypeLike
 
 from ..url import DataUrl
 
-from ._base_types import LinkInterface
-from ._base_types import NativeHdf5LinkType
-from ._internal_link_types import InternalLink
-from ._external_link_types import ExternalLink
-from ._vds_types import VDSLink
-from ._vds_types import VdsSchemaV1
-from ._external_binary_types import ExternalBinaryLink
-from ._external_binary_types import ExtSchemaV1
 from ._schemas import deserialize_schema
-
-
-SerializedHdf5LinkType: TypeAlias = (
-    str | DataUrl | Sequence[str | DataUrl] | VdsSchemaV1 | ExtSchemaV1
-)
+from ._link_types import Hdf5LinkType
+from ._link_types import SerializedHdf5LinkType
+from ._link_types import ExternalBinaryLink
 
 
 def link_from_serialized(
     source: str | DataUrl,
-    target: LinkInterface | NativeHdf5LinkType | SerializedHdf5LinkType | Any,
-) -> LinkInterface | None:
+    target: Hdf5LinkType | SerializedHdf5LinkType | Any,
+) -> Hdf5LinkType | None:
     """Convert the target to a link instance when it describes a link.
     Otherwise return `None`.
 
@@ -43,7 +33,7 @@ def link_from_serialized(
 
         source = "/path/to/file.h5?path=/group/link"
 
-    An `InternalLink` is returned for these targets
+    An `h5py.SoftLink` is returned for these targets
 
     .. code-block:: python
 
@@ -51,13 +41,13 @@ def link_from_serialized(
         target = "/path/to/file.h5?path=dataset"
         target = "/path/to/file.h5?path=../group/dataset"
 
-    An `ExternalLink` is returned for this target
+    An `h5py.ExternalLink` is returned for this target
 
     .. code-block:: python
 
         target = "/path/to/ext_file.h5?path=/group/dataset"
 
-    A `VDSLink` is returned for these targets
+    A `h5py.VirtualLayout` is returned for these targets
 
     .. code-block:: python
 
@@ -87,23 +77,19 @@ def link_from_serialized(
     """
     if isinstance(
         target,
-        (InternalLink, ExternalLink, VDSLink, ExternalBinaryLink),
+        (h5py.SoftLink, h5py.ExternalLink, h5py.VirtualLayout, ExternalBinaryLink),
     ):
         # Already a link instance.
         return target
 
-    if isinstance(target, h5py.SoftLink):
-        # A native h5py link instance.
-        return InternalLink(target.path)
-    if isinstance(target, h5py.ExternalLink):
-        # A native h5py link instance.
-        return ExternalLink(target.filename, target.path)
     if isinstance(target, Mapping):
         # A mapping could be a link schema or just any mapping.
         return deserialize_schema(target)
+
     if isinstance(target, (str, DataUrl)):
         # Possibly a URL to a link target.
         return _url_to_hdf5_link(source, target)
+
     if isinstance(target, Sequence) and all(
         isinstance(v, (str, DataUrl)) for v in target
     ):
@@ -115,7 +101,7 @@ def link_from_serialized(
 
 def _url_to_hdf5_link(
     source: str | DataUrl, target: str | DataUrl
-) -> LinkInterface | None:
+) -> Hdf5LinkType | None:
     if not isinstance(source, DataUrl):
         source = DataUrl(source)
 
@@ -148,12 +134,16 @@ def _url_to_hdf5_link(
 
 def _urls_to_hdf5_link(
     source: str | DataUrl, targets: Sequence[str | DataUrl]
-) -> LinkInterface | None:
+) -> Hdf5LinkType | None:
     if not isinstance(source, DataUrl):
         source = DataUrl(source)
-    targets: list[DataUrl] = [
-        target if isinstance(target, DataUrl) else DataUrl(target) for target in targets
-    ]
+    targets = cast(
+        list[DataUrl],
+        [
+            target if isinstance(target, DataUrl) else DataUrl(target)
+            for target in targets
+        ],
+    )
 
     file_types = {_get_target_file_type(source, target) for target in targets}
     if len(file_types) != 1:
@@ -205,25 +195,25 @@ def _get_file_type(abs_file_path: str) -> str | None:
     return None
 
 
-def _url_to_soft_link(source: DataUrl, target: DataUrl) -> InternalLink:
+def _url_to_soft_link(source: DataUrl, target: DataUrl) -> h5py.SoftLink:
     data_path = target.data_path() or "/"
     if ".." in data_path.split("/"):
         # Up links are not supported in soft links
         data_path = _absolute_data_path(data_path, source.data_path() or "/")
-    return InternalLink(data_path)
+    return h5py.SoftLink(data_path)
 
 
-def _url_to_external_link(source: DataUrl, target: DataUrl) -> ExternalLink:
-    return ExternalLink(target.file_path(), target.data_path() or "/")
+def _url_to_external_link(source: DataUrl, target: DataUrl) -> h5py.ExternalLink:
+    return h5py.ExternalLink(target.file_path(), target.data_path() or "/")
 
 
-def _url_to_vds(source: DataUrl, target: DataUrl) -> VDSLink:
+def _url_to_vds(source: DataUrl, target: DataUrl) -> h5py.VirtualLayout:
     target_desc: Dict[str, Any] = dict()
     _ = _add_url_to_vds_schema(source, target, target_desc)
-    return cast(VDSLink, deserialize_schema(target_desc))
+    return deserialize_schema(target_desc)
 
 
-def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> VDSLink:
+def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLayout:
     target_desc: Dict[str, Any] = dict()
     nimages = [
         _add_url_to_vds_schema(source, target, target_desc) for target in targets
@@ -232,7 +222,7 @@ def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> VDSLink:
     for source, n in zip(target_desc["sources"], nimages):
         source["target_index"] = slice(i0, i0 + n)
         i0 += n
-    return cast(VDSLink, deserialize_schema(target_desc))
+    return deserialize_schema(target_desc)
 
 
 def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) -> int:

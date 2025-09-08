@@ -4,8 +4,6 @@ from typing import TypedDict, NamedTuple, Literal, Any
 import h5py
 from numpy.typing import DTypeLike
 
-from ._base_types import LinkInterface
-
 
 class ExtSchemaV1(TypedDict):
     dictdump_schema: Literal["external_binary_link_v1"]
@@ -34,7 +32,7 @@ def deserialize_ext_schema_v1(target: ExtSchemaV1) -> Ext:
     return Ext(shape, dtype, sources)
 
 
-class ExternalBinaryLink(LinkInterface):
+class ExternalBinaryLink:
     def __init__(
         self,
         shape: tuple[int, ...],
