@@ -7,4 +7,4 @@ deprecated_warning(
     replacement="fabio.TiffIO",
 )
 
-from fabio.TiffIO import *
+from fabio.TiffIO import *  # noqa
