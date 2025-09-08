@@ -6,11 +6,11 @@ Does NOT update missing files. Manual edition is needed.
 """
 
 
-import os, sys
+import os
 
 
 def mesonify(where, top=None):
-    if top == None:
+    if top is None:
         top = os.path.join(where, "src")
     # print(where, "top: ", top)
     txt = []

@@ -29,7 +29,6 @@ The project's package MUST be installed in the current Python environment.
 
 import logging
 from pathlib import Path
-import re
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -59,7 +58,7 @@ def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
         for entry, value in entry_points_config.get(group, {}).items():
             try:
                 module, fnt = value.split(":", 1)
-            except:
+            except ValueError:
                 logger.error(f"Unable to parse entry {value}!")
             else:
                 yield entry, module, fnt
