@@ -137,17 +137,23 @@ def get_pyopencl_ctx_tuple(pyopencl_ctx_str, cache=None):
         platform_id = _convert_to_int(pyopencl_ctx_str)
         device_id = 0
     else:
-        if "choose_devices" in dir(pyopencl):
-            device = pyopencl.choose_devices(interactive=False)
-            device_id = device_instance.platform.get_devices().index(device_instance)
-            platform_id = pyopencl.get_platforms().index(device.platform)
-        else:  # Fallback for elder PyOpenCL
+        if hasattr(pyopencl, "choose_devices"):
+            # pyopencl >=2024.2
+            devices = pyopencl.choose_devices(interactive=False)
+            device = devices[0]
+            platform = device.platform
+            device_id = platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(platform)
+            ctx = pyopencl.Context([device])
+        else:
+            # pyopencl <=2024.1
             ctx = pyopencl.create_some_context(interactive=False)
-            device = device_instance = ctx.devices[0]
-            device_id = device_instance.platform.get_devices().index(device_instance)
-            platform_id = pyopencl.get_platforms().index(device.platform)
-            if cache is not None:
-                cache[(platform_id, device_id)] = ctx
+            device = ctx.devices[0]
+            platform = device.platform
+            device_id = platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(platform)
+        if cache is not None:
+            cache[(platform_id, device_id)] = ctx
     return (platform_id, device_id)
 
 
