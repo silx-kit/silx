@@ -1,20 +1,22 @@
 import os
-from typing import Any, cast, Dict
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
+from collections.abc import Sequence
+from typing import Any
+from typing import Dict
+from typing import cast
 
-import h5py
 import fabio
-from fabio.TiffIO import TiffIO
+import h5py
 from fabio.edfimage import EdfFrame
 from fabio.fabioimage import FabioFrame
+from fabio.TiffIO import TiffIO
 from numpy.typing import DTypeLike
 
 from ..url import DataUrl
-
-from ._schemas import deserialize_schema
+from ._link_types import ExternalBinaryLink
 from ._link_types import Hdf5LinkType
 from ._link_types import SerializedHdf5LinkType
-from ._link_types import ExternalBinaryLink
+from ._schemas import deserialize_mapping
 
 
 def link_from_serialized(
@@ -84,7 +86,7 @@ def link_from_serialized(
 
     if isinstance(target, Mapping):
         # A mapping could be a link schema or just any mapping.
-        return deserialize_schema(target)
+        return deserialize_mapping(target)
 
     if isinstance(target, (str, DataUrl)):
         # Possibly a URL to a link target.
@@ -210,7 +212,7 @@ def _url_to_external_link(source: DataUrl, target: DataUrl) -> h5py.ExternalLink
 def _url_to_vds(source: DataUrl, target: DataUrl) -> h5py.VirtualLayout:
     target_desc: Dict[str, Any] = dict()
     _ = _add_url_to_vds_schema(source, target, target_desc)
-    return deserialize_schema(target_desc)
+    return deserialize_mapping(target_desc)
 
 
 def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLayout:
@@ -222,7 +224,7 @@ def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLay
     for source, n in zip(target_desc["sources"], nimages):
         source["target_index"] = slice(i0, i0 + n)
         i0 += n
-    return deserialize_schema(target_desc)
+    return deserialize_mapping(target_desc)
 
 
 def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) -> int:
@@ -291,7 +293,7 @@ def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) 
 def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
 
 
 def _fabio_urls_to_external_data(
@@ -300,7 +302,7 @@ def _fabio_urls_to_external_data(
     target_desc: Dict[str, Any] = dict()
     for target in targets:
         _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
 
 
 def _add_fabio_url_to_schema(
@@ -348,7 +350,7 @@ def _add_fabio_url_to_schema(
 def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
 
 
 def _tiff_urls_to_external_data(
@@ -357,7 +359,7 @@ def _tiff_urls_to_external_data(
     target_desc = {}
     for target in targets:
         _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_schema(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
 
 
 def _add_tiff_url_to_schema(

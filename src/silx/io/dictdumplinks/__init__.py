@@ -17,6 +17,6 @@ Serialized instances of HDF5 links have the following type
 * External raw binary data: mapping matching EXT schema
 """
 
+from ._external_binary import ExternalBinaryLink  # noqa F401
 from ._from_hdf5 import link_from_hdf5  # noqa F401
 from ._from_serialized import link_from_serialized  # noqa F401
-from ._external_binary_types import ExternalBinaryLink  # noqa F401

@@ -1,6 +1,6 @@
-from typing import TypeAlias
-from types import EllipsisType
 from collections.abc import Sequence
+from types import EllipsisType
+from typing import TypeAlias
 
 import h5py
 
