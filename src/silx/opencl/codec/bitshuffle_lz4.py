@@ -41,7 +41,8 @@ __status__ = "production"
 import os
 import struct
 import numpy
-from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from ..common import pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
 import logging

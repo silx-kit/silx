@@ -38,7 +38,7 @@ import logging
 import numpy
 
 import unittest
-from ..common import ocl, _measure_workgroup_size
+from ..common import ocl
 
 if ocl:
     import pyopencl

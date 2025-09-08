@@ -41,7 +41,8 @@ __status__ = "production"
 import functools
 import os
 import numpy
-from ..common import ocl, pyopencl
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from ..common import pyopencl
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
 import logging

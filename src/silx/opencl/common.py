@@ -67,10 +67,12 @@ else:
             pyopencl = None
 
 if pyopencl is not None:
-    import pyopencl.array as array
+    import pyopencl.array as array  # noqa F401
 
     mf = pyopencl.mem_flags
 else:
+    array = None
+
     # Define default mem flags
     class mf:
         WRITE_ONLY = 1

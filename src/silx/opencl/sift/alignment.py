@@ -42,9 +42,10 @@ import gc
 from threading import Semaphore
 import numpy
 
-from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from ..common import pyopencl, kernel_workgroup_size  # noqa F401
 from ..processing import OpenclProcessing
-from ..utils import calc_size, get_opencl_code
+from ..utils import calc_size, get_opencl_code  # noqa F401
 from .utils import matching_correction
 import logging
 

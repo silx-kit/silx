@@ -58,11 +58,11 @@ import os
 import time
 import math
 import logging
-import gc
 import numpy
 from .param import par
-from silx.opencl import ocl, pyopencl, kernel_workgroup_size
-from silx.opencl.utils import get_opencl_code, nextpower
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from silx.opencl import pyopencl, kernel_workgroup_size  # noqa F401
+from silx.opencl.utils import get_opencl_code, nextpower  # noqa F401
 from ..processing import OpenclProcessing, BufferDescription
 from .utils import calc_size, kernel_size
 

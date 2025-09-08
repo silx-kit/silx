@@ -35,7 +35,6 @@ __copyright__ = "2013-2024 European Synchrotron Radiation Facility, Grenoble, Fr
 __date__ = "09/05/2023"
 
 
-import sys
 import time
 import logging
 import numpy
@@ -49,8 +48,6 @@ except ImportError:
 from ..common import ocl
 
 if ocl:
-    import pyopencl
-    import pyopencl.array
     from .. import medfilt
 
 logger = logging.getLogger(__name__)
@@ -126,7 +123,7 @@ class TestMedianFilter(unittest.TestCase):
     def benchmark(self, limit=36):
         "Run some benchmarking"
         try:
-            import PyQt5
+            import PyQt5  # noqa F401
             from ...gui.matplotlib import pylab
             from ...gui.utils import update_fig
         except ImportError:

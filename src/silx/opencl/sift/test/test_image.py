@@ -45,7 +45,8 @@ import os
 from silx.opencl import ocl, kernel_workgroup_size
 
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl
+    import pyopencl.array
 
 import unittest
 from ..utils import calc_size, get_opencl_code

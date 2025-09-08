@@ -47,11 +47,10 @@ try:
     scipy_convolve1d = convolve1d
 except ImportError:
     scipy_convolve = None
-import unittest
+
 from ..common import ocl, check_textures_availability
 
 if ocl:
-    import pyopencl as cl
     import pyopencl.array as parray
     from silx.opencl.convolution import Convolution
 logger = logging.getLogger(__name__)
