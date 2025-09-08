@@ -25,6 +25,7 @@ class OverlayMixIn:
 
     def setAlignment(self, alignment: qt.Qt.AlignmentFlag):
         self._alignment = alignment
+        self._resize()
         self.update()
 
     def getAlignmentOffsets(self) -> tuple[int, int]:
@@ -32,6 +33,8 @@ class OverlayMixIn:
 
     def setAlignmentOffsets(self, offsets: tuple[int, int]):
         self._alignmentOffsets = offsets
+        self._resize()
+        self.update()
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
