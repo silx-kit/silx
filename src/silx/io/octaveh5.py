@@ -151,7 +151,7 @@ class Octaveh5:
         for ftparams in data_dict:
             group_l3 = group_l2.create_group(ftparams)
             group_l3.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
-            if data_dict[ftparams] is str:
+            if type(data_dict[ftparams]) is str:
                 group_l3.create_dataset(
                     "type", (), data=np.bytes_("sq_string"), dtype="|S10"
                 )
