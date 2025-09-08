@@ -131,9 +131,12 @@ class TestTransform(unittest.TestCase):
         # ---------------
         matrix = numpy.array([[1.0, -0.75], [0.7, 0.5]], dtype=numpy.float32)
         offset_value = numpy.array([250.0, -150.0], dtype=numpy.float32)
-        transformation = lambda img: scipy.ndimage.affine_transform(
-            img, matrix, offset=offset_value, order=1, mode="constant"
-        )
+
+        def transformation(img):
+            return scipy.ndimage.affine_transform(
+                img, matrix, offset=offset_value, order=1, mode="constant"
+            )
+
         image_transformed = transformation(self.image)
 
         fill_value = numpy.float32(0.0)
