@@ -49,13 +49,14 @@ Here is an example of a simple read and write :
 
 import logging
 
-logger = logging.getLogger(__name__)
 import numpy as np
 import h5py
 
 __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"
 __date__ = "05/10/2016"
+
+logger = logging.getLogger(__name__)
 
 
 class Octaveh5:
@@ -150,7 +151,7 @@ class Octaveh5:
         for ftparams in data_dict:
             group_l3 = group_l2.create_group(ftparams)
             group_l3.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
-            if type(data_dict[ftparams]) == str:
+            if type(data_dict[ftparams]) is str:
                 group_l3.create_dataset(
                     "type", (), data=np.bytes_("sq_string"), dtype="|S10"
                 )

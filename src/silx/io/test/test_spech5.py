@@ -270,7 +270,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaisesRegex(
             AttributeError, "SpecH5Dataset has no attribute tOTo"
         ):
-            dummy = self.sfh5["/1.1/start_time"].tOTo
+            _ = self.sfh5["/1.1/start_time"].tOTo
 
     def testGet(self):
         """Test :meth:`SpecH5Group.get`"""
@@ -508,12 +508,12 @@ class TestSpecH5(unittest.TestCase):
     def testVisitItems(self):
         dataset_name_list = []
 
-        def func_generator(l):
+        def func_generator(lst):
             """return a function appending names to list l"""
 
             def func(name, obj):
                 if isinstance(obj, SpecH5Dataset):
-                    l.append(name)
+                    lst.append(name)
 
             return func
 
