@@ -49,8 +49,6 @@ from ..utils import calc_size, get_opencl_code  # noqa F401
 from .utils import matching_correction
 import logging
 
-logger = logging.getLogger(__name__)
-
 from .match import MatchPlan
 from .plan import SiftPlan
 
@@ -58,6 +56,8 @@ try:
     import feature
 except ImportError:
     feature = None
+
+logger = logging.getLogger(__name__)
 
 
 def arrow_start(kplist):
