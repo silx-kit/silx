@@ -12,6 +12,7 @@ Public modules:
 .. toctree::
     :maxdepth: 2
 
+    collapsiblewidget.rst
     flowlayout.rst
     framebrowser.rst
     periodictable.rst
