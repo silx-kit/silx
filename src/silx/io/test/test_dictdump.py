@@ -50,7 +50,7 @@ from .. import dictdump
 from ..dictdump import dicttoh5, dicttojson, dump
 from ..dictdump import h5todict, load
 from ..dictdump import logger as dictdump_logger
-from ..dictdumplinks import InternalLink, ExternalLink
+from ..utils import is_link
 from ..utils import h5py_read_dataset
 
 
@@ -565,10 +565,10 @@ class TestH5ToDict(H5DictTestCase):
 
     def testPreserveLinks(self):
         ddict = h5todict(self.h5_fname, path="links", dereference_links=False)
-        self.assertTrue(isinstance(ddict["absolute_softlink"], InternalLink))
-        self.assertTrue(isinstance(ddict["relative_softlink"], InternalLink))
-        self.assertTrue(isinstance(ddict["external_link"], ExternalLink))
-        self.assertTrue(isinstance(ddict["group"]["relative_softlink"], InternalLink))
+        self.assertTrue(is_link(ddict["absolute_softlink"]))
+        self.assertTrue(is_link(ddict["relative_softlink"]))
+        self.assertTrue(is_link(ddict["external_link"]))
+        self.assertTrue(is_link(ddict["group"]["relative_softlink"]))
 
     def testStrings(self):
         ddict = {
