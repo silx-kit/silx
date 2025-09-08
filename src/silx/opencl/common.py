@@ -843,16 +843,17 @@ def measure_workgroup_size(device):
 
     if device is "all", returns a dict with all devices with their ids as keys.
     """
-    if (ocl is None) or (device is None):
+    lazy_ocl = ocl  # noqa F821 Lazy module attribute
+    if (lazy_ocl is None) or (device is None):
         return None
 
     if isinstance(device, tuple) and (len(device) == 2):
         # this is probably a tuple (platformid, deviceid)
-        device = ocl.create_context(platformid=device[0], deviceid=device[1])
+        device = lazy_ocl.create_context(platformid=device[0], deviceid=device[1])
 
     if device == "all":
         res = {}
-        for pid, platform in enumerate(ocl.platforms):
+        for pid, platform in enumerate(lazy_ocl.platforms):
             for did, _devices in enumerate(platform.devices):
                 tup = (pid, did)
                 res[tup] = measure_workgroup_size(tup)
