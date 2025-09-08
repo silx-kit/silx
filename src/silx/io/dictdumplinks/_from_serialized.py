@@ -416,10 +416,10 @@ def _add_tiff_url_to_schema(
 
 def _concatenate_items(
     concat_shape: tuple[int, ...],
-    dtype: DTypeLike | str,
+    dtype: DTypeLike,
     nitems: int,
     item_shape: tuple[int, ...],
-    item_dtype: DTypeLike | str,
+    item_dtype: DTypeLike,
 ) -> tuple[int, ...]:
     if len(concat_shape) == len(item_shape):
         concat_shape = (1, *concat_shape)
