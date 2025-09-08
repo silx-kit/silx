@@ -1151,7 +1151,7 @@ def vol_to_h5_external_dataset(
         with builtin_open(info_file, "r") as _file:
             lines = _file.readlines()
             for line in lines:
-                if not "=" in line:
+                if "=" not in line:
                     continue
                 l = line.rstrip().replace(" ", "")
                 l = l.split("#")[0]
