@@ -6,14 +6,14 @@ from numpy.typing import DTypeLike
 from pydantic import BaseModel
 
 
-class ExternalLinkModelV1(BaseModel, arbitrary_types_allowed=True):
+class ExternalLinkModelV1(BaseModel):
     """Attention: relative file names in external HDF5 datasets are relative
     with respect to the current working directory, not relative to the parent file.
     """
 
     dictdump_schema: Literal["external_binary_link_v1"]
     shape: tuple[int, ...]
-    dtype: str | DTypeLike
+    dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     sources: list[tuple[str, int, int]]
 
 
@@ -26,7 +26,7 @@ class ExternalBinaryLink:
         return self._model.shape
 
     @property
-    def dtype(self) -> str | DTypeLike:
+    def dtype(self) -> DTypeLike:
         return self._model.dtype
 
     @property

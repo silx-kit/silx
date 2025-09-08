@@ -5,7 +5,6 @@ from typing import Optional
 from typing import cast
 
 import h5py
-from numpy.typing import DTypeLike
 from pydantic import BaseModel
 from pydantic import field_validator
 
@@ -19,7 +18,7 @@ class VdsSourceV1(BaseModel, arbitrary_types_allowed=True):
     file_path: str
     data_path: str
     shape: tuple[int, ...]
-    dtype: str | DTypeLike
+    dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     source_index: Optional[RawDsetIndex] = tuple()
     target_index: Optional[RawDsetIndex] = tuple()
 
@@ -33,10 +32,10 @@ class VdsSourceV1(BaseModel, arbitrary_types_allowed=True):
         return tuple(_as_raw_dset_index_item(idx_item) for idx_item in idx)
 
 
-class VdsModelV1(BaseModel, arbitrary_types_allowed=True):
+class VdsModelV1(BaseModel):
     dictdump_schema: Literal["virtual_dataset_v1"]
     shape: tuple[int, ...]
-    dtype: str | DTypeLike
+    dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     sources: list[VdsSourceV1]
 
 
