@@ -1153,9 +1153,9 @@ def vol_to_h5_external_dataset(
             for line in lines:
                 if "=" not in line:
                     continue
-                l = line.rstrip().replace(" ", "")
-                l = l.split("#")[0]
-                key, value = l.split("=")
+                s = line.rstrip().replace(" ", "")
+                s = s.split("#")[0]
+                key, value = s.split("=")
                 ddict[key.lower()] = value
         return ddict
 

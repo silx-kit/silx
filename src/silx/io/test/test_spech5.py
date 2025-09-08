@@ -508,12 +508,12 @@ class TestSpecH5(unittest.TestCase):
     def testVisitItems(self):
         dataset_name_list = []
 
-        def func_generator(l):
+        def func_generator(lst):
             """return a function appending names to list l"""
 
             def func(name, obj):
                 if isinstance(obj, SpecH5Dataset):
-                    l.append(name)
+                    lst.append(name)
 
             return func
 
