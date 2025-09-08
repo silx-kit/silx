@@ -194,7 +194,7 @@ def qWidgetFactory(qapp, qapp_utils):
         widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         widget.show()
         qapp_utils.qWaitForWindowExposed(widget)
-        widgets.append(widget)
+        widgets.append(widget)  # noqa: F821
 
         return widget
 
