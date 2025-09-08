@@ -33,15 +33,15 @@ __license__ = "MIT"
 __date__ = "11/12/2017"
 
 
-from .utils import open  # pylint:disable=redefined-builtin
-from .utils import save1D
+from .utils import open  # noqa F401
+from .utils import save1D  # noqa F401
 
-from .utils import is_dataset
-from .utils import is_file
-from .utils import is_group
-from .utils import is_softlink
-from .utils import supported_extensions
-from .utils import get_data
+from .utils import is_dataset  # noqa F401
+from .utils import is_file  # noqa F401
+from .utils import is_group  # noqa F401
+from .utils import is_softlink  # noqa F401
+from .utils import supported_extensions  # noqa F401
+from .utils import get_data  # noqa F401
 
 # avoid to import open with "import *"
 __all = locals().keys()
