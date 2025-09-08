@@ -827,7 +827,7 @@ class TestDictToNx(H5DictTestCase):
 
 @pytest.mark.skipif(pint is None, reason="Require pint")
 def test_dicttonx_pint(tmp_h5py_file):
-    ureg = pint.UnitRegistry()
+    ureg = pint.get_application_registry()
     treedict = {
         "array_mm": pint.Quantity([1, 2, 3], ureg.mm),
         "value_kg": 3 * ureg.kg,
