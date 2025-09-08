@@ -12,8 +12,29 @@ class OverlayMixIn:
     .. warning:: Any class inheriting from this mixin must also inherit from a QWidget.
     """
 
-    def __init__(self, parent):
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+    ):
+        self._alignment: qt.Qt.AlignmentFlag = qt.Qt.AlignCenter
+        self._alignmentOffsets: tuple[int, int] = (0, 0)
         self._registerParent(parent=parent)
+
+    def getAlignment(self) -> qt.Qt.AlignmentFlag:
+        return self._alignment
+
+    def setAlignment(self, alignment: qt.Qt.AlignmentFlag):
+        self._alignment = alignment
+        self._resize()
+        self.update()
+
+    def getAlignmentOffsets(self) -> tuple[int, int]:
+        return self._alignmentOffsets
+
+    def setAlignmentOffsets(self, offsets: tuple[int, int]):
+        self._alignmentOffsets = offsets
+        self._resize()
+        self.update()
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
@@ -45,29 +66,59 @@ class OverlayMixIn:
         super().setParent(parent)
         self._registerParent(parent)
 
+    def _getGeometry(self) -> qt.QRect | None:
+
+        parent = self.parent()
+        if parent is None:
+            return None
+
+        overlaySize = self.sizeHint()
+        if isinstance(parent, PlotWidget):
+            offset = parent.getWidgetHandle().mapTo(parent, qt.QPoint(0, 0))
+            canvasLeft, canvasTop, canvasWidth, canvasHeight = (
+                parent.getPlotBoundsInPixels()
+            )
+            canvasLeft += offset.x()
+            canvasTop += offset.y()
+        else:
+            canvasWidth = parent.size().width()
+            canvasHeight = parent.size().height()
+            canvasLeft = 0
+            canvasTop = 0
+
+        # calculate left position
+        if self._alignment & qt.Qt.AlignTop:
+            top = canvasTop
+        elif self._alignment & qt.Qt.AlignBottom:
+            top = canvasTop + canvasHeight - overlaySize.height()
+        else:
+            top = canvasTop + (canvasHeight - overlaySize.height()) / 2
+
+        # calculate top position
+        if self._alignment & qt.Qt.AlignLeft:
+            left = canvasLeft
+        elif self._alignment & qt.Qt.AlignRight:
+            left = canvasLeft + canvasWidth - overlaySize.width()
+        else:
+            left = canvasLeft + (canvasWidth - overlaySize.width()) / 2
+
+        topLeft = qt.QPoint(
+            int(left + self._alignmentOffsets[0]),
+            int(top + self._alignmentOffsets[1]),
+        )
+        return qt.QRect(
+            topLeft,
+            overlaySize,
+        )
+
     def _resize(self):
         if not qt_inspect.isValid(self):
             return  # For _resizeLater in case the widget has been deleted
 
-        parent = self.parent()
-        if parent is None:
+        rect = self._getGeometry()
+        if rect is None:
             return
 
-        size = self.sizeHint()
-        if isinstance(parent, PlotWidget):
-            offset = parent.getWidgetHandle().mapTo(parent, qt.QPoint(0, 0))
-            left, top, width, height = parent.getPlotBoundsInPixels()
-            rect = qt.QRect(
-                qt.QPoint(
-                    int(offset.x() + left + width / 2 - size.width() / 2),
-                    int(offset.y() + top + height / 2 - size.height() / 2),
-                ),
-                size,
-            )
-        else:
-            position = parent.size()
-            position = (position - size) / 2
-            rect = qt.QRect(qt.QPoint(position.width(), position.height()), size)
         self.setGeometry(rect)
         self.raise_()
 
