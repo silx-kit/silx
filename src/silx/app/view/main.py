@@ -123,7 +123,6 @@ def mainQt(options):
     os.environ["HDF5_USE_FILE_LOCKING"] = hdf5_file_locking
 
     try:
-        # it should be loaded before h5py
         import hdf5plugin  # noqa
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
