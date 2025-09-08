@@ -22,5 +22,6 @@ py.install_sources([
 subdir: 'silx/io',  # Folder relative to site-packages to install to
 )
 
+install_subdir('dictdumplinks', install_dir: silx_dir / 'io')
 install_subdir('nxdata', install_dir: silx_dir / 'io')
 install_subdir('test', install_dir: silx_dir / 'io')
