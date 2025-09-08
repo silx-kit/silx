@@ -88,19 +88,19 @@ def local_maxmin_setup():
 
     l2 = ascent().astype(numpy.float32)
     l2 = numpy.ascontiguousarray(l2[0:507, 0:209])
-    l = normalize_image(
+    lnorm = normalize_image(
         l2
     )  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
-        width = numpy.int32(l.shape[1])
-        height = numpy.int32(l.shape[0])
+        width = numpy.int32(lnorm.shape[1])
+        height = numpy.int32(lnorm.shape[0])
 
         # Blurs and DoGs pre-allocating
         g = (numpy.zeros(6 * height * width).astype(numpy.float32)).reshape(
             6, height, width
         )  # vector of 6 blurs
         DOGS = numpy.zeros((5, height, width), dtype=numpy.float32)  # vector of 5 DoGs
-        g[0, :, :] = numpy.copy(l)
+        g[0, :, :] = numpy.copy(lnorm)
         """
         sift.cpp pre-process
         """
@@ -113,9 +113,9 @@ def local_maxmin_setup():
             # Convolving initial image to achieve std = initsigma = 1.6
             if initsigma > cursigma:
                 sigma = numpy.sqrt(initsigma**2 - cursigma**2)
-                g[0, :, :] = my_blur(l, sigma)
+                g[0, :, :] = my_blur(lnorm, sigma)
         else:
-            g[0, :, :] = numpy.copy(l)
+            g[0, :, :] = numpy.copy(lnorm)
         """
         Blurs and DoGs
         """
@@ -131,7 +131,7 @@ def local_maxmin_setup():
             DOGS[s - 1] = -(g[s] - g[s - 1])  # DoG[s-1]
 
         if octsize > 1:  # if a higher octave is required, we have to sample Blur[3]
-            l = shrink(g[3], 2, 2)
+            lnorm = shrink(g[3], 2, 2)
     return (
         border_dist,
         peakthresh,

@@ -635,14 +635,14 @@ class SiftPlan(OpenclProcessing):
             output = numpy.recarray(shape=(total_size,), dtype=self.dtype_kp)
             last = 0
             for ds, desc in zip(keypoints, descriptors):
-                l = ds.shape[0]
-                if l > 0:
-                    output[last : last + l].x = ds[:, 0]
-                    output[last : last + l].y = ds[:, 1]
-                    output[last : last + l].scale = ds[:, 2]
-                    output[last : last + l].angle = ds[:, 3]
-                    output[last : last + l].desc = desc
-                    last += l
+                n0 = ds.shape[0]
+                if n0 > 0:
+                    output[last : last + n0].x = ds[:, 0]
+                    output[last : last + n0].y = ds[:, 1]
+                    output[last : last + n0].scale = ds[:, 2]
+                    output[last : last + n0].angle = ds[:, 3]
+                    output[last : last + n0].desc = desc
+                    last += n0
             logger.info("Execution time: %.3fms" % (1000 * (time.time() - t0)))
         return output
 
