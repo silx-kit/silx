@@ -100,6 +100,11 @@ jobs:
           python ./ci/info_platform.py
           pip list
 
+      - name: Linting
+        run: |
+          pip install black
+          black --check .
+
       - name: Test
         env:
           QT_API: ${{ matrix.QT_API }}
