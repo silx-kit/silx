@@ -1981,7 +1981,7 @@ class PlotWidget(qt.QMainWindow):
 
     # Hide
 
-    def isCurveHidden(self, legend):
+    def isCurveHidden(self, legend: str) -> bool:
         """Returns True if the curve associated to legend is hidden, else False
 
         :param str legend: The legend key identifying the curve
@@ -2486,7 +2486,7 @@ class PlotWidget(qt.QMainWindow):
         ]
         return [curve.getName() for curve in curves] if just_legend else curves
 
-    def getCurve(self, legend: str | items.Curve | None = None) -> items.Curve:
+    def getCurve(self, legend: str | items.Curve | None = None) -> items.Curve | None:
         """Get the object describing a specific curve.
 
         It returns None in case no matching curve is found.
@@ -2521,7 +2521,9 @@ class PlotWidget(qt.QMainWindow):
         images = [item for item in self.getItems() if isinstance(item, items.ImageBase)]
         return [image.getName() for image in images] if just_legend else images
 
-    def getImage(self, legend: str | items.ImageBase | None = None) -> items.ImageBase:
+    def getImage(
+        self, legend: str | items.ImageBase | None = None
+    ) -> items.ImageBase | None:
         """Get the object describing a specific image.
 
         It returns None in case no matching image is found.
@@ -2538,7 +2540,9 @@ class PlotWidget(qt.QMainWindow):
             return legend
         return self._getItem(kind="image", legend=legend)
 
-    def getScatter(self, legend: str | items.Scatter | None = None) -> items.Scatter:
+    def getScatter(
+        self, legend: str | items.Scatter | None = None
+    ) -> items.Scatter | None:
         """Get the object describing a specific scatter.
 
         It returns None in case no matching scatter is found.
@@ -2557,7 +2561,7 @@ class PlotWidget(qt.QMainWindow):
 
     def getHistogram(
         self, legend: str | items.Histogram | None = None
-    ) -> items.Histogram:
+    ) -> items.Histogram | None:
         """Get the object describing a specific histogram.
 
         It returns None in case no matching histogram is found.
@@ -2573,7 +2577,7 @@ class PlotWidget(qt.QMainWindow):
             return legend
         return self._getItem(kind="histogram", legend=legend)
 
-    def _getItem(self, kind, legend=None) -> items.Item:
+    def _getItem(self, kind: str, legend: str | None = None) -> items.Item | None:
         """Get an item from the plot: either an image or a curve.
 
         Returns None if no match found.
@@ -3518,7 +3522,7 @@ class PlotWidget(qt.QMainWindow):
         marker = result.getItem() if result is not None else None
         return marker
 
-    def _getMarker(self, legend=None):
+    def _getMarker(self, legend: str | None = None) -> items.Item | None:
         """Get the object describing a specific marker.
 
         It returns None in case no matching marker is found
