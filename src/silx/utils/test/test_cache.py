@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from ..cache import LRUCache
 
 
@@ -7,6 +8,13 @@ def test_LRU_CACHE():
     cache["a"] = 1
     cache["b"] = 2
     cache["c"] = 3
+    assert cache == OrderedDict(
+        {
+            "a": 1,
+            "b": 2,
+            "c": 3,
+        }
+    )
     cache["d"] = 4
     assert len(cache) == 3
     assert "a" not in cache
