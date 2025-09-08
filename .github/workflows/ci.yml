@@ -85,6 +85,11 @@ jobs:
         run: |
           pip install --upgrade --pre build wheel 
 
+      - name: Linting
+        run: |
+          pip install black
+          black --check .
+
       - name: Build wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
@@ -99,11 +104,6 @@ jobs:
           pip install --pre "$(ls dist/silx*.whl)[full,test]"
           python ./ci/info_platform.py
           pip list
-
-      - name: Linting
-        run: |
-          pip install black
-          black --check .
 
       - name: Test
         env:
