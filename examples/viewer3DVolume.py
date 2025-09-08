@@ -45,11 +45,11 @@ from silx.gui import qt
 from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
 from silx.gui.plot3d import SFViewParamTree
 
-logging.basicConfig()
-
-_logger = logging.getLogger(__name__)
-
 import h5py
+
+
+logging.basicConfig()
+_logger = logging.getLogger(__name__)
 
 
 def load(filename):

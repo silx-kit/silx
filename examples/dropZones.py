@@ -139,7 +139,7 @@ class DragLabel(qt.QLabel):
             )
             drag = qt.QDrag(self)
             drag.setMimeData(mimeData)
-            dropAction = drag.exec()
+            drag.exec()
 
 
 class DragAndDropExample(qt.QMainWindow):
