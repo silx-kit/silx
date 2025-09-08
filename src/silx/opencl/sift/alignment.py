@@ -214,7 +214,7 @@ class LinearAlign(OpenclProcessing):
         for buffer_name in list(self.cl_mem.keys()):
             if self.cl_mem[buffer_name] is not None:
                 try:
-                    buffer = self.cl_mem.pop(buffer_name)
+                    buffer = self.cl_mem.pop(buffer_name)  # noqa F841
                     del buffer
                 except pyopencl.LogicError:
                     logger.error("Error while freeing buffer %s" % buffer_name)

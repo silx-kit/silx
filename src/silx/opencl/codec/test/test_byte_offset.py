@@ -223,7 +223,7 @@ class TestByteOffset(unittest.TestCase):
             raise err
 
         t0 = time.time()
-        res_fabio = fabio.compression.compByteOffset(ref)
+        _ = fabio.compression.compByteOffset(ref)
         t1 = time.time()
         compressed_stream = bo.encode_to_bytes(ref)
         t2 = time.time()
@@ -250,7 +250,7 @@ class TestByteOffset(unittest.TestCase):
         d_ref = pyopencl.array.to_device(bo.queue, ref.astype(numpy.int32).ravel())
 
         t0 = time.time()
-        res_fabio = fabio.compression.compByteOffset(ref)
+        _ = fabio.compression.compByteOffset(ref)
         t1 = time.time()
         compressed_stream = bo.encode_to_bytes(d_ref)
         t2 = time.time()
@@ -278,7 +278,7 @@ class TestByteOffset(unittest.TestCase):
         bo_durations = []
 
         t0 = time.time()
-        res_fabio = fabio.compression.compByteOffset(ref)
+        _ = fabio.compression.compByteOffset(ref)
         t1 = time.time()
         compressed_stream = bo.encode_to_bytes(ref)
         t2 = time.time()
@@ -295,7 +295,7 @@ class TestByteOffset(unittest.TestCase):
             ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
 
             t0 = time.time()
-            res_fabio = fabio.compression.compByteOffset(ref)
+            _ = fabio.compression.compByteOffset(ref)
             t1 = time.time()
             compressed_stream = bo.encode_to_bytes(ref)
             t2 = time.time()
