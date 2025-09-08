@@ -193,7 +193,7 @@ else:
                 try:
                     gl.glGetError()  # clear any previous error (if any)
                     version = gl.glGetString(gl.GL_VERSION)
-                except:
+                except Exception:
                     version = None
 
                 if version:

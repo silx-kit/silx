@@ -33,12 +33,11 @@ from ctypes import c_uint
 import logging
 import sys
 
+import numpy as np
 from packaging.version import Version
-
+import OpenGL
 
 _logger = logging.getLogger(__name__)
-
-import OpenGL
 
 # Set the following to true for debugging
 if _logger.getEffectiveLevel() <= logging.DEBUG:
@@ -56,25 +55,23 @@ if sys.version_info >= (3, 12) and Version(OpenGL.__version__) <= Version("3.1.7
     OpenGL.FormatHandler.by_name("ctypesparameter").check.append("_ctypes.CArgObject")
 
 
-import OpenGL.GL as _GL
+import OpenGL.GL as _GL  # noqa: E402
 from OpenGL.GL import *  # noqa
-import OpenGL.platform
+import OpenGL.platform  # noqa: E402
 
 # Extentions core in OpenGL 3
-from OpenGL.GL.ARB import framebuffer_object as _FBO
+from OpenGL.GL.ARB import framebuffer_object as _FBO  # noqa: E402
 from OpenGL.GL.ARB.framebuffer_object import *  # noqa
 from OpenGL.GL.ARB.texture_rg import GL_R32F, GL_R16F  # noqa
 from OpenGL.GL.ARB.texture_rg import GL_R16, GL_R8  # noqa
 
 # PyOpenGL 3.0.1 does not define it
 try:
-    GLchar
+    _GL.GLchar
 except NameError:
     from ctypes import c_char
 
     GLchar = c_char
-
-import numpy as np
 
 
 def getPlatform() -> str | None:
@@ -96,7 +93,7 @@ def getVersion() -> tuple:
         ValueError: If the version returned by the driver is not supported
     """
     try:
-        desc = glGetString(GL_VERSION)
+        desc = _GL.glGetString(_GL.GL_VERSION)
         if isinstance(desc, bytes):
             desc = desc.decode("ascii")
         version = desc.split(" ", 1)[0]
@@ -132,8 +129,8 @@ def testGL() -> bool:
 
 
 # Additional setup
-if hasattr(glget, "addGLGetConstant"):
-    glget.addGLGetConstant(GL_FRAMEBUFFER_BINDING, (1,))
+if hasattr(_GL.glget, "addGLGetConstant"):
+    _GL.glget.addGLGetConstant(_FBO.GL_FRAMEBUFFER_BINDING, (1,))
 
 
 @_contextmanager
@@ -146,17 +143,17 @@ def enabled(capacity, enable=True):
     :param bool enable:
         True (default) to enable during context, False to disable
     """
-    if bool(enable) == glGetBoolean(capacity):
+    if bool(enable) == _GL.glGetBoolean(capacity):
         # Already in the right state: noop
         yield
     elif enable:
-        glEnable(capacity)
+        _GL.glEnable(capacity)
         yield
-        glDisable(capacity)
+        _GL.glDisable(capacity)
     else:
-        glDisable(capacity)
+        _GL.glDisable(capacity)
         yield
-        glEnable(capacity)
+        _GL.glEnable(capacity)
 
 
 def disabled(capacity, disable=True):
@@ -176,10 +173,10 @@ def disabled(capacity, disable=True):
 
 def glGetActiveAttrib(program, index):
     """Wrap PyOpenGL glGetActiveAttrib"""
-    bufsize = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH)
-    length = GLsizei()
-    size = GLint()
-    type_ = GLenum()
+    bufsize = _GL.glGetProgramiv(program, _GL.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH)
+    length = _GL.GLsizei()
+    size = _GL.GLint()
+    type_ = _GL.GLenum()
     name = (GLchar * bufsize)()
 
     _GL.glGetActiveAttrib(program, index, bufsize, length, size, type_, name)
