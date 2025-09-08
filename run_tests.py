@@ -64,6 +64,7 @@ except ImportError:
 
 try:
     import importlib
+
     importer = importlib.import_module
 except ImportError:
 
@@ -75,6 +76,7 @@ except ImportError:
         for subname in subnames:
             module = getattr(module, subname)
             return module
+
 
 try:
     import numpy
@@ -93,8 +95,10 @@ else:
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 from bootstrap import get_project_name, build_project
+
 PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)
+
 
 def is_debug_python():
     """Returns true if the Python interpreter is in debug mode."""
@@ -112,8 +116,8 @@ if os.path.dirname(os.path.abspath(__file__)) == os.path.abspath(sys.path[0]):
 
 def get_test_options(project_module):
     """Returns the test options if available, else None"""
-    module_name = project_module.__name__ + '.test.utils'
-    logger.info('Import %s', module_name)
+    module_name = project_module.__name__ + ".test.utils"
+    logger.info("Import %s", module_name)
     try:
         test_utils = importer(module_name)
     except ImportError:
@@ -131,8 +135,10 @@ if "-i" in sys.argv or "--installed" in sys.argv:
     try:
         module = importer(PROJECT_NAME)
     except Exception:
-        logger.error("Cannot run tests on installed version: %s not installed or raising error.",
-                     PROJECT_NAME)
+        logger.error(
+            "Cannot run tests on installed version: %s not installed or raising error.",
+            PROJECT_NAME,
+        )
         raise
     else:
         print("Running tests on system-wide installed project")
@@ -149,41 +155,73 @@ SILX_OPENCL=False to disable OpenCL tests.
 WITH_HIGH_MEM_TEST: set to True to enable all tests >100Mb
 WITH_GL_TEST=False to disable tests using OpenGL
 """
-parser = ArgumentParser(description='Run the tests.',
-                        epilog=epilog)
+parser = ArgumentParser(description="Run the tests.", epilog=epilog)
 
 test_options = get_test_options(module)
 """Contains extra configuration for the tests."""
 if test_options is not None:
     test_options.add_parser_argument(parser)
 
-parser.add_argument("test_name", nargs='*',
-                    default=(PROJECT_NAME,),
-                    help=f"Test names to run (Default: {PROJECT_NAME})")
+parser.add_argument(
+    "test_name",
+    nargs="*",
+    default=(PROJECT_NAME,),
+    help=f"Test names to run (Default: {PROJECT_NAME})",
+)
 
-parser.add_argument("-i", "--installed",
-                    action="store_true", dest="installed", default=False,
-                    help="Test the installed version instead of"
-                          "building from the source and testing the development version")
-parser.add_argument("--no-gui",
-                    action="store_false", dest="gui", default=True,
-                    help="Disable the test of the graphical use interface")
-parser.add_argument("--no-opengl",
-                    action="store_false", dest="opengl", default=True,
-                    help="Disable tests using OpenGL")
-parser.add_argument("--no-opencl",
-                    action="store_false", dest="opencl", default=True,
-                    help="Disable tests using OpenCL")
-parser.add_argument("--high-mem",
-                    action="store_true", dest="high_mem", default=False,
-                    help="Enable tests requiring large amounts of data (>100Mb)")
-parser.add_argument("-v", "--verbose", default=0,
-                    action="count", dest="verbose",
-                    help="Increase verbosity. Option -v prints additional " +
-                         "INFO messages. Use -vv for full verbosity, " +
-                         "including debug messages and test help strings.")
-parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                    help="Force using a Qt binding, from 'PyQt5', 'PyQt6', or 'PySide6'")
+parser.add_argument(
+    "-i",
+    "--installed",
+    action="store_true",
+    dest="installed",
+    default=False,
+    help="Test the installed version instead of"
+    "building from the source and testing the development version",
+)
+parser.add_argument(
+    "--no-gui",
+    action="store_false",
+    dest="gui",
+    default=True,
+    help="Disable the test of the graphical use interface",
+)
+parser.add_argument(
+    "--no-opengl",
+    action="store_false",
+    dest="opengl",
+    default=True,
+    help="Disable tests using OpenGL",
+)
+parser.add_argument(
+    "--no-opencl",
+    action="store_false",
+    dest="opencl",
+    default=True,
+    help="Disable tests using OpenCL",
+)
+parser.add_argument(
+    "--high-mem",
+    action="store_true",
+    dest="high_mem",
+    default=False,
+    help="Enable tests requiring large amounts of data (>100Mb)",
+)
+parser.add_argument(
+    "-v",
+    "--verbose",
+    default=0,
+    action="count",
+    dest="verbose",
+    help="Increase verbosity. Option -v prints additional "
+    + "INFO messages. Use -vv for full verbosity, "
+    + "including debug messages and test help strings.",
+)
+parser.add_argument(
+    "--qt-binding",
+    dest="qt_binding",
+    default=None,
+    help="Force using a Qt binding, from 'PyQt5', 'PyQt6', or 'PySide6'",
+)
 
 options = parser.parse_args()
 
@@ -214,7 +252,7 @@ if options.qt_binding:
     else:
         raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
-PROJECT_VERSION = getattr(module, 'version', '')
+PROJECT_VERSION = getattr(module, "version", "")
 PROJECT_PATH = module.__path__[0]
 
 
@@ -240,11 +278,11 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     def path2module(option):
         if option.endswith(".py"):
-            option=option[:-3]
+            option = option[:-3]
         option_parts = option.split(os.path.sep)
         if option_parts == ["src", PROJECT_NAME]:
             option_parts = [PROJECT_NAME]
-        elif len(option_parts)==1:
+        elif len(option_parts) == 1:
             pass
         elif option_parts[:2] == ["src", PROJECT_NAME]:
             option_parts = option_parts[1:]
@@ -254,8 +292,5 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     test_module = importlib.import_module(f"{PROJECT_NAME}.test")
     # print(modules)
     # print(pytest_options)
-    rc = test_module.run_tests(
-            modules=modules,
-            args=pytest_options)
+    rc = test_module.run_tests(modules=modules, args=pytest_options)
     sys.exit(rc)
-

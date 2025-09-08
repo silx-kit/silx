@@ -17,6 +17,7 @@ import os
 import argparse
 import subprocess
 import logging
+
 if sys.version_info[:2] < (3, 11):
     import tomli
 else:
@@ -31,6 +32,7 @@ def is_debug_python():
         return True
 
     return hasattr(sys, "gettotalrefcount")
+
 
 def get_project_name(root_dir):
     """Retrieve project name by running python setup.py --name in root_dir.
@@ -57,15 +59,21 @@ def build_project(name, root_dir):
         libdir = "Lib"
 
     build = os.path.join(root_dir, "build")
-    if not(os.path.isdir(build) and os.path.isdir(os.path.join(build, name))):
-        p = subprocess.Popen(["meson", "setup", "build"],
-                         shell=False, cwd=root_dir, env=os.environ)
+    if not (os.path.isdir(build) and os.path.isdir(os.path.join(build, name))):
+        p = subprocess.Popen(
+            ["meson", "setup", "build"], shell=False, cwd=root_dir, env=os.environ
+        )
         p.wait()
-    p = subprocess.Popen(["meson", "configure", "--prefix", "/"] + extra,
-                     shell=False, cwd=build, env=os.environ)
+    p = subprocess.Popen(
+        ["meson", "configure", "--prefix", "/"] + extra,
+        shell=False,
+        cwd=build,
+        env=os.environ,
+    )
     p.wait()
-    p = subprocess.Popen(["meson", "install", "--destdir", "."],
-                     shell=False, cwd=build, env=os.environ)
+    p = subprocess.Popen(
+        ["meson", "install", "--destdir", "."], shell=False, cwd=build, env=os.environ
+    )
     logger.debug("meson install ended with rc= %s", p.wait())
 
     home = None
@@ -79,7 +87,9 @@ def build_project(name, root_dir):
             if sys.platform == "win32":
                 home = os.path.join(build, libdir, "site-packages")
             else:
-                python_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
+                python_version = (
+                    f"python{sys.version_info.major}.{sys.version_info.minor}"
+                )
                 home = os.path.join(build, libdir, python_version, "site-packages")
             home = os.path.abspath(home)
 
@@ -103,7 +113,7 @@ def execfile(fullpath, globals=None, locals=None):
             data = f.read()
         except UnicodeDecodeError:
             raise SyntaxError("Not a Python script")
-        code = compile(data, fullpath, 'exec')
+        code = compile(data, fullpath, "exec")
         exec(code, globals, locals)
 
 
@@ -130,7 +140,7 @@ def run_file(filename, argv):
             logger.info("Executing %s.main()", filename)
             print("########### EXECFILE ###########")
             module_globals = globals().copy()
-            module_globals['__file__'] = filename
+            module_globals["__file__"] = filename
             execfile(filename, module_globals, module_globals)
         finally:
             sys.argv = old_argv
@@ -158,11 +168,17 @@ def run_entry_point(target_name, entry_point, argv):
     :param argv: list of arguments
     """
     import importlib
+
     elements = entry_point.split(":")
     module_name = elements[0].strip()
     function_name = elements[1].strip()
 
-    logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
+    logger.info(
+        "Execute target %s (function %s from module %s) using importlib",
+        target_name,
+        function_name,
+        module_name,
+    )
     full_args = [target_name]
     full_args.extend(argv)
     try:
@@ -202,7 +218,7 @@ def find_executable(target):
 
     for script, entry_point in scripts.items():
         if script == target:
-            #print(script, entry_point)
+            # print(script, entry_point)
             return ("entry_point", target, entry_point)
     return None, None
 
@@ -268,7 +284,6 @@ logger.info("Project name: %s", PROJECT_NAME)
 if __name__ == "__main__":
     home = os.path.dirname(os.path.abspath(__file__))
     LIBPATH = build_project(PROJECT_NAME, PROJECT_DIR)
-
 
     sys.path.insert(0, LIBPATH)
     logger.info("Patched sys.path with %s", LIBPATH)

@@ -33,6 +33,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Iterator
+
 if sys.version_info[:2] < (3, 11):
     import tomli
 else:
@@ -48,7 +49,7 @@ PROJECT_PATH = Path(__file__).parent.parent
 
 def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
     # search the executable in pyproject.toml
-    with open( project_path / "pyproject.toml") as f:
+    with open(project_path / "pyproject.toml") as f:
         pyproject = tomli.loads(f.read())
     # print(pyproject)
     entry_points_config = pyproject.get("project", {})
