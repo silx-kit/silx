@@ -341,7 +341,7 @@ def dicttoh5(
                     # Create link from h5py VDS layout object
                     h5f.create_virtual_dataset(h5name, value)
             elif isinstance(value, ExternalBinaryLink):
-                # HDF5 soft link, external link or virtual dataset
+                # HDF5 external binary data link (TIFF, EDF, ...)
                 if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
