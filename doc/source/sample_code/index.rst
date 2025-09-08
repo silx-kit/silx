@@ -95,6 +95,10 @@ All sample codes can be downloaded as a zip file: |sample_code_archive|.
 
        - :class:`~silx.gui.widgets.WaitingPushButton`:
          A button with a progress-like waiting animated icon.
+   * - :download:`collapsibleWidgets.py <../../../examples/collapsibleWidgets.py>`
+     - .. image:: img/collapsibleWidget.png
+         :width: 150px
+     - This script shows how to use :mod:`~silx.gui.widgets.CollapsibleWidget`.
 
 :mod:`silx.gui.plot` sample code
 ++++++++++++++++++++++++++++++++
