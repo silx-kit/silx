@@ -49,7 +49,7 @@ def link_from_serialized(
 
         target = "/path/to/ext_file.h5?path=/group/dataset"
 
-    A `h5py.VirtualLayout` is returned for these targets
+    An `h5py.VirtualLayout` is returned for these targets
 
     .. code-block:: python
 
