@@ -324,16 +324,8 @@ def dicttoh5(
                     )
                 elif not exists:
                     h5f.create_group(h5name)
-            elif is_softlink(value):
-                # HDF5 soft link
-                if exists and update_mode == "replace":
-                    del h5f[h5name]
-                    exists = False
-                if not exists:
-                    # Create link from h5py link object
-                    h5f[h5name] = value
-            elif is_externallink(value):
-                # HDF5 external link
+            elif is_link(value):
+                # HDF5 soft link or external link
                 if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
