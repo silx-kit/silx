@@ -44,7 +44,6 @@ _logger = logging.getLogger("hdf5widget")
 
 
 try:
-    # it should be loaded before h5py
     import hdf5plugin  # noqa
 except ImportError:
     message = (
