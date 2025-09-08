@@ -128,8 +128,6 @@ def mainQt(options):
     except ImportError:
         _logger.debug("Backtrace", exc_info=True)
 
-    import h5py
-
     import silx
     from silx.gui import qt
 
