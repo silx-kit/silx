@@ -169,10 +169,10 @@ class Test_leastsq(unittest.TestCase):
                 self.assertTrue(test_condition, msg)
 
     def testConstrainedFit(self):
-        CFREE = 0
-        CPOSITIVE = 1
-        CQUOTED = 2
-        CFIXED = 3
+        # CFREE = 0
+        # CPOSITIVE = 1
+        # CQUOTED = 2
+        # CFIXED = 3
         CFACTOR = 4
         CDELTA = 5
         CSUM = 6
