@@ -210,7 +210,8 @@ def save1D(
         # if ylabels is provided as a list, every element must
         # be a string
         ylabels = [
-            ylabel if isinstance(ylabel, str) else "y%d" % i for ylabel in ylabels
+            ylabel if isinstance(ylabel, str) else "y%d" % i
+            for i, ylabel in enumerate(ylabels)
         ]
 
     if filetype.lower() == "spec":
