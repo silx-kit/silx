@@ -43,6 +43,13 @@ from silx.io.specfile import is_specfile
 from silx.io.fioh5 import is_fiofile
 from silx.io import fabioh5
 
+
+try:
+    import hdf5plugin  # noqa
+except ImportError:
+    hdf5plugin = None
+
+
 _logger = logging.getLogger(__name__)
 """Module logger"""
 
@@ -339,11 +346,7 @@ def main(argv):
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
 
-    # Import after parsing --debug
-    try:
-        import hdf5plugin  # noqa
-    except ImportError:
-        _logger.debug("Backtrace", exc_info=True)
+    if hdf5plugin is None:
         message = (
             "Module 'hdf5plugin' is not installed. It supports additional hdf5"
             + ' compressions. You can install it using "pip install hdf5plugin".'
