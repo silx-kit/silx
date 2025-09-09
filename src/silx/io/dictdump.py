@@ -754,12 +754,12 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
         from silx.io.dictdump import dicttonx
 
         gauss = {
-            "entry":{
-                "title":u"A plot of a gaussian",
+            "entry": {
+                "title": "A plot of a gaussian",
                 "instrument": {
-                    "@NX_class": u"NXinstrument",
+                    "@NX_class": "NXinstrument",
                     "positioners": {
-                        "@NX_class": u"NXCollection",
+                        "@NX_class": "NXCollection",
                         "x": numpy.arange(0,1.1,.1)
                     }
                 }
@@ -769,13 +769,13 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
                     ">x": "../instrument/positioners/x",
                     "@signal": "y",
                     "@axes": "x",
-                    "@NX_class":u"NXdata",
-                    "title:u"Gauss Plot",
+                    "@NX_class": "NXdata",
+                    "title": "Gauss Plot",
                  },
-                 "@NX_class": u"NXentry",
+                 "@NX_class": "NXentry",
                  "default":"plot",
             }
-            "@NX_class": u"NXroot",
+            "@NX_class": "NXroot",
             "@default": "entry",
         }
 
