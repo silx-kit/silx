@@ -379,7 +379,14 @@ class _MarkerContainer(_PickableContainer):
         if self.text is not None:
             self.text.draw(*args, **kwargs)
 
-    def updateMarkerText(self, xmin, xmax, ymin, ymax, yinverted):
+    def updateMarkerText(
+        self,
+        xmin: float,
+        xmax: float,
+        ymin: float,
+        ymax: float,
+        yinverted: bool,
+    ):
         """Update marker text position and visibility according to plot limits
 
         :param xmin: X axis lower limit
@@ -399,7 +406,7 @@ class _MarkerContainer(_PickableContainer):
                     valign = "baseline"
                 else:
                     if yinverted:
-                        valign = "bottom"
+                        valign = "bottom" if yinverted else "top"
                     else:
                         valign = "top"
                 self.text.set_verticalalignment(valign)
@@ -1321,13 +1328,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_yscale("linear")
         self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
-    def setYAxisInverted(self, flag):
+    def setYAxisInverted(self, flag: bool):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
             self._updateMarkers()
 
-    def isYAxisInverted(self):
+    def isYAxisInverted(self) -> bool:
         return self.ax.yaxis_inverted()
+
+    def setXAxisInverted(self, flag: bool):
+        if self.ax.xaxis_inverted() != bool(flag):
+            self.ax.invert_xaxis()
+            self._updateMarkers()
+
+    def isXAxisInverted(self) -> bool:
+        return self.ax.xaxis_inverted()
 
     def isYRightAxisVisible(self):
         return self.ax2.yaxis.get_visible()

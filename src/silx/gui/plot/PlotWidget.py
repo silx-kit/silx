@@ -590,6 +590,7 @@ class PlotWidget(qt.QMainWindow):
         xTimeZone = xaxis.getTimeZone()
         isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
 
+        isXAxisInverted = self.getXAxis().isInverted()
         isYAxisInverted = self.getYAxis().isInverted()
 
         # Remove all items from previous backend
@@ -631,6 +632,7 @@ class PlotWidget(qt.QMainWindow):
         self._backend.setXAxisTimeZone(xTimeZone)
         self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
         self._backend.setXAxisLogarithmic(xaxis.getScale() == items.Axis.LOGARITHMIC)
+        self._backend.setXAxisInverted(isXAxisInverted)
 
         for axis in ("left", "right"):
             self._backend.setGraphYLabel(self.getYAxis(axis).getLabel(), axis)
@@ -2863,6 +2865,18 @@ class PlotWidget(qt.QMainWindow):
         :return: (left, top, right, bottom)
         """
         return self.__axesMargins
+
+    def setXAxisInverted(self, flag: bool = True):
+        """Set the X axis orientation.
+
+        :param flag: True for X axis going from right to left,
+                     False for X axis going from left to right
+        """
+        self._xAxis.setInverted(flag)
+
+    def isXAxisInverted(self) -> bool:
+        """Return True if X axis goes from right to left, False otherwise."""
+        return self._xAxis.isInverted()
 
     def setYAxisInverted(self, flag: bool = True):
         """Set the Y axis orientation.
