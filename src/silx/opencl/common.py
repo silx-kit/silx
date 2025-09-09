@@ -33,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/11/2024"
+__date__ = "09/09/2025"
 __status__ = "stable"
 
 import os
@@ -113,44 +113,35 @@ NVIDIA_FLOP_PER_CORE = {
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
 
 
-def get_pyopencl_ctx_tuple(pyopencl_ctx_str, cache=None):
+def get_pyopencl_ctx_tuple(pyopencl_ctx_str: str, cache: dict = None):
     """
     Converts a PYOPENCL_CTX environment variable into a tuple (platform, device)
 
+    :param pyopencl_ctx_str: PYOPENCL_CTX Sting
     :param cache: dict with the already created contexts
+    :return: (platform_id, device_id)
     """
+    ctx = None
+    split_answers = pyopencl_ctx_str.split(":")
 
-    def _convert_to_int(val, default_val=0):
-        try:
-            ret = int(val)
-        except ValueError:
-            ret = default_val
-        return ret
+    if hasattr(pyopencl, "choose_devices"):
+        # pyopencl >=2024.2: Context created only once
+        devices = pyopencl.choose_devices(interactive=False, answers=split_answers)
+        device = devices[0]
 
-    if pyopencl_ctx_str in ["", ":"]:
-        return (0, 0)
-    if ":" in pyopencl_ctx_str:
-        platform, device = pyopencl_ctx_str.split(":")
-        platform_id = _convert_to_int(platform)
-        device_id = _convert_to_int(device)
-    elif pyopencl_ctx_str.isdigit():
-        platform_id = _convert_to_int(pyopencl_ctx_str)
-        device_id = 0
     else:
-        if hasattr(pyopencl, "choose_devices"):
-            # pyopencl >=2024.2
-            devices = pyopencl.choose_devices(interactive=False)
-            device = devices[0]
+        # pyopencl <=2024.1: one needs to create a context anyway
+        ctx = pyopencl.create_some_context(interactive=False, answers=split_answers)
+        device = ctx.devices[0]
+    platform = device.platform
+    device_id = platform.get_devices().index(device)
+    platform_id = pyopencl.get_platforms().index(platform)
+
+    if cache is not None and (platform_id, device_id) not in cache:
+        if ctx is None:
             ctx = pyopencl.Context([device])
-        else:
-            # pyopencl <=2024.1
-            ctx = pyopencl.create_some_context(interactive=False)
-            device = ctx.devices[0]
-        platform = device.platform
-        device_id = platform.get_devices().index(device)
-        platform_id = pyopencl.get_platforms().index(platform)
-        if cache is not None:
-            cache[(platform_id, device_id)] = ctx
+        cache[(platform_id, device_id)] = ctx
+
     return (platform_id, device_id)
 
 
