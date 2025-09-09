@@ -878,7 +878,10 @@ class ROITable(TableWidget):
                 self._roiDict.keys(),
                 key=lambda roi_id: self._roiDict[roi_id].get(order),
             )
-            res = {roi.getName(): self._roiDict[id] for id in ordered_roilist}
+            res = {
+                self._roiDict[roiId].getName(): self._roiDict[roiId]
+                for roiId in ordered_roilist
+            }
 
         return res
 
