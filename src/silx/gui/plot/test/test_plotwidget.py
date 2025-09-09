@@ -675,7 +675,6 @@ class TestPlotHistogram(PlotWidgetTestCase):
 
     def testPlotGapColor(self):
         """Test dashed histogram with gap color"""
-        data = numpy.arange(100)
         self.plot.addHistogram(
             histogram=self.histogram,
             edges=self.edges,
@@ -776,7 +775,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                     )
                     self.assertEqual(ref_bounds, bounds)
 
-                    shape = scatter.getCurrentVisualizationParameter(
+                    scatter.getCurrentVisualizationParameter(
                         scatter.VisualizationParameter.GRID_SHAPE
                     )
 

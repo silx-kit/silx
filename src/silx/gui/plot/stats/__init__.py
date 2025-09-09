@@ -28,4 +28,4 @@ __license__ = "MIT"
 __date__ = "07/03/2018"
 
 
-from .stats import *
+from .stats import *  # noqa: F401, F403

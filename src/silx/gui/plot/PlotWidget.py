@@ -32,10 +32,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import logging
-
-_logger = logging.getLogger(__name__)
-
-
 from collections import namedtuple
 from collections.abc import Sequence
 from contextlib import contextmanager
@@ -49,11 +45,12 @@ import numpy
 import silx
 from silx.utils.weakref import WeakMethodProxy
 
+
 try:
     # Import matplotlib now to init matplotlib our way
-    import silx.gui.utils.matplotlib  # noqa
+    from silx.gui.utils import matplotlib as _matplotlib  # noqa
 except ImportError:
-    _logger.debug("matplotlib not available")
+    _matplotlib = None
 
 from ..colors import Colormap
 from .. import colors
@@ -70,6 +67,11 @@ from .. import qt
 from ._utils.panzoom import ViewConstraints
 from ...gui.plot._utils.dtime_ticklayout import timestamp
 from ...utils.deprecation import deprecated_warning
+
+
+_logger = logging.getLogger(__name__)
+if _matplotlib is None:
+    _logger.debug("matplotlib not available")
 
 
 """
@@ -952,7 +954,7 @@ class PlotWidget(qt.QMainWindow):
         :raises ValueError: If item is already in the plot.
         """
         if not isinstance(item, items.Item):
-            raise ValueError(f"argument must be a subclass of Item")
+            raise ValueError("Argument must be a subclass of Item")
 
         if item in self.getItems():
             raise ValueError("Item already in the plot")

@@ -93,7 +93,7 @@ class CurvesROIWidget(qt.QWidget):
         """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
-        This come from the fact sigROISignal is connected to the 
+        This come from the fact sigROISignal is connected to the
         activeROIChanged signal which is emitted when raw and net counts
         values are changing but are not embed in the sigROISignal.
         """
@@ -188,10 +188,6 @@ class CurvesROIWidget(qt.QWidget):
         :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
-
-    def showEvent(self, event):
-        self._visibilityChangedHandler(visible=True)
-        qt.QWidget.showEvent(self, event)
 
     @property
     def roiFileDir(self):
@@ -882,7 +878,10 @@ class ROITable(TableWidget):
                 self._roiDict.keys(),
                 key=lambda roi_id: self._roiDict[roi_id].get(order),
             )
-            res = {roi.getName(): self._roiDict[id] for id in ordered_roilist}
+            res = {
+                self._roiDict[roiId].getName(): self._roiDict[roiId]
+                for roiId in ordered_roilist
+            }
 
         return res
 

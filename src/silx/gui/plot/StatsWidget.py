@@ -362,7 +362,7 @@ class _StatsWidgetBase:
             The plot containing the items on which statistics are applied
         """
         try:
-            import OpenGL
+            import OpenGL  # noqa: F401
         except ImportError:
             has_opengl = False
         else:
