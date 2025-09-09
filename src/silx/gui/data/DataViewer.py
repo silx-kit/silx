@@ -279,12 +279,12 @@ class DataViewer(qt.QFrame):
 
         try:
             filename = os.path.abspath(self.__data.file.filename)
-        except:
+        except TypeError:
             filename = None
 
         try:
             datapath = self.__data.name
-        except:
+        except AttributeError:
             datapath = None
 
         # FIXME: maybe use DataUrl, with added support of permutation

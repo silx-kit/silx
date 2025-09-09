@@ -35,10 +35,11 @@ import functools
 import sys
 import os
 
-_logger = logging.getLogger(__name__)
-
 from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
+
+
+_logger = logging.getLogger(__name__)
 
 
 if qt.BINDING == "PyQt5":

@@ -583,7 +583,7 @@ class TableView(qt.QTableView):
         # ensure the actions are not added multiple times:
         # compare action type and parent widget with those of existing actions
         for existing_action in self.actions():
-            if type(action) == type(existing_action):
+            if type(action) is type(existing_action):
                 if hasattr(action, "table") and action.table is existing_action.table:
                     return None
         super().addAction(action)
