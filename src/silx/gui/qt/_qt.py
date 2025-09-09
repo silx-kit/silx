@@ -32,7 +32,6 @@ import importlib
 import logging
 import os
 import sys
-import traceback
 
 from packaging.version import Version
 
@@ -254,27 +253,3 @@ elif BINDING == "PyQt6":
 
 else:
     raise ImportError("No Qt wrapper found. Install PyQt5, PySide6 or PyQt6")
-
-
-# provide a exception handler but not implement it by default
-def exceptionHandler(type_, value, trace):
-    """
-    This exception handler prevents quitting to the command line when there is
-    an unhandled exception while processing a Qt signal.
-
-    The script/application willing to use it should implement code similar to:
-
-    .. code-block:: python
-
-        if __name__ == "__main__":
-            sys.excepthook = qt.exceptionHandler
-
-    """
-    _logger.error("%s %s %s", type_, value, "".join(traceback.format_tb(trace)))
-    msg = QMessageBox()
-    msg.setWindowTitle("Unhandled exception")
-    msg.setIcon(QMessageBox.Critical)
-    msg.setInformativeText(f"{type_} {value}\nPlease report details")
-    msg.setDetailedText(("%s " % value) + "".join(traceback.format_tb(trace)))
-    msg.raise_()
-    msg.exec()
