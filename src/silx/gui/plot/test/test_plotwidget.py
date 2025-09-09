@@ -775,7 +775,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                     )
                     self.assertEqual(ref_bounds, bounds)
 
-                    _ = scatter.getCurrentVisualizationParameter(
+                    scatter.getCurrentVisualizationParameter(
                         scatter.VisualizationParameter.GRID_SHAPE
                     )
 
