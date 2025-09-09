@@ -42,10 +42,11 @@ import numpy
 import os
 
 
-from silx.opencl import ocl, kernel_workgroup_size
+from ... import ocl, kernel_workgroup_size
 
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl
+    import pyopencl.array
 
 import unittest
 from ..utils import calc_size, get_opencl_code
@@ -320,7 +321,7 @@ class TestImage(unittest.TestCase):
         actual_nb_keypoints = numpy.int32(actual_nb_keypoints)
         InitSigma = numpy.float32(
             1.6
-        )  #   warning: it must be the same in my_keypoints_interpolation
+        )  # warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
         k1 = self.program.interp_keypoint(
             self.queue,

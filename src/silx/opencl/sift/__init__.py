@@ -27,7 +27,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-from .param import par
-from .plan import SiftPlan
-from .match import MatchPlan
-from .alignment import LinearAlign
+from .param import par  # noqa F401
+from .plan import SiftPlan  # noqa F401
+from .match import MatchPlan  # noqa F401
+from .alignment import LinearAlign  # noqa F401

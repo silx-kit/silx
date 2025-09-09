@@ -43,7 +43,7 @@ from ..common import ocl
 
 if ocl:
     from .. import projection
-from silx.test.utils import utilstest
+from ...test.utils import utilstest
 
 logger = logging.getLogger(__name__)
 

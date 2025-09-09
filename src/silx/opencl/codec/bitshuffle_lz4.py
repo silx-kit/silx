@@ -41,7 +41,8 @@ __status__ = "production"
 import os
 import struct
 import numpy
-from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from ..common import pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
 import logging
@@ -95,7 +96,7 @@ class BitshuffleLz4(OpenclProcessing):
         if self.block_size is None:
             try:
                 self.block_size = self.ctx.devices[0].preferred_work_group_size_multiple
-            except:
+            except Exception:
                 self.block_size = self.device.max_work_group_size
 
         self.cmp_size = numpy.uint64(cmp_size)

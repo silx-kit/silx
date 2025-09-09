@@ -40,7 +40,6 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "20/11/2024"
 __status__ = "stable"
 
-import sys
 import os
 import logging
 import gc

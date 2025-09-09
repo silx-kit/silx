@@ -34,7 +34,11 @@ from collections import namedtuple
 from pyopencl.scan import GenericScanKernel
 from pyopencl.tools import dtype_to_ctype
 from .common import pyopencl as cl
-from .processing import OpenclProcessing, EventDescription, BufferDescription
+from .processing import (  # noqa F401
+    OpenclProcessing,
+    EventDescription,
+    BufferDescription,
+)
 
 mf = cl.mem_flags
 
