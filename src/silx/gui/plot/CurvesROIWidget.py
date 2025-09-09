@@ -189,10 +189,6 @@ class CurvesROIWidget(qt.QWidget):
         """
         return None if self._plotRef is None else self._plotRef()
 
-    def showEvent(self, event):
-        self._visibilityChangedHandler(visible=True)
-        qt.QWidget.showEvent(self, event)
-
     @property
     def roiFileDir(self):
         """The directory from which to load/save ROI from/to files."""
