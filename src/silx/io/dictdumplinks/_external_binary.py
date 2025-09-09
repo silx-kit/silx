@@ -5,6 +5,9 @@ import h5py
 from numpy.typing import DTypeLike
 from pydantic import BaseModel
 
+from ..url import DataUrl
+from ._utils import normalize_ext_source_path
+
 
 class ExternalLinkModelV1(BaseModel):
     """Attention: relative file names in external HDF5 datasets are relative
@@ -14,7 +17,7 @@ class ExternalLinkModelV1(BaseModel):
     dictdump_schema: Literal["external_binary_link_v1"]
     shape: tuple[int, ...]
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
-    sources: list[tuple[str, int, int]]
+    sources: list[tuple[str, int, int]]  # file name, byte offset, byte size
 
 
 class ExternalBinaryLink:
@@ -49,3 +52,13 @@ class ExternalBinaryLink:
 
     def serialize(self) -> dict:
         return self._model.model_dump()
+
+
+def deserialize_external_binary(
+    model: ExternalLinkModelV1, source: DataUrl
+) -> ExternalBinaryLink:
+    model.sources = [
+        (normalize_ext_source_path(file_path, source), offset, count)
+        for file_path, offset, count in model.sources
+    ]
+    return ExternalBinaryLink(model)

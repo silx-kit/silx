@@ -17,6 +17,10 @@ from ._link_types import ExternalBinaryLink
 from ._link_types import Hdf5LinkType
 from ._link_types import SerializedHdf5LinkType
 from ._schemas import deserialize_mapping
+from ._utils import absolute_data_path
+from ._utils import absolute_file_path
+from ._utils import normalize_ext_source_path
+from ._utils import normalize_vds_source_url
 
 
 def link_from_serialized(
@@ -86,7 +90,7 @@ def link_from_serialized(
 
     if isinstance(target, Mapping):
         # A mapping could be a link schema or just any mapping.
-        return deserialize_mapping(target)
+        return deserialize_mapping(source, target)
 
     if isinstance(target, (str, DataUrl)):
         # Possibly a URL to a link target.
@@ -180,7 +184,7 @@ def _is_same_file(source: DataUrl, target: DataUrl) -> bool:
 def _get_target_file_type(source: DataUrl, target: DataUrl) -> str | None:
     if _is_same_file(source, target):
         return "hdf5"
-    abs_file_path = _absolute_file_path(target.file_path(), source.file_path())
+    abs_file_path = absolute_file_path(target.file_path(), source.file_path())
     return _get_file_type(abs_file_path)
 
 
@@ -201,7 +205,7 @@ def _url_to_soft_link(source: DataUrl, target: DataUrl) -> h5py.SoftLink:
     data_path = target.data_path() or "/"
     if ".." in data_path.split("/"):
         # Up links are not supported in soft links
-        data_path = _absolute_data_path(data_path, source.data_path() or "/")
+        data_path = absolute_data_path(data_path, source.data_path() or "/")
     return h5py.SoftLink(data_path)
 
 
@@ -212,7 +216,7 @@ def _url_to_external_link(source: DataUrl, target: DataUrl) -> h5py.ExternalLink
 def _url_to_vds(source: DataUrl, target: DataUrl) -> h5py.VirtualLayout:
     target_desc: Dict[str, Any] = dict()
     _ = _add_url_to_vds_schema(source, target, target_desc)
-    return deserialize_mapping(target_desc)
+    return deserialize_mapping(source, target_desc)
 
 
 def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLayout:
@@ -224,7 +228,7 @@ def _urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLay
     for source, n in zip(target_desc["sources"], nimages):
         source["target_index"] = slice(i0, i0 + n)
         i0 += n
-    return deserialize_mapping(target_desc)
+    return deserialize_mapping(source, target_desc)
 
 
 def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) -> int:
@@ -239,19 +243,9 @@ def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) 
     data_path = target.data_path()
     data_slice = target.data_slice()
 
-    if file_path == "." and not data_path.startswith("/"):
-        data_path = _absolute_data_path(data_path, source.data_path())
+    file_path, data_path = normalize_vds_source_url(file_path, data_path, source)
 
-    if ".." in data_path.split("/"):
-        if file_path == ".":
-            # Up links are not supported in internal virtual datasets
-            data_path = _absolute_data_path(data_path, source.data_path())
-        else:
-            raise ValueError(
-                f"VDS target data path in a different file cannot be relative ({data_path})"
-            )
-
-    abs_file_path = _absolute_file_path(target.file_path(), source.file_path())
+    abs_file_path = absolute_file_path(target.file_path(), source.file_path())
     source_dtype, source_shape, data_shape = _get_hdf5_dataset_info(
         abs_file_path, data_path, data_slice
     )
@@ -293,7 +287,7 @@ def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) 
 def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(source, target_desc))
 
 
 def _fabio_urls_to_external_data(
@@ -302,7 +296,7 @@ def _fabio_urls_to_external_data(
     target_desc: Dict[str, Any] = dict()
     for target in targets:
         _add_fabio_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(source, target_desc))
 
 
 def _add_fabio_url_to_schema(
@@ -318,10 +312,9 @@ def _add_fabio_url_to_schema(
     if target.data_slice():
         raise ValueError(f"Cannot handle fabio image slicing: {target.path()}")
 
-    file_path = target.file_path()
-    abs_file_path = _absolute_file_path(file_path, source.file_path())
+    file_path = normalize_ext_source_path(target.file_path(), source)
 
-    with fabio.open(abs_file_path) as fabioimage:
+    with fabio.open(file_path) as fabioimage:
         if target_desc:
             target_desc["shape"] = _concatenate_items(
                 target_desc["shape"],
@@ -350,7 +343,7 @@ def _add_fabio_url_to_schema(
 def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
     target_desc: Dict[str, Any] = dict()
     _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(source, target_desc))
 
 
 def _tiff_urls_to_external_data(
@@ -359,7 +352,7 @@ def _tiff_urls_to_external_data(
     target_desc = {}
     for target in targets:
         _add_tiff_url_to_schema(source, target, target_desc)
-    return cast(ExternalBinaryLink, deserialize_mapping(target_desc))
+    return cast(ExternalBinaryLink, deserialize_mapping(source, target_desc))
 
 
 def _add_tiff_url_to_schema(
@@ -375,10 +368,9 @@ def _add_tiff_url_to_schema(
     if target.data_slice():
         raise ValueError(f"Cannot handle fabio image slicing: {target.path()}")
 
-    file_path = target.file_path()
-    abs_file_path = _absolute_file_path(file_path, source.file_path())
+    file_path = normalize_ext_source_path(target.file_path(), source)
 
-    with TiffIO(abs_file_path) as tiffimage:
+    with TiffIO(file_path) as tiffimage:
         nimages = tiffimage.getNumberOfImages()
         image = tiffimage.getImage(0)
 
@@ -459,27 +451,6 @@ def _edf_frame_info(file_path: str, frame: EdfFrame) -> tuple[int, int]:
     offset = frame.start
     bytecount = frame.size  # uncompressed size
     return offset, bytecount
-
-
-def _absolute_file_path(file_path: str, start_file_path: str) -> str:
-    if os.path.isabs(file_path):
-        return file_path
-    root = os.path.dirname(start_file_path)
-    return os.path.abspath(os.path.join(root, file_path))
-
-
-def _absolute_data_path(data_path: str, start_data_path: str) -> str:
-    inparts = [s for s in start_data_path.split("/") if s][:-1]
-    inparts += data_path.split("/")
-    outparts: list[str] = []
-    for part in inparts:
-        if part == "." or not part:
-            pass
-        elif part == "..":
-            outparts = outparts[:-1]
-        else:
-            outparts.append(part)
-    return "/".join([""] + outparts)
 
 
 def _get_hdf5_dataset_info(
