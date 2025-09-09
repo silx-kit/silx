@@ -385,7 +385,7 @@ def mean_std(data,
     :param mask: array with 0 for valid values, same size as data
     :param dummy: dynamic mask for value=dummy
     :param delta_dummy: dynamic mask for abs(value-dummy)<=delta_dummy
-    :returns: An object with mean and std attributes
+    :returns: A tuple: (mean, std)
     :raises: ValueError if data is empty"""
 
     cdef:
