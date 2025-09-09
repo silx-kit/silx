@@ -279,7 +279,7 @@ class DataViewer(qt.QFrame):
 
         try:
             filename = os.path.abspath(self.__data.file.filename)
-        except TypeError:
+        except Exception:
             filename = None
 
         try:
