@@ -569,7 +569,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 )
                 try:
                     roi.sigRegionChanged.disconnect(self._updateAllStats)
-                except:
+                except Exception:
                     pass
             else:
                 roi.sigChanged.disconnect(self._updateAllStats)

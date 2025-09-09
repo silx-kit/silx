@@ -86,7 +86,6 @@ from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 from silx._utils import NP_OPTIONAL_COPY
 from silx.gui.plot.actions import io as silx_io
-from silx.gui.plot.items.image_aggregated import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages

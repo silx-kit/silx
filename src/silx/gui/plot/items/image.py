@@ -588,7 +588,7 @@ class MaskImageData(ImageData):
     pass
 
 
-from .image_aggregated import ImageDataAggregated
+from .image_aggregated import ImageDataAggregated  # noqa: E402
 
 
 class ImageStack(ImageDataAggregated):

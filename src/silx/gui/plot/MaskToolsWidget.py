@@ -151,7 +151,7 @@ class ImageMask(BaseMask):
         """
         if not os.path.exists(filename):
             # create new file
-            with h5py.File(filename, "w") as _h5f:
+            with h5py.File(filename, "w"):
                 pass
         dataPath = _selectDataset(filename)
         if dataPath is None:

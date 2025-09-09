@@ -93,7 +93,7 @@ class CurvesROIWidget(qt.QWidget):
         """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
-        This come from the fact sigROISignal is connected to the 
+        This come from the fact sigROISignal is connected to the
         activeROIChanged signal which is emitted when raw and net counts
         values are changing but are not embed in the sigROISignal.
         """

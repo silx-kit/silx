@@ -952,7 +952,7 @@ class PlotWidget(qt.QMainWindow):
         :raises ValueError: If item is already in the plot.
         """
         if not isinstance(item, items.Item):
-            raise ValueError(f"argument must be a subclass of Item")
+            raise ValueError("Argument must be a subclass of Item")
 
         if item in self.getItems():
             raise ValueError("Item already in the plot")
