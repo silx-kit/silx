@@ -34,7 +34,7 @@ __date__ = "21/12/2018"
 
 import logging
 from collections import namedtuple
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from contextlib import contextmanager
 import datetime as dt
 import itertools
@@ -378,7 +378,7 @@ class PlotWidget(qt.QMainWindow):
     def __init__(
         self,
         parent: qt.Qt.Widget | None = None,
-        backend: str | BackendBase | None = None,
+        backend: str | BackendBase | Iterable[str | BackendBase] | None = None,
     ):
         self._autoreplot = False
         self._dirty = False
@@ -490,7 +490,7 @@ class PlotWidget(qt.QMainWindow):
         self.__selection = None
 
     def __getBackendClass(
-        self, backend: str | BackendBase | list[str | BackendBase]
+        self, backend: str | BackendBase | Iterable[str | BackendBase] | None
     ) -> BackendBase:
         """Returns backend class corresponding to backend.
 
@@ -541,7 +541,7 @@ class PlotWidget(qt.QMainWindow):
 
             return backendClass
 
-        elif isinstance(backend, (tuple, list)):
+        elif isinstance(backend, Iterable):
             for b in backend:
                 try:
                     return self.__getBackendClass(b)
@@ -558,7 +558,9 @@ class PlotWidget(qt.QMainWindow):
             self.__selection = _PlotWidgetSelection(parent=self)
         return self.__selection
 
-    def setBackend(self, backend: str | BackendBase | list[str | BackendBase]):
+    def setBackend(
+        self, backend: str | BackendBase | Iterable[str | BackendBase] | None
+    ):
         """Set the backend to use for rendering.
 
         Supported backends:
@@ -660,14 +662,12 @@ class PlotWidget(qt.QMainWindow):
         If 'overlay', only the overlay has changed since last replot.
 
         It can be accessed by backend to check the dirty state.
-
-        :return: False, True, 'overlay'
         """
         return self._dirty
 
     # Default Qt context menu
 
-    def contextMenuEvent(self, event: qt.Qt.QContextEvent | None):
+    def contextMenuEvent(self, event: qt.Qt.QContextEvent):
         """Override QWidget.contextMenuEvent to implement the context menu"""
         menu = qt.QMenu(self)
         from .actions.control import ZoomBackAction  # Avoid cyclic import
@@ -2279,7 +2279,7 @@ class PlotWidget(qt.QMainWindow):
         """Sets the current selection mode.
 
         :param mode: The active curve selection mode to use.
-            It can be: 'legacy', 'atmostone' or 'none'.
+            It can be: 'legacy', 'atmostone' (at most one) or 'none'.
         """
         assert mode in ("legacy", "atmostone", "none")
 
@@ -2298,15 +2298,13 @@ class PlotWidget(qt.QMainWindow):
     def getActiveCurveSelectionMode(self) -> Literal["legacy", "atmostone", "none"]:
         """Returns the current selection mode.
 
-        It can be "atmostone", "legacy" or "none".
+        It can be "atmostone" (at most one), "legacy" or "none".
 
         :rtype: str
         """
         return self._activeCurveSelectionMode
 
-    def getActiveImage(
-        self, just_legend: bool = False
-    ) -> items.ImageData | items.ImageRgba | str | None:
+    def getActiveImage(self, just_legend: bool = False) -> items.ImageBase | str | None:
         """Returns the currently active image.
 
         Returns None if there is no active image.
@@ -2485,7 +2483,6 @@ class PlotWidget(qt.QMainWindow):
             If not provided or None (the default), the active curve is returned
             or if there is no active curve, the latest updated curve that is
             not hidden is returned if there are curves in the plot.
-        :return: None or :class:`.items.Curve` object
         """
         if isinstance(legend, items.Curve):
             _logger.warning("getCurve call not needed: legend is already an item")
@@ -2521,7 +2518,6 @@ class PlotWidget(qt.QMainWindow):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or :class:`.items.ImageBase` object
         """
         if isinstance(legend, items.ImageBase):
             _logger.warning("getImage call not needed: legend is already an item")
@@ -2540,7 +2536,6 @@ class PlotWidget(qt.QMainWindow):
             If not provided or None (the default), the active scatter is
             returned or if there is no active scatter, the latest updated
             scatter is returned if there are scatters in the plot.
-        :return: None or :class:`.items.Scatter` object
         """
         if isinstance(legend, items.Scatter):
             _logger.warning("getScatter call not needed: legend is already an item")
@@ -2558,7 +2553,6 @@ class PlotWidget(qt.QMainWindow):
             The legend identifying the histogram.
             If not provided or None (the default), the latest updated scatter
             is returned if there are histograms in the plot.
-        :return: None or :class:`.items.Histogram` object
         """
         if isinstance(legend, items.Histogram):
             _logger.warning("getHistogram call not needed: legend is already an item")
@@ -2574,7 +2568,6 @@ class PlotWidget(qt.QMainWindow):
                          see :attr:`ITEM_KINDS`.
         :param legend: Legend of the item or
                            None to get active or last item
-        :return: Object describing the item or None
         """
         if isinstance(legend, items.Item):
             _logger.warning("_getItem call not needed: legend is already an item")
@@ -2738,10 +2731,7 @@ class PlotWidget(qt.QMainWindow):
         self._notifyLimitsChanged()
 
     def _getViewConstraints(self) -> ViewConstraints:
-        """Return the plot object managing constaints on the plot view.
-
-        :rtype: ViewConstraints
-        """
+        """Return the plot object managing constaints on the plot view."""
         if self._viewConstrains is None:
             self._viewConstrains = ViewConstraints()
         return self._viewConstrains
@@ -2958,7 +2948,6 @@ class PlotWidget(qt.QMainWindow):
         :param which: None or False to disable the grid,
                       'major' or True for grid on major ticks (the default),
                       'both' for grid on both major and minor ticks.
-        :type which: str of bool
         """
         assert which in (None, True, False, "both", "major")
         if not which:
@@ -3436,8 +3425,8 @@ class PlotWidget(qt.QMainWindow):
 
     def pixelToData(
         self,
-        x: float,
-        y: float,
+        x: float | None,
+        y: float | None,
         axis: Literal["left", "right"] = "left",
         check: bool = False,
     ) -> tuple[float, float] | None:
@@ -3536,12 +3525,12 @@ class PlotWidget(qt.QMainWindow):
 
         Items are returned from front to back.
 
-        :param float x: X position in pixels
-        :param float y: Y position in pixels
+        :param x: X position in pixels
+        :param y: Y position in pixels
         :param callable condition:
            Callable taking an item as input and returning False for items
            to skip during picking. If None (default) no item is skipped.
-        :return: Iterable of :class:`PickingResult` objects at picked position.
+        :return: Generator of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
         for item in reversed(
