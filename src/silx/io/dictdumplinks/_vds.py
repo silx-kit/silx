@@ -1,26 +1,27 @@
 from collections.abc import Sequence
 from typing import Any
 from typing import Literal
-from typing import Optional
 from typing import cast
 
 import h5py
 from pydantic import BaseModel
 from pydantic import field_validator
 
+from ..url import DataUrl
 from ._base_types import DsetIndex
 from ._base_types import DsetIndexItem
 from ._base_types import RawDsetIndex
 from ._base_types import RawDsetIndexItem
+from ._utils import normalize_vds_source_url
 
 
 class VdsSourceV1(BaseModel, arbitrary_types_allowed=True):
-    file_path: str
+    file_path: str = "."
     data_path: str
     shape: tuple[int, ...]
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
-    source_index: Optional[RawDsetIndex] = tuple()
-    target_index: Optional[RawDsetIndex] = tuple()
+    source_index: RawDsetIndex = tuple()
+    target_index: RawDsetIndex = tuple()
 
     @field_validator("source_index", "target_index", mode="before")
     @classmethod
@@ -55,17 +56,20 @@ def _is_slice_arguments(idx_item: Any) -> bool:
     return isinstance(idx_item, Sequence) and (2 <= len(idx_item) <= 3)
 
 
-def deserialize_vds(model: VdsModelV1) -> h5py.VirtualLayout:
+def deserialize_vds(model: VdsModelV1, source: DataUrl) -> h5py.VirtualLayout:
     vds_layout = h5py.VirtualLayout(shape=model.shape, dtype=model.dtype)
-    for source in model.sources:
-        vsource = h5py.VirtualSource(
-            source.file_path,
-            name=source.data_path,
-            shape=source.shape,
-            dtype=source.dtype,
+    for vsource in model.sources:
+        file_path, data_path = normalize_vds_source_url(
+            vsource.file_path, vsource.data_path, source
         )
-        if source.source_index == tuple():
-            vds_layout[source.target_index] = vsource
+        vs = h5py.VirtualSource(
+            file_path,
+            name=data_path,
+            shape=vsource.shape,
+            dtype=vsource.dtype,
+        )
+        if vsource.source_index == tuple():
+            vds_layout[vsource.target_index] = vs
         else:
-            vds_layout[source.target_index] = vsource[source.source_index]
+            vds_layout[vsource.target_index] = vs[vsource.source_index]
     return vds_layout
