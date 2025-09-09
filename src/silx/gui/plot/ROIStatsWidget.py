@@ -357,10 +357,6 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         return True
 
     def _removeAllItems(self):
-        for row in range(self.rowCount()):
-            tableItem = self.item(row, 0)
-            # item = self._tableItemToItem(tableItem)
-            # item.sigItemChanged.disconnect(self._plotItemChanged)
         self.clearContents()
         self.setRowCount(0)
 
