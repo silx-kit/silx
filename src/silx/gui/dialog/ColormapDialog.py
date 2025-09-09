@@ -936,7 +936,7 @@ class ColormapDialog(qt.QDialog):
         for name, userData in normalizations:
             try:
                 icon = icons.getQIcon("colormap-norm-%s" % userData)
-            except:
+            except Exception:
                 icon = qt.QIcon()
             self._comboBoxNormalization.addItem(icon, name, userData)
         self._comboBoxNormalization.currentIndexChanged[int].connect(

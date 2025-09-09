@@ -69,7 +69,6 @@ class MedianFilterDialog(qt.QDialog):
 
         # filter option GUI
         self._filterOption = qt.QCheckBox("conditional", parent=self)
-        conditionalTooltip = """if check, implement a conditional filter"""
         self._filterOption.stateChanged.connect(self._filterOptionChanged)
         self.mainLayout.addWidget(self._filterOption)
 
