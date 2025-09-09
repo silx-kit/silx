@@ -432,7 +432,6 @@ def mean_std(data,
 
     mean = X / cnt
     if length <= ddof:
-        variance = float('nan')
         standard_deviation = float('nan')
     else:
         variance =  XX / (cnt - ddof)
