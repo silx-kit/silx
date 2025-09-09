@@ -32,7 +32,7 @@ from ..common import ocl
 
 if ocl:
     import pyopencl.array as parray
-    from silx.opencl.sparse import CSR
+    from ..sparse import CSR
 try:
     import scipy.sparse as sp
 except ImportError:

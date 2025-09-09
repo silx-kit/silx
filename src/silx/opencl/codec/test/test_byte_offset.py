@@ -40,8 +40,8 @@ import sys
 import time
 import logging
 import numpy
-from silx.opencl.common import ocl, pyopencl
-from silx.opencl.codec import byte_offset
+from ...common import ocl, pyopencl
+from .. import byte_offset
 import fabio
 import unittest
 

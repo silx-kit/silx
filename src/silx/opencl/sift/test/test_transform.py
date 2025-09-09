@@ -52,7 +52,7 @@ else:
     import scipy.ndimage
     from scipy.datasets import ascent
 
-from silx.opencl import ocl, kernel_workgroup_size
+from ... import ocl, kernel_workgroup_size
 
 if ocl:
     import pyopencl.array

@@ -54,7 +54,7 @@ else:
 from ..utils import get_opencl_code
 from ..plan import SiftPlan
 from ..match import match_py
-from silx.opencl import ocl
+from ... import ocl
 
 if ocl:
     import pyopencl.array

@@ -41,7 +41,7 @@ import time
 import numpy
 import unittest
 import logging
-from silx.opencl import ocl, kernel_workgroup_size
+from ... import ocl, kernel_workgroup_size
 
 try:
     import scipy

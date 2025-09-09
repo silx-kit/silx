@@ -37,7 +37,7 @@ import pytest
 import logging
 from itertools import product
 import numpy as np
-from silx.image.utils import gaussian_kernel
+from ...image.utils import gaussian_kernel
 
 try:
     from scipy.ndimage import convolve, convolve1d
@@ -52,7 +52,7 @@ from ..common import ocl, check_textures_availability
 
 if ocl:
     import pyopencl.array as parray
-    from silx.opencl.convolution import Convolution
+    from ..convolution import Convolution
 logger = logging.getLogger(__name__)
 
 

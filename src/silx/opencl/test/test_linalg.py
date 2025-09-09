@@ -44,7 +44,7 @@ if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
     from .. import linalg
-from silx.test.utils import utilstest
+from ...test.utils import utilstest
 
 logger = logging.getLogger(__name__)
 try:

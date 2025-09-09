@@ -69,7 +69,7 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-    from silx.math import medfilt2d as median_filter
+    from ...math import medfilt2d as median_filter
 
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")

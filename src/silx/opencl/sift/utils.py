@@ -35,7 +35,7 @@ __status__ = "beta"
 
 from math import ceil
 import numpy
-from silx.opencl.utils import get_opencl_code, calc_size  # noqa F401
+from ..utils import get_opencl_code, calc_size  # noqa F401
 
 
 def kernel_size(sigma, odd=False, cutoff=4):
