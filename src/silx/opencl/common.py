@@ -113,7 +113,7 @@ NVIDIA_FLOP_PER_CORE = {
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
 
 
-def get_pyopencl_ctx_tuple(pyopencl_ctx_str: str, cache:dict=None):
+def get_pyopencl_ctx_tuple(pyopencl_ctx_str: str, cache: dict = None):
     """
     Converts a PYOPENCL_CTX environment variable into a tuple (platform, device)
 
@@ -126,14 +126,12 @@ def get_pyopencl_ctx_tuple(pyopencl_ctx_str: str, cache:dict=None):
 
     if hasattr(pyopencl, "choose_devices"):
         # pyopencl >=2024.2: Context created only once
-        devices = pyopencl.choose_devices(interactive=False,
-                                          answers=split_answers)
+        devices = pyopencl.choose_devices(interactive=False, answers=split_answers)
         device = devices[0]
 
     else:
         # pyopencl <=2024.1: one needs to create a context anyway
-        ctx = pyopencl.create_some_context(interactive=False,
-                                       answers=split_answers)
+        ctx = pyopencl.create_some_context(interactive=False, answers=split_answers)
         device = ctx.devices[0]
     platform = device.platform
     device_id = platform.get_devices().index(device)
