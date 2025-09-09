@@ -61,6 +61,7 @@ class BackendBase:
         """
         self.__xLimits = 1.0, 100.0
         self.__yLimits = {"left": (1.0, 100.0), "right": (1.0, 100.0)}
+        self.__xAxisInverted = True
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
         self.__xAxisTimeSeries = False
@@ -502,6 +503,17 @@ class BackendBase:
         :param bool flag: If True, the left axis will use a log scale
         """
         pass
+
+    def setXAxisInverted(self, flag):
+        """Invert the X axis.
+
+        :param bool flag: If True, put the horizontal axis origin on the right
+        """
+        self.__xAxisInverted = bool(flag)
+
+    def isXAxisInverted(self):
+        """Return True if X axis is inverted, False otherwise."""
+        return self.__xAxisInverted
 
     def setYAxisInverted(self, flag):
         """Invert the Y axis.
