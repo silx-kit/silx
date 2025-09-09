@@ -374,6 +374,7 @@ def mean_std(data,
              dummy=None,
              delta_dummy=0):
     """Computes mean and estimation of std in a single pass.
+
     Based on formula #12, #13 and #28 from :
     https://ds.ifi.uni-heidelberg.de/files/Team/eschubert/publications/SSDBM18-covariance-authorcopy.pdf
 
