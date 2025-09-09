@@ -424,7 +424,7 @@ def mean_std(data,
             value = cdata[index]
             if _is_valid(value, cmask[index] if do_mask else 0, do_dummy, cdummy, cdelta_dummy):
                 new_cnt = cnt + 1.0
-                if cnt:
+                if cnt != 0.0:
                     delta = X-cnt*value
                     XX += delta*delta/(cnt*new_cnt)
                 X += value
