@@ -194,7 +194,7 @@ def qWidgetFactory(qapp, qapp_utils):
         widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         widget.show()
         qapp_utils.qWaitForWindowExposed(widget)
-        widgets.append(widget)  # noqa: F821
+        widgets.append(widget)
 
         return widget
 
@@ -216,7 +216,8 @@ def qWidgetFactory(qapp, qapp_utils):
     validWidgets = [widget for widget in widgets if isValid(widget)]
     assert not validWidgets, f"Some widgets were not destroyed: {validWidgets}"
 
-    del widgets
+    # Make sure not to keep references on widgets
+    widgets.clear()
 
 
 @pytest.fixture
