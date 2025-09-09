@@ -237,7 +237,7 @@ def test_external_tiff_from_str(tmp_path, nfiles, nimages_per_file):
                 tifimage.write(data_file)
         else:
             if imageio is None:
-                pytest.skip(reason="requires imageio")
+                pytest.skip(reason="requires imageio[tifffile]")
             imageio.mimwrite(data_file, list(data))
         file_content.append(data)
 
