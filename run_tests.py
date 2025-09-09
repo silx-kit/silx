@@ -37,15 +37,13 @@ __license__ = "MIT"
 import sys
 import logging
 import os
-import sys
 import sysconfig
 from argparse import ArgumentParser
 from pathlib import Path
-
+import warnings
 
 # Capture all default warnings
 logging.captureWarnings(True)
-import warnings
 
 warnings.simplefilter("default")
 
@@ -94,7 +92,7 @@ else:
 
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-from bootstrap import get_project_name, build_project
+from bootstrap import get_project_name, build_project  # noqa: E402
 
 PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)

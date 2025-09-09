@@ -26,14 +26,6 @@ logging.basicConfig()
 logger = logging.getLogger("bootstrap")
 
 
-def is_debug_python():
-    """Returns true if the Python interpreter is in debug mode."""
-    if sysconfig.get_config_var("Py_DEBUG"):
-        return True
-
-    return hasattr(sys, "gettotalrefcount")
-
-
 def get_project_name(root_dir):
     """Retrieve project name by running python setup.py --name in root_dir.
 
@@ -244,9 +236,9 @@ def main(argv):
         res = find_executable(script)
         kind = res[0]
         if kind == "path":
-            run_file(target, argv)
+            run_file(res[1], argv)
         elif kind == "entry_point":
-            run_entry_point(target, argv)
+            run_entry_point(res[1], res[2], argv)
         else:
             logger.error("Script %s not found", options.script)
 

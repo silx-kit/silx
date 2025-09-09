@@ -35,12 +35,7 @@ import importlib
 import os
 import sys
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('.'))
-project = "silx"
-import silx
+from silx._version import strictversion, __date__ as _date
 
 # Disable deprecation warnings:
 # It avoid to spam documentation logs with deprecation warnings.
@@ -49,6 +44,13 @@ import silx
 from silx.utils.deprecation import depreclog
 
 depreclog.disabled = 1
+
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+# sys.path.insert(0, os.path.abspath('.'))
+project = "silx"
 
 # Add local sphinx extension directory
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ext"))
@@ -94,8 +96,6 @@ source_suffix = {".rst": "restructuredtext"}
 master_doc = "index"
 
 # General information about the project.
-from silx._version import strictversion, version, __date__ as _date
-
 year = _date.split("/")[-1]
 copyright = (
     "2015-%s, Data analysis unit, European Synchrotron Radiation Facility, Grenoble"
