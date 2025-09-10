@@ -285,34 +285,19 @@ class Hdf5TreeView(qt.QTreeView):
         model = self.findHdf5TreeModel()
 
         # 1.0 find file name
-        file_name = url.file_path()
+        fileName = url.file_path()
 
-        def find_node(start_index: qt.QModelIndex, name: str) -> qt.QModelIndex | None:
-            matching_items = model.match(
-                start_index,
-                qt.Qt.DisplayRole,
-                name,
-            )
-            if len(matching_items) == 0:
-                return None
-            if len(matching_items) > 0:
-                _logger.warning(
-                    f"More than one item found matching {name}. Pick the first one"
-                )
-
-            return matching_items[0]
-
-        start_index = find_node(
-            start_index=model.index(0, 0), name=os.path.basename(file_name)
+        startIndex = self.__findNode(
+            start_index=model.index(0, 0), name=os.path.basename(fileName)
         )
-        if start_index is None:
+        if startIndex is None:
             return None
-        node = model.nodeFromIndex(start_index)
+        node = model.nodeFromIndex(startIndex)
 
         # 2.0 find data path node
-        node_names = filter(None, url.data_path().split("/"))
+        nodeNames = filter(None, url.data_path().split("/"))
 
-        def find_children(
+        def findChildren(
             parent_node: Hdf5Item, child_node_name: str
         ) -> Hdf5Item | None:
             # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
@@ -321,10 +306,32 @@ class Hdf5TreeView(qt.QTreeView):
                 if parent_node.child(i).basename == child_node_name:
                     return node.child(i)
 
-        for node_name in node_names:
+        for nodeName in nodeNames:
             # find file name
             if node is None:
                 return None
-            node = find_children(parent_node=node, child_node_name=node_name)
+            node = findChildren(parent_node=node, child_node_name=nodeName)
 
         return node
+
+    def __findNode(
+        self, start_index: qt.QModelIndex, name: str
+    ) -> qt.QModelIndex | None:
+        """
+        Search for 'name' as a Qt.DisplayRole in the model starting from 'start_index'
+        """
+        model = self.findHdf5TreeModel()
+
+        matching_items = model.match(
+            start_index,
+            qt.Qt.DisplayRole,
+            name,
+        )
+        if len(matching_items) == 0:
+            return None
+        if len(matching_items) > 0:
+            _logger.warning(
+                f"More than one item found matching {name}. Pick the first one"
+            )
+
+        return matching_items[0]
