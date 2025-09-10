@@ -771,11 +771,23 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
 
+    def _get_files(self) -> tuple[str]:
+        """Return the list of files open in the model"""
+        files = []
+        for index in range(self.rowCount()):
+            model_index = self.index(row=index, column=0)
+            obj = self.data(model_index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            files.append(obj.file.filename)
+        return tuple(files)
+
     def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
 
         :param filename: file path.
         """
+        if filename in self._get_files():
+            _logger.info("Skip file insertion. File '%s' already exists", filename)
+            return
         try:
             h5file = silx_io.open(filename)
             if self.__ownFiles:
@@ -827,7 +839,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         found = False
         foundIndices = []
         for _ in range(1000 * len(rootIndices)):
-            # Avoid too much iterations, in case of recurssive links
+            # Avoid too much iterations, in case of recursive links
             if len(foundIndices) == 0:
                 if len(rootIndices) == 0:
                     # Nothing found

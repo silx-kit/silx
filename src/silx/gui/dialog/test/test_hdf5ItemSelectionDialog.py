@@ -8,15 +8,20 @@ from silx.gui.dialog.DatasetDialog import DatasetDialog
 
 
 @pytest.mark.parametrize(
-    "cls_cst_data_path", ((GroupDialog, "/path/to"), (DatasetDialog, "/path/to/data"))
+    "cls_cst_data_path",
+    (
+        (GroupDialog, "/path/to", "/path/to_2"),
+        (DatasetDialog, "/path/to/data", "/path/to_2/data"),
+    ),
 )
 def test_setSelectedUrl(qapp, cls_cst_data_path, tmp_path):
     """Check coherence between setSelectedDataUrl and getSelectedDataUrl"""
 
-    class_constructor, data_path_to_test = cls_cst_data_path
+    class_constructor, data_path_to_test, data_path_to_test_2 = cls_cst_data_path
     my_file = tmp_path / "file.hdf5"
     with h5py.File(my_file, mode="w") as h5f:
         h5f["path/to/data"] = numpy.ones((10, 10))
+        h5f["path/to_2/data"] = numpy.ones((10, 10))
 
     # group dialog
     dialog = class_constructor()
@@ -32,3 +37,17 @@ def test_setSelectedUrl(qapp, cls_cst_data_path, tmp_path):
         dialog.setSelectedDataUrl(
             url=DataUrl(file_path="not/existing.hdf5", data_path="data", scheme="self")
         )
+
+    # test use case the file is already added but not set a new dataset
+    new_selected_url = DataUrl(
+        file_path=my_file,
+        data_path=data_path_to_test,
+    )
+    dialog.setSelectedDataUrl(url=new_selected_url)
+    assert len(dialog._model._get_files()) == 1
+    assert dialog.getSelectedDataUrl().path() == new_selected_url.path()
+
+    # test use case setting again the previous url
+    dialog.setSelectedDataUrl(url=selected_url)
+    assert len(dialog._model._get_files()) == 1
+    assert dialog.getSelectedDataUrl().path() == selected_url.path()
