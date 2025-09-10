@@ -8,16 +8,17 @@ from silx.gui.dialog.DatasetDialog import DatasetDialog
 
 
 @pytest.mark.parametrize(
-    "cls_cst_data_path",
+    "class_constructor, data_path_to_test, data_path_to_test_2",
     (
         (GroupDialog, "/path/to", "/path/to_2"),
         (DatasetDialog, "/path/to/data", "/path/to_2/data"),
     ),
 )
-def test_setSelectedUrl(qapp, cls_cst_data_path, tmp_path):
+def test_setSelectedUrl(
+    qapp, class_constructor, data_path_to_test, data_path_to_test_2, tmp_path
+):
     """Check coherence between setSelectedDataUrl and getSelectedDataUrl"""
 
-    class_constructor, data_path_to_test, data_path_to_test_2 = cls_cst_data_path
     my_file = tmp_path / "file.hdf5"
     with h5py.File(my_file, mode="w") as h5f:
         h5f["path/to/data"] = numpy.ones((10, 10))
