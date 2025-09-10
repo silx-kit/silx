@@ -250,6 +250,12 @@ class _PlotWidgetSelection(qt.QObject):
         self.__activeItemChanged("scatter", previous, current)
 
 
+BackendNameLiteral = Literal["matplotlib", "mpl", "gl", "opengl", "none"]
+BackendType = (
+    BackendNameLiteral | BackendBase | Iterable[BackendNameLiteral | BackendBase] | None
+)
+
+
 class PlotWidget(qt.QMainWindow):
     """Qt Widget providing a 1D/2D plot.
 
@@ -378,7 +384,7 @@ class PlotWidget(qt.QMainWindow):
     def __init__(
         self,
         parent: qt.Qt.Widget | None = None,
-        backend: str | BackendBase | Iterable[str | BackendBase] | None = None,
+        backend: BackendType = None,
     ):
         self._autoreplot = False
         self._dirty = False
@@ -489,9 +495,7 @@ class PlotWidget(qt.QMainWindow):
         # selection handling
         self.__selection = None
 
-    def __getBackendClass(
-        self, backend: str | BackendBase | Iterable[str | BackendBase] | None
-    ) -> BackendBase:
+    def __getBackendClass(self, backend: BackendType) -> BackendBase:
         """Returns backend class corresponding to backend.
 
         If multiple backends are provided, the first available one is used.
@@ -558,9 +562,7 @@ class PlotWidget(qt.QMainWindow):
             self.__selection = _PlotWidgetSelection(parent=self)
         return self.__selection
 
-    def setBackend(
-        self, backend: str | BackendBase | Iterable[str | BackendBase] | None
-    ):
+    def setBackend(self, backend: BackendType):
         """Set the backend to use for rendering.
 
         Supported backends:
