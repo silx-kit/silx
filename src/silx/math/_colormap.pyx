@@ -29,9 +29,9 @@
 """This module provides :func:`cmap` which applies a colormap to a dataset.
 """
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "21/12/2023"
+__date__ = "10/09/2025"
 
 
 import os
@@ -40,7 +40,7 @@ from cython.parallel import prange
 from libc.math cimport frexp, sinh, sqrt
 from libc.math cimport pow as c_pow
 from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
-from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
+from libc.math cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
 import numbers

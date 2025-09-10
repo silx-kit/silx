@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,12 @@ For now it provides min/max (and optionally positive min) and indices
 of first occurrences (i.e., argmin/argmax) in a single pass.
 """
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "10/09/2025"
 
 cimport cython
-from .math_compatibility cimport isnan, isfinite, INFINITY
+from libc.math cimport isnan, isfinite, INFINITY
 from typing import TypeVar, Generic
 
 import numpy
