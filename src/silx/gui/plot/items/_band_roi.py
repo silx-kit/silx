@@ -28,6 +28,7 @@ import logging
 from typing import NamedTuple
 from collections.abc import Iterable, Sequence
 import numpy
+from numpy.typing import ArrayLike
 
 from ... import qt, utils
 from .. import items
@@ -124,8 +125,20 @@ class BandGeometry(NamedTuple):
             self.begin.y + offset[1] - self.slope * (self.begin.x + offset[0]),
         )
 
-    def contains(self, position: Sequence[float]) -> bool:
+    def contains(self, position: tuple[float, float]) -> bool:
         return Polygon(self.corners).is_inside(*position)
+
+    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
+        """Vectorized check for multiple positions.
+
+        :param positions: array-like of shape (N, 2), each row is (x, y) (col, row)
+        :return: boolean array of shape (N,), True if the point is inside the band
+        """
+        return numpy.fromiter(
+            (Polygon(self.corners).is_inside(x, y) for x, y in positions),
+            dtype=bool,
+            count=len(positions),
+        )
 
 
 class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
@@ -369,8 +382,12 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         return tuple(geometry.center - offset * numpy.array(geometry.normal))
 
     @docstring(_RegionOfInterestBase)
-    def contains(self, position):
+    def contains(self, position: tuple[float, float]) -> bool:
         return self.getGeometry().contains(position)
+
+    @docstring(_RegionOfInterestBase)
+    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
+        return self.getGeometry().contains_multi(positions)
 
     def __str__(self):
         begin, end, width = self.getGeometry()

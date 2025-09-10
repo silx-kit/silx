@@ -41,7 +41,6 @@ from .. import items
 from ..CurvesROIWidget import ROI
 from ..items.roi import RegionOfInterest
 
-from ....math.combo import min_max
 from silx.utils.proxy import docstring
 
 logger = logging.getLogger(__name__)
@@ -311,38 +310,39 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         self.roi = roi
         self.onlimits = onlimits
+
         xData, yData = item.getData(copy=True)[0:2]
 
+        # Determine mask
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
-                mask = self.mask
-            else:
-                mask = (minX <= xData) & (xData <= maxX)
-                mask = mask == 0
-                self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         elif roi:
             minX, maxX = roi.getFrom(), roi.getTo()
+        else:
+            minX, maxX = None, None
+
+        if minX is not None and maxX is not None:
             if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
-                mask = (minX <= xData) & (xData <= maxX)
-                mask = mask == 0
+                mask = ~((minX <= xData) & (xData <= maxX))
                 self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         else:
-            mask = numpy.zeros_like(yData)
+            mask = numpy.zeros_like(yData, dtype=bool)
 
-        mask = mask.astype(numpy.uint32)
+        # Apply mask
         self.xData = xData
         self.yData = yData
         self.values = numpy.ma.array(yData, mask=mask)
-        unmasked_data = self.values.compressed()
-        if len(unmasked_data) > 0:
-            self.min, self.max = min_max(unmasked_data)
-        else:
-            self.min, self.max = None, None
         self.data = (xData, yData)
         self.axes = (xData,)
+
+        if self.values.count() > 0:
+            self.min = self.values.min()
+            self.max = self.values.max()
+        else:
+            self.min = None
+            self.max = None
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(
@@ -373,41 +373,40 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
+
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
 
+        # Determine mask
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
+        elif roi:
+            minX, maxX = roi._fromdata, roi._todata
+        else:
+            minX, maxX = None, None
+
+        if minX is not None and maxX is not None:
             if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
-                mask = (minX <= xData) & (xData <= maxX)
-                mask = mask == 0
+                mask = ~((minX <= xData) & (xData <= maxX))
                 self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
-        elif roi:
-            if self.is_mask_valid(
-                onlimits=onlimits, from_=roi._fromdata, to_=roi._todata
-            ):
-                mask = self.mask
-            else:
-                mask = (roi._fromdata <= xData) & (xData <= roi._todata)
-                mask = mask == 0
-                self._set_mask_validity(
-                    onlimits=onlimits, from_=roi._fromdata, to_=roi._todata
-                )
         else:
-            mask = numpy.zeros_like(yData)
-        mask = mask.astype(numpy.uint32)
+            mask = numpy.zeros_like(yData, dtype=bool)
+
+        # Apply mask
         self.xData = xData
         self.yData = yData
-        self.values = numpy.ma.array(yData, mask=(mask))
-        unmasked_data = self.values.compressed()
-        if len(unmasked_data) > 0:
-            self.min, self.max = min_max(unmasked_data)
+        self.values = numpy.ma.array(yData, mask=mask)
+        self.data = (xData, yData)
+        self.axes = (xData,)
+
+        if self.values.count() > 0:
+            self.min = self.values.min()
+            self.max = self.values.max()
         else:
-            self.min, self.max = None, None
-        self.data = (self.xData, self.yData)
-        self.axes = (self.xData,)
+            self.min = None
+            self.max = None
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(
@@ -444,19 +443,21 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
         xData = item.getXData(copy=True)
         yData = item.getYData(copy=True)
 
+        # Plot limits filtering
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
-            # filter on X axis
-            valueData = valueData[(minX <= xData) & (xData <= maxX)]
-            yData = yData[(minX <= xData) & (xData <= maxX)]
-            xData = xData[(minX <= xData) & (xData <= maxX)]
-            # filter on Y axis
-            valueData = valueData[(minY <= yData) & (yData <= maxY)]
-            xData = xData[(minY <= yData) & (yData <= maxY)]
-            yData = yData[(minY <= yData) & (yData <= maxY)]
+            # Build a single boolean mask instead of repeated filtering
+            mask_limits = (
+                (xData >= minX) & (xData <= maxX) & (yData >= minY) & (yData <= maxY)
+            )
 
+            valueData = valueData[mask_limits]
+            xData = xData[mask_limits]
+            yData = yData[mask_limits]
+
+        # ROI filtering
         if roi:
             if self.is_mask_valid(
                 onlimits=onlimits, from_=roi.getFrom(), to_=roi.getTo()
@@ -465,15 +466,16 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
             else:
                 mask = (xData < roi.getFrom()) | (xData > roi.getTo())
         else:
-            mask = numpy.zeros_like(xData)
+            mask = numpy.zeros_like(xData, dtype=bool)
 
+        # Apply mask
         self.data = (xData, yData, valueData)
         self.values = numpy.ma.array(valueData, mask=mask)
         self.axes = (xData, yData)
 
-        unmasked_values = self.values.compressed()
-        if len(unmasked_values) > 0:
-            self.min, self.max = min_max(unmasked_values)
+        if self.values.count() > 0:
+            self.min = self.values.min()
+            self.max = self.values.max()
         else:
             self.min, self.max = None, None
 
@@ -544,54 +546,55 @@ class _ImageContext(_StatsContext):
         self.scale = item.getScale()
 
         self.data = item.getData(copy=True)
-        mask = numpy.zeros_like(self.data)
-        """mask use to know of the stat should be count in or not"""
 
         if onlimits:
+            # Plot limits cropping
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
-            XMinBound = int((minX - self.origin[0]) / self.scale[0])
-            YMinBound = int((minY - self.origin[1]) / self.scale[1])
+            XMinBound = max(int((minX - self.origin[0]) / self.scale[0]), 0)
+            YMinBound = max(int((minY - self.origin[1]) / self.scale[1]), 0)
             XMaxBound = int((maxX - self.origin[0]) / self.scale[0])
             YMaxBound = int((maxY - self.origin[1]) / self.scale[1])
 
-            XMinBound = max(XMinBound, 0)
-            YMinBound = max(YMinBound, 0)
-
-        if onlimits:
             if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
                 self.data = None
-            else:
-                self.data = self.data[
-                    YMinBound : YMaxBound + 1, XMinBound : XMaxBound + 1
-                ]
-            mask = numpy.zeros_like(self.data)
-        elif roi:
-            minX, maxX = 0, self.data.shape[1]
-            minY, maxY = 0, self.data.shape[0]
+                self.values = None
+                self.min, self.max, self.axes = None, None, None
+                return
 
-            XMinBound = max(minX, 0)
-            YMinBound = max(minY, 0)
-            XMaxBound = min(maxX, self.data.shape[1])
-            YMaxBound = min(maxY, self.data.shape[0])
+            self.data = self.data[YMinBound : YMaxBound + 1, XMinBound : XMaxBound + 1]
+            mask = numpy.zeros_like(self.data, dtype=bool)
+        elif roi:
+            # ROI masking
+            XMinBound, XMaxBound = 0, self.data.shape[1]
+            YMinBound, YMaxBound = 0, self.data.shape[0]
 
             if self.is_mask_valid(
                 xmin=XMinBound, xmax=XMaxBound, ymin=YMinBound, ymax=YMaxBound
             ):
                 mask = self.mask
             else:
-                for x in range(XMinBound, XMaxBound):
-                    for y in range(YMinBound, YMaxBound):
-                        _x = (x * self.scale[0]) + self.origin[0]
-                        _y = (y * self.scale[1]) + self.origin[1]
-                        mask[y, x] = not roi.contains((_x, _y))
+                xs = self.origin[0] + self.scale[0] * numpy.arange(XMinBound, XMaxBound)
+                ys = self.origin[1] + self.scale[1] * numpy.arange(YMinBound, YMaxBound)
+                X, Y = numpy.meshgrid(xs, ys)
+
+                points = numpy.column_stack([X.ravel(), Y.ravel()])
+                mask = ~roi.contains_multi(points).reshape(Y.shape)
+
                 self._set_mask_validity(
                     xmin=XMinBound, xmax=XMaxBound, ymin=YMinBound, ymax=YMaxBound
                 )
+        else:
+            # Default: no cropping, no ROI
+            mask = numpy.zeros_like(self.data, dtype=bool)
+
+        # Apply mask
         self.values = numpy.ma.array(self.data, mask=mask)
-        if self.values.compressed().size > 0:
-            self.min, self.max = min_max(self.values.compressed())
+
+        if self.values.count() > 0:
+            self.min = self.values.min()
+            self.max = self.values.max()
         else:
             self.min, self.max = None, None
 
@@ -633,23 +636,32 @@ class _plot3DScatterContext(_StatsContext):
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
+
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
-        values = item.getValueData(copy=False)
-        if roi:
-            logger.warning("Roi are unsupported on volume for now")
-            mask = numpy.zeros_like(values)
-        else:
-            mask = numpy.zeros_like(values)
 
-        if values is not None and len(values) > 0:
-            self.values = values
+        values = item.getValueData(copy=False)
+
+        if roi:
+            logger.warning("ROI are unsupported on volume for now")
+
+        # Create mask only if values exist
+        mask = numpy.zeros_like(values, dtype=bool) if values is not None else None
+
+        if values is not None and values.size > 0:
+            self.values = numpy.ma.array(values, mask=mask)
+
             axes = [item.getXData(copy=False), item.getYData(copy=False)]
             if self.values.ndim == 3:
                 axes.append(item.getZData(copy=False))
             self.axes = tuple(axes)
-            self.min, self.max = min_max(self.values)
-            self.values = numpy.ma.array(self.values, mask=mask)
+
+            # Use masked array methods instead of min_max
+            if self.values.count() > 0:
+                self.min = self.values.min()
+                self.max = self.values.max()
+            else:
+                self.min, self.max = None, None
         else:
             self.values = None
             self.axes = None
@@ -687,21 +699,27 @@ class _plot3DArrayContext(_StatsContext):
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
+
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
         values = item.getData(copy=False)
-        if roi:
-            logger.warning("Roi are unsuported on volume for now")
-            mask = numpy.zeros_like(values)
-        else:
-            mask = numpy.zeros_like(values)
 
-        if values is not None and len(values) > 0:
-            self.values = values
-            self.axes = tuple([numpy.arange(size) for size in self.values.shape])
-            self.min, self.max = min_max(self.values)
-            self.values = numpy.ma.array(self.values, mask=mask)
+        if roi:
+            logger.warning("ROI are unsupported on volume for now")
+
+        mask = numpy.zeros_like(values, dtype=bool) if values is not None else None
+
+        if values is not None and values.size > 0:
+            self.values = numpy.ma.array(values, mask=mask)
+
+            self.axes = tuple(numpy.arange(size) for size in self.values.shape)
+
+            if self.values.count() > 0:
+                self.min = self.values.min()
+                self.max = self.values.max()
+            else:
+                self.min, self.max = None, None
         else:
             self.values = None
             self.axes = None

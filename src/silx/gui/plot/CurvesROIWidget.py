@@ -42,6 +42,7 @@ try:
     from numpy import trapezoid
 except ImportError:  # numpy v1 compatibility
     from numpy import trapz as trapezoid
+from numpy.typing import ArrayLike
 
 from silx.io import dictdump
 from silx.utils.weakref import WeakMethodProxy
@@ -1255,8 +1256,13 @@ class ROI(_RegionOfInterestBase):
         return rawArea, netArea
 
     @docstring(_RegionOfInterestBase)
-    def contains(self, position):
+    def contains(self, position: tuple[float, float]) -> bool:
         return self._fromdata <= position[0] <= self._todata
+
+    @docstring(_RegionOfInterestBase)
+    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
+        positions = numpy.asarray(positions)
+        return self._fromdata <= positions[:, 0] <= self._todata
 
 
 class _RoiMarkerManager:

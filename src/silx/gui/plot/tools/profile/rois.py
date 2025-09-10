@@ -35,6 +35,7 @@ __license__ = "MIT"
 __date__ = "01/12/2020"
 
 import numpy
+from numpy.typing import ArrayLike
 import weakref
 from concurrent.futures import CancelledError
 
@@ -500,9 +501,15 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         self._createSubRois()
 
     @docstring(roi_items.HandleBasedROI)
-    def contains(self, position):
+    def contains(self, position: tuple[float, float]) -> bool:
         roiPos = self.getPosition()
         return position[0] == roiPos[0] or position[1] == roiPos[1]
+
+    @docstring(roi_items.HandleBasedROI)
+    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
+        positions = self._normalize_positions_shape(positions)
+        roiPos = self.getPosition()
+        return (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
 
     def setFirstShapePoints(self, points):
         pos = points[0]

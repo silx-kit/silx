@@ -39,6 +39,8 @@ import numpy
 import weakref
 import functools
 
+from numpy.typing import ArrayLike
+
 from ....utils.weakref import WeakList
 from ... import qt
 from .. import items
@@ -105,6 +107,33 @@ class _RegionOfInterestBase(qt.QObject):
         :rtype: bool
         """
         return False  # Override in subclass to perform actual test
+
+    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
+        """Returns a boolean array with True when `position[i]` is in this ROI.
+
+        :param positions: array-like of shape (N, 2)
+        :return: boolean array of shape (N,), True if the point is inside the ROI
+        """
+        positions = self._normalize_positions_shape(positions)
+        return numpy.fromiter(
+            (self.contains(position) for position in positions), dtype=bool
+        )  # Override in subclass for performance
+
+    @staticmethod
+    def _normalize_positions_shape(positions: ArrayLike) -> numpy.ndarray:
+        """
+        :param positions: array-like of shape (N, 2) or (2,)
+        :return: numpy array shape (N, 2)
+        """
+        # Accept single (2,) position or (N,2)
+        positions = numpy.asarray(positions)
+        if positions.ndim == 1:
+            if positions.shape[0] != 2:
+                raise ValueError("positions must be shape (N,2) or (2,)")
+            positions = positions.reshape(1, 2)
+        elif positions.ndim != 2 or positions.shape[1] != 2:
+            raise ValueError("positions must be shape (N,2) or (2,)")
+        return positions
 
 
 class RoiInteractionMode:

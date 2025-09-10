@@ -27,8 +27,11 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "07/09/2019"
 
+from typing import Union, Sequence
+
 from silx.math.combo import min_max
 import numpy
+from numpy.typing import ArrayLike
 
 
 class _BoundingBox:
@@ -47,21 +50,50 @@ class _BoundingBox:
         self.max_x = top_right[1]
         self.max_y = top_right[0]
 
-    def contains(self, item):
+    def contains(self, item: Union[tuple[float, float], "_BoundingBox"]) -> bool:
         """
+        Check if a point or bounding box is inside this bounding box.
 
-        :param item: bouding box or point. If it is bounding check check if the
-                     bottom_left and top_right corner of the given bounding box
-                     are inside the current bounding box
-        :type: Union[BoundingBox, tuple]
-        :return:
+        :param item: a _BoundingBox or a point tuple (y, x)
+        :return: True if fully contained
         """
         if isinstance(item, _BoundingBox):
             return self.contains(item.bottom_left) and self.contains(item.top_right)
         else:
-            return (self.min_x <= item[1] <= self.max_x) and (
-                self.min_y <= item[0] <= self.max_y
+            inside_x = self.min_x <= item[1] <= self.max_x
+            inside_y = self.min_y <= item[0] <= self.max_y
+            return inside_x & inside_y
+
+    def contains_multi(
+        self, items: Union[ArrayLike, Sequence["_BoundingBox"]]
+    ) -> numpy.ndarray:
+        """
+        Vectorized check for multiple points or bounding boxes.
+
+        :param items: array-like of points (N, 2) with (y, x) or list of _BoundingBox
+        :return: boolean array of shape (N,)
+        """
+        if len(items) == 0:
+            return numpy.array([], dtype=bool)
+
+        first_item = items[0]
+
+        if isinstance(first_item, _BoundingBox):
+            bottom_lefts = numpy.array([item.bottom_left for item in items])
+            top_rights = numpy.array([item.top_right for item in items])
+
+            inside_x = (self.min_x <= bottom_lefts[:, 1]) & (
+                top_rights[:, 1] <= self.max_x
             )
+            inside_y = (self.min_y <= bottom_lefts[:, 0]) & (
+                top_rights[:, 0] <= self.max_y
+            )
+        else:
+            points = numpy.asarray(items)
+            inside_x = (self.min_x <= points[:, 1]) & (points[:, 1] <= self.max_x)
+            inside_y = (self.min_y <= points[:, 0]) & (points[:, 0] <= self.max_y)
+
+        return inside_x & inside_y
 
     def collide(self, bb):
         """
