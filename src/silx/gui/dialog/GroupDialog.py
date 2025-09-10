@@ -179,6 +179,8 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
         h5Object = model.findHdf5Object(url=url)
 
         if h5Object is None:
+            # clean orphan nodes (in the case the file was added but the creation of the h5object failed)
+            model._clean_orphan_nodes()
             raise ValueError(
                 f"Unable to find data path {url.data_path()} from {url.file_path()}"
             )
