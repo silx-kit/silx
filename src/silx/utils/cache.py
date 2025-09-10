@@ -4,20 +4,7 @@ from __future__ import annotations
 from collections import OrderedDict
 
 
-import contextlib as _contextlib
-
-
-@_contextlib.contextmanager
-def _poping_signal(cache: LRUCache):
-    old = cache._is_poping_item
-    cache._is_poping_item = True
-    try:
-        yield
-    finally:
-        cache._is_poping_item = old
-
-
-class LRUCache(OrderedDict):
+class LRUCache:
     """
     Least Recently Used cache with a size limit.
     Pop the last element used (set or read) when reach teh cache limit size.
@@ -29,20 +16,42 @@ class LRUCache(OrderedDict):
         if maxsize < 1:
             raise ValueError("cache max size should be higher than 0")
         self._maxsize = maxsize
-        self._is_poping_item = False
-        # needed for python 3.10 because the 'popitem' is calling getitem. Not on upper python version
+        self._cache = OrderedDict()
 
     def __setitem__(self, key, value):
-        super().__setitem__(key, value)
+        self._cache[key] = value
 
-        self.move_to_end(key)
+        self._cache.move_to_end(key)
 
         if len(self) > self._maxsize:
-            with _poping_signal(self):
-                self.popitem(last=False)
-            # this functions call the __getitem__ in python 3.10... which is an issue
+            self._cache.popitem(last=False)
 
     def __getitem__(self, key):
-        if not self._is_poping_item:
-            self.move_to_end(key)
-        return super().__getitem__(key)
+        value = self._cache[key]
+        self._cache.move_to_end(key)
+        return value
+
+    def get(self, key, default=None):
+        return self[key] if key in self else default
+
+    # expose API
+    def clear(self):
+        self._cache.clear()
+
+    def keys(self):
+        return self._cache.keys()
+
+    def items(self):
+        return self._cache.items()
+
+    def values(self):
+        return self._cache.values()
+
+    def __len__(self) -> int:
+        return len(self._cache)
+
+    def __eq__(self, value):
+        return value == self._cache
+
+    def __iter__(self):
+        return iter(self._cache)

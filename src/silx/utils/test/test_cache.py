@@ -6,6 +6,7 @@ def test_LRU_CACHE():
     """Test the 'LRUCache' class."""
     cache = LRUCache(maxsize=3)
     cache["a"] = 1
+    assert "a" in cache
     cache["b"] = 2
     cache["c"] = 3
     assert cache == OrderedDict(
