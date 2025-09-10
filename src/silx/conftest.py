@@ -216,7 +216,8 @@ def qWidgetFactory(qapp, qapp_utils):
     validWidgets = [widget for widget in widgets if isValid(widget)]
     assert not validWidgets, f"Some widgets were not destroyed: {validWidgets}"
 
-    del widgets
+    # Make sure not to keep references on widgets
+    widgets.clear()
 
 
 @pytest.fixture

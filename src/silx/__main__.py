@@ -35,13 +35,12 @@ __date__ = "16/04/2025"
 
 
 import logging
-
-logging.basicConfig()
-
 import multiprocessing
 import sys
 from silx.utils.launcher import Launcher
 import silx._version
+
+logging.basicConfig()
 
 
 def main():
