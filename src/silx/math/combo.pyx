@@ -29,7 +29,7 @@ of first occurrences (i.e., argmin/argmax) in a single pass.
 
 __authors__ = ["T. Vincent", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "09/09/2025"
+__date__ = "10/09/2025"
 
 cimport cython
 from libc.math cimport isnan, isfinite, INFINITY, fabs, sqrt
@@ -369,16 +369,20 @@ cdef inline bint _is_valid(double value,
 @cython.wraparound(False)
 @cython.cdivision(True)
 def mean_std(data,
-             ddof=0,
+             unsigned int ddof=0,
              mask=None,
-             dummy=None,
-             delta_dummy=0):
+             double dummy=numpy.nan,
+             double delta_dummy=0.0):
     """Computes mean and estimation of std in a single pass.
 
     Based on formula #12, #13 and #28 from :
     https://ds.ifi.uni-heidelberg.de/files/Team/eschubert/publications/SSDBM18-covariance-authorcopy.pdf
 
-    :param data: Array-like dataset
+    All calculations are performed in double-precision (ieee754-64 bits)
+    since single precision offers no advantage in speed and reduces
+    significantly the quality of the variance.
+
+    :param data: Array-like dataset,
     :param int ddof:
        Means Delta Degrees of Freedom.
        The divisor used in calculations is data.size - ddof.
@@ -387,42 +391,38 @@ def mean_std(data,
     :param dummy: dynamic mask for value=dummy
     :param delta_dummy: dynamic mask for abs(value-dummy)<=delta_dummy
     :returns: A tuple: (mean, std)
-    :raises: ValueError if data is empty"""
+    :raises: ValueError if data is empty
+             RuntimeError if the shape of the mask differs from data"""
 
     cdef:
         unsigned int length, index
-        bint do_mask, do_dummy
+        bint do_mask, do_dummy = isfinite(dummy)
         double value, delta, X, XX, cnt, new_cnt
-        double mean, variance, standard_deviation
-        double cdummy, cdelta_dummy
+        double mean, standard_deviation
         char[::1] cmask
         double[::1] cdata = numpy.ascontiguousarray(data, dtype=numpy.float64).ravel()
 
     length = cdata.shape[0]
+    if length == 0:
+        raise ValueError('Zero-size array')
+
     if mask is None:
         do_mask = False
     else:
         do_mask = True
         cmask = numpy.ascontiguousarray(mask, dtype=numpy.int8).ravel()
-    if dummy is None:
-        do_dummy = False
-        cdummy = delta_dummy = 0.0
-    else:
-        do_dummy = True
-        cdummy = float(dummy)
-        cdelta_dummy = float(delta_dummy)
-
-    if length == 0:
-        raise ValueError('Zero-size array')
-
-    X = 0.0
-    XX = 0.0
-    cnt = 0.0
+        if cmask.shape[0] != length:
+            raise RuntimeError("Size of `mask` array differs from `data`")
 
     with nogil:
+        # initialize accumulators
+        X = 0.0
+        XX = 0.0
+        cnt = 0.0
+
         for index in range(length):
             value = cdata[index]
-            if _is_valid(value, cmask[index] if do_mask else 0, do_dummy, cdummy, cdelta_dummy):
+            if _is_valid(value, cmask[index] if do_mask else 0, do_dummy, dummy, delta_dummy):
                 new_cnt = cnt + 1.0
                 if cnt != 0.0:
                     delta = X-cnt*value
@@ -432,9 +432,8 @@ def mean_std(data,
 
     mean = X / cnt
     if length <= ddof:
-        standard_deviation = float('nan')
+        standard_deviation = numpy.nan
     else:
-        variance =  XX / (cnt - ddof)
-        standard_deviation = sqrt(variance)
+        standard_deviation = sqrt(XX / (cnt - ddof))
 
     return (mean, standard_deviation)
