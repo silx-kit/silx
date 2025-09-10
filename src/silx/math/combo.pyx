@@ -369,7 +369,7 @@ cdef inline bint _is_valid(double value,
 @cython.wraparound(False)
 @cython.cdivision(True)
 def mean_std(data,
-             unsigned int ddof=0,
+             double ddof=0.0,
              mask=None,
              double dummy=numpy.nan,
              double delta_dummy=0.0):
@@ -383,16 +383,17 @@ def mean_std(data,
     significantly the quality of the variance.
 
     :param data: Array-like dataset,
-    :param int ddof:
+    :param ddof:
        Means Delta Degrees of Freedom.
-       The divisor used in calculations is data.size - ddof.
+       The divisor used in calculations is (number_of_valid_points - ddof).
        Default: 0 (as in numpy.std).
     :param mask: array with 0 for valid values, same size as data
-    :param dummy: dynamic mask for value=dummy
+    :param dummy: dynamic mask for value=dummy. NaNs are always invalid
     :param delta_dummy: dynamic mask for abs(value-dummy)<=delta_dummy
     :returns: A tuple: (mean, std)
     :raises: ValueError if data is empty
-             RuntimeError if the shape of the mask differs from data"""
+             RuntimeError if the shape of the mask differs from data
+    """
 
     cdef:
         unsigned int length, index
