@@ -57,12 +57,13 @@ def min_max(
     """
     ...
 
-
-def mean_std(data: numpy.ndarray,
-             ddof: float = 0.0,
-             mask: numpy.ndarray|None = None,
-             dummy: float = numpy.nan,
-             delta_dummy: float = 0.0) -> Tuple[float, float]:
+def mean_std(
+    data: numpy.ndarray,
+    ddof: float = 0.0,
+    mask: numpy.ndarray | None = None,
+    dummy: float = numpy.nan,
+    delta_dummy: float = 0.0,
+) -> Tuple[float, float]:
     """Computes mean and estimation of std in a single pass.
 
     Based on formula #12, #13 and #28 from :
