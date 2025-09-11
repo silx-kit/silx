@@ -45,9 +45,11 @@ curve2.setData(x_curve, y2)
 curve2.setName("Cosine Curve")
 plot.addItem(curve2)
 
+
 # Add a custom button to highlight a curve to demonstrate the signal handling
 def highlight_curve1():
     curve1.setHighlighted(not curve1.isHighlighted())
+
 
 highlight_button = qt.QPushButton("Toggle Highlight on Sinusoidal Curve")
 plot_layout.addWidget(highlight_button)
