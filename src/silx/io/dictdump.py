@@ -664,7 +664,7 @@ def h5todict(
         try:
             root = h5f[path]
         except KeyError as e:
-            _handle_keyerror(h5f, h5name, e, errors)
+            _handle_keyerror(h5f, path, e, errors)
             return ddict
 
         # Read the attributes of the group
