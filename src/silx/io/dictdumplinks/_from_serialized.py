@@ -131,9 +131,9 @@ def _url_to_hdf5_link(source: DataUrl, target: str | DataUrl) -> Hdf5LinkType | 
         else:
             return _url_to_external_link(target)
     elif file_type == "tiff":
-        return _tiff_url_to_external_data(source, target)
+        return _tiff_urls_to_external_data(source, [target])
     elif file_type == "edf":
-        return _fabio_url_to_external_data(source, target)
+        return _fabio_urls_to_external_data(source, [target])
     else:
         return None
 
@@ -282,12 +282,6 @@ def _add_url_to_vds_schema(source: DataUrl, target: DataUrl, target_desc: dict) 
     return nimages
 
 
-def _fabio_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
-    target_desc: Dict[str, Any] = dict()
-    _add_fabio_url_to_schema(source, target, target_desc)
-    return ExternalLinkModelV1(**target_desc).tolink(source)
-
-
 def _fabio_urls_to_external_data(
     source: DataUrl, targets: Sequence[DataUrl]
 ) -> ExternalBinaryLink:
@@ -336,12 +330,6 @@ def _add_fabio_url_to_schema(
         for frame in fabioimage.frames():
             offset, bytecount = _fabio_frame_info(file_path, frame)
             sources.append((file_path, offset, bytecount))
-
-
-def _tiff_url_to_external_data(source: DataUrl, target: DataUrl) -> ExternalBinaryLink:
-    target_desc: Dict[str, Any] = dict()
-    _add_tiff_url_to_schema(source, target, target_desc)
-    return ExternalLinkModelV1(**target_desc).tolink(source)
 
 
 def _tiff_urls_to_external_data(
