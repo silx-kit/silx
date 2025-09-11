@@ -775,8 +775,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """Return the list of files open in the model"""
         files = []
         for index in range(self.rowCount()):
-            model_index = self.index(row=index, column=0)
-            obj = self.data(model_index, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            modelIndex = self.index(row=index, column=0)
+            obj = self.data(modelIndex, Hdf5TreeModel.H5PY_OBJECT_ROLE)
             files.append(obj.file.filename)
         return tuple(files)
 
@@ -786,10 +786,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         Use case: remove file nodes without at least one dataset
         """
         for index in range(self.rowCount()):
-            model_index = self.index(row=index, column=0)
-            has_children = self.hasChildren(model_index)
-            if not has_children:
-                self.removeIndex(model_index)
+            modelIndex = self.index(row=index, column=0)
+            hasChildren = self.hasChildren(modelIndex)
+            if not hasChildren:
+                self.removeIndex(modelIndex)
 
     def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
