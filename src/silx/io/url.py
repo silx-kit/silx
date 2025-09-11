@@ -409,7 +409,7 @@ class DataUrl:
                 return True
         return False
 
-    def file_path(self) -> str:
+    def file_path(self) -> str | None:
         """Returns the path to the file containing the data."""
         return self.__file_path
 
