@@ -35,7 +35,7 @@ dependencies = [
    'packaging',
    'h5py',
    'fabio',
-   'pydantic',
+   'pydantic >= 2',
 ]
 
 [build-system]
