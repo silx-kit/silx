@@ -771,7 +771,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
 
-    def _get_files(self) -> tuple[str]:
+    def _getFiles(self) -> tuple[str]:
         """Return the list of files open in the model"""
         files = []
         for index in range(self.rowCount()):
@@ -796,7 +796,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         :param filename: file path.
         """
-        if filename in self._get_files():
+        if filename in self._getFiles():
             _logger.info("Skip file insertion. File '%s' already exists", filename)
             return
         try:

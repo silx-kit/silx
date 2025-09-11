@@ -45,12 +45,12 @@ def test_setSelectedUrl(
         data_path=data_path_to_test_2,
     )
     dialog.setSelectedDataUrl(url=new_selected_url)
-    assert len(dialog._model._get_files()) == 1
+    assert len(dialog._model._getFiles()) == 1
     assert dialog.getSelectedDataUrl().path() == new_selected_url.path()
 
     # test use case setting again the previous url
     dialog.setSelectedDataUrl(url=selected_url)
-    assert len(dialog._model._get_files()) == 1
+    assert len(dialog._model._getFiles()) == 1
     assert dialog.getSelectedDataUrl().path() == selected_url.path()
 
 
@@ -70,4 +70,4 @@ def test_adding_empty_file(qapp, tmp_path):
         widget.setSelectedDataUrl(url=selected_url)
 
     # make sure the file haven't been added
-    assert len(widget._model._get_files()) == 0
+    assert len(widget._model._getFiles()) == 0
