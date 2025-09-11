@@ -188,8 +188,12 @@ In the example we used this soft link
 
 .. code-block:: python
 
-    "data": {"y": y},
-    "plot1d": {">y": "../data/y"}
+    "data": {
+        "y": y,
+    },
+    "plot1d": {
+        ">y": "../data/y",
+    }
 
 There are all equivalent ways of defining the same soft link
 
