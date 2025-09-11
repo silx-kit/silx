@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2025 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,12 @@ For now it provides min/max (and optionally positive min) and indices
 of first occurrences (i.e., argmin/argmax) in a single pass.
 """
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "10/09/2025"
 
 cimport cython
-from .math_compatibility cimport isnan, isfinite, INFINITY
+from libc.math cimport isnan, isfinite, INFINITY, fabs, sqrt
 from typing import TypeVar, Generic
 
 import numpy
@@ -345,3 +345,96 @@ def min_max(data not None, bint min_positive=False, bint finite=False) -> _MinMa
         return _finite_min_max(data, min_positive)
     else:
         return _min_max(data, min_positive)
+
+
+cdef inline bint _is_valid(double value,
+                           char mask_value,
+                           bint do_dummy,
+                           double dummy,
+                           double delta_dummy) noexcept nogil:
+    """return True if the value is valid"""
+    cdef:
+        bint rval=isfinite(value) and not mask_value
+    if do_dummy:
+        if delta_dummy:
+            rval &= fabs(value-dummy)>delta_dummy
+        else:
+            rval &= value!=dummy
+
+    return rval
+
+
+@cython.embedsignature(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def mean_std(data,
+             double ddof=0.0,
+             mask=None,
+             double dummy=numpy.nan,
+             double delta_dummy=0.0):
+    """Computes mean and estimation of std in a single pass.
+
+    Based on formula #12, #13 and #28 from :
+    https://ds.ifi.uni-heidelberg.de/files/Team/eschubert/publications/SSDBM18-covariance-authorcopy.pdf
+
+    All calculations are performed in double-precision (ieee754-64 bits)
+    since single precision offers no advantage in speed and reduces
+    significantly the quality of the variance.
+
+    :param data: Array-like dataset,
+    :param ddof:
+       Means Delta Degrees of Freedom.
+       The divisor used in calculations is (number_of_valid_points - ddof).
+       Default: 0 (as in numpy.std).
+    :param mask: array with 0 for valid values, same size as data
+    :param dummy: dynamic mask for value=dummy. NaNs are always invalid
+    :param delta_dummy: dynamic mask for abs(value-dummy)<=delta_dummy
+    :returns: A tuple: (mean, std)
+    :raises: ValueError if data is empty
+             RuntimeError if the shape of the mask differs from data
+    """
+
+    cdef:
+        unsigned int length, index
+        bint do_mask, do_dummy = isfinite(dummy)
+        double value, delta, X, XX, cnt, new_cnt
+        double mean, standard_deviation
+        char[::1] cmask
+        double[::1] cdata = numpy.ascontiguousarray(data, dtype=numpy.float64).ravel()
+
+    length = cdata.shape[0]
+    if length == 0:
+        raise ValueError('Zero-size array')
+
+    if mask is None:
+        do_mask = False
+    else:
+        do_mask = True
+        cmask = numpy.ascontiguousarray(mask, dtype=numpy.int8).ravel()
+        if cmask.shape[0] != length:
+            raise RuntimeError("Size of `mask` array differs from `data`")
+
+    with nogil:
+        # initialize accumulators
+        X = 0.0
+        XX = 0.0
+        cnt = 0.0
+
+        for index in range(length):
+            value = cdata[index]
+            if _is_valid(value, cmask[index] if do_mask else 0, do_dummy, dummy, delta_dummy):
+                new_cnt = cnt + 1.0
+                if cnt != 0.0:
+                    delta = X-cnt*value
+                    XX += delta*delta/(cnt*new_cnt)
+                X += value
+                cnt = new_cnt
+
+    mean = X / cnt
+    if length <= ddof:
+        standard_deviation = numpy.nan
+    else:
+        standard_deviation = sqrt(XX / (cnt - ddof))
+
+    return (mean, standard_deviation)
