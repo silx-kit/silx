@@ -240,7 +240,8 @@ in one 3D dataset while selecting an image ROI of :code:`[20:30,40:50]`:
 .. warning::
 
   When defining a virtual dataset with a list of URL's, the source files will be opened and inspected.
-  In addition there is no flexibility in the way the sources are merged together.
+  In addition there is no flexibility in the way the sources are merged together. Since the sources are
+  concatenated their shapes must be consistent.
 
 Here is an equivalent schema that does not open the source files and allows defining
 the way the sources are merged together:
