@@ -58,18 +58,15 @@ def test_external_link_from_str(tmp_path):
 @pytest.mark.parametrize(
     "internal", [True, False], ids=lambda val: "internal" if val else "external"
 )
-@pytest.mark.parametrize(
-    "ndatasets",
-    [1, 3],
-    ids=lambda val: f"{val}_dataset" if val == 1 else f"{val}_datasets",
-)
+@pytest.mark.parametrize("len_urls", [0, 1, 3], ids=lambda val: f"len_{val}")
 @pytest.mark.parametrize(
     "nimages_per_dataset",
     [1, 4],
     ids=lambda val: f"{val}_image" if val == 1 else f"{val}_images",
 )
-def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
+def test_vds_from_str(tmp_path, len_urls, nimages_per_dataset, internal):
     file_content = list()
+    ndatasets = max(len_urls, 1)
     for i in range(ndatasets):
         if internal:
             data_file = str(tmp_path / "master.h5")
@@ -91,8 +88,9 @@ def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
                 fh["/group/dataset"] = data
         file_content.append(data)
 
+    scalar_target = len_urls == 0
     if nimages_per_dataset == 1:
-        if ndatasets == 1:
+        if scalar_target:
             concat_data = file_content[0][1:5, 2:3]
             if internal:
                 target = "master.h5?path=/group/dataset0&slice=1:5,2:3"
@@ -100,6 +98,7 @@ def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
                 target = "data0.h5?path=/group/dataset&slice=1:5,2:3"
         else:
             concat_data = numpy.array([data[1:5, 2:3] for data in file_content])
+
             if internal:
                 target = [
                     f"master.h5?path=/group/dataset{i}&slice=1:5,2:3"
@@ -111,7 +110,7 @@ def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
                     for i in range(ndatasets)
                 ]
     else:
-        if ndatasets == 1:
+        if scalar_target:
             concat_data = file_content[0][:, 1:5, 2:3]
             if internal:
                 target = "master.h5?path=dataset0&slice=:,1:5,2:3"
@@ -147,16 +146,15 @@ def test_vds_from_str(tmp_path, ndatasets, nimages_per_dataset, internal):
     assert link2 is None
 
 
-@pytest.mark.parametrize(
-    "nfiles", [1, 3], ids=lambda val: f"{val}_file" if val == 1 else f"{val}_files"
-)
+@pytest.mark.parametrize("len_urls", [0, 1, 3], ids=lambda val: f"len_{val}")
 @pytest.mark.parametrize(
     "nimages_per_file",
     [1, 4],
     ids=lambda val: f"{val}_image" if val == 1 else f"{val}_images",
 )
-def test_external_edf_from_str(tmp_path, nfiles, nimages_per_file):
+def test_external_edf_from_str(tmp_path, len_urls, nimages_per_file):
     file_content = list()
+    nfiles = max(len_urls, 1)
     for i in range(nfiles):
         data_file = str(tmp_path / f"data{i}.edf")
         offset = 40 * nimages_per_file * i
@@ -178,15 +176,16 @@ def test_external_edf_from_str(tmp_path, nfiles, nimages_per_file):
                 edfimage.write(data_file)
         file_content.append(data)
 
+    scalar_target = len_urls == 0
     if nimages_per_file == 1:
-        if nfiles == 1:
+        if scalar_target:
             concat_data = file_content[0]
             target = str(tmp_path / "data0.edf")
         else:
             concat_data = numpy.array(file_content)
             target = [str(tmp_path / f"data{i}.edf") for i in range(nfiles)]
     else:
-        if nfiles == 1:
+        if scalar_target:
             concat_data = file_content[0]
             target = str(tmp_path / "data0.edf")
         else:
@@ -211,16 +210,15 @@ def test_external_edf_from_str(tmp_path, nfiles, nimages_per_file):
     assert link2 is None
 
 
-@pytest.mark.parametrize(
-    "nfiles", [1, 3], ids=lambda val: f"{val}_file" if val == 1 else f"{val}_files"
-)
+@pytest.mark.parametrize("len_urls", [0, 1, 3], ids=lambda val: f"len_{val}")
 @pytest.mark.parametrize(
     "nimages_per_file",
     [1, 4],
     ids=lambda val: f"{val}_image" if val == 1 else f"{val}_images",
 )
-def test_external_tiff_from_str(tmp_path, nfiles, nimages_per_file):
+def test_external_tiff_from_str(tmp_path, len_urls, nimages_per_file):
     file_content = list()
+    nfiles = max(len_urls, 1)
     for i in range(nfiles):
         data_file = str(tmp_path / f"data{i}.tiff")
         offset = 40 * nimages_per_file * i
@@ -241,15 +239,16 @@ def test_external_tiff_from_str(tmp_path, nfiles, nimages_per_file):
             imageio.mimwrite(data_file, list(data))
         file_content.append(data)
 
+    scalar_target = len_urls == 0
     if nimages_per_file == 1:
-        if nfiles == 1:
+        if scalar_target:
             concat_data = file_content[0]
             target = str(tmp_path / "data0.tiff")
         else:
             concat_data = numpy.array(file_content)
             target = [str(tmp_path / f"data{i}.tiff") for i in range(nfiles)]
     else:
-        if nfiles == 1:
+        if scalar_target:
             concat_data = file_content[0]
             target = str(tmp_path / "data0.tiff")
         else:

@@ -3,6 +3,21 @@ import os
 from ..url import DataUrl
 
 
+def is_same_file(source: DataUrl, target: DataUrl) -> bool:
+    source_file_path = source.file_path()
+    target_file_path = target.file_path()
+
+    if target_file_path == "." or source_file_path == target_file_path:
+        return True
+
+    if not os.path.isabs(target_file_path):
+        target_file_path = os.path.join(
+            os.path.dirname(source_file_path), target_file_path
+        )
+
+    return os.path.realpath(source_file_path) == os.path.realpath(target_file_path)
+
+
 def absolute_file_path(file_path: str, start_file_path: str) -> str:
     if os.path.isabs(file_path):
         return file_path
