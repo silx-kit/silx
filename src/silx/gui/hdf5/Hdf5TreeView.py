@@ -297,20 +297,11 @@ class Hdf5TreeView(qt.QTreeView):
         # 2.0 find data path node
         nodeNames = filter(None, url.data_path().split("/"))
 
-        def findChildren(
-            parent_node: Hdf5Item, child_node_name: str
-        ) -> Hdf5Item | None:
-            # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
-            "cannot use the default 'search' function as the item is not inheriting from the default QTreeItem..."
-            for i in range(parent_node.childCount()):
-                if parent_node.child(i).basename == child_node_name:
-                    return node.child(i)
-
         for nodeName in nodeNames:
             # find file name
             if node is None:
                 return None
-            node = findChildren(parent_node=node, child_node_name=nodeName)
+            node = model._findChildren(parent_node=node, child_node_name=nodeName)
 
         return node
 
