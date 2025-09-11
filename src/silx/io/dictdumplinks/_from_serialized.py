@@ -88,6 +88,9 @@ def link_from_serialized(
         # Already a link instance.
         return target
 
+    if not isinstance(source, DataUrl):
+        source = DataUrl(source)
+
     if isinstance(target, Mapping):
         # A mapping could be a link schema or just any mapping.
         return deserialize_mapping(source, target)
@@ -105,12 +108,7 @@ def link_from_serialized(
     return None
 
 
-def _url_to_hdf5_link(
-    source: str | DataUrl, target: str | DataUrl
-) -> Hdf5LinkType | None:
-    if not isinstance(source, DataUrl):
-        source = DataUrl(source)
-
+def _url_to_hdf5_link(source: DataUrl, target: str | DataUrl) -> Hdf5LinkType | None:
     if not isinstance(target, DataUrl):
         if "::" in target or "?" in target:
             # target refers to a data item in a file
@@ -129,7 +127,7 @@ def _url_to_hdf5_link(
         elif target.data_slice():
             return _url_to_vds(source, target)
         else:
-            return _url_to_external_link(source, target)
+            return _url_to_external_link(target)
     elif file_type == "tiff":
         return _tiff_url_to_external_data(source, target)
     elif file_type == "edf":
@@ -139,10 +137,8 @@ def _url_to_hdf5_link(
 
 
 def _urls_to_hdf5_link(
-    source: str | DataUrl, targets: Sequence[str | DataUrl]
+    source: DataUrl, targets: Sequence[str | DataUrl]
 ) -> Hdf5LinkType | None:
-    if not isinstance(source, DataUrl):
-        source = DataUrl(source)
     targets = cast(
         list[DataUrl],
         [
@@ -209,7 +205,7 @@ def _url_to_soft_link(source: DataUrl, target: DataUrl) -> h5py.SoftLink:
     return h5py.SoftLink(data_path)
 
 
-def _url_to_external_link(source: DataUrl, target: DataUrl) -> h5py.ExternalLink:
+def _url_to_external_link(target: DataUrl) -> h5py.ExternalLink:
     return h5py.ExternalLink(target.file_path(), target.data_path() or "/")
 
 

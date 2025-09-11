@@ -12,14 +12,11 @@ from ._vds import deserialize_vds
 
 
 def deserialize_mapping(
-    source: str | DataUrl, target: Mapping
+    source: DataUrl, target: Mapping
 ) -> h5py.VirtualLayout | ExternalBinaryLink | None:
     """Convert a mapping into a recognized link object.
     Returns `None` if the mapping does not match a known schema.
     """
-    if not isinstance(source, DataUrl):
-        source = DataUrl(source)
-
     parsers = [
         (ExternalLinkModelV1, deserialize_external_binary),
         (VdsModelV1, deserialize_vds),
