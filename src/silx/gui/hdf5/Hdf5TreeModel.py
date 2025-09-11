@@ -583,7 +583,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         return matching_items[0]
 
-    def _find_children(
+    def _findChildren(
         self, parent_node: Hdf5Item, child_node_name: str
     ) -> Hdf5Item | None:
         # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
@@ -612,7 +612,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             # find file name
             if node is None:
                 return None
-            node = self._find_children(parent_node=node, child_node_name=node_name)
+            node = self._findChildren(parent_node=node, child_node_name=node_name)
 
         return node
 
