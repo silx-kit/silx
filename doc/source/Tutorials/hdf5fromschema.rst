@@ -164,27 +164,19 @@ uses a schema describing groups, datasets, attributes, soft links, external link
 Attributes
 ----------
 
-Attributes of groups can be defined with a key `"@<attr-name>"`
-
-.. code-block:: python
-
-    data = {
-        "@NX_class": "NXroot",
-        "entry": {
-            "@NX_class": "NXentry",
-        },
-    }
-
 Attributes of groups and datasets can be defined with a key `"<item-name>@<attr-name>"`
+or alternatively for groups `"@<attr-name>"`. In this example we mix both notations:
 
 .. code-block:: python
 
     data = {
         "@NX_class": "NXroot",
         "entry@NX_class": "NXentry",
+        "entry": {
+            "distance": [0, 1, 2],
+            "distance@units": "mm",
+        },
     }
-
-For groups this is equivalent to the first schema. For datasets the second schema needs to be used.
 
 Soft and External Links
 -----------------------
