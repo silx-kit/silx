@@ -42,13 +42,12 @@ import gc
 from threading import Semaphore
 import numpy
 
-from ..common import ocl, pyopencl, kernel_workgroup_size
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from ..common import pyopencl, kernel_workgroup_size  # noqa F401
 from ..processing import OpenclProcessing
-from ..utils import calc_size, get_opencl_code
+from ..utils import calc_size, get_opencl_code  # noqa F401
 from .utils import matching_correction
 import logging
-
-logger = logging.getLogger(__name__)
 
 from .match import MatchPlan
 from .plan import SiftPlan
@@ -57,6 +56,8 @@ try:
     import feature
 except ImportError:
     feature = None
+
+logger = logging.getLogger(__name__)
 
 
 def arrow_start(kplist):
@@ -213,7 +214,7 @@ class LinearAlign(OpenclProcessing):
         for buffer_name in list(self.cl_mem.keys()):
             if self.cl_mem[buffer_name] is not None:
                 try:
-                    buffer = self.cl_mem.pop(buffer_name)
+                    buffer = self.cl_mem.pop(buffer_name)  # noqa F841
                     del buffer
                 except pyopencl.LogicError:
                     logger.error("Error while freeing buffer %s" % buffer_name)

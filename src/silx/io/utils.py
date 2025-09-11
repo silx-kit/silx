@@ -46,7 +46,7 @@ import h5py.h5a
 
 try:
     import h5pyd
-except ImportError as e:
+except ImportError:
     h5pyd = None
 
 logger = logging.getLogger(__name__)
@@ -210,7 +210,8 @@ def save1D(
         # if ylabels is provided as a list, every element must
         # be a string
         ylabels = [
-            ylabel if isinstance(ylabel, str) else "y%d" % i for ylabel in ylabels
+            ylabel if isinstance(ylabel, str) else "y%d" % i
+            for i, ylabel in enumerate(ylabels)
         ]
 
     if filetype.lower() == "spec":
@@ -543,7 +544,7 @@ def _open_local_file(filename):
                 from . import rawh5
 
                 return rawh5.NumpyFile(filename)
-            except (OSError, ValueError) as e:
+            except (OSError, ValueError):
                 debugging_info.append(
                     (
                         sys.exc_info(),
@@ -1151,11 +1152,11 @@ def vol_to_h5_external_dataset(
         with builtin_open(info_file, "r") as _file:
             lines = _file.readlines()
             for line in lines:
-                if not "=" in line:
+                if "=" not in line:
                     continue
-                l = line.rstrip().replace(" ", "")
-                l = l.split("#")[0]
-                key, value = l.split("=")
+                s = line.rstrip().replace(" ", "")
+                s = s.split("#")[0]
+                key, value = s.split("=")
                 ddict[key.lower()] = value
         return ddict
 

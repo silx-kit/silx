@@ -256,7 +256,6 @@ class Viewer(qt.QMainWindow):
         if len(h5files) != 0:
             model = self.__treeview.findHdf5TreeModel()
             for h5 in h5files:
-                row = model.h5pyObjectRow(h5)
                 model.removeH5pyObject(h5)
 
         qt.QApplication.restoreOverrideCursor()

@@ -291,10 +291,10 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
             legend="test",
         )
 
-        l = []
+        lst = []
 
         def slot():
-            l.append(1)
+            lst.append(1)
 
         self.maskWidget.sigMaskChanged.connect(slot)
 
@@ -306,4 +306,4 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.qapp.processEvents()
         self._drag()
 
-        self.assertGreater(len(l), 0)
+        self.assertGreater(len(lst), 0)

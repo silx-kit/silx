@@ -33,12 +33,22 @@ from glob import glob
 import logging
 import re
 import time
+
+import h5py
 import numpy
 
 import silx.io
+from silx.io.convert import write_to_h5
 from silx.io.specfile import is_specfile
 from silx.io.fioh5 import is_fiofile
 from silx.io import fabioh5
+
+
+try:
+    import hdf5plugin  # noqa
+except ImportError:
+    hdf5plugin = None
+
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
@@ -335,22 +345,6 @@ def main(argv):
 
     if options.debug:
         logging.root.setLevel(logging.DEBUG)
-
-    # Import after parsing --debug
-    try:
-        # it should be loaded before h5py
-        import hdf5plugin  # noqa
-    except ImportError:
-        _logger.debug("Backtrace", exc_info=True)
-        hdf5plugin = None
-
-    import h5py
-
-    try:
-        from silx.io.convert import write_to_h5
-    except ImportError:
-        _logger.debug("Backtrace", exc_info=True)
-        write_to_h5 = None
 
     if hdf5plugin is None:
         message = (

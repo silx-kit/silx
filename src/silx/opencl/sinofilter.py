@@ -33,7 +33,7 @@ from math import pi
 
 
 import pyopencl.array as parray
-from .common import pyopencl as cl
+from .common import pyopencl as cl  # noqa F401
 from .processing import OpenclProcessing
 from ..math.fft.clfft import CLFFT, __have_clfft__
 from ..math.fft.npfft import NPFFT

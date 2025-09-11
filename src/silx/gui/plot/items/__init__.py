@@ -31,40 +31,40 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "22/06/2017"
 
-from .core import (
+from .core import (  # noqa: F401
     Item,
-    DataItem,  # noqa
+    DataItem,
     LabelsMixIn,
     DraggableMixIn,
     ColormapMixIn,
-    LineGapColorMixIn,  # noqa
+    LineGapColorMixIn,
     SymbolMixIn,
     ColorMixIn,
     YAxisMixIn,
-    FillMixIn,  # noqa
+    FillMixIn,
     AlphaMixIn,
     LineMixIn,
-    ScatterVisualizationMixIn,  # noqa
+    ScatterVisualizationMixIn,
     ComplexMixIn,
     ItemChangedType,
     PointsBase,
-)  # noqa
-from .complex import ImageComplexData  # noqa
-from .curve import Curve, CurveStyle  # noqa
-from .histogram import Histogram  # noqa
-from .image import (
+)
+from .complex import ImageComplexData  # noqa: F401
+from .curve import Curve, CurveStyle  # noqa: F401
+from .histogram import Histogram  # noqa: F401
+from .image import (  # noqa: F401
     ImageBase,
     ImageData,
     ImageDataBase,
     ImageRgba,
     ImageStack,
     MaskImageData,
-)  # noqa
-from .image_aggregated import ImageDataAggregated  # noqa
-from .shape import Line, Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
-from .scatter import Scatter  # noqa
-from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
-from .axis import Axis, XAxis, YAxis, YRightAxis
+)
+from .image_aggregated import ImageDataAggregated  # noqa: F401
+from .shape import Line, Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa: F401
+from .scatter import Scatter  # noqa: F401
+from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa: F401
+from .axis import Axis, XAxis, YAxis, YRightAxis  # noqa: F401
 
 DATA_ITEMS = (
     ImageComplexData,

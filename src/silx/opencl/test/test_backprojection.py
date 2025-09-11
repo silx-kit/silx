@@ -45,7 +45,7 @@ from ..common import ocl
 if ocl:
     from .. import backprojection
     from ...image.tomography import compute_fourier_filter
-from silx.test.utils import utilstest
+from ...test.utils import utilstest
 
 logger = logging.getLogger(__name__)
 

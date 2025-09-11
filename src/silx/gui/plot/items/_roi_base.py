@@ -243,7 +243,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
     sigEditingFinished = qt.Signal()
     """Signal emitted when the region edition is finished. During edition
-    sigEditionChanged will be emitted several times and 
+    sigEditionChanged will be emitted several times and
     sigRegionEditionFinished only at end"""
 
     def __init__(self, parent=None):

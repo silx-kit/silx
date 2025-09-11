@@ -33,13 +33,14 @@ import sys
 import numpy
 import time
 
-logging.basicConfig()
-_logger = logging.getLogger("find_contours")
-
 from silx.gui import qt
 import silx.gui.plot
 from silx.gui.colors import Colormap
 import silx.image.bilinear
+
+
+logging.basicConfig()
+_logger = logging.getLogger("find_contours")
 
 
 try:
@@ -194,7 +195,7 @@ def createRgbaMaskImage(mask, color):
     the mask. Non masked part of the image is transparent."""
     image = numpy.zeros((mask.shape[0], mask.shape[1], 4), dtype=numpy.uint8)
     color = numpy.array(color)
-    image[mask == True] = color
+    image[mask] = color
     return image
 
 
@@ -370,7 +371,7 @@ class FindContours(qt.QMainWindow):
         layout.addWidget(group)
         groupLayout = qt.QVBoxLayout(group)
 
-        label = qt.QLabel(parent=panel)
+        qt.QLabel(parent=panel)
         self.__value = qt.QSlider(panel)
         self.__value.setOrientation(qt.Qt.Horizontal)
         self.__value.sliderMoved.connect(self.__updateCustomContours)
@@ -412,7 +413,6 @@ class FindContours(qt.QMainWindow):
         for name in self.__customPolygons:
             self.__plot.removeCurve(name)
         self.__customPolygons = []
-        dummy = numpy.array([[[0, 0, 0, 0]]])
         item = self.__plot.getImage(legend="iso-pixels")
         item.setData([[[0, 0, 0, 0]]])
 
@@ -460,7 +460,6 @@ class FindContours(qt.QMainWindow):
         for ipolygon, polygon in enumerate(polygons):
             if len(polygon) == 0:
                 continue
-            isClosed = numpy.allclose(polygon[0], polygon[-1])
             x = polygon[:, 1] + 0.5
             y = polygon[:, 0] + 0.5
             legend = "custom-polygon-%d" % ipolygon
@@ -545,7 +544,6 @@ class FindContours(qt.QMainWindow):
                 if len(polygon) == 0:
                     continue
                 nbPoints += len(polygon)
-                isClosed = numpy.allclose(polygon[0], polygon[-1])
                 x = polygon[:, 1] + 0.5
                 y = polygon[:, 0] + 0.5
                 legend = "polygon-%d" % ipolygon

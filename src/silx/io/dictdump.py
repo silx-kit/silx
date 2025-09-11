@@ -270,7 +270,6 @@ def dicttoh5(
     h5file, h5path = _normalize_h5_path(h5file, h5path)
 
     def _iter_treedict(attributes=False):
-        nonlocal treedict
         for key, value in treedict.items():
             if isinstance(key, tuple) == attributes:
                 yield key, value

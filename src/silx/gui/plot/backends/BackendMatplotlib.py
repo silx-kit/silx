@@ -36,10 +36,6 @@ import numpy
 
 from packaging.version import Version
 
-
-_logger = logging.getLogger(__name__)
-
-
 from ... import qt
 
 # First of all init matplotlib and set its backend
@@ -73,6 +69,10 @@ from .._utils.dtime_ticklayout import (
 from ...qt import inspect as qt_inspect
 from .... import config
 from silx.gui.colors import RGBAColorType
+
+
+_logger = logging.getLogger(__name__)
+
 
 _PATCH_LINESTYLE = {
     "-": "solid",

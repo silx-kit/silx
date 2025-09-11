@@ -68,11 +68,7 @@ __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "24/05/2016"
 
-import logging
-
 from . import qt
-
-_logger = logging.getLogger(__name__)
 
 
 # This widget cannot be used inside an interactive IPython shell.

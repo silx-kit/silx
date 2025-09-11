@@ -199,7 +199,7 @@ class TestImageStack(TestCaseQt):
 
         existing_urls_as_str = [url.path() for url in self.widget._urls.values()]
         for removed_url in removed_urls:
-            assert type(removed_url) == type(tuple(self.widget._urls.values())[0])
+            assert type(removed_url) is type(tuple(self.widget._urls.values())[0])
             assert removed_url.path() not in existing_urls_as_str
         # make sure we have some data plot
         self.widget.getPlotWidget().getActiveImage() is not None

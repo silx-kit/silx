@@ -32,5 +32,5 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "12/01/2017"
 __status__ = "beta"
 
-from .param import par
-from .plan import SiftPlan
+from .param import par  # noqa F401
+from .plan import SiftPlan  # noqa F401

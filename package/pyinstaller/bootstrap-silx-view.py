@@ -1,9 +1,9 @@
 import logging
+import sys
 
 logging.basicConfig()
 
-import sys
-from silx.app.view.main import main
+from silx.app.view.main import main  # noqa: E402
 
 if __name__ == "__main__":
     main(sys.argv)

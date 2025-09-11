@@ -1072,7 +1072,6 @@ def preferredColormaps() -> tuple[str, ...]:
     This list is used by widgets allowing to change the colormap
     like the :class:`ColormapDialog` as a subset of colormap choices.
     """
-    global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
         # Initialize preferred colormaps
         setPreferredColormaps(_DEFAULT_PREFERRED_COLORMAPS)
@@ -1124,7 +1123,6 @@ def registerLUT(
 
     if preferred:
         # Invalidate the preferred cache
-        global _PREFERRED_COLORMAPS
         if _PREFERRED_COLORMAPS is not None:
             if name not in _PREFERRED_COLORMAPS:
                 _PREFERRED_COLORMAPS.append(name)

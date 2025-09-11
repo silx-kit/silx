@@ -48,9 +48,15 @@ For an alternative solution providing a structured namespace,
 see `qtpy <https://pypi.org/project/QtPy/>`_.
 """
 
-from ._qt import *  # noqa
+from ._qt import BINDING
+from ._qt import *  # noqa: F401, F403
 
 if BINDING == "PySide6":
     # Import loadUi wrapper
-    from ._pyside_dynamic import loadUi  # noqa
-from ._utils import *  # noqa
+    from ._pyside_dynamic import loadUi  # noqa: F401
+from ._utils import (  # noqa: F401
+    exceptionHandler,
+    getMouseEventPosition,
+    silxGlobalThreadPool,
+    supportedImageFormats,
+)

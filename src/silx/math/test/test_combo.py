@@ -22,16 +22,16 @@
 # ############################################################################*/
 """Tests of the combo module"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "17/01/2018"
+__date__ = "09/09/2025"
 
 
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
 
-from silx.math.combo import min_max
+from silx.math.combo import min_max, mean_std
 
 
 class TestMinMax(ParametricTestCase):
@@ -199,3 +199,45 @@ class TestMinMax(ParametricTestCase):
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
                     self._test_min_max(data, min_positive=True, finite=True)
+
+
+def np_mean_std(img, mask=None, dummy=None, delta_dummy=None):
+    """Pure numpy implementation"""
+    mask = (
+        mask.astype("bool")
+        if mask is not None
+        else numpy.zeros(img.shape, dtype="bool")
+    )
+    if dummy is not None:
+        if delta_dummy is not None:
+            numpy.logical_or(mask, abs(img - dummy) <= delta_dummy, out=mask)
+        else:
+            numpy.logical_or(mask, img == dummy, out=mask)
+    fimg = img.astype(numpy.float64)
+    fimg[mask] = numpy.nan
+    mean = numpy.nanmean(fimg)
+    std = numpy.nanstd(fimg, mean=mean)
+    return mean, std
+
+
+def test_mean_std():
+    shape = 99, 101
+    ary = numpy.random.poisson(100, shape).astype(numpy.uint32)
+    maxi = numpy.iinfo(ary.dtype).max
+    ary[50] = maxi
+    ary[:, 50] = maxi
+    mask = ary == maxi
+    # no mask
+    ref = np_mean_std(ary)
+    obt = mean_std(ary)
+    assert numpy.allclose(ref, obt)
+
+    # mask
+    ref = np_mean_std(ary, mask=mask)
+    obt = mean_std(ary, mask=mask)
+    assert numpy.allclose(ref, obt)
+
+    # dummy
+    ref = np_mean_std(ary, dummy=maxi)
+    obt = mean_std(ary, dummy=maxi)
+    assert numpy.allclose(ref, obt)

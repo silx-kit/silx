@@ -58,11 +58,11 @@ import os
 import time
 import math
 import logging
-import gc
 import numpy
 from .param import par
-from silx.opencl import ocl, pyopencl, kernel_workgroup_size
-from silx.opencl.utils import get_opencl_code, nextpower
+from ..common import ocl  # noqa F401 Initialize OpenCL
+from .. import pyopencl, kernel_workgroup_size  # noqa F401
+from ..utils import get_opencl_code, nextpower  # noqa F401
 from ..processing import OpenclProcessing, BufferDescription
 from .utils import calc_size, kernel_size
 
@@ -635,14 +635,14 @@ class SiftPlan(OpenclProcessing):
             output = numpy.recarray(shape=(total_size,), dtype=self.dtype_kp)
             last = 0
             for ds, desc in zip(keypoints, descriptors):
-                l = ds.shape[0]
-                if l > 0:
-                    output[last : last + l].x = ds[:, 0]
-                    output[last : last + l].y = ds[:, 1]
-                    output[last : last + l].scale = ds[:, 2]
-                    output[last : last + l].angle = ds[:, 3]
-                    output[last : last + l].desc = desc
-                    last += l
+                n0 = ds.shape[0]
+                if n0 > 0:
+                    output[last : last + n0].x = ds[:, 0]
+                    output[last : last + n0].y = ds[:, 1]
+                    output[last : last + n0].scale = ds[:, 2]
+                    output[last : last + n0].angle = ds[:, 3]
+                    output[last : last + n0].desc = desc
+                    last += n0
             logger.info("Execution time: %.3fms" % (1000 * (time.time() - t0)))
         return output
 
