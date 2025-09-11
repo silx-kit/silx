@@ -181,7 +181,7 @@ or alternatively for groups `"@<attr-name>"`. In this example we mix both notati
 Soft and External Links
 -----------------------
 
-The target of a soft link is a group or dataset in the same file than the link itself. The target of a external link
+The target of a soft link is a group or dataset in the same file than the link itself. The target of an external link
 is a group or dataset in another file than the link itself. 
 
 In the example we used this soft link
