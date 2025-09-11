@@ -21,7 +21,7 @@ def tiff_urls_to_external_data(
 ) -> ExternalBinaryLink:
     """Multiple TIFF files: stack when ndim<3, concatenate when ndim>=3.
 
-    Example for Nt targets
+    Examples for Nt targets
 
     - target `shape=()`               : VDS shape `(Nt,)`
     - target `shape=(N0,)`            : VDS shape `(Nt,N0)`

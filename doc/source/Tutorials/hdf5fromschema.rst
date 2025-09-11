@@ -240,8 +240,9 @@ in one 3D dataset while selecting an image ROI of :code:`[20:30,40:50]`:
 .. warning::
 
   When defining a virtual dataset with a list of URL's, the source files will be opened and inspected.
-  In addition there is no flexibility in the way the sources are merged together. Since the sources are
-  concatenated their shapes must be consistent.
+  In addition there is no flexibility in the way the sources are merged together. See
+  :ref:`create-hdf5-content-from-a-schema-merging-urls` for details on how data is merged
+  (preserve shape vs. stack vs. concatenate behavior).
 
 Here is an equivalent schema that does not open the source files and allows defining
 the way the sources are merged together:
@@ -309,8 +310,10 @@ in one 3D dataset:
 
 .. warning::
 
-  When defining a virtual dataset with a list of filenames, the source files will be opened and inspected.
+  When defining a external binary dataset with a list of filenames, the source files will be opened and inspected.
   In addition the HDF5 dataset will store absolute file names so moving the data will break the link.
+  See :ref:`create-hdf5-content-from-a-schema-merging-urls` for details on how data is merged
+  (preserve shape vs. stack vs. concatenate behavior).
 
 Here is an equivalent schema that can be used for any binary data which is contiguous and uncompressed:
 
@@ -328,3 +331,30 @@ Here is an equivalent schema that can be used for any binary data which is conti
             ("data4.tiff", 196, 6000),
         ],
     }
+
+.. _create-hdf5-content-from-a-schema-merging-urls:
+
+Merging URL's
+-------------
+
+One or several URL's can be merged in a single virtual dataset or external binary dataset.
+
+When providing a single URL, as a string (not a list woth one element), the merged dataset
+has the same shape as the single source.
+
+When providing a list of URL's, even when the list has only one element, the sources are **stacked**
+when the source rank :code:`ndim<3` and **concatenate** when :code:`ndim>=3`.
+
+Examples for `Nt` targets
+
+- target :code:`shape=()`               : VDS shape :code:`(Nt,)`
+- target :code:`shape=(N0,)`            : VDS shape :code:`(Nt,N0)`
+- target :code:`shape=(N0,N1)`          : VDS shape :code:`(Nt,N0,N1)`
+- target :code:`shape=(N0,N1,N2)`       : VDS shape :code:`(Nt*N0,N1,N2)`
+- target :code:`shape=(N0,N1,N2,N3)`    : VDS shape :code:`(Nt*N0,N1,N2,N3)`
+- target :code:`shape=(N0,N1,N2,N3,N4)` : VDS shape :code:`(Nt*N0,N1,N2,N3,N4)`
+- ...
+
+.. warning::
+
+  Since the sources are merged in a single dataset their shapes must be consistent.

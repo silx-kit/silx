@@ -13,7 +13,7 @@ from ._vds import VdsModelV1
 
 def hdf5_url_to_vds(source: DataUrl, target: DataUrl) -> h5py.VirtualLayout:
     """Single HDF5 dataset: keep original shape (no new axis)."""
-    datasets = [_get_target_info(source, target, allow_new_axis=False)]
+    datasets = [_read_target_info(source, target, allow_new_axis=False)]
     target_desc = _build_vds_schema(datasets)
     return VdsModelV1(**target_desc).tolink(source)
 
@@ -21,7 +21,7 @@ def hdf5_url_to_vds(source: DataUrl, target: DataUrl) -> h5py.VirtualLayout:
 def hdf5_urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.VirtualLayout:
     """Multiple HDF5 datasets: stack when ndim<3, concatenate when ndim>=3.
 
-    Example for Nt targets
+    Examples for Nt targets
 
     - target `shape=()`               : VDS shape `(Nt,)`
     - target `shape=(N0,)`            : VDS shape `(Nt,N0)`
@@ -31,12 +31,12 @@ def hdf5_urls_to_vds(source: DataUrl, targets: Sequence[DataUrl]) -> h5py.Virtua
     - target `shape=(N0,N1,N2,N3,N4)` : VDS shape `(Nt*N0,N1,N2,N3,N4)`
     - ...
     """
-    datasets = [_get_target_info(source, t) for t in targets]
+    datasets = [_read_target_info(source, t) for t in targets]
     target_desc = _build_vds_schema(datasets)
     return VdsModelV1(**target_desc).tolink(source)
 
 
-def _get_target_info(
+def _read_target_info(
     source: DataUrl, target: DataUrl, allow_new_axis: bool = True
 ) -> dict:
     """Collect dataset information needed to build the VDS schema."""
