@@ -19,13 +19,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-      - name: black
-        run: |
-          pip install black
-          black --check .
+      - name: Install
+        run: pip install --upgrade black build flake8
+      - run: black --check .
+      - run: flake8
       - name: Build wheel
         run: |
-          pip install --upgrade build
           python -m build --wheel
           ls dist
       - name: Check meson.build files
