@@ -25,8 +25,9 @@
 
 import functools
 import logging
-from typing import NamedTuple
+from typing import NamedTuple, Union
 from collections.abc import Iterable, Sequence
+
 import numpy
 from numpy.typing import ArrayLike
 
@@ -35,7 +36,6 @@ from .. import items
 from ...colors import rgba
 from silx.image.shapes import Polygon
 from ....utils.proxy import docstring
-from ._roi_base import _RegionOfInterestBase
 from ._roi_base import HandleBasedROI
 from ._roi_base import InteractionModeMixIn
 from ._roi_base import RoiInteractionMode
@@ -125,20 +125,32 @@ class BandGeometry(NamedTuple):
             self.begin.y + offset[1] - self.slope * (self.begin.x + offset[0]),
         )
 
-    def contains(self, position: tuple[float, float]) -> bool:
-        return Polygon(self.corners).is_inside(*position)
+    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+        """Check which positions are inside the ROI.
 
-    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
-        """Vectorized check for multiple positions.
-
-        :param positions: array-like of shape (N, 2), each row is (x, y) (col, row)
-        :return: boolean array of shape (N,), True if the point is inside the band
+        :param positions: array-like of shape (N, 2) or (2,), each row is (x, y)
+        :return: bookean or boolean array of shape (N,), True if the point is inside the ROI
         """
-        return numpy.fromiter(
-            (Polygon(self.corners).is_inside(x, y) for x, y in positions),
-            dtype=bool,
-            count=len(positions),
-        )
+        positions, is_single = self._normalize_positions_shape(positions)
+        it = (Polygon(self.corners).is_inside(x, y) for x, y in positions)
+        is_inside = numpy.fromiter(it, dtype=bool)
+        return is_inside[0] if is_single else is_inside
+
+    @staticmethod
+    def _normalize_positions_shape(positions: ArrayLike) -> Union[numpy.ndarray, bool]:
+        """
+        :param positions: array-like of shape (N, 2) or (2,)
+        :return: numpy array shape (N, 2) and a boolean that indicates (2,) was provided
+        """
+        positions = numpy.asarray(positions)
+        ndim_org = positions.ndim
+        if ndim_org == 1:
+            if positions.shape[0] != 2:
+                raise ValueError("positions must be shape (N,2) or (2,)")
+            positions = positions.reshape(1, 2)
+        elif ndim_org != 2 or positions.shape[1] != 2:
+            raise ValueError("positions must be shape (N,2) or (2,)")
+        return positions, ndim_org == 1
 
 
 class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
@@ -381,13 +393,9 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         )
         return tuple(geometry.center - offset * numpy.array(geometry.normal))
 
-    @docstring(_RegionOfInterestBase)
-    def contains(self, position: tuple[float, float]) -> bool:
-        return self.getGeometry().contains(position)
-
-    @docstring(_RegionOfInterestBase)
-    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
-        return self.getGeometry().contains_multi(positions)
+    @docstring(HandleBasedROI)
+    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+        return self.getGeometry().contains(positions)
 
     def __str__(self):
         begin, end, width = self.getGeometry()

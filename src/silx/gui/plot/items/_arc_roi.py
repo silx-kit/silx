@@ -28,9 +28,11 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 import logging
+import enum
+from typing import Union
+
 import numpy
 from numpy.typing import ArrayLike
-import enum
 
 from ... import utils
 from .. import items
@@ -911,19 +913,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self._updateHandles()
 
     @docstring(HandleBasedROI)
-    def contains(self, position: tuple[float, float]) -> bool:
-        return self.contains_multi(position)[0]
-
-    @docstring(HandleBasedROI)
-    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
-        """
-        Check which positions are inside the annular sector defined by
-        center, inner/outer radius, and start/end angles.
-
-        :param positions: array of shape (N, 2), each row is (x, y) (col, row)
-        :return: boolean array of shape (N,)
-        """
-        positions = self._normalize_positions_shape(positions)
+    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(positions)
 
         # geometry parameters (center is (x, y))
         center = numpy.array(self.getCenter())
@@ -961,7 +952,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         # Angle mask
         in_angle = (angles >= start_angle) & (angles <= start_angle + azim_range)
 
-        return in_distance & in_angle
+        is_inside = in_distance & in_angle
+        return is_inside[0] if is_single else is_inside
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)

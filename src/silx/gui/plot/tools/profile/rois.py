@@ -34,13 +34,15 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "01/12/2020"
 
-import numpy
-from numpy.typing import ArrayLike
 import weakref
+from typing import Union
 from concurrent.futures import CancelledError
 
-from silx.gui import colors
+import numpy
+from numpy.typing import ArrayLike
 
+
+from silx.gui import colors
 from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from . import core
@@ -501,15 +503,11 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         self._createSubRois()
 
     @docstring(roi_items.HandleBasedROI)
-    def contains(self, position: tuple[float, float]) -> bool:
+    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(positions)
         roiPos = self.getPosition()
-        return position[0] == roiPos[0] or position[1] == roiPos[1]
-
-    @docstring(roi_items.HandleBasedROI)
-    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
-        positions = self._normalize_positions_shape(positions)
-        roiPos = self.getPosition()
-        return (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
+        is_inside = (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
+        return is_inside[0] if is_single else is_inside
 
     def setFirstShapePoints(self, points):
         pos = points[0]

@@ -50,35 +50,42 @@ class _BoundingBox:
         self.max_x = top_right[1]
         self.max_y = top_right[0]
 
-    def contains(self, item: Union[tuple[float, float], "_BoundingBox"]) -> bool:
-        """
-        Check if a point or bounding box is inside this bounding box.
+    def contains(
+        self,
+        items: Union[
+            tuple[float, float], "_BoundingBox", ArrayLike, Sequence["_BoundingBox"]
+        ],
+    ) -> Union[bool, numpy.ndarray]:
+        """Check if a point or bounding box is inside this bounding box.
 
-        :param item: a _BoundingBox or a point tuple (y, x)
-        :return: True if fully contained
+        :param items: array-like of shape (N, 2) or (2,), each row is (x, y)
+                      or `_BoundingBox` or list of `_BoundingBox`
+        :return: boolean or boolean array of shape (N,)
         """
-        if isinstance(item, _BoundingBox):
-            return self.contains(item.bottom_left) and self.contains(item.top_right)
+        is_single = False
+        is_box = False
+        err_msg = "items must be points of shape (N,2) or (2,) or a single _BoundingBox or list of _BoundingBox"
+        if isinstance(items, _BoundingBox):
+            is_single = True
+            is_box = True
+            items = [items]
+        elif isinstance(items, (list, tuple, numpy.ndarray)):
+            if isinstance(items[0], _BoundingBox):
+                is_box = True
+            else:
+                items = numpy.asarray(items)
+                ndim_org = items.ndim
+                is_single = ndim_org == 1
+                if ndim_org == 1:
+                    if items.shape[0] != 2:
+                        raise ValueError(err_msg)
+                    items = items.reshape(1, 2)
+                elif ndim_org != 2 or items.shape[1] != 2:
+                    raise ValueError(err_msg)
         else:
-            inside_x = self.min_x <= item[1] <= self.max_x
-            inside_y = self.min_y <= item[0] <= self.max_y
-            return inside_x & inside_y
+            raise ValueError(err_msg)
 
-    def contains_multi(
-        self, items: Union[ArrayLike, Sequence["_BoundingBox"]]
-    ) -> numpy.ndarray:
-        """
-        Vectorized check for multiple points or bounding boxes.
-
-        :param items: array-like of points (N, 2) with (y, x) or list of _BoundingBox
-        :return: boolean array of shape (N,)
-        """
-        if len(items) == 0:
-            return numpy.array([], dtype=bool)
-
-        first_item = items[0]
-
-        if isinstance(first_item, _BoundingBox):
+        if is_box:
             bottom_lefts = numpy.array([item.bottom_left for item in items])
             top_rights = numpy.array([item.top_right for item in items])
 
@@ -89,11 +96,11 @@ class _BoundingBox:
                 top_rights[:, 0] <= self.max_y
             )
         else:
-            points = numpy.asarray(items)
-            inside_x = (self.min_x <= points[:, 1]) & (points[:, 1] <= self.max_x)
-            inside_y = (self.min_y <= points[:, 0]) & (points[:, 0] <= self.max_y)
+            inside_x = (self.min_x <= items[:, 1]) & (items[:, 1] <= self.max_x)
+            inside_y = (self.min_y <= items[:, 0]) & (items[:, 0] <= self.max_y)
 
-        return inside_x & inside_y
+        is_inside = inside_x & inside_y
+        return is_inside[0] if is_single else is_inside
 
     def collide(self, bb):
         """

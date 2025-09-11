@@ -580,7 +580,7 @@ class _ImageContext(_StatsContext):
                 X, Y = numpy.meshgrid(xs, ys)
 
                 points = numpy.column_stack([X.ravel(), Y.ravel()])
-                mask = ~roi.contains_multi(points).reshape(Y.shape)
+                mask = ~roi.contains(points).reshape(Y.shape)
 
                 self._set_mask_validity(
                     xmin=XMinBound, xmax=XMaxBound, ymin=YMinBound, ymax=YMaxBound

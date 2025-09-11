@@ -37,6 +37,7 @@ import os
 import sys
 import functools
 import numpy
+from typing import Union
 
 try:
     from numpy import trapezoid
@@ -52,7 +53,7 @@ from silx.math.combo import min_max
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from . import items
-from .items.roi import _RegionOfInterestBase
+from .items._roi_base import _RegionOfInterestBase
 from silx.utils.deprecation import deprecated
 
 
@@ -1256,13 +1257,10 @@ class ROI(_RegionOfInterestBase):
         return rawArea, netArea
 
     @docstring(_RegionOfInterestBase)
-    def contains(self, position: tuple[float, float]) -> bool:
-        return self._fromdata <= position[0] <= self._todata
-
-    @docstring(_RegionOfInterestBase)
-    def contains_multi(self, positions: ArrayLike) -> numpy.ndarray:
-        positions = numpy.asarray(positions)
-        return self._fromdata <= positions[:, 0] <= self._todata
+    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(positions)
+        is_inside = self._fromdata <= positions[:, 0] <= self._todata
+        return is_inside[0] if is_single else is_inside
 
 
 class _RoiMarkerManager:
