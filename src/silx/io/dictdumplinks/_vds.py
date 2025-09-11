@@ -39,6 +39,24 @@ class VdsModelV1(BaseModel):
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     sources: list[VdsSourceV1]
 
+    def tolink(self, source: DataUrl) -> h5py.VirtualLayout:
+        vds_layout = h5py.VirtualLayout(shape=self.shape, dtype=self.dtype)
+        for vsource in self.sources:
+            file_path, data_path = normalize_vds_source_url(
+                vsource.file_path, vsource.data_path, source
+            )
+            vs = h5py.VirtualSource(
+                file_path,
+                name=data_path,
+                shape=vsource.shape,
+                dtype=vsource.dtype,
+            )
+            if vsource.source_index == tuple():
+                vds_layout[vsource.target_index] = vs
+            else:
+                vds_layout[vsource.target_index] = vs[vsource.source_index]
+        return vds_layout
+
 
 def _as_raw_dset_index_item(idx_item: DsetIndexItem) -> RawDsetIndexItem:
     if _is_raw_dset_index_item(idx_item):
@@ -54,22 +72,3 @@ def _is_raw_dset_index_item(idx_item: Any) -> bool:
 
 def _is_slice_arguments(idx_item: Any) -> bool:
     return isinstance(idx_item, Sequence) and (2 <= len(idx_item) <= 3)
-
-
-def deserialize_vds(model: VdsModelV1, source: DataUrl) -> h5py.VirtualLayout:
-    vds_layout = h5py.VirtualLayout(shape=model.shape, dtype=model.dtype)
-    for vsource in model.sources:
-        file_path, data_path = normalize_vds_source_url(
-            vsource.file_path, vsource.data_path, source
-        )
-        vs = h5py.VirtualSource(
-            file_path,
-            name=data_path,
-            shape=vsource.shape,
-            dtype=vsource.dtype,
-        )
-        if vsource.source_index == tuple():
-            vds_layout[vsource.target_index] = vs
-        else:
-            vds_layout[vsource.target_index] = vs[vsource.source_index]
-    return vds_layout

@@ -19,6 +19,14 @@ class ExternalLinkModelV1(BaseModel):
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     sources: list[tuple[str, int, int]]  # file name, byte offset, byte size
 
+    def tolink(self, source: DataUrl) -> "ExternalBinaryLink":
+        model = self.model_copy(deep=True)
+        model.sources = [
+            (normalize_ext_source_path(file_path, source), offset, count)
+            for file_path, offset, count in model.sources
+        ]
+        return ExternalBinaryLink(model)
+
 
 class ExternalBinaryLink:
     def __init__(self, model: ExternalLinkModelV1) -> None:
@@ -52,13 +60,3 @@ class ExternalBinaryLink:
 
     def serialize(self) -> dict:
         return self._model.model_dump()
-
-
-def deserialize_external_binary(
-    model: ExternalLinkModelV1, source: DataUrl
-) -> ExternalBinaryLink:
-    model.sources = [
-        (normalize_ext_source_path(file_path, source), offset, count)
-        for file_path, offset, count in model.sources
-    ]
-    return ExternalBinaryLink(model)
