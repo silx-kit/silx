@@ -54,19 +54,28 @@ class _Axis(qt.QWidget):
     axisNameChanged = qt.Signal(object)
     """Emitted when the user change the name of the axis."""
 
-    def __init__(self, parent=None):
+    def __init__(self, number: int, size: int, parent=None):
         """Constructor
 
+        :param int number: The number of the axis (from the original numpy
+            array)
+        :param int size: The size of this axis (0..n)
         :param parent: Parent of the widget
         """
         super().__init__(parent)
-        self.__axisNumber = None
+        self.__axisNumber = number
+        self.__axisNumber = number
         self.__customAxisNames = set()
-        self.__label = qt.QLabel(self)
+
+        self.__label = qt.QLabel(f"Dimension {number}", parent=self)
+
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
+
         self.__slider = HorizontalSliderWithBrowser(self)
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
+        self.__slider.setMaximum(size - 1)
+
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.__label)
@@ -75,39 +84,27 @@ class _Axis(qt.QWidget):
         layout.addStretch(1)
         self.setLayout(layout)
 
-    def slider(self):
+    def slider(self) -> HorizontalSliderWithBrowser:
         """Returns the slider used to display axes location.
 
         :rtype: HorizontalSliderWithBrowser
         """
         return self.__slider
 
-    def setAxis(self, number, position, size):
-        """Set axis information.
-
-        :param int number: The number of the axis (from the original numpy
-            array)
-        :param int position: The current position in the axis (for a slicing)
-        :param int size: The size of this axis (0..n)
-        """
-        self.__label.setText("Dimension %s" % number)
-        self.__axisNumber = number
-        self.__slider.setMaximum(size - 1)
-
-    def axisNumber(self):
+    def axisNumber(self) -> int:
         """Returns the axis number.
 
         :rtype: int
         """
         return self.__axisNumber
 
-    def setAxisName(self, axisName):
+    def setAxisName(self, axisName: str):
         """Set the current used axis name.
 
         If this name is not available an exception is raised. An empty string
         means that no name is selected.
 
-        :param str axisName: The new name of the axis
+        :param axisName: The new name of the axis
         :raise ValueError: When the name is not available
         """
         if axisName == "" and self.__axes.count() == 0:
@@ -170,6 +167,8 @@ class _Axis(qt.QWidget):
         customable axis names."""
         name = self.axisName()
         isVisible = name == "" or name in self.__customAxisNames
+        if name:
+            self.__label.setText(f"Dimension {self.__axisNumber} ({name})")
         self.__slider.setVisible(isVisible)
 
     def value(self):
@@ -312,8 +311,7 @@ class NumpyAxesSelector(qt.QWidget):
             dimensionNumber = len(data.shape)
             delta = dimensionNumber - len(self.__axisNames)
             for index in range(dimensionNumber):
-                axis = _Axis(self)
-                axis.setAxis(index, 0, data.shape[index])
+                axis = _Axis(number=index, size=data.shape[index], parent=self)
                 axis.setAxisNames(self.__axisNames)
                 axis.setCustomAxis(self.__customAxisNames)
                 if index >= delta and index - delta < len(self.__axisNames):

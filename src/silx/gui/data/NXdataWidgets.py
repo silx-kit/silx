@@ -947,7 +947,7 @@ class ArrayStackPlot(qt.QWidget):
         self.__z_axis_name = zlabel
 
         self._axesSelector.setData(signal)
-        self._axesSelector.setAxisNames(["Y", "X", "Z"])
+        self._axesSelector.setAxisNames([ylabel or "Y", xlabel or "X", zlabel or "Z"])
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)
