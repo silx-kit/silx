@@ -596,23 +596,23 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """Return the Hdf5Object matching the url if exists in the model. Else None"""
 
         # 1.0 find file name
-        file_name = url.file_path()
+        fileName = url.file_path()
 
-        start_index = self._find_node(
-            start_index=self.index(0, 0), name=os.path.basename(file_name)
+        startIndex = self._find_node(
+            start_index=self.index(0, 0), name=os.path.basename(fileName)
         )
-        if start_index is None:
+        if startIndex is None:
             return None
-        node = self.nodeFromIndex(start_index)
+        node = self.nodeFromIndex(startIndex)
 
         # 2.0 find data path node
-        node_names = filter(None, url.data_path().split("/"))
+        nodeNames = filter(None, url.data_path().split("/"))
 
-        for node_name in node_names:
+        for nodeName in nodeNames:
             # find file name
             if node is None:
                 return None
-            node = self._findChildren(parent_node=node, child_node_name=node_name)
+            node = self._findChildren(parent_node=node, child_node_name=nodeName)
 
         return node
 
