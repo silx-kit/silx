@@ -2653,7 +2653,7 @@ class PlotWidget(qt.QMainWindow):
         """Set the graph Y limits.
 
         :param ymin: minimum bottom axis value
-        :param fat ymax: maximum bottom axis value
+        :param ymax: maximum bottom axis value
         :param axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
