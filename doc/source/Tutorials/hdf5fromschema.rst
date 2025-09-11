@@ -215,7 +215,7 @@ When the file path in the URL refers to another file, an external link is create
 
 .. note::
 
-  The file name of the external link is always created relative to the link.
+  The file name of the external link is always converted to a file name relative to the link.
   The data path portion of the URL must always be absolute in the case.
 
 Virtual Datasets
