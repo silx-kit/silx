@@ -44,6 +44,7 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
+from silx.utils.deprecation import deprecated_warning
 
 
 _logger = logging.getLogger(__name__)
@@ -285,6 +286,9 @@ class _Colormappable:
         raise NotImplementedError("This method must be implemented in subclass")
 
 
+from functools import lru_cache
+
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -334,15 +338,20 @@ class Colormap(qt.QObject):
     with a clamp on min/max of the data"""
 
     PERCENTILE_1_99 = "percentile_1_99"
-    """constant for autoscale using 1st and 99th percentile of data"""
+    """constant for autoscale using 1st and 99th percentile of data. Deprecated to the benefit of 'percentile'"""
 
-    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE_1_99)
+    PERCENTILE = "percentile"
+    """constant for autoscale using n'st and m'th percentile of data"""
+
+    AUTOSCALE_MODES = (MINMAX, STDDEV3, PERCENTILE)
     """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
+    _DEFAULT_PERCENTILES = (1, 99)
 
     def __init__(
         self,
@@ -387,6 +396,7 @@ class Colormap(qt.QObject):
 
         self._normalization = str(normalization)
         self._autoscaleMode = str(autoscaleMode)
+        self._percentiles_autoscale_values = self._DEFAULT_PERCENTILES
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
@@ -557,20 +567,37 @@ class Colormap(qt.QObject):
         return self.__gamma
 
     def getAutoscaleMode(self) -> str:
-        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')"""
+        """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
-        """Set the autoscale mode: either 'minmax' or 'stddev3'
+        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'.
+
+        .. warning:: 'percentile_1_99' is deprecated
 
         :param mode: the mode to set
         """
         if self.isEditable() is False:
             raise NotEditableError("Colormap is not editable")
+        if mode == self.PERCENTILE_1_99:
+            deprecated_warning(
+                type_="Mode",
+                name="mode",
+                replacement="percentile",
+                since_version="3.0",
+            )
+            mode = self.PERCENTILE
         assert mode in self.AUTOSCALE_MODES
         if mode != self._autoscaleMode:
             self._autoscaleMode = mode
             self.sigChanged.emit()
+
+    def setAutoscalePercentile(self, value: tuple[float, float]):
+        self._percentiles_autoscale_values = value
+        self.sigChanged.emit()
+
+    def getAutoscalePercentile(self) -> tuple[float, float]:
+        return self._percentiles_autoscale_values
 
     def isAutoscale(self) -> bool:
         """Return True if both min and max are in autoscale mode"""
@@ -661,7 +688,11 @@ class Colormap(qt.QObject):
         :param data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
-        return self._getNormalizer().autoscale(data, mode=self.getAutoscaleMode())
+        return self._getNormalizer().autoscale(
+            data,
+            mode=self.getAutoscaleMode(),
+            percentile=self.getAutoscalePercentile(),
+        )
 
     def getColormapRange(
         self,
@@ -694,6 +725,19 @@ class Colormap(qt.QObject):
 
         if vmin is not None and vmax is not None:
             return vmin, vmax
+
+        if vmin is None or vmax is None:  # Handle autoscale
+            if isinstance(data, _Colormappable):
+                min_, max_ = data._getColormapAutoscaleRange(self)
+                # Make sure min_, max_ are not None
+                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+            else:
+                min_, max_ = normalizer.autoscale(
+                    data,
+                    mode=self.getAutoscaleMode(),
+                    percentile=self.getAutoscalePercentile(),
+                )
 
         # Handle autoscale
 

@@ -38,6 +38,7 @@ from .combo import min_max as _min_max
 from . import _colormap
 from ._colormap import cmap  # noqa
 from ..utils.proxy import docstring
+from silx.utils.deprecation import deprecated_warning, deprecated
 
 
 __all__ = ["apply_colormap", "cmap"]
@@ -235,17 +236,30 @@ class _NormalizationMixIn:
             return True
 
     def autoscale(
-        self, data: numpy.ndarray | None, mode: AutoScaleModeType
+        self,
+        data: numpy.ndarray | None,
+        mode: AutoScaleModeType,
+        percentile: tuple[float, float] | None = None,
     ) -> tuple[float, float]:
         """Returns range for given data and autoscale mode.
 
         :param data: The data to process
-        :param mode: Autoscale mode ('minmax' or 'stddev3')
+        :param mode: Autoscale mode ('minmax', 'stddev3' or 'percentile')
+        :param percentile: percentile to be used when computing vmin and vmax within the 'percentile' mode. Expected as too tuple in (0, 100)
         :returns: Range as (min, max)
         """
         data = None if data is None else numpy.asarray(data)
         if data is None or data.size == 0:
             return self.DEFAULT_RANGE
+
+        if mode == "percentile_1_99":
+            deprecated_warning(
+                type_="Mode",
+                name="mode",
+                replacement="percentile",
+                since_version="3.0",
+            )
+            mode = "percentile"
 
         if mode == "minmax":
             vmin, vmax = self.autoscale_minmax(data)
@@ -265,8 +279,8 @@ class _NormalizationMixIn:
                 vmax = dmax
             else:
                 vmax = min(dmax, stdmax)
-        elif mode == "percentile_1_99":
-            vmin, vmax = self.autoscale_percentile_1_99(data)
+        elif mode == "percentile":
+            vmin, vmax = self.autoscale_percentile(data, percentile=percentile)
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
@@ -323,10 +337,25 @@ class _NormalizationMixIn:
             mean + 3 * std, 0.0, 1.0
         )
 
+    @deprecated(
+        reason="replaced by autoscale_percentile",
+        since_version="3.0",
+        replacement="autoscale_percentile",
+    )
     def autoscale_percentile_1_99(
         self, data: numpy.ndarray
     ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using [1st, 99th] percentiles
+
+        :param data: The data to process
+        :returns: (vmin, vmax)
+        """
+        return self.autoscale_percentile(data, percentile=(1, 99))
+
+    def autoscale_percentile(
+        self, data: numpy.ndarray, percentile: tuple[float, float]
+    ) -> tuple[float, float] | tuple[None, None]:
+        """Autoscale using given percentiles
 
         :param data: The data to process
         :returns: (vmin, vmax)
@@ -336,7 +365,7 @@ class _NormalizationMixIn:
             data = data[numpy.isfinite(data)]
         if data.size == 0:
             return None, None
-        return numpy.nanpercentile(data, (1, 99))
+        return numpy.nanpercentile(data, percentile)
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
@@ -453,10 +482,13 @@ def _get_range(
     autoscale: AutoScaleModeType,
     vmin: float | None,
     vmax: float | None,
+    percentile: tuple[float, float] | None = None,
 ) -> tuple[float, float]:
     """Returns effective range"""
     if vmin is None or vmax is None:
-        auto_vmin, auto_vmax = normalizer.autoscale(data, autoscale)
+        auto_vmin, auto_vmax = normalizer.autoscale(
+            data, autoscale, percentile=percentile
+        )
         if vmin is None:  # Set vmin respecting provided vmax
             vmin = auto_vmin if vmax is None else min(auto_vmin, vmax)
         if vmax is None:
@@ -475,6 +507,7 @@ def apply_colormap(
     vmin: float | None = None,
     vmax: float | None = None,
     gamma: float = 1.0,
+    percentile: tuple[float, float] | None = None,
 ):
     """Apply colormap to data with given normalization and autoscale.
 
@@ -486,11 +519,12 @@ def apply_colormap(
     :param vmax: Upper bound, None (default) to autoscale
     :param float gamma:
         Gamma correction parameter (used only for "gamma" normalization)
+    :param percentile: percentile to be used when computing the autoscale in percentile mode.
     :returns: Array of colors
     """
     colors = get_colormap_lut(colormap)
     normalizer = _get_normalizer(norm, gamma)
-    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
+    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax, percentile)
     return _colormap.cmap(
         data,
         colors,
@@ -517,6 +551,7 @@ def normalize(
     vmin: float | None = None,
     vmax: float | None = None,
     gamma: float = 1.0,
+    percentile: tuple[float, float] | None = None,
 ) -> NormalizeResult:
     """Normalize data to an array of uint8.
 
@@ -527,6 +562,7 @@ def normalize(
     :param vmax: Upper bound, None (default) to autoscale
     :param gamma:
         Gamma correction parameter (used only for "gamma" normalization)
+    :param percentile: percentile to be used when computing the autoscale in percentile mode.
     :returns: Array of normalized values, vmin, vmax
     """
     normalizer = _get_normalizer(norm, gamma)
@@ -538,6 +574,7 @@ def normalize(
         vmax,
         normalizer,
         nan_color=_UINT8_LUT[0],
+        percentile=percentile,
     )
     norm_data.shape = data.shape
     return NormalizeResult(norm_data, vmin, vmax)
