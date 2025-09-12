@@ -53,7 +53,7 @@ def highlight_curve1():
 
 highlight_button = qt.QPushButton("Toggle Highlight on Sinusoidal Curve")
 plot_layout.addWidget(highlight_button)
-
+plot.resetZoom()
 plot_window.show()
 info_widget.show()
 app.exec_()

@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 
 
 class LegendItemIcon(LegendIconWidget):
-    sigLeftMBtnClicked = qt.Signal()
 
     def __init__(self, parent=None, item=None):
         super().__init__(parent)
@@ -93,13 +92,6 @@ class LegendItemIcon(LegendIconWidget):
         ):
             self._update()
 
-    def mousePressEvent(self, event):
-        if event.button() == qt.Qt.LeftButton:
-            self.sigLeftMBtnClicked.emit()
-            event.accept()
-        else:
-            super().mousePressEvent(event)
-
 
 class LegendItemWidget(qt.QWidget):
     def __init__(self, parent, item: items):
@@ -111,7 +103,6 @@ class LegendItemWidget(qt.QWidget):
         item.sigItemChanged.connect(self._itemChanged)
 
         self.icon = LegendItemIcon(parent=self, item=item)
-        self.icon.sigLeftMBtnClicked.connect(self._onIconClicked)
         self.layout().addWidget(self.icon)
 
         self.label = qt.QLabel(self._item.getName())
@@ -168,10 +159,6 @@ class LegendItemWidget(qt.QWidget):
         if event.button() == qt.Qt.LeftButton:
             if self._item:
                 self._item.setVisible(not self._item.isVisible())
-
-    def _onIconClicked(self):
-        if self.item():
-            pass
 
 
 class LegendItemList(qt.QMainWindow):
