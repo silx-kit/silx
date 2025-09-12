@@ -605,7 +605,7 @@ class DraggableMixIn(ItemMixInBase):
 class ColormapMixIn(_Colormappable, ItemMixInBase):
     """Mix-in class for items with colormap"""
 
-    COLORMAP_CACHE_SIZE = 25
+    COLORMAP_CACHE_SIZE = 128
 
     def __init__(self):
         self._colormap = Colormap()
