@@ -12,6 +12,7 @@ from ._base_types import DsetIndex
 from ._base_types import DsetIndexItem
 from ._base_types import RawDsetIndex
 from ._base_types import RawDsetIndexItem
+from ._link_types import Hdf5LinkModel
 from ._utils import normalize_vds_source_url
 
 
@@ -33,7 +34,7 @@ class VdsSourceV1(BaseModel, arbitrary_types_allowed=True):
         return tuple(_as_raw_dset_index_item(idx_item) for idx_item in idx)
 
 
-class VdsModelV1(BaseModel):
+class VdsModelV1(Hdf5LinkModel):
     dictdump_schema: Literal["virtual_dataset_v1"]
     shape: tuple[int, ...]
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.

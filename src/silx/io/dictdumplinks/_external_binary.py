@@ -3,13 +3,14 @@ from typing import Literal
 
 import h5py
 from numpy.typing import DTypeLike
-from pydantic import BaseModel
 
 from ..url import DataUrl
+from ._link_types import Hdf5Link
+from ._link_types import Hdf5LinkModel
 from ._utils import normalize_ext_source_path
 
 
-class ExternalLinkModelV1(BaseModel):
+class ExternalLinkModelV1(Hdf5LinkModel):
     """Attention: relative file names in external HDF5 datasets are relative
     with respect to the current working directory, not relative to the parent file.
     """
@@ -28,7 +29,7 @@ class ExternalLinkModelV1(BaseModel):
         return ExternalBinaryLink(model)
 
 
-class ExternalBinaryLink:
+class ExternalBinaryLink(Hdf5Link):
     def __init__(self, model: ExternalLinkModelV1) -> None:
         self._model = model
 

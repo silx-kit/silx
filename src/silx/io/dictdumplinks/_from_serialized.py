@@ -7,7 +7,7 @@ from typing import cast
 import h5py
 
 from ..url import DataUrl
-from ._link_types import ExternalBinaryLink
+from ._link_types import Hdf5Link
 from ._link_types import Hdf5LinkType
 from ._link_types import SerializedHdf5LinkType
 from ._parse_fabio_targets import fabio_url_to_external_data
@@ -82,7 +82,7 @@ def link_from_serialized(
     """
     if isinstance(
         target,
-        (h5py.SoftLink, h5py.ExternalLink, h5py.VirtualLayout, ExternalBinaryLink),
+        (h5py.SoftLink, h5py.ExternalLink, h5py.VirtualLayout, Hdf5Link),
     ):
         # Already a link instance.
         return target

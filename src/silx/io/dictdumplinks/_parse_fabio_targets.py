@@ -6,8 +6,8 @@ from fabio.edfimage import EdfFrame
 from fabio.fabioimage import FabioFrame
 
 from ..url import DataUrl
+from ._external_binary import ExternalBinaryLink
 from ._external_binary import ExternalLinkModelV1
-from ._link_types import ExternalBinaryLink
 from ._utils import normalize_ext_source_path
 
 

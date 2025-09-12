@@ -4,8 +4,8 @@ from typing import Any
 from fabio.TiffIO import TiffIO
 
 from ..url import DataUrl
+from ._external_binary import ExternalBinaryLink
 from ._external_binary import ExternalLinkModelV1
-from ._link_types import ExternalBinaryLink
 from ._utils import normalize_ext_source_path
 
 
