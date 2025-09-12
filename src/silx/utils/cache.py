@@ -20,7 +20,6 @@ class LRUCache:
 
     def __setitem__(self, key, value):
         self._cache[key] = value
-
         self._cache.move_to_end(key)
 
         if len(self) > self._maxsize:
@@ -38,20 +37,8 @@ class LRUCache:
     def clear(self):
         self._cache.clear()
 
-    def keys(self):
-        return self._cache.keys()
-
-    def items(self):
-        return self._cache.items()
-
-    def values(self):
-        return self._cache.values()
-
     def __len__(self) -> int:
         return len(self._cache)
-
-    def __eq__(self, value):
-        return value == self._cache
 
     def __iter__(self):
         return iter(self._cache)

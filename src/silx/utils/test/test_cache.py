@@ -9,7 +9,7 @@ def test_LRU_CACHE():
     assert "a" in cache
     cache["b"] = 2
     cache["c"] = 3
-    assert cache == OrderedDict(
+    assert cache._cache == OrderedDict(
         {
             "a": 1,
             "b": 2,
