@@ -286,9 +286,6 @@ class _Colormappable:
         raise NotImplementedError("This method must be implemented in subclass")
 
 
-from functools import lru_cache
-
-
 class Colormap(qt.QObject):
     """Description of a colormap
 
