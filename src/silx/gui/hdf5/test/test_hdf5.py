@@ -457,6 +457,10 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
+        # the h5 file is already added. If already there then we need to remove it to add it back
+        self.model.removeH5pyObject(self.h5)
+        self.listener.clear()
+
         for data_path in [None, "/arrays/scalar"]:
             with self.subTest(data_path=data_path):
                 url = DataUrl(file_path=self.filename, data_path=data_path)
