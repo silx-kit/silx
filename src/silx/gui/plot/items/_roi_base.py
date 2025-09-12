@@ -38,6 +38,9 @@ import logging
 import numpy
 import weakref
 import functools
+from typing import Union
+
+from numpy.typing import ArrayLike
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -96,15 +99,35 @@ class _RegionOfInterestBase(qt.QObject):
         """
         self.sigItemChanged.emit(event)
 
-    def contains(self, position: tuple[float, float]) -> bool:
-        """Returns True if the `position` is in this ROI.
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        """Check which positions are inside the ROI.
 
-        :param position: position to check
-        :return: True if the value / point is consider to be in the region of
-                 interest.
-        :rtype: bool
+        :param position: array-like of positions, where each position is given as ``(x, y)``.
+        If multiple positions are provided, the shape should be ``(N, 2)``.
+        For a single position, the shape should be ``(2,)``.
+        :return: boolean or boolean array of shape ``(N,)``, True if the point is inside the ROI.
         """
-        return False  # Override in subclass to perform actual test
+        # Overwrite in subclass
+        positions, is_single = self._normalize_positions_shape(position)
+        if is_single:
+            return False
+        return numpy.zeros(len(positions), dtype=bool)
+
+    @staticmethod
+    def _normalize_positions_shape(positions: ArrayLike) -> Union[numpy.ndarray, bool]:
+        """
+        :param positions: array-like of shape (N, 2) or (2,)
+        :return: numpy array shape (N, 2) and a boolean that indicates (2,) was provided
+        """
+        positions = numpy.asarray(positions)
+        ndim_org = positions.ndim
+        if ndim_org == 1:
+            if positions.shape[0] != 2:
+                raise ValueError("positions must be shape (N,2) or (2,)")
+            positions = positions.reshape(1, 2)
+        elif ndim_org != 2 or positions.shape[1] != 2:
+            raise ValueError("positions must be shape (N,2) or (2,)")
+        return positions, ndim_org == 1
 
 
 class RoiInteractionMode:

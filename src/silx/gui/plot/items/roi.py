@@ -34,7 +34,10 @@ __date__ = "28/06/2018"
 
 
 import logging
+from typing import Union
+
 import numpy
+from numpy.typing import ArrayLike
 
 from ... import utils
 from .. import items
@@ -43,7 +46,6 @@ from silx.image.shapes import Polygon
 from silx.image._boundingbox import _BoundingBox
 from ....utils.proxy import docstring
 from ..utils.intersections import segments_intersection
-from ._roi_base import _RegionOfInterestBase
 
 # He following imports have to be exposed by this module
 from ._roi_base import RegionOfInterest
@@ -112,10 +114,12 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         """
         self._marker.setPosition(*pos)
 
-    @docstring(_RegionOfInterestBase)
-    def contains(self, position):
+    @docstring(RegionOfInterest)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roiPos = self.getPosition()
-        return position[0] == roiPos[0] and position[1] == roiPos[1]
+        is_inside = (positions[:, 0] == roiPos[0]) & (positions[:, 1] == roiPos[1])
+        return is_inside[0] if is_single else is_inside
 
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -195,9 +199,11 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
             self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
-    def contains(self, position):
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roiPos = self.getPosition()
-        return position[0] == roiPos[0] or position[1] == roiPos[1]
+        is_inside = (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
+        return is_inside[0] if is_single else is_inside
 
 
 class LineROI(HandleBasedROI, items.LineMixIn):
@@ -305,46 +311,50 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
-    @docstring(_RegionOfInterestBase)
-    def contains(self, position):
-        bottom_left = position[0], position[1]
-        bottom_right = position[0] + 1, position[1]
-        top_left = position[0], position[1] + 1
-        top_right = position[0] + 1, position[1] + 1
+    @docstring(HandleBasedROI)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
 
         points = self.__shape.getPoints()
-        line_pt1 = points[0]
-        line_pt2 = points[1]
+        line_pt1, line_pt2 = points[0], points[1]
+        bb = _BoundingBox.from_points(points)
 
-        bb1 = _BoundingBox.from_points(points)
-        if not bb1.contains(position):
-            return False
+        # First, filter positions outside the bounding box
+        in_bb = bb.contains(positions)
+        is_inside = numpy.zeros(len(positions), dtype=bool)
+
+        # Only check positions inside bounding box
+        indices = numpy.where(in_bb)[0]
+        for idx, pos in enumerate(positions[in_bb]):
+            is_inside[indices[idx]] = self._intersects_unit_square(
+                line_pt1, line_pt2, pos
+            )
+
+        return is_inside[0] if is_single else is_inside
+
+    @staticmethod
+    def _intersects_unit_square(
+        line_pt1, line_pt2, position: tuple[float, float]
+    ) -> bool:
+        """
+        Check if a line segment intersects the unit square around `position`.
+
+        :param line_pt1: start point of the line segment (y, x)
+        :param line_pt2: end point of the line segment (y, x)
+        :param position: bottom-left corner of the unit square (y, x)
+        :return: True if the line intersects the unit square
+        """
+        y, x = position
+        bottom_left = (y, x)
+        bottom_right = (y, x + 1)
+        top_left = (y + 1, x)
+        top_right = (y + 1, x + 1)
 
         return (
-            segments_intersection(
-                seg1_start_pt=line_pt1,
-                seg1_end_pt=line_pt2,
-                seg2_start_pt=bottom_left,
-                seg2_end_pt=bottom_right,
-            )
-            or segments_intersection(
-                seg1_start_pt=line_pt1,
-                seg1_end_pt=line_pt2,
-                seg2_start_pt=bottom_right,
-                seg2_end_pt=top_right,
-            )
-            or segments_intersection(
-                seg1_start_pt=line_pt1,
-                seg1_end_pt=line_pt2,
-                seg2_start_pt=top_right,
-                seg2_end_pt=top_left,
-            )
-            or segments_intersection(
-                seg1_start_pt=line_pt1,
-                seg1_end_pt=line_pt2,
-                seg2_start_pt=top_left,
-                seg2_end_pt=bottom_left,
-            )
+            segments_intersection(line_pt1, line_pt2, bottom_left, bottom_right)
+            or segments_intersection(line_pt1, line_pt2, bottom_right, top_right)
+            or segments_intersection(line_pt1, line_pt2, top_right, top_left)
+            or segments_intersection(line_pt1, line_pt2, top_left, bottom_left)
         ) is not None
 
     def __str__(self) -> str:
@@ -408,9 +418,12 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         """
         self._marker.setPosition(0, pos)
 
-    @docstring(_RegionOfInterestBase)
-    def contains(self, position):
-        return position[1] == self.getPosition()
+    @docstring(RegionOfInterest)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        roi_x = self.getPosition()
+        is_inside = positions[:, 1] == roi_x
+        return is_inside[0] if is_single else is_inside
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -475,8 +488,11 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.setPosition(pos, 0)
 
     @docstring(RegionOfInterest)
-    def contains(self, position):
-        return position[0] == self.getPosition()
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        roi_y = self.getPosition()
+        is_inside = positions[:, 0] == roi_y
+        return is_inside[0] if is_single else is_inside
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -644,11 +660,10 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
-    def contains(self, position):
-        assert isinstance(position, (tuple, list, numpy.array))
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
         points = self.__shape.getPoints()
-        bb1 = _BoundingBox.from_points(points)
-        return bb1.contains(position)
+        bb = _BoundingBox.from_points(points)
+        return bb.contains(position)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -843,8 +858,12 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
             self.setRadius(numpy.linalg.norm(center - current))
 
     @docstring(HandleBasedROI)
-    def contains(self, position):
-        return numpy.linalg.norm(self.getCenter() - position) <= self.getRadius()
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        center = numpy.array(self.getCenter())
+        distances = numpy.linalg.norm(positions - center, axis=1)
+        is_inside = distances <= self.getRadius()
+        return is_inside[0] if is_single else is_inside
 
     def __str__(self):
         center = self.getCenter()
@@ -1123,14 +1142,28 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             self._updateGeometry()
 
     @docstring(HandleBasedROI)
-    def contains(self, position):
-        major, minor = self.getMajorRadius(), self.getMinorRadius()
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+
+        center = numpy.array(self.getCenter())
+        major = self.getMajorRadius()
+        minor = self.getMinorRadius()
         delta = self.getOrientation()
-        x, y = position - self.getCenter()
-        return (
-            (x * numpy.cos(delta) + y * numpy.sin(delta)) ** 2 / major**2
-            + (x * numpy.sin(delta) - y * numpy.cos(delta)) ** 2 / minor**2
-        ) <= 1
+
+        # relative coordinates
+        rel = positions - center  # shape (N, 2)
+        x = rel[:, 0]
+        y = rel[:, 1]
+
+        cos_d = numpy.cos(delta)
+        sin_d = numpy.sin(delta)
+
+        values = ((x * cos_d + y * sin_d) ** 2) / major**2 + (
+            (x * sin_d - y * cos_d) ** 2
+        ) / minor**2
+
+        is_inside = values <= 1
+        return is_inside[0] if is_single else is_inside
 
     def __str__(self):
         center = self.getCenter()
@@ -1327,16 +1360,27 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         return f"{self.__class__.__name__}({params})"
 
     @docstring(HandleBasedROI)
-    def contains(self, position):
-        bb1 = _BoundingBox.from_points(self.getPoints())
-        if bb1.contains(position) is False:
-            return False
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        points = self.getPoints()
+        bb = _BoundingBox.from_points(points)
+
+        # First, filter positions outside the bounding box
+        in_bb = bb.contains(positions)
+        is_inside = numpy.zeros(len(positions), dtype=bool)
 
         if self._polygon_shape is None:
-            self._polygon_shape = Polygon(vertices=self.getPoints())
+            self._polygon_shape = Polygon(vertices=points)
 
-        # warning: both the polygon and the value are inverted
-        return self._polygon_shape.is_inside(row=position[0], col=position[1])
+        # Only check positions inside bounding box
+        indices = numpy.where(in_bb)[0]
+        for idx, pos in enumerate(positions[in_bb]):
+            # warning: both the polygon and the value are inverted
+            is_inside[indices[idx]] = self._polygon_shape.is_inside(
+                row=pos[0], col=pos[1]
+            )
+
+        return is_inside[0] if is_single else is_inside
 
     def _setControlPoints(self, points):
         RegionOfInterest._setControlPoints(self, points=points)
@@ -1542,9 +1586,12 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             marker = self.sender()
             self.setCenter(marker.getXPosition())
 
-    @docstring(HandleBasedROI)
-    def contains(self, position):
-        return self.getMin() <= position[0] <= self.getMax()
+    @docstring(RegionOfInterest)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        y = positions[:, 0]
+        is_inside = (y >= self.getMin()) & (y <= self.getMax())
+        return is_inside[0] if is_single else is_inside
 
     def __str__(self) -> str:
         vrange = self.getRange()

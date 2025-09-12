@@ -27,8 +27,11 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "07/09/2019"
 
+from typing import Union, Sequence
+
 from silx.math.combo import min_max
 import numpy
+from numpy.typing import ArrayLike
 
 
 class _BoundingBox:
@@ -47,21 +50,60 @@ class _BoundingBox:
         self.max_x = top_right[1]
         self.max_y = top_right[0]
 
-    def contains(self, item):
-        """
+    def contains(
+        self,
+        item: Union[ArrayLike, "_BoundingBox", Sequence["_BoundingBox"]],
+    ) -> Union[bool, numpy.ndarray]:
+        """Check if a point or bounding box is inside this bounding box.
 
-        :param item: bouding box or point. If it is bounding check check if the
-                     bottom_left and top_right corner of the given bounding box
-                     are inside the current bounding box
-        :type: Union[BoundingBox, tuple]
-        :return:
+        :param position: array-like of bounding boxes or positions.
+        Each bounding box is an instance of ``_BoundingBox``.
+        Each position is given as ``(x, y)``.
+        If multiple positions are provided, the shape should be ``(N, 2)``.
+        For a single position, the shape should be ``(2,)``.
+        :return: boolean or boolean array of shape ``(N,)``,
+        True if the item is inside this bounding box.
         """
-        if isinstance(item, _BoundingBox):
-            return self.contains(item.bottom_left) and self.contains(item.top_right)
+        items = item
+        is_single = False
+        is_box = False
+        err_msg = "items must be points of shape (N,2) or (2,) or a single _BoundingBox or list of _BoundingBox"
+        if isinstance(items, _BoundingBox):
+            is_single = True
+            is_box = True
+            items = [items]
+        elif isinstance(items, (list, tuple, numpy.ndarray)):
+            if isinstance(items[0], _BoundingBox):
+                is_box = True
+            else:
+                items = numpy.asarray(items)
+                ndim_org = items.ndim
+                is_single = ndim_org == 1
+                if ndim_org == 1:
+                    if items.shape[0] != 2:
+                        raise ValueError(err_msg)
+                    items = items.reshape(1, 2)
+                elif ndim_org != 2 or items.shape[1] != 2:
+                    raise ValueError(err_msg)
         else:
-            return (self.min_x <= item[1] <= self.max_x) and (
-                self.min_y <= item[0] <= self.max_y
+            raise TypeError(err_msg)
+
+        if is_box:
+            bottom_lefts = numpy.array([item.bottom_left for item in items])
+            top_rights = numpy.array([item.top_right for item in items])
+
+            inside_x = (self.min_x <= bottom_lefts[:, 1]) & (
+                top_rights[:, 1] <= self.max_x
             )
+            inside_y = (self.min_y <= bottom_lefts[:, 0]) & (
+                top_rights[:, 0] <= self.max_y
+            )
+        else:
+            inside_x = (self.min_x <= items[:, 1]) & (items[:, 1] <= self.max_x)
+            inside_y = (self.min_y <= items[:, 0]) & (items[:, 0] <= self.max_y)
+
+        is_inside = inside_x & inside_y
+        return is_inside[0] if is_single else is_inside
 
     def collide(self, bb):
         """
