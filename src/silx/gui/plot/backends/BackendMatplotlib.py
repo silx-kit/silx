@@ -405,10 +405,7 @@ class _MarkerContainer(_PickableContainer):
                 if self.symbol is None:
                     valign = "baseline"
                 else:
-                    if yinverted:
-                        valign = "bottom" if yinverted else "top"
-                    else:
-                        valign = "top"
+                    valign = "bottom" if yinverted else "top"
                 self.text.set_verticalalignment(valign)
 
             elif self.y is None:  # vertical line
