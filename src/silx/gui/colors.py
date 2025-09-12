@@ -393,7 +393,7 @@ class Colormap(qt.QObject):
 
         self._normalization = str(normalization)
         self._autoscaleMode = str(autoscaleMode)
-        self._percentiles_autoscale_values = self._DEFAULT_PERCENTILES
+        self._percentiles = self._DEFAULT_PERCENTILES
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
         self.__warnBadVmin = True
@@ -589,11 +589,11 @@ class Colormap(qt.QObject):
             self.sigChanged.emit()
 
     def setAutoscalePercentile(self, value: tuple[float, float]):
-        self._percentiles_autoscale_values = value
+        self._percentiles = value
         self.sigChanged.emit()
 
     def getAutoscalePercentile(self) -> tuple[float, float]:
-        return self._percentiles_autoscale_values
+        return self._percentiles
 
     def isAutoscale(self) -> bool:
         """Return True if both min and max are in autoscale mode"""
