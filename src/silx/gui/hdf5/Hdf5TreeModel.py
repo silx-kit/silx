@@ -785,8 +785,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         Remove any childless nodes
         Use case: remove file nodes without at least one dataset
         """
-        for index in range(self.rowCount()):
-            modelIndex = self.index(row=index, column=0)
+        for rowIndex in range(self.rowCount()):
+            modelIndex = self.index(row=rowIndex, column=0)
             hasChildren = self.hasChildren(modelIndex)
             if not hasChildren:
                 self.removeIndex(modelIndex)
