@@ -781,8 +781,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         return tuple(files)
 
     def _clean_childless_nodes(self):
-        """
-        Remove any childless nodes
+        """Remove any childless nodes
+
         Use case: remove file nodes without at least one dataset
         """
         for rowIndex in range(self.rowCount()):
