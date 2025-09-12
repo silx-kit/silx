@@ -774,8 +774,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def _getFiles(self) -> tuple[str, ...]:
         """Return the list of files open in the model"""
         files = []
-        for index in range(self.rowCount()):
-            modelIndex = self.index(row=index, column=0)
+        for rowIndex in range(self.rowCount()):
+            modelIndex = self.index(row=rowIndex, column=0)
             obj = self.data(modelIndex, Hdf5TreeModel.H5PY_OBJECT_ROLE)
             files.append(obj.file.filename)
         return tuple(files)
