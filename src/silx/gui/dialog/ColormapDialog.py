@@ -978,7 +978,6 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         # saturation (== percentile / 2)
-        self._saturationLabel = qt.QLabel("Saturation")
         self._saturationWidget = SliderWithSpinBox(self)
         self._saturationWidget.setTickPosition(qt.QSlider.TicksBelow)
         self._saturationWidget.setRange(0, 100)
@@ -1081,8 +1080,7 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(0, 0, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed), 0, 2, 1, 1
         )
 
-        layoutScale.addWidget(self._saturationLabel, 1, 0, 1, 1)
-        layoutScale.addWidget(self._saturationWidget, 1, 1, 1, 2)
+        layoutScale.addWidget(self._saturationWidget, 1, 1, 1, 1)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1100,7 +1098,9 @@ class ColormapDialog(qt.QDialog):
         formLayout.addItem(
             qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
         )
-        formLayout.addRow("Scale:", layoutScale)
+        scaleLabel = qt.QLabel("Scale:")
+        scaleLabel.setAlignment(qt.Qt.AlignTop)
+        formLayout.addRow(scaleLabel, layoutScale)
         formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
@@ -1662,9 +1662,7 @@ class ColormapDialog(qt.QDialog):
                 self._autoButtons.setAutoRangeFromColormap(colormap)
             with utils.blockSignals(self._saturationWidget):
                 self._saturationWidget.setValue(
-                    from_saturation_to_percentile(
-                        colormap.getAutoscalePercentile()
-                    )
+                    from_percentile_to_saturation(colormap.getAutoscalePercentile())
                 )
 
             vmin, vmax = colormap.getVRange()
@@ -1769,7 +1767,6 @@ class ColormapDialog(qt.QDialog):
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
         )
         self._saturationWidget.setEnabled(enable_saturation)
-        self._saturationLabel.setEnabled(enable_saturation)
 
     def _saturationChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
