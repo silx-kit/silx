@@ -170,10 +170,11 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
 
         :raises: ValueError if the url cannot be selected (file or data path not existing)
         """
-        try:
-            self.addFile(path=url.file_path())
-        except OSError:
-            raise ValueError(f"File {url.file_path()} doesn't exists")
+        if url.file_path() not in self._getFiles():
+            try:
+                self.addFile(path=url.file_path())
+            except OSError:
+                raise ValueError(f"File {url.file_path()} doesn't exists")
 
         model = self._tree.findHdf5TreeModel()
         h5Object = model.findHdf5Item(url=url)
