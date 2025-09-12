@@ -59,7 +59,6 @@ RAW_ARRAY_MODE = 41
 RAW_RECORD_MODE = 42
 RAW_SCALAR_MODE = 43
 RAW_HEXA_MODE = 44
-STACK_MODE = 50
 HDF5_MODE = 60
 NXDATA_MODE = 70
 NXDATA_INVALID_MODE = 71
@@ -1287,78 +1286,6 @@ class _ArrayView(DataView):
         if info.interpretation in ["scalar", "scaler"]:
             return 1000
         return 500
-
-
-class _StackView(DataView):
-    """View displaying data using a stack of images"""
-
-    def __init__(self, parent):
-        super().__init__(
-            parent=parent,
-            modeId=STACK_MODE,
-            label="Image stack",
-            icon=icons.getQIcon("view-2d-stack"),
-        )
-        self.__resetZoomNextTime = True
-
-    def customAxisNames(self):
-        return ["depth"]
-
-    def setCustomAxisValue(self, name, value):
-        if name == "depth":
-            self.getWidget().setFrameNumber(value)
-        else:
-            raise Exception("Unsupported axis")
-
-    def createWidget(self, parent):
-        from silx.gui import plot
-
-        widget = plot.StackView(parent=parent)
-        widget.setColormap(self.defaultColormap())
-        widget.getPlotWidget().getColormapAction().setColormapDialog(
-            self.defaultColorDialog()
-        )
-        widget.setKeepDataAspectRatio(True)
-        widget.setLabels(self.axesNames(None, None))
-        # hide default option panel
-        widget.setOptionVisible(False)
-        maskToolWidget = widget.getPlotWidget().getMaskToolsDockWidget().widget()
-        maskToolWidget.setItemMaskUpdated(True)
-        return widget
-
-    def clear(self):
-        self.getWidget().clear()
-        self.__resetZoomNextTime = True
-
-    def normalizeData(self, data):
-        data = DataView.normalizeData(self, data)
-        data = _normalizeComplex(data)
-        return data
-
-    def setData(self, data):
-        data = self.normalizeData(data)
-        self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
-        # Override the colormap, while setStack overwrite it
-        self.getWidget().setColormap(self.defaultColormap())
-        self.__resetZoomNextTime = False
-
-    def setDataSelection(self, selection):
-        title = self.titleForSelection(selection)
-        self.getWidget().setTitleCallback(lambda idx: "%s z=%d" % (title, idx))
-
-    def axesNames(self, data, info):
-        return ["depth", "y", "x"]
-
-    def getDataPriority(self, data, info):
-        if info.size <= 0:
-            return DataView.UNSUPPORTED
-        if data is None or not info.isArray or not info.isNumeric:
-            return DataView.UNSUPPORTED
-        if info.dim < 3:
-            return DataView.UNSUPPORTED
-        if info.interpretation == "image":
-            return 500
-        return 90
 
 
 class _ScalarView(DataView):

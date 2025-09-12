@@ -163,7 +163,6 @@ class DataViewer(qt.QFrame):
             DataViews._ImageView,
             DataViews._Plot3dView,
             DataViews._RawView,
-            DataViews._StackView,
             DataViews._Plot2dRecordView,
         ]
         views = []
@@ -354,19 +353,18 @@ class DataViewer(qt.QFrame):
                 return view
         return None
 
-    def setDisplayMode(self, modeId):
+    def setDisplayMode(self, modeId: int):
         """Set the displayed view using display mode.
 
         Change the displayed view according to the requested mode.
 
-        :param int modeId: Display mode, one of
+        :param modeId: Display mode, one of
 
             - `DataViews.EMPTY_MODE`: display nothing
             - `DataViews.PLOT1D_MODE`: display the data as a curve
             - `DataViews.IMAGE_MODE`: display the data as an image
             - `DataViews.PLOT3D_MODE`: display the data as an isosurface
             - `DataViews.RAW_MODE`: display the data as a table
-            - `DataViews.STACK_MODE`: display the data as a stack of images
             - `DataViews.HDF5_MODE`: display the data as a table of HDF5 info
             - `DataViews.NXDATA_MODE`: display the data as NXdata
         """
@@ -575,7 +573,7 @@ class DataViewer(qt.QFrame):
         """Returns the current display mode"""
         return self.__currentView.modeId()
 
-    def replaceView(self, modeId, newView):
+    def replaceView(self, modeId: int, newView: DataViews.DataView) -> bool:
         """Replace one of the builtin data views with a custom view.
         Return True in case of success, False in case of failure.
 
@@ -594,7 +592,6 @@ class DataViewer(qt.QFrame):
             - `DataViews.COMPLEX_IMAGE_MODE`
             - `DataViews.PLOT3D_MODE`
             - `DataViews.RAW_MODE`
-            - `DataViews.STACK_MODE`
             - `DataViews.HDF5_MODE`
             - `DataViews.NXDATA_MODE`
             - `DataViews.NXDATA_INVALID_MODE`
