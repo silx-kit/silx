@@ -564,7 +564,7 @@ class Colormap(qt.QObject):
         return self.__gamma
 
     def getAutoscaleMode(self) -> Literal["minmax", "stddev3", "percentile"]:
-        """Return the autoscale mode of the colormap. Possible values are ('minmax', 'stddev3', 'percentile')"""
+        """Return the autoscale mode of the colormap."""
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: str):
