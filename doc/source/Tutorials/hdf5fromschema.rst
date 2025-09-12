@@ -314,7 +314,7 @@ in one 3D dataset:
 
 .. warning::
 
-  When defining a external binary dataset with a list of filenames, the source files will be opened and inspected.
+  When defining an external binary dataset with a list of filenames, the source files will be opened and inspected.
   In addition the HDF5 dataset will store absolute file names so moving the data will break the link.
   See :ref:`create-hdf5-content-from-a-schema-merging-urls` for details on how data is merged
   (preserve shape vs. stack vs. concatenate behavior).
@@ -343,13 +343,13 @@ Merging URL's
 
 One or several URL's can be merged in a single virtual dataset or external binary dataset.
 
-When providing a single URL, as a string (not a list woth one element), the merged dataset
+When providing a single URL, as a string (not a list with one element), the merged dataset
 has the same shape as the single source.
 
 When providing a list of URL's, even when the list has only one element, the sources are **stacked**
-when the source rank :code:`ndim<3` and **concatenate** when :code:`ndim>=3`.
+when the source rank :code:`ndim<3` and **concatenated** when :code:`ndim>=3`.
 
-Examples for `Nt` targets
+Examples for `Nt` targets:
 
 - target :code:`shape=()`               : VDS shape :code:`(Nt,)`
 - target :code:`shape=(N0,)`            : VDS shape :code:`(Nt,N0)`
