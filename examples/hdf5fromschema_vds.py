@@ -17,7 +17,7 @@ def generate_example(tmpdir):
     # Link target to stack the 3D datasets along the first dimension.
     # Source files are not opened.
     target = {
-        "dictdump_schema": "virtual_dataset_v1",
+        "dictdump_schema": "vds_v1",
         "dtype": numpy.dtype("uint16"),
         "shape": (ndatasets * nimages_per_dataset, 10, 10),
         "sources": [
