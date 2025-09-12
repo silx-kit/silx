@@ -570,7 +570,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self, startIndex: qt.QModelIndex, name: str
     ) -> qt.QModelIndex | None:
         matching_items = self.match(
-            start_index,
+            startIndex,
             qt.Qt.DisplayRole,
             name,
             hits=1,
