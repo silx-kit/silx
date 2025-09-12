@@ -20,6 +20,7 @@ Tutorials and cookbooks:
    Tutorials/fit.rst
    Tutorials/fitconfig.rst
    Tutorials/array_widget.rst
+   Tutorials/hdf5fromschema.rst
 
 .. toctree::
    :maxdepth: 2

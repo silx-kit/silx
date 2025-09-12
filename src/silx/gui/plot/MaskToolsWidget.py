@@ -392,25 +392,23 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         elif self.plot.getImage(self._maskName):
             self.plot.remove(self._maskName, kind="image")
 
+    def _sigActiveImageChangedDisconnect(self, slot):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                self.plot.sigActiveImageChanged.disconnect(slot)
+            except (RuntimeError, TypeError, SystemError):
+                pass
+
     def showEvent(self, event):
-        try:
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare
-            )
-        except (RuntimeError, TypeError, SystemError):
-            pass
+        self._sigActiveImageChangedDisconnect(self._activeImageChangedAfterCare)
 
         # Sync with current active image
         self._setMaskedImage(self.plot.getActiveImage())
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            try:
-                self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-            except (RuntimeError, TypeError, SystemError):
-                pass
+        self._sigActiveImageChangedDisconnect(self._activeImageChanged)
 
         image = self.getMaskedItem()
         if image is not None:
@@ -472,9 +470,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             if self.plot.getImage(self._maskName):
                 self.plot.remove(self._maskName, kind="image")
 
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare
-            )
+            self._sigActiveImageChangedDisconnect(self._activeImageChangedAfterCare)
         else:
             self._setOverlayColorForImage(activeImage)
             self._setMaskColors(
@@ -491,9 +487,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 if self.plot.getImage(self._maskName):
                     self.plot.remove(self._maskName, kind="image")
 
-                self.plot.sigActiveImageChanged.disconnect(
-                    self._activeImageChangedAfterCare
-                )
+                self._sigActiveImageChangedDisconnect(self._activeImageChangedAfterCare)
             else:
                 # Refresh in case origin, scale, z changed
                 self._mask.setDataItem(activeImage)
