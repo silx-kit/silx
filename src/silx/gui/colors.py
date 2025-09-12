@@ -722,19 +722,6 @@ class Colormap(qt.QObject):
         if vmin is not None and vmax is not None:
             return vmin, vmax
 
-        if vmin is None or vmax is None:  # Handle autoscale
-            if isinstance(data, _Colormappable):
-                min_, max_ = data._getColormapAutoscaleRange(self)
-                # Make sure min_, max_ are not None
-                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
-                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
-            else:
-                min_, max_ = normalizer.autoscale(
-                    data,
-                    mode=self.getAutoscaleMode(),
-                    percentile=self.getAutoscalePercentile(),
-                )
-
         # Handle autoscale
 
         if isinstance(data, _Colormappable):
@@ -743,7 +730,11 @@ class Colormap(qt.QObject):
             fmin = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
             fmax = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
         else:
-            fmin, fmax = normalizer.autoscale(data, mode=self.getAutoscaleMode())
+            fmin, fmax = normalizer.autoscale(
+                data,
+                mode=self.getAutoscaleMode(),
+                percentile=self.getAutoscalePercentile()
+            )
 
         if vmin is None:  # Set vmin respecting provided vmax
             vmin2 = fmin if vmax is None else min(fmin, vmax)
