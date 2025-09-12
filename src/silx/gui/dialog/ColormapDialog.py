@@ -960,7 +960,7 @@ class ColormapDialog(qt.QDialog):
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
         self._autoScaleCombo = autoScaleCombo
         self._autoScaleCombo.currentTextChanged.connect(
-            self._updateUsedPercentileVisibility
+            self._updateCentralPercentileVisibility
         )
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
@@ -1051,7 +1051,7 @@ class ColormapDialog(qt.QDialog):
         button.setDefault(True)
         button = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         button.clicked.connect(self.resetColormap)
-        button.clicked.connect(self._updateUsedPercentileVisibility)
+        button.clicked.connect(self._updateCentralPercentileVisibility)
 
         self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
@@ -1117,7 +1117,7 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
-        self._updateUsedPercentileVisibility()
+        self._updateCentralPercentileVisibility()
         self._applyColormap()
 
     def getHistogramWidget(self):
@@ -1765,7 +1765,7 @@ class ColormapDialog(qt.QDialog):
 
         self._updateWidgetRange()
 
-    def _updateUsedPercentileVisibility(self):
+    def _updateCentralPercentileVisibility(self):
         enableCentralPercentile = (
             self._autoScaleCombo.currentText()
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
