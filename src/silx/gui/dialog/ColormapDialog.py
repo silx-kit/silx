@@ -960,7 +960,7 @@ class ColormapDialog(qt.QDialog):
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
         self._autoScaleCombo = autoScaleCombo
         self._autoScaleCombo.currentTextChanged.connect(
-            self._updateSaturationVisibility
+            self._updateUsedPercentileVisibility
         )
         # Min row
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
@@ -977,16 +977,16 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
-        # saturation (== percentile / 2)
-        self._saturationWidget = SliderWithSpinBox(self)
-        self._saturationWidget.setTickPosition(qt.QSlider.TicksBelow)
-        self._saturationWidget.setRange(0, 100)
+        # used percentile
+        self._usedPercentileWidget = SliderWithSpinBox(self)
+        self._usedPercentileWidget.setTickPosition(qt.QSlider.TicksBelow)
+        self._usedPercentileWidget.setRange(0, 100)
 
-        self._saturationWidget.setValue(
-            int(from_percentile_to_saturation(Colormap._DEFAULT_PERCENTILES))
+        self._usedPercentileWidget.setValue(
+            int(from_percentile_range_to_used_percentile(Colormap._DEFAULT_PERCENTILES))
         )
-        self._saturationWidget.setTracking(False)
-        self._saturationWidget.valueChanged.connect(self._saturationChanged)
+        self._usedPercentileWidget.setTracking(False)
+        self._usedPercentileWidget.valueChanged.connect(self._usedPercentileChanged)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1051,7 +1051,7 @@ class ColormapDialog(qt.QDialog):
         button.setDefault(True)
         button = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         button.clicked.connect(self.resetColormap)
-        button.clicked.connect(self._updateSaturationVisibility)
+        button.clicked.connect(self._updateUsedPercentileVisibility)
 
         self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
@@ -1080,7 +1080,7 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(0, 0, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed), 0, 2, 1, 1
         )
 
-        layoutScale.addWidget(self._saturationWidget, 1, 1, 1, 1)
+        layoutScale.addWidget(self._usedPercentileWidget, 1, 1, 1, 1)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1117,7 +1117,7 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
-        self._updateSaturationVisibility()
+        self._updateUsedPercentileVisibility()
         self._applyColormap()
 
     def getHistogramWidget(self):
@@ -1660,9 +1660,11 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
-            with utils.blockSignals(self._saturationWidget):
-                self._saturationWidget.setValue(
-                    from_percentile_to_saturation(colormap.getAutoscalePercentile())
+            with utils.blockSignals(self._usedPercentileWidget):
+                self._usedPercentileWidget.setValue(
+                    from_percentile_range_to_used_percentile(
+                        colormap.getAutoscalePercentile()
+                    )
                 )
 
             vmin, vmax = colormap.getVRange()
@@ -1748,32 +1750,36 @@ class ColormapDialog(qt.QDialog):
 
         colormap = self.getColormap()
         if colormap is not None:
-            enable_saturation = (
+            enableUsedPercentile = (
                 self._autoScaleCombo.currentText()
                 == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
             )
             with self._colormapChange:
-                if enable_saturation:
+                if enableUsedPercentile:
                     colormap.setAutoscalePercentile(
-                        from_saturation_to_percentile(self._saturationWidget.value())
+                        from_used_percentile_to_percentile_range(
+                            self._usedPercentileWidget.value()
+                        )
                     )
                 colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
 
-    def _updateSaturationVisibility(self):
-        enable_saturation = (
+    def _updateUsedPercentileVisibility(self):
+        enableUsedPercentile = (
             self._autoScaleCombo.currentText()
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
         )
-        self._saturationWidget.setEnabled(enable_saturation)
+        self._usedPercentileWidget.setEnabled(enableUsedPercentile)
 
-    def _saturationChanged(self, value):
+    def _usedPercentileChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
-                colormap.setAutoscalePercentile(from_saturation_to_percentile(value))
+                colormap.setAutoscalePercentile(
+                    from_used_percentile_to_percentile_range(value)
+                )
         self._updateWidgetRange()
 
     def _minAutoscaleUpdated(self, autoEnabled):
@@ -1970,15 +1976,24 @@ class ColormapDialog(qt.QDialog):
             super().keyPressEvent(event)
 
 
-def from_percentile_to_saturation(percentile: tuple[float, float]) -> float:
+def from_percentile_range_to_used_percentile(
+    percentile_range: tuple[float, float],
+) -> float:
     """
-    Convert from percentiles to saturation. Expects the percentiles to be equality spaced.
+    Example: if we use percentile (1st, 99th) we use 98% of the percentiles
     """
-    return percentile[0] + (100 - percentile[1])
+    return 100 - (percentile_range[0] + (100 - percentile_range[1]))
 
 
-def from_saturation_to_percentile(saturation: float | int) -> tuple[float, float]:
-    """Convert from saturation to percentile"""
-    if not isinstance(saturation, (float, int)):
-        raise TypeError(f"saturation is expected to be float. Got {type(saturation)}")
-    return (saturation / 2.0, 100 - (saturation / 2.0))
+def from_used_percentile_to_percentile_range(
+    used_percentile: float | int,
+) -> tuple[float, float]:
+    """
+    Example: if we want to use 90% of the percentiles we will return percentiles (5th, 95th)
+    """
+    if not isinstance(used_percentile, (float, int)):
+        raise TypeError(
+            f"used_percentile is expected to be float. Got {type(used_percentile)}"
+        )
+    ignored_percentile = 100 - used_percentile
+    return (ignored_percentile / 2.0, 100 - (ignored_percentile / 2.0))
