@@ -2,7 +2,6 @@ import os
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
-from typing import cast
 
 import h5py
 
@@ -71,10 +70,8 @@ def link_from_serialized(
         target = "/path/to/ext_file.tiff"
         target = ["/path/to/ext_file1.tiff", "/path/to/ext_file1.tiff"]
 
-    The target can also be a dictionary of type `VdsSchemaV1` or `ExtSchemaV1`
-    for full control of how the links are created. This may be useful when the
-    link has several targets that need to be merged, for example concatenated
-    along the first dimension or a new dimension.
+    The target can also be a dictionary that matches a `Hdf5LinkModel`
+    for more control on how the links are created.
 
     :param source: URL of the link.
     :param target: URL or schema of the target.
@@ -96,29 +93,32 @@ def link_from_serialized(
 
     if isinstance(target, (str, DataUrl)):
         # Possibly a URL to a link target.
-        return _url_to_hdf5_link(source, target)
+        return _url_to_hdf5_link(source, _target_as_dataurl(source, target))
 
     if isinstance(target, Sequence) and all(
         isinstance(v, (str, DataUrl)) for v in target
     ):
         # Possibly URL's to concatenate as a link target.
-        return _urls_to_hdf5_link(source, target)
+        targets = [_target_as_dataurl(source, t) for t in target]
+        return _urls_to_hdf5_link(source, targets)
 
     return None
 
 
-def _url_to_hdf5_link(source: DataUrl, target: str | DataUrl) -> Hdf5LinkType | None:
-    if not isinstance(target, DataUrl):
-        if "::" in target or "?" in target:
-            # target refers to a data item in a file
-            target = DataUrl(target)
-        elif _get_file_type(target):
-            # target refers to a file
-            target = DataUrl(target)
-        else:
-            # target refers to a dataset
-            target = DataUrl(f"{os.path.abspath(source.file_path())}::{target}")
+def _target_as_dataurl(source: DataUrl, target: str | DataUrl) -> DataUrl:
+    if isinstance(target, DataUrl):
+        return target
+    if "::" in target or "?" in target:
+        # target refers to a data item in a file
+        return DataUrl(target)
+    if _get_file_type(target):
+        # target refers to a file
+        return DataUrl(target)
+    # target refers to a dataset
+    return DataUrl(f"{os.path.abspath(source.file_path())}::{target}")
 
+
+def _url_to_hdf5_link(source: DataUrl, target: DataUrl) -> Hdf5LinkType | None:
     file_type = _get_target_file_type(source, target)
     if file_type == "hdf5":
         if is_same_file(source, target) and not target.data_slice():
@@ -136,16 +136,8 @@ def _url_to_hdf5_link(source: DataUrl, target: str | DataUrl) -> Hdf5LinkType | 
 
 
 def _urls_to_hdf5_link(
-    source: DataUrl, targets: Sequence[str | DataUrl]
+    source: DataUrl, targets: Sequence[DataUrl]
 ) -> Hdf5LinkType | None:
-    targets = cast(
-        list[DataUrl],
-        [
-            target if isinstance(target, DataUrl) else DataUrl(target)
-            for target in targets
-        ],
-    )
-
     file_types = {_get_target_file_type(source, target) for target in targets}
     if len(file_types) != 1:
         return None
