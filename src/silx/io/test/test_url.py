@@ -21,18 +21,32 @@
 #
 # ############################################################################*/
 """Tests for url module"""
+from __future__ import annotations
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "29/01/2018"
 
 
+from types import EllipsisType
 import pytest
 from ..url import DataUrl
 
 
-def assert_url(url, expected):
+def assert_url(
+    url: DataUrl,
+    expected: tuple[
+        bool,
+        bool,
+        str | None,
+        str,
+        str | None,
+        tuple[slice | int | EllipsisType, ...] | None,
+    ],
+):
     assert url.is_valid() == expected[0]
+    if url.is_valid():
+        assert url.invalid_reason is None
     assert url.is_absolute() == expected[1]
     assert url.scheme() == expected[2]
     assert url.file_path() == expected[3]
@@ -42,170 +56,175 @@ def assert_url(url, expected):
 
 def test_fabio_absolute():
     url = DataUrl("fabio:///data/image.edf?slice=2")
-    expected = [True, True, "fabio", "/data/image.edf", None, (2,)]
+    expected = (True, True, "fabio", "/data/image.edf", None, (2,))
     assert_url(url, expected)
 
 
 def test_fabio_absolute_windows():
     url = DataUrl("fabio:///C:/data/image.edf?slice=2")
-    expected = [True, True, "fabio", "C:/data/image.edf", None, (2,)]
+    expected = (True, True, "fabio", "C:/data/image.edf", None, (2,))
     assert_url(url, expected)
 
 
 def test_silx_absolute():
     url = DataUrl("silx:///data/image.h5?path=/data/dataset&slice=1,5")
-    expected = [True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5)]
+    expected = (True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5))
     assert_url(url, expected)
 
 
 def test_commandline_shell_separator():
     url = DataUrl("silx:///data/image.h5::path=/data/dataset&slice=1,5")
-    expected = [True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5)]
+    expected = (True, True, "silx", "/data/image.h5", "/data/dataset", (1, 5))
     assert_url(url, expected)
 
 
 def test_silx_absolute2():
     url = DataUrl("silx:///data/image.edf?/scan_0/detector/data")
-    expected = [True, True, "silx", "/data/image.edf", "/scan_0/detector/data", None]
+    expected = (True, True, "silx", "/data/image.edf", "/scan_0/detector/data", None)
     assert_url(url, expected)
 
 
 def test_silx_absolute_windows():
     url = DataUrl("silx:///C:/data/image.h5?/scan_0/detector/data")
-    expected = [True, True, "silx", "C:/data/image.h5", "/scan_0/detector/data", None]
+    expected = (True, True, "silx", "C:/data/image.h5", "/scan_0/detector/data", None)
     assert_url(url, expected)
 
 
 def test_silx_relative():
     url = DataUrl("silx:./image.h5")
-    expected = [True, False, "silx", "./image.h5", None, None]
+    expected = (True, False, "silx", "./image.h5", None, None)
     assert_url(url, expected)
 
 
 def test_fabio_relative():
     url = DataUrl("fabio:./image.edf")
-    expected = [True, False, "fabio", "./image.edf", None, None]
+    expected = (True, False, "fabio", "./image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_silx_relative2():
     url = DataUrl("silx:image.h5")
-    expected = [True, False, "silx", "image.h5", None, None]
+    expected = (True, False, "silx", "image.h5", None, None)
     assert_url(url, expected)
 
 
 def test_fabio_relative2():
     url = DataUrl("fabio:image.edf")
-    expected = [True, False, "fabio", "image.edf", None, None]
+    expected = (True, False, "fabio", "image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_file_relative():
     url = DataUrl("image.edf")
-    expected = [True, False, None, "image.edf", None, None]
+    expected = (True, False, None, "image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_file_relative2():
     url = DataUrl("./foo/bar/image.edf")
-    expected = [True, False, None, "./foo/bar/image.edf", None, None]
+    expected = (True, False, None, "./foo/bar/image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_file_relative3():
     url = DataUrl("foo/bar/image.edf")
-    expected = [True, False, None, "foo/bar/image.edf", None, None]
+    expected = (True, False, None, "foo/bar/image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_file_absolute():
     url = DataUrl("/data/image.edf")
-    expected = [True, True, None, "/data/image.edf", None, None]
+    expected = (True, True, None, "/data/image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_file_absolute_windows():
     url = DataUrl("C:/data/image.edf")
-    expected = [True, True, None, "C:/data/image.edf", None, None]
+    expected = (True, True, None, "C:/data/image.edf", None, None)
     assert_url(url, expected)
 
 
 def test_absolute_with_path():
     url = DataUrl("/foo/foobar.h5?/foo/bar")
-    expected = [True, True, None, "/foo/foobar.h5", "/foo/bar", None]
+    expected = (True, True, None, "/foo/foobar.h5", "/foo/bar", None)
     assert_url(url, expected)
 
 
 def test_windows_file_data_slice():
     url = DataUrl("C:/foo/foobar.h5?path=/foo/bar&slice=5,1")
-    expected = [True, True, None, "C:/foo/foobar.h5", "/foo/bar", (5, 1)]
+    expected = (True, True, None, "C:/foo/foobar.h5", "/foo/bar", (5, 1))
     assert_url(url, expected)
 
 
 def test_scheme_file_data_slice():
     url = DataUrl("silx:/foo/foobar.h5?path=/foo/bar&slice=5,1")
-    expected = [True, True, "silx", "/foo/foobar.h5", "/foo/bar", (5, 1)]
+    expected = (True, True, "silx", "/foo/foobar.h5", "/foo/bar", (5, 1))
     assert_url(url, expected)
 
 
 def test_scheme_windows_file_data_slice():
     url = DataUrl("silx:C:/foo/foobar.h5?path=/foo/bar&slice=5,1")
-    expected = [True, True, "silx", "C:/foo/foobar.h5", "/foo/bar", (5, 1)]
+    expected = (True, True, "silx", "C:/foo/foobar.h5", "/foo/bar", (5, 1))
     assert_url(url, expected)
 
 
 def test_empty():
     url = DataUrl("")
-    expected = [False, False, None, "", None, None]
+    expected = (False, False, None, "", None, None)
     assert_url(url, expected)
+    assert url.invalid_reason == "Invalid file path"
 
 
 def test_unknown_scheme():
     url = DataUrl("foo:/foo/foobar.h5?path=/foo/bar&slice=5,1")
-    expected = [False, True, "foo", "/foo/foobar.h5", "/foo/bar", (5, 1)]
+    expected = (False, True, "foo", "/foo/foobar.h5", "/foo/bar", (5, 1))
     assert_url(url, expected)
+    assert (
+        url.invalid_reason == "Invalid scheme. It can only be fabio, silx, http, https."
+    )
 
 
 def test_slice():
     url = DataUrl("/a.h5?path=/b&slice=5,1")
-    expected = [True, True, None, "/a.h5", "/b", (5, 1)]
+    expected = (True, True, None, "/a.h5", "/b", (5, 1))
     assert_url(url, expected)
 
 
 def test_slice2():
     url = DataUrl("/a.h5?path=/b&slice=2:5")
-    expected = [True, True, None, "/a.h5", "/b", (slice(2, 5),)]
+    expected = (True, True, None, "/a.h5", "/b", (slice(2, 5),))
     assert_url(url, expected)
 
 
 def test_slice3():
     url = DataUrl("/a.h5?path=/b&slice=::2")
-    expected = [True, True, None, "/a.h5", "/b", (slice(None, None, 2),)]
+    expected = (True, True, None, "/a.h5", "/b", (slice(None, None, 2),))
     assert_url(url, expected)
 
 
 def test_slice_ellipsis():
     url = DataUrl("/a.h5?path=/b&slice=...")
-    expected = [True, True, None, "/a.h5", "/b", (Ellipsis,)]
+    expected = (True, True, None, "/a.h5", "/b", (Ellipsis,))
     assert_url(url, expected)
 
 
 def test_slice_slicing():
     url = DataUrl("/a.h5?path=/b&slice=:")
-    expected = [True, True, None, "/a.h5", "/b", (slice(None),)]
+    expected = (True, True, None, "/a.h5", "/b", (slice(None),))
     assert_url(url, expected)
 
 
 def test_slice_missing_element():
     url = DataUrl("/a.h5?path=/b&slice=5,,1")
-    expected = [False, True, None, "/a.h5", "/b", None]
+    expected = (False, True, None, "/a.h5", "/b", None)
     assert_url(url, expected)
 
 
 def test_slice_no_elements():
     url = DataUrl("/a.h5?path=/b&slice=")
-    expected = [False, True, None, "/a.h5", "/b", None]
+    expected = (False, True, None, "/a.h5", "/b", None)
     assert_url(url, expected)
+    assert url.invalid_reason == "Invalid slice"
 
 
 def test_create_relative_url():
@@ -243,6 +262,7 @@ def test_create_slice_url():
 def test_wrong_url():
     url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=(5, 1))
     assert not url.is_valid()
+    assert url.invalid_reason == "silx URLs cannot have a slice with no data path"
 
 
 @pytest.mark.parametrize(
@@ -278,6 +298,8 @@ def test_file_path_none():
     assert url.file_path() is None
     assert url.scheme() == "silx"
     assert url.data_path() == "/path/to/data"
+    assert not url.is_valid()
+    assert url.invalid_reason == "Invalid file path"
 
 
 def test_data_path_none():
@@ -288,6 +310,7 @@ def test_data_path_none():
     assert url.file_path() == "my_file.hdf5"
     assert url.scheme() == "silx"
     assert url.data_path() is None
+    assert url.is_valid()
 
 
 def test_scheme_none():
@@ -298,23 +321,32 @@ def test_scheme_none():
     assert url.file_path() == "my_file.hdf5"
     assert url.scheme() is None
     assert url.data_path() == "/path/to/data"
+    assert url.is_valid()
 
 
 def test_http_scheme():
     url = DataUrl("http://hsds-server.tld/home/file")
-    expected = [True, False, "http", "hsds-server.tld/home/file", None, None]
+    expected = (True, False, "http", "hsds-server.tld/home/file", None, None)
     assert_url(url, expected)
     assert url.path() == "http://hsds-server.tld/home/file"
 
 
 def test_http_scheme_with_port():
     url = DataUrl("http://hsds-server.tld:8080/home/file")
-    expected = [True, False, "http", "hsds-server.tld:8080/home/file", None, None]
+    expected = (True, False, "http", "hsds-server.tld:8080/home/file", None, None)
     assert_url(url, expected)
     assert url.path() == "http://hsds-server.tld:8080/home/file"
 
 
 def test_http_with_path():
     url = DataUrl("http://hsds-server.tld/home/file?/foo/bar")
-    expected = [True, False, "http", "hsds-server.tld/home/file", "/foo/bar", None]
+    expected = (True, False, "http", "hsds-server.tld/home/file", "/foo/bar", None)
     assert_url(url, expected)
+
+
+def test_invalid_slice():
+    url = DataUrl("silx://my_file.hdf5?path=/path/to/data&slice=not_a_slice")
+    assert url.file_path() == "my_file.hdf5"
+    assert url.data_path() == "/path/to/data"
+    assert url.data_slice() is None
+    assert url.invalid_reason == "Invalid slice"

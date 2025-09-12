@@ -31,7 +31,7 @@ __date__ = "29/01/2018"
 
 import logging
 from collections.abc import Iterable
-from typing import Union
+from typing import Any, Union
 import urllib.parse
 from pathlib import Path
 
@@ -68,6 +68,13 @@ def slice_sequence_to_string(data_slice: Iterable[SliceLike] | SliceLike) -> str
         return ",".join([_slice_to_string(s) for s in data_slice])
     else:
         return _slice_to_string(data_slice)
+
+
+def _quote_string(string: Any) -> str | Any:
+    if isinstance(string, str):
+        return "'%s'" % string
+    else:
+        return string
 
 
 class DataUrl:
@@ -128,6 +135,8 @@ class DataUrl:
         be false.
     """
 
+    _SCHEMES = ("fabio", "silx", "http", "https")
+
     def __init__(
         self,
         path: str | Path | None = None,
@@ -136,7 +145,7 @@ class DataUrl:
         data_slice: tuple[SliceLike, ...] | None = None,
         scheme: str | None = None,
     ):
-        self.__is_valid = False
+        self.__invalid_reason = "No path or file_path"
         if path is not None:
             assert file_path is None
             assert data_path is None
@@ -177,49 +186,49 @@ class DataUrl:
     def __repr__(self):
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.is_valid() or self.__path is None:
-
-            def quote_string(string):
-                if isinstance(string, str):
-                    return "'%s'" % string
-                else:
-                    return string
-
-            template = "DataUrl(valid=%s, scheme=%s, file_path=%s, data_path=%s, data_slice=%s)"
-            return template % (
-                self.__is_valid,
-                quote_string(self.__scheme),
-                quote_string(self.__file_path),
-                quote_string(self.__data_path),
-                self.__data_slice,
-            )
+            fields = f"scheme={_quote_string(self.__scheme)}), file_path={_quote_string(self.__file_path)}, data_path={_quote_string(self.__data_path)}"
         else:
-            template = "DataUrl(valid=%s, string=%s)"
-            return template % (self.__is_valid, self.__path)
+            fields = f"string={_quote_string(self.__path)}"
+
+        if self.is_valid():
+            return f"DataUrl(valid=True, {fields})"
+        else:
+            return f"DataUrl(valid=True, {fields}, invalid_reason={_quote_string(self.invalid_reason)})"
 
     def __check_validity(self):
         """Check the validity of the attributes."""
         if self.__file_path in [None, ""]:
-            self.__is_valid = False
+            self.__invalid_reason = "Invalid file path"
             return
 
-        if self.__scheme is None:
-            self.__is_valid = True
-        elif self.__scheme == "fabio":
-            self.__is_valid = self.__data_path is None
+        if self.__scheme is not None and self.__scheme not in self._SCHEMES:
+            self.__invalid_reason = (
+                f"Invalid scheme. It can only be {', '.join(self._SCHEMES)}."
+            )
+            return
+
+        if self.__scheme == "fabio":
+            self.__invalid_reason = (
+                "fabio URLs cannot have a data path"
+                if self.__data_path is not None
+                else None
+            )
         elif self.__scheme == "silx":
             # If there is a slice you must have a data path
-            # But you can have a data path without slice
-            slice_implies_data = (
-                self.__data_path is None and self.__data_slice is None
-            ) or self.__data_path is not None
-            self.__is_valid = slice_implies_data
-        elif self.__scheme in ("http", "https"):
+            if self.__data_slice is not None and self.__data_path is None:
+                self.__invalid_reason = (
+                    "silx URLs cannot have a slice with no data path"
+                )
+            else:
+                self.__invalid_reason = None
+        elif self.__scheme in ("http", "https"):  # is an HSDS url for h5pyd
             # is an HSDS url for h5pyd
-            self.__is_valid = True
+            self.__invalid_reason = None
         else:
-            self.__is_valid = False
+            # scheme = None is always valid
+            self.__invalid_reason = None
 
     @staticmethod
     def _parse_slice(slice_string: str) -> tuple[SliceLike, ...]:
@@ -274,7 +283,7 @@ class DataUrl:
         if "?" not in path:
             path = path.replace("::", "?", 1)
         url = urllib.parse.urlparse(path)
-        is_valid = True
+        invalid_reason = None
 
         if len(url.scheme) <= 2:
             # Windows driver
@@ -325,7 +334,7 @@ class DataUrl:
                 try:
                     data_slice = self._parse_slice(data_slice)
                 except ValueError:
-                    is_valid = False
+                    invalid_reason = "Invalid slice"
                     data_slice = None
 
             for key in merged_query.keys():
@@ -334,14 +343,19 @@ class DataUrl:
         self.__data_path = data_path
         self.__data_slice = data_slice
 
-        if is_valid:
+        if invalid_reason is None:
             self.__check_validity()
         else:
-            self.__is_valid = False
+            self.__invalid_reason = invalid_reason
 
     def is_valid(self) -> bool:
         """Returns true if the URL is valid. Else attributes can be None."""
-        return self.__is_valid
+        return self.__invalid_reason is None
+
+    @property
+    def invalid_reason(self) -> str | None:
+        """Returns the reason why the URL is invalid. Returns None if the URL is valid."""
+        return self.__invalid_reason
 
     def path(self) -> str:
         """Returns the string representing the URL."""
