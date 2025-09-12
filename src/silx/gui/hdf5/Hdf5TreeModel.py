@@ -589,7 +589,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if parent_node.child(i).basename == child_node_name:
                 return parent_node.child(i)
 
-    def findHdf5Object(self, url: DataUrl) -> Hdf5Item | None:
+    def findHdf5Item(self, url: DataUrl) -> Hdf5Item | None:
         """Return the Hdf5Object matching the url if exists in the model. Else None"""
 
         # 1.0 find file name
