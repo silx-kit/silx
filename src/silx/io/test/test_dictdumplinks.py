@@ -64,29 +64,36 @@ def test_external_link_from_str(tmp_path):
     [1, 4],
     ids=lambda val: f"{val}_image" if val == 1 else f"{val}_images",
 )
-def test_vds_from_str(tmp_path, len_urls, nimages_per_dataset, internal):
+@pytest.mark.parametrize(
+    "read_sources", [True, False], ids=lambda val: "read" if val else "no-read"
+)
+def test_vds_from_str(tmp_path, len_urls, nimages_per_dataset, internal, read_sources):
     file_content = list()
     ndatasets = max(len_urls, 1)
+    dtype = numpy.uint16
+    if nimages_per_dataset == 1:
+        shape = (10, 4)
+    else:
+        shape = (nimages_per_dataset, 10, 4)
+
     for i in range(ndatasets):
-        if internal:
-            data_file = str(tmp_path / "master.h5")
-        else:
-            data_file = str(tmp_path / f"data{i}.h5")
         offset = 40 * nimages_per_dataset * i
-        if nimages_per_dataset == 1:
-            shape = (10, 4)
-        else:
-            shape = (nimages_per_dataset, 10, 4)
         data = (
-            numpy.arange(40 * nimages_per_dataset, dtype=numpy.uint16).reshape(shape)
-            + offset
+            numpy.arange(40 * nimages_per_dataset, dtype=dtype).reshape(shape) + offset
         )
-        with h5py.File(data_file, mode="a") as fh:
-            if internal:
-                fh[f"/group/dataset{i}"] = data
-            else:
-                fh["/group/dataset"] = data
         file_content.append(data)
+
+    def save_sources():
+        for i, data in enumerate(file_content):
+            if internal:
+                data_file = str(tmp_path / "master.h5")
+            else:
+                data_file = str(tmp_path / f"data{i}.h5")
+            with h5py.File(data_file, mode="a") as fh:
+                if internal:
+                    fh[f"/group/dataset{i}"] = data
+                else:
+                    fh["/group/dataset"] = data
 
     scalar_target = len_urls == 0
     if nimages_per_dataset == 1:
@@ -129,6 +136,18 @@ def test_vds_from_str(tmp_path, len_urls, nimages_per_dataset, internal):
                     for i in range(ndatasets)
                 ]
 
+    if read_sources:
+        # shape and dtype will be read from the sources
+        save_sources()
+    else:
+        # shape and dtype are known and the same for all sources
+        target = {
+            "dictdump_schema": "vds_urls_v1",
+            "source_shape": shape,
+            "source_dtype": "uint16",
+            "sources": target,
+        }
+
     master_file = str(tmp_path / "master.h5")
     link1 = link_from_serialized(f"{master_file}::/group/link", target)
     assert isinstance(link1, h5py.VirtualLayout)
@@ -137,6 +156,9 @@ def test_vds_from_str(tmp_path, len_urls, nimages_per_dataset, internal):
 
     with h5py.File(master_file, mode="a") as fh:
         fh.create_virtual_dataset("/group/link", link1)
+
+    if not read_sources:
+        save_sources()
 
     with h5py.File(master_file, mode="r") as fh:
         vds_data = fh["/group/link"][()]

@@ -44,7 +44,7 @@ def generate_example(tmpdir):
                 },
                 "plot2d": {
                     ">y": {  # HDF5 virtual dataset
-                        "dictdump_schema": "virtual_dataset_v1",
+                        "dictdump_schema": "vds_v1",
                         "shape": (10, 11),
                         "dtype": float,
                         "sources": [

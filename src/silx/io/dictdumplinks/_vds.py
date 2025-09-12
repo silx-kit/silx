@@ -13,6 +13,8 @@ from ._base_types import DsetIndexItem
 from ._base_types import RawDsetIndex
 from ._base_types import RawDsetIndexItem
 from ._link_types import Hdf5LinkModel
+from ._parse_hdf5_utils import hdf5_url_to_vds_schema
+from ._parse_hdf5_utils import hdf5_urls_to_vds_schema
 from ._utils import normalize_vds_source_url
 
 
@@ -35,7 +37,7 @@ class VdsSourceV1(BaseModel, arbitrary_types_allowed=True):
 
 
 class VdsModelV1(Hdf5LinkModel):
-    dictdump_schema: Literal["virtual_dataset_v1"]
+    dictdump_schema: Literal["vds_v1"]
     shape: tuple[int, ...]
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
     sources: list[VdsSourceV1]
@@ -57,6 +59,37 @@ class VdsModelV1(Hdf5LinkModel):
             else:
                 vds_layout[vsource.target_index] = vs[vsource.source_index]
         return vds_layout
+
+
+class VdsUrlsModelV1(Hdf5LinkModel, arbitrary_types_allowed=True):
+    dictdump_schema: Literal["vds_urls_v1"]
+    source_shape: tuple[int, ...]
+    source_dtype: (
+        Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
+    )
+    sources: DataUrl | list[DataUrl]
+
+    @field_validator("sources", mode="before")
+    @classmethod
+    def as_dataurl(
+        cls, value: DataUrl | list[DataUrl] | str | Sequence[str]
+    ) -> RawDsetIndex:
+        if isinstance(value, str):
+            return DataUrl(value)
+        if isinstance(value, (list, tuple)) and isinstance(value[0], str):
+            return [DataUrl(s) for s in value]
+        return value
+
+    def tolink(self, source: DataUrl) -> h5py.VirtualLayout:
+        if isinstance(self.sources, DataUrl):
+            target_schema = hdf5_url_to_vds_schema(
+                source, self.sources, self.source_shape, self.source_dtype
+            )
+        else:
+            target_schema = hdf5_urls_to_vds_schema(
+                source, self.sources, self.source_shape, self.source_dtype
+            )
+        return VdsModelV1(**target_schema).tolink(source)
 
 
 def _as_raw_dset_index_item(idx_item: DsetIndexItem) -> RawDsetIndexItem:

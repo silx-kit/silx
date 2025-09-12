@@ -42,7 +42,7 @@ to represent HDF5 concepts:
        * :class:`silx.io.url.DataUrl`
        * :code:`list[silx.io.url.DataUrl]`
        * :code:`h5py.VirtualLayout`
-       * :code:`dict` with ``dictdump_schema="virtual_dataset_v1"``
+       * :code:`dict` with ``dictdump_schema="vds_v1"``
      - `Virtual dataset <https://docs.h5py.org/en/stable/vds.html>`_
    * - starting with ``>``
      - * :code:`str`
@@ -131,7 +131,7 @@ uses a schema describing groups, datasets, attributes, soft links, external link
                 },
                 "plot2d": {
                     ">y": {  # HDF5 virtual dataset
-                        "dictdump_schema": "virtual_dataset_v1",
+                        "dictdump_schema": "vds_v1",
                         "shape": (10, 11),
                         "dtype": float,
                         "sources": [
@@ -248,19 +248,35 @@ in one 3D dataset while selecting an image ROI of :code:`[20:30,40:50]`:
   :ref:`create-hdf5-content-from-a-schema-merging-urls` for details on how data is merged
   (preserve shape vs. stack vs. concatenate behavior).
 
+Here is an equivalent schema that does not open the source files but requires all sources
+to have the same shape and dtype:
+
+.. code-block:: python
+
+    ">images_roi": {
+      "dictdump_schema": "vds_urls_v1",
+      "source_shape": (5, 50, 60),
+      "source_dtype": "uint16",
+      "sources": [
+          "data0.h5?path=/group/dataset&slice=:,20:30,40:50",
+          "data1.h5?path=/group/dataset&slice=:,20:30,40:50",
+          "data2.h5?path=/group/dataset&slice=:,20:30,40:50"
+        ],
+    }
+
 Here is an equivalent schema that does not open the source files and allows defining
 the way the sources are merged together:
 
 .. code-block:: python
 
     ">images_roi": {
-      "dictdump_schema": "virtual_dataset_v1",
-      "dtype": dtype("uint16"),
+      "dictdump_schema": "vds_v1",
+      "dtype": "uint16",
       "shape": (15, 10, 10),
       "sources": [
         {
           "data_path": "/group/dataset",
-          "dtype": dtype("uint16"),
+          "dtype": "uint16",
           "file_path": "data0.h5",
           "shape": (5, 50, 60),
           "source_index": (
@@ -272,7 +288,7 @@ the way the sources are merged together:
         },
         {
           "data_path": "/group/dataset",
-          "dtype": dtype("uint16"),
+          "dtype": "uint16",
           "file_path": "data1.h5",
           "shape": (5, 50, 60),
           "source_index": (
@@ -284,7 +300,7 @@ the way the sources are merged together:
         },
         {
           "data_path": "/group/dataset",
-          "dtype": dtype("uint16"),
+          "dtype": "uint16",
           "file_path": "data2.h5",
           "shape": (5, 50, 60),
           "source_index": (
