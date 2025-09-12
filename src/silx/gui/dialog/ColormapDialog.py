@@ -83,7 +83,7 @@ from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.gui.widgets.FormGridLayout import FormGridLayout
-from silx.gui.widgets.SliderWithSinBox import SliderWithSpinBox
+from silx.gui.widgets._SliderWithSpinBox import SliderWithSpinBox
 from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
