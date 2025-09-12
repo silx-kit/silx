@@ -1980,6 +1980,8 @@ def from_percentile_to_saturation(percentile: tuple[float, float]) -> float:
     return percentile[0] + (100 - percentile[1])
 
 
-def from_saturation_to_percentile(saturation: float) -> tuple[float, float]:
+def from_saturation_to_percentile(saturation: float | int) -> tuple[float, float]:
     """Convert from saturation to percentile"""
+    if not isinstance(saturation, (float, int)):
+        raise TypeError(f"saturation is expected to be float. Got {type(saturation)}")
     return (saturation / 2.0, 100 - (saturation / 2.0))
