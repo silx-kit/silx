@@ -566,7 +566,9 @@ def normalize(
     :returns: Array of normalized values, vmin, vmax
     """
     normalizer = _get_normalizer(norm, gamma)
-    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
+    vmin, vmax = _get_range(
+        normalizer, data, autoscale, vmin, vmax, percentile=percentile
+    )
     norm_data = _colormap.cmap(
         data,
         _UINT8_LUT,
@@ -574,7 +576,6 @@ def normalize(
         vmax,
         normalizer,
         nan_color=_UINT8_LUT[0],
-        percentile=percentile,
     )
     norm_data.shape = data.shape
     return NormalizeResult(norm_data, vmin, vmax)
