@@ -771,7 +771,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
 
-    def _getFiles(self) -> tuple[str]:
+    def _getFiles(self) -> tuple[str, ...]:
         """Return the list of files open in the model"""
         files = []
         for index in range(self.rowCount()):
