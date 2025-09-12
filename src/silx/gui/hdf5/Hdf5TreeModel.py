@@ -566,9 +566,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
-    def _findNode(
-        self, startIndex: qt.QModelIndex, name: str
-    ) -> qt.QModelIndex | None:
+    def _findNode(self, startIndex: qt.QModelIndex, name: str) -> qt.QModelIndex | None:
         matching_items = self.match(
             startIndex,
             qt.Qt.DisplayRole,
@@ -793,10 +791,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         :param filename: file path.
         """
-        if filename in self._getFiles():
-            _logger.info("Skip file insertion. File '%s' already exists", filename)
-            self.sigH5pyObjectLoaded.emit(h5file, filename)
-            return
         try:
             h5file = silx_io.open(filename)
             if self.__ownFiles:
