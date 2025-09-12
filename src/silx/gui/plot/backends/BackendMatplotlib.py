@@ -1191,10 +1191,19 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph limits
 
+    def _setXLimits(self, xmin: float, xmax: float):
+        xmin = min(xmin, xmax)
+        xmax = max(xmin, xmax)
+        if self.isXAxisInverted():
+            left, right = xmax, xmin
+        else:
+            left, right = xmin, xmax
+        self.ax.set_xlim(left, right)
+
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         # Let matplotlib taking care of keep aspect ratio if any
         self._dirtyLimits = True
-        self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
+        self._setXLimits(xmin, xmax)
 
         if y2min is not None and y2max is not None:
             self.ax2.set_ybound(min(y2min, y2max), max(y2min, y2max))
@@ -1212,7 +1221,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setGraphXLimits(self, xmin, xmax):
         self._dirtyLimits = True
-        self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
+        self._setXLimits(xmin, xmax)
         self._updateMarkers()
 
     def getGraphYLimits(self, axis):
@@ -1246,7 +1255,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             newXRange = (xmax - xmin) * (ymax - ymin) / (curYMax - curYMin)
             xcenter = 0.5 * (xmin + xmax)
-            ax.set_xlim(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
+            self._setXLimits(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
 
         ax.set_ybound(ymin, ymax)
 
@@ -1289,9 +1298,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
         if flag and self._matplotlibVersion >= Version("2.1.0"):
-            xlim = self.ax.get_xlim()
+            xlim = self.ax.get_xbound()
             if xlim[0] <= 0 and xlim[1] <= 0:
-                self.ax.set_xlim(1, 10)
+                self._setXLimits(1, 10)
                 self.draw()
 
         xscale = "log" if flag else "linear"
