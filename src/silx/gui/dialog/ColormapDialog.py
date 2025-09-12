@@ -983,10 +983,16 @@ class ColormapDialog(qt.QDialog):
         self._centralPercentileWidget.setRange(0, 100)
 
         self._centralPercentileWidget.setValue(
-            int(from_lateral_percentile_range_to_central_percentile(Colormap._DEFAULT_PERCENTILES))
+            int(
+                from_lateral_percentile_range_to_central_percentile(
+                    Colormap._DEFAULT_PERCENTILES
+                )
+            )
         )
         self._centralPercentileWidget.setTracking(False)
-        self._centralPercentileWidget.valueChanged.connect(self._usedCentralPercentileChanged)
+        self._centralPercentileWidget.valueChanged.connect(
+            self._usedCentralPercentileChanged
+        )
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())

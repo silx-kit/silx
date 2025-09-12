@@ -733,7 +733,7 @@ class Colormap(qt.QObject):
             fmin, fmax = normalizer.autoscale(
                 data,
                 mode=self.getAutoscaleMode(),
-                percentile=self.getAutoscalePercentile()
+                percentile=self.getAutoscalePercentile(),
             )
 
         if vmin is None:  # Set vmin respecting provided vmax
