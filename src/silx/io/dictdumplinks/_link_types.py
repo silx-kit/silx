@@ -26,5 +26,5 @@ class Hdf5LinkModel(BaseModel):
     dictdump_schema: str
 
     @abstractmethod
-    def tolink(self, source: DataUrl) -> "Hdf5LinkModel":
+    def tolink(self, source: DataUrl) -> Hdf5LinkType:
         pass
