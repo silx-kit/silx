@@ -503,8 +503,8 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         self._createSubRois()
 
     @docstring(roi_items.HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roiPos = self.getPosition()
         is_inside = (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
         return is_inside[0] if is_single else is_inside

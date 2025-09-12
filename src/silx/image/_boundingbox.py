@@ -52,16 +52,19 @@ class _BoundingBox:
 
     def contains(
         self,
-        items: Union[
-            tuple[float, float], "_BoundingBox", ArrayLike, Sequence["_BoundingBox"]
-        ],
+        item: Union[ArrayLike, "_BoundingBox", Sequence["_BoundingBox"]],
     ) -> Union[bool, numpy.ndarray]:
         """Check if a point or bounding box is inside this bounding box.
 
-        :param items: array-like of shape (N, 2) or (2,), each row is (x, y)
-                      or `_BoundingBox` or list of `_BoundingBox`
-        :return: boolean or boolean array of shape (N,)
+        :param position: array-like of bounding boxes or positions.
+        Each bounding box is an instance of ``_BoundingBox``.
+        Each position is given as ``(x, y)``.
+        If multiple positions are provided, the shape should be ``(N, 2)``.
+        For a single position, the shape should be ``(2,)``.
+        :return: boolean or boolean array of shape ``(N,)``,
+        True if the item is inside this bounding box.
         """
+        items = item
         is_single = False
         is_box = False
         err_msg = "items must be points of shape (N,2) or (2,) or a single _BoundingBox or list of _BoundingBox"

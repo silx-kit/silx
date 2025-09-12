@@ -125,13 +125,15 @@ class BandGeometry(NamedTuple):
             self.begin.y + offset[1] - self.slope * (self.begin.x + offset[0]),
         )
 
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
         """Check which positions are inside the ROI.
 
-        :param positions: array-like of shape (N, 2) or (2,), each row is (x, y)
-        :return: bookean or boolean array of shape (N,), True if the point is inside the ROI
+        :param position: array-like of positions, where each position is given as ``(x, y)``.
+        If multiple positions are provided, the shape should be ``(N, 2)``.
+        For a single position, the shape should be ``(2,)``.
+        :return: boolean or boolean array of shape ``(N,)``, True if the point is inside the ROI.
         """
-        positions, is_single = self._normalize_positions_shape(positions)
+        positions, is_single = self._normalize_positions_shape(position)
         it = (Polygon(self.corners).is_inside(x, y) for x, y in positions)
         is_inside = numpy.fromiter(it, dtype=bool)
         return is_inside[0] if is_single else is_inside
@@ -394,8 +396,8 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         return tuple(geometry.center - offset * numpy.array(geometry.normal))
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        return self.getGeometry().contains(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        return self.getGeometry().contains(position)
 
     def __str__(self):
         begin, end, width = self.getGeometry()

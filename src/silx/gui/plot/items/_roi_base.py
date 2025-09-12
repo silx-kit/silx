@@ -99,14 +99,16 @@ class _RegionOfInterestBase(qt.QObject):
         """
         self.sigItemChanged.emit(event)
 
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
         """Check which positions are inside the ROI.
 
-        :param positions: array-like of shape (N, 2) or (2,), each row is (x, y)
-        :return: boolean or boolean array of shape (N,), True if the point is inside the ROI
+        :param position: array-like of positions, where each position is given as ``(x, y)``.
+        If multiple positions are provided, the shape should be ``(N, 2)``.
+        For a single position, the shape should be ``(2,)``.
+        :return: boolean or boolean array of shape ``(N,)``, True if the point is inside the ROI.
         """
         # Overwrite in subclass
-        positions, is_single = self._normalize_positions_shape(positions)
+        positions, is_single = self._normalize_positions_shape(position)
         if is_single:
             return False
         return numpy.zeros(len(positions), dtype=bool)

@@ -1257,8 +1257,8 @@ class ROI(_RegionOfInterestBase):
         return rawArea, netArea
 
     @docstring(_RegionOfInterestBase)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         is_inside = self._fromdata <= positions[:, 0] <= self._todata
         return is_inside[0] if is_single else is_inside
 

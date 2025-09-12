@@ -913,8 +913,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self._updateHandles()
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
 
         # geometry parameters (center is (x, y))
         center = numpy.array(self.getCenter())

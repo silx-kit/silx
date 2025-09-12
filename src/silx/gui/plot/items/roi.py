@@ -115,8 +115,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self._marker.setPosition(*pos)
 
     @docstring(RegionOfInterest)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roiPos = self.getPosition()
         is_inside = (positions[:, 0] == roiPos[0]) & (positions[:, 1] == roiPos[1])
         return is_inside[0] if is_single else is_inside
@@ -199,8 +199,8 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
             self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roiPos = self.getPosition()
         is_inside = (positions[:, 0] == roiPos[0]) | (positions[:, 1] == roiPos[1])
         return is_inside[0] if is_single else is_inside
@@ -312,8 +312,8 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             self.setEndPoints(start, end)
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
 
         points = self.__shape.getPoints()
         line_pt1, line_pt2 = points[0], points[1]
@@ -419,8 +419,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.setPosition(0, pos)
 
     @docstring(RegionOfInterest)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roi_x = self.getPosition()
         is_inside = positions[:, 1] == roi_x
         return is_inside[0] if is_single else is_inside
@@ -488,8 +488,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.setPosition(pos, 0)
 
     @docstring(RegionOfInterest)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         roi_y = self.getPosition()
         is_inside = positions[:, 0] == roi_y
         return is_inside[0] if is_single else is_inside
@@ -660,10 +660,10 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
         points = self.__shape.getPoints()
         bb = _BoundingBox.from_points(points)
-        return bb.contains(positions)
+        return bb.contains(position)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -858,8 +858,8 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
             self.setRadius(numpy.linalg.norm(center - current))
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         center = numpy.array(self.getCenter())
         distances = numpy.linalg.norm(positions - center, axis=1)
         is_inside = distances <= self.getRadius()
@@ -1142,8 +1142,8 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             self._updateGeometry()
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
 
         center = numpy.array(self.getCenter())
         major = self.getMajorRadius()
@@ -1360,8 +1360,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         return f"{self.__class__.__name__}({params})"
 
     @docstring(HandleBasedROI)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         points = self.getPoints()
         bb = _BoundingBox.from_points(points)
 
@@ -1587,8 +1587,8 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             self.setCenter(marker.getXPosition())
 
     @docstring(RegionOfInterest)
-    def contains(self, positions: ArrayLike) -> Union[bool, numpy.ndarray]:
-        positions, is_single = self._normalize_positions_shape(positions)
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
         y = positions[:, 0]
         is_inside = (y >= self.getMin()) & (y <= self.getMax())
         return is_inside[0] if is_single else is_inside
