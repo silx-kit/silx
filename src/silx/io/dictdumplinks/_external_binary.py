@@ -3,11 +3,20 @@ from typing import Literal
 
 import h5py
 from numpy.typing import DTypeLike
+from pydantic import BaseModel
+from pydantic import NonNegativeInt
+from pydantic import PositiveInt
 
 from ..url import DataUrl
 from ._link_types import Hdf5Link
 from ._link_types import Hdf5LinkModel
 from ._utils import normalize_ext_source_path
+
+
+class ExternalLinkSourceV1(BaseModel):
+    file_path: str
+    offset: NonNegativeInt
+    size: PositiveInt
 
 
 class ExternalLinkModelV1(Hdf5LinkModel):
@@ -18,13 +27,17 @@ class ExternalLinkModelV1(Hdf5LinkModel):
     dictdump_schema: Literal["external_binary_link_v1"]
     shape: tuple[int, ...]
     dtype: Any  # DTypeLike gives pydantic.errors.PydanticUserError on Python < 3.12.
-    sources: list[tuple[str, int, int]]  # file name, byte offset, byte size
+    sources: list[ExternalLinkSourceV1]
 
     def tolink(self, source: DataUrl) -> "ExternalBinaryLink":
         model = self.model_copy(deep=True)
         model.sources = [
-            (normalize_ext_source_path(file_path, source), offset, count)
-            for file_path, offset, count in model.sources
+            (
+                normalize_ext_source_path(ext_source.file_path, source),
+                ext_source.offset,
+                ext_source.size,
+            )
+            for ext_source in model.sources
         ]
         return ExternalBinaryLink(model)
 

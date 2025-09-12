@@ -328,11 +328,11 @@ Here is an equivalent schema that can be used for any binary data which is conti
         "dtype": numpy.uint16,
         "shape": (5, 50, 60),
         "sources": [
-            ("data0.tiff", 196, 6000),
-            ("data1.tiff", 196, 6000),
-            ("data2.tiff", 196, 6000),
-            ("data3.tiff", 196, 6000),
-            ("data4.tiff", 196, 6000),
+            {"file_path": "data0.tiff", "offset": 196, "size": 6000},
+            {"file_path": "data1.tiff", "offset": 196, "size": 6000},
+            {"file_path": "data2.tiff", "offset": 196, "size": 6000},
+            {"file_path": "data3.tiff", "offset": 196, "size": 6000},
+            {"file_path": "data4.tiff", "offset": 196, "size": 6000},
         ],
     }
 

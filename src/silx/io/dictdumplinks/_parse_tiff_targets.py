@@ -109,8 +109,8 @@ def _build_tiff_schema(datasets: list[dict]) -> dict:
         # Add all offsets for this TIFF
         target_desc["sources"].extend(
             [
-                (info["file_path"], offset, bytecount)
-                for offset, bytecount in info["frame_infos"]
+                {"file_path": info["file_path"], "offset": offset, "size": size}
+                for offset, size in info["frame_infos"]
             ]
         )
 
