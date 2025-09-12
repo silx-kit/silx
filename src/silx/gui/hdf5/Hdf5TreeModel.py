@@ -795,6 +795,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """
         if filename in self._getFiles():
             _logger.info("Skip file insertion. File '%s' already exists", filename)
+            self.sigH5pyObjectLoaded.emit(h5file, filename)
             return
         try:
             h5file = silx_io.open(filename)
