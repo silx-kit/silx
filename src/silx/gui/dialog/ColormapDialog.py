@@ -978,15 +978,15 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         # used percentile
-        self._usedPercentileWidget = SliderWithSpinBox(self)
-        self._usedPercentileWidget.setTickPosition(qt.QSlider.TicksBelow)
-        self._usedPercentileWidget.setRange(0, 100)
+        self._centralPercentileWidget = SliderWithSpinBox(self)
+        self._centralPercentileWidget.setTickPosition(qt.QSlider.TicksBelow)
+        self._centralPercentileWidget.setRange(0, 100)
 
-        self._usedPercentileWidget.setValue(
+        self._centralPercentileWidget.setValue(
             int(from_lateral_percentile_range_to_central_percentile(Colormap._DEFAULT_PERCENTILES))
         )
-        self._usedPercentileWidget.setTracking(False)
-        self._usedPercentileWidget.valueChanged.connect(self._usedPercentileChanged)
+        self._centralPercentileWidget.setTracking(False)
+        self._centralPercentileWidget.valueChanged.connect(self._usedCentralPercentileChanged)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1080,7 +1080,7 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(0, 0, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed), 0, 2, 1, 1
         )
 
-        layoutScale.addWidget(self._usedPercentileWidget, 1, 1, 1, 1)
+        layoutScale.addWidget(self._centralPercentileWidget, 1, 1, 1, 1)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1660,8 +1660,8 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
-            with utils.blockSignals(self._usedPercentileWidget):
-                self._usedPercentileWidget.setValue(
+            with utils.blockSignals(self._centralPercentileWidget):
+                self._centralPercentileWidget.setValue(
                     from_lateral_percentile_range_to_central_percentile(
                         colormap.getAutoscalePercentile()
                     )
@@ -1750,15 +1750,15 @@ class ColormapDialog(qt.QDialog):
 
         colormap = self.getColormap()
         if colormap is not None:
-            enableUsedPercentile = (
+            enableCentralPercentile = (
                 self._autoScaleCombo.currentText()
                 == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
             )
             with self._colormapChange:
-                if enableUsedPercentile:
+                if enableCentralPercentile:
                     colormap.setAutoscalePercentile(
                         from_central_percentile_to_lateral_percentile_range(
-                            self._usedPercentileWidget.value()
+                            self._centralPercentileWidget.value()
                         )
                     )
                 colormap.setAutoscaleMode(mode)
@@ -1766,13 +1766,13 @@ class ColormapDialog(qt.QDialog):
         self._updateWidgetRange()
 
     def _updateUsedPercentileVisibility(self):
-        enableUsedPercentile = (
+        enableCentralPercentile = (
             self._autoScaleCombo.currentText()
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
         )
-        self._usedPercentileWidget.setEnabled(enableUsedPercentile)
+        self._centralPercentileWidget.setEnabled(enableCentralPercentile)
 
-    def _usedPercentileChanged(self, value):
+    def _usedCentralPercentileChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
         colormap = self.getColormap()
         if colormap is not None:
