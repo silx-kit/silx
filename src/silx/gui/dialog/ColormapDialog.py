@@ -983,7 +983,7 @@ class ColormapDialog(qt.QDialog):
         self._usedPercentileWidget.setRange(0, 100)
 
         self._usedPercentileWidget.setValue(
-            int(from_percentile_range_to_used_percentile(Colormap._DEFAULT_PERCENTILES))
+            int(from_lateral_percentile_range_to_central_percentile(Colormap._DEFAULT_PERCENTILES))
         )
         self._usedPercentileWidget.setTracking(False)
         self._usedPercentileWidget.valueChanged.connect(self._usedPercentileChanged)
@@ -1662,7 +1662,7 @@ class ColormapDialog(qt.QDialog):
                 self._autoButtons.setAutoRangeFromColormap(colormap)
             with utils.blockSignals(self._usedPercentileWidget):
                 self._usedPercentileWidget.setValue(
-                    from_percentile_range_to_used_percentile(
+                    from_lateral_percentile_range_to_central_percentile(
                         colormap.getAutoscalePercentile()
                     )
                 )
@@ -1757,7 +1757,7 @@ class ColormapDialog(qt.QDialog):
             with self._colormapChange:
                 if enableUsedPercentile:
                     colormap.setAutoscalePercentile(
-                        from_used_percentile_to_percentile_range(
+                        from_central_percentile_to_lateral_percentile_range(
                             self._usedPercentileWidget.value()
                         )
                     )
@@ -1778,7 +1778,7 @@ class ColormapDialog(qt.QDialog):
         if colormap is not None:
             with self._colormapChange:
                 colormap.setAutoscalePercentile(
-                    from_used_percentile_to_percentile_range(value)
+                    from_central_percentile_to_lateral_percentile_range(value)
                 )
         self._updateWidgetRange()
 
@@ -1976,24 +1976,24 @@ class ColormapDialog(qt.QDialog):
             super().keyPressEvent(event)
 
 
-def from_percentile_range_to_used_percentile(
-    percentile_range: tuple[float, float],
+def from_lateral_percentile_range_to_central_percentile(
+    lateral_percentile_range: tuple[float, float],
 ) -> float:
     """
-    Example: if we use percentile (1st, 99th) we use 98% of the percentiles
+    Example: if we use lateral percentile (1st, 99th) we use 98% of the percentiles. This is the central percentile
     """
-    return 100 - (percentile_range[0] + (100 - percentile_range[1]))
+    return 100 - (lateral_percentile_range[0] + (100 - lateral_percentile_range[1]))
 
 
-def from_used_percentile_to_percentile_range(
-    used_percentile: float | int,
+def from_central_percentile_to_lateral_percentile_range(
+    central_percentile: float | int,
 ) -> tuple[float, float]:
     """
-    Example: if we want to use 90% of the percentiles we will return percentiles (5th, 95th)
+    Example: if we want to use 90% of the percentile we will return percentiles (5th, 95th)
     """
-    if not isinstance(used_percentile, (float, int)):
+    if not isinstance(central_percentile, (float, int)):
         raise TypeError(
-            f"used_percentile is expected to be float. Got {type(used_percentile)}"
+            f"central_percentile is expected to be float. Got {type(central_percentile)}"
         )
-    ignored_percentile = 100 - used_percentile
+    ignored_percentile = 100 - central_percentile
     return (ignored_percentile / 2.0, 100 - (ignored_percentile / 2.0))
