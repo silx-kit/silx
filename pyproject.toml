@@ -115,9 +115,12 @@ skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
 
 
 [tool.black]
-required-version = 25
+required-version = "25"
 target-version = ["py310", "py311", "py312", "py313"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [ "src/silx" ]
+
+[tool.uv]
+managed = false
