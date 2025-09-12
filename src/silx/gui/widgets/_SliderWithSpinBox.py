@@ -18,7 +18,7 @@ class SliderWithSpinBox(qt.QWidget):
         self._slider = qt.QSlider(qt.Qt.Horizontal, self)
         self.layout().addWidget(self._slider)
 
-        self._spinBox = qt.QDoubleSpinBox(self)
+        self._spinBox = qt.QSpinBox(self)
         self.layout().addWidget(self._spinBox)
 
         self.setRange(0, 100)
