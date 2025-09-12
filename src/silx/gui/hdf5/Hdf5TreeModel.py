@@ -573,13 +573,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             start_index,
             qt.Qt.DisplayRole,
             name,
+            hits=1,
         )
         if len(matching_items) == 0:
             return None
-        if len(matching_items) > 0:
-            _logger.warning(
-                f"More than one item found matching {name}. Pick the first one"
-            )
 
         return matching_items[0]
 
