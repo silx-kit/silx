@@ -26,7 +26,7 @@ class LegendItemIcon(LegendIconWidget):
     def setItem(self, item):
         """Set the item with which to synchronize this widget.
 
-        :param curve: Union[~silx.gui.plot.items,...]
+        :param item: Union[~silx.gui.plot.items,...]
         """
         assert (
             item is None
@@ -99,6 +99,8 @@ class LegendItemWidget(qt.QWidget):
         self._item = item
         self._itemRef = weakref.ref(item)
         self.setLayout(qt.QHBoxLayout())
+        self.setFixedWidth(200)
+        self.layout().setSpacing(20)
         self.layout().setContentsMargins(10, 0, 10, 0)
         item.sigItemChanged.connect(self._itemChanged)
 
@@ -161,18 +163,24 @@ class LegendItemWidget(qt.QWidget):
                 self._item.setVisible(not self._item.isVisible())
 
 
-class LegendItemList(qt.QMainWindow):
-    def __init__(self, parent=None):
+class LegendItemList(qt.QWidget):
+    def __init__(self, parent: PlotWidget):
         super().__init__(parent, qt.Qt.Window)
-        self.setWindowTitle("Plot Info")
-        self.resize(300, 150)
-        self.central_widget = qt.QWidget()
-        self.setCentralWidget(self.central_widget)
-        self._layout = qt.QVBoxLayout(self.central_widget)
+        self.setFixedWidth(200)
+        self._layout = qt.QVBoxLayout(self)
         self._plot: PlotWidget | None = None
+        self._binding(parent)
+        if hasattr(parent, "sigVisibilityChanged"):
+            parent.sigVisibilityChanged.connect(self._setVisibility)
 
-    def binding(self, plotWidget: PlotWidget):
-        """Binds this widget to the signals of a PlotWidget."""
+    def _setVisibility(self, status: bool) -> None:
+        if status:
+            self.show()
+        else:
+            self.hide()
+
+    def _binding(self, plotWidget: PlotWidget):
+        """Binds this widget to the signals of a parent PlotWidget."""
         self._plot = plotWidget
         self._plot.sigActiveCurveChanged.connect(self._onActiveItemChanged)
         self._plot.sigActiveImageChanged.connect(self._onActiveItemChanged)
@@ -199,6 +207,17 @@ class LegendItemList(qt.QMainWindow):
         for item in _activeItem:
             _legendIcon = LegendItemWidget(None, item)
             self._layout.addWidget(_legendIcon)
+
+        self._updateHeigth()
+
+    def _updateHeigth(self):
+        _totalHeight = (self._layout.count() - 1) * self._layout.spacing()
+        _totalHeight += self._layout.contentsMargins().top()
+        _totalHeight += self._layout.contentsMargins().bottom()
+        if self._layout.count() > 0:
+            item = self._layout.itemAt(0)
+            _totalHeight += item.widget().sizeHint().height() * self._layout.count()
+        self.setFixedHeight(_totalHeight)
 
     def _onActiveItemChanged(self, previous, current):
         self._updateAllItemsList()
