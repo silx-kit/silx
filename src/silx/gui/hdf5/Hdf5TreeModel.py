@@ -776,7 +776,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         files = []
         for rowIndex in range(self.rowCount()):
             modelIndex = self.index(row=rowIndex, column=0)
-            obj = self.data(modelIndex, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            obj = self.data(modelIndex, self.H5PY_OBJECT_ROLE)
             files.append(obj.file.filename)
         return tuple(files)
 
