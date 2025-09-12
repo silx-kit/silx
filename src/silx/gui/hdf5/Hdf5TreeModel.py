@@ -593,8 +593,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # 1.0 find file name
         fileName = url.file_path()
 
-        startIndex = self._find_node(
-            start_index=self.index(0, 0), name=os.path.basename(fileName)
+        startIndex = self._findNode(
+            startIndex=self.index(0, 0), name=os.path.basename(fileName)
         )
         if startIndex is None:
             return None

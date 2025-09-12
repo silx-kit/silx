@@ -170,7 +170,7 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
 
         :raises: ValueError if the url cannot be selected (file or data path not existing)
         """
-        if url.file_path() not in self._getFiles():
+        if url.file_path() not in self._model._getFiles():
             try:
                 self.addFile(path=url.file_path())
             except OSError:
