@@ -587,7 +587,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self, parent_node: Hdf5Item, child_node_name: str
     ) -> Hdf5Item | None:
         # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
-        "cannot use the default 'search' function as the item is not inheriting from the default QTreeItem..."
+        # cannot use the default 'search' function as the item is not inheriting from the default QTreeItem...
         for i in range(parent_node.childCount()):
             if parent_node.child(i).basename == child_node_name:
                 return parent_node.child(i)
