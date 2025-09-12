@@ -236,7 +236,7 @@ class _AutoscaleModeComboBox(qt.QComboBox):
         Colormap.STDDEV3: ("Mean±3std", "Use the data mean ± 3 × standard deviation"),
         Colormap.PERCENTILE: (
             "Percentile",
-            "Use n'st to m'th percentile of data",
+            "Use n'st to (100-n)'th percentile of data",
         ),
     }
 
