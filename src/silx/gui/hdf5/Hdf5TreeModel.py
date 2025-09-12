@@ -566,8 +566,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
-    def _find_node(
-        self, start_index: qt.QModelIndex, name: str
+    def _findNode(
+        self, startIndex: qt.QModelIndex, name: str
     ) -> qt.QModelIndex | None:
         matching_items = self.match(
             start_index,
