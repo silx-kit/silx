@@ -568,7 +568,7 @@ class Colormap(qt.QObject):
         return self._autoscaleMode
 
     def setAutoscaleMode(self, mode: Literal["minmax", "stddev3", "percentile"]):
-        """Set the autoscale mode: either 'minmax', 'stddev3' or 'percentile'.
+        """Set the autoscale mode.
 
         .. warning:: 'percentile_1_99' is deprecated
 
