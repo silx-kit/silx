@@ -490,7 +490,18 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
      -
      - This script is an example of how to use the :mod:`silx.io.convert` module.
        See the following tutorial for more information: :doc:`../Tutorials/convert`
-
+   * - :download:`hdf5fromschema.py <../../../examples/hdf5fromschema.py>`
+     - .. image:: img/hdf5fromschema.png
+         :width: 150px
+     - Create HDF5 content from a schema.
+   * - :download:`hdf5fromschema_vds.py <../../../examples/hdf5fromschema_vds.py>`
+     - .. image:: img/hdf5fromschema_vds.png
+         :width: 150px
+     - Create HDF5 content from a schema: simple HDF5 image stack.
+   * - :download:`hdf5fromschema_tiff.py <../../../examples/hdf5fromschema_tiff.py>`
+     - .. image:: img/hdf5fromschema_tiff.png
+         :width: 150px
+     - Create HDF5 content from a schema: simple TIFF image stack.
 
 :mod:`silx.image` sample code
 +++++++++++++++++++++++++++++
