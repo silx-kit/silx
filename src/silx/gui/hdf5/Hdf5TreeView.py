@@ -36,7 +36,6 @@ from .Hdf5HeaderView import Hdf5HeaderView
 from .NexusSortFilterProxyModel import NexusSortFilterProxyModel
 from .Hdf5Item import Hdf5Item
 from . import _utils
-from silx.io.url import DataUrl
 
 _logger = logging.getLogger(__name__)
 
