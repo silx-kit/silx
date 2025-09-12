@@ -41,11 +41,11 @@ import numpy
 
 from ....utils.proxy import docstring
 from ....utils.enum import Enum as _Enum
-from ....utils.cache import LRUCache
 from ....math.combo import min_max
 from ... import qt
 from ... import colors
 from ...colors import Colormap, _Colormappable
+from ._cache import LRUCache
 from ._pick import PickingResult
 
 from silx import config

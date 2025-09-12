@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from ..cache import LRUCache
+from ..items._cache import LRUCache
 
 
 def test_LRU_CACHE():
