@@ -2,7 +2,6 @@ import h5py
 import pytest
 import numpy
 from silx.io.url import DataUrl
-from silx.gui import qt
 from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.gui.dialog.DatasetDialog import DatasetDialog
 

@@ -27,7 +27,6 @@ __license__ = "MIT"
 __date__ = "30/04/2018"
 
 
-import os
 import logging
 from .. import qt
 from ...utils import weakref as silxweakref
