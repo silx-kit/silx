@@ -83,7 +83,7 @@ class _BoundingBox:
                 elif ndim_org != 2 or items.shape[1] != 2:
                     raise ValueError(err_msg)
         else:
-            raise ValueError(err_msg)
+            raise TypeError(err_msg)
 
         if is_box:
             bottom_lefts = numpy.array([item.bottom_left for item in items])
