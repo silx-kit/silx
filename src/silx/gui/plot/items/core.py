@@ -45,6 +45,7 @@ from ....math.combo import min_max
 from ... import qt
 from ... import colors
 from ...colors import Colormap, _Colormappable
+from ._cache import LRUCache
 from ._pick import PickingResult
 
 from silx import config
@@ -604,11 +605,15 @@ class DraggableMixIn(ItemMixInBase):
 class ColormapMixIn(_Colormappable, ItemMixInBase):
     """Mix-in class for items with colormap"""
 
+    COLORMAP_CACHE_SIZE = 128
+
     def __init__(self):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
-        self.__cacheColormapRange = {}  # Store {normalization: range}
+        self.__cacheColormapRange = LRUCache(
+            maxsize=self.COLORMAP_CACHE_SIZE
+        )  # Store {(normalization, autoscale mode): range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -653,7 +658,7 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         self.__data = (
             None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         )
-        self.__cacheColormapRange = {}  # Reset cache
+        self.__cacheColormapRange.clear()
 
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
