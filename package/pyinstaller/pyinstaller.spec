@@ -1,6 +1,7 @@
 # -*- mode: python -*-
 import importlib.metadata
 import os.path
+import platform
 import shutil
 import subprocess
 import sys
@@ -61,70 +62,29 @@ silx_exe = EXE(
     icon=icon,
 )
 
-silx_view_a = Analysis(
-    ["bootstrap-silx-view.py"],
-    pathex=[],
-    binaries=[],
-    datas=datas,
-    hiddenimports=hiddenimports,
-    hookspath=[],
-    runtime_hooks=[],
-    excludes=[],
-    cipher=block_cipher,
-    noarchive=False,
-)
-
-silx_view_pyz = PYZ(silx_view_a.pure, silx_view_a.zipped_data, cipher=block_cipher)
-
-silx_view_exe = EXE(
-    silx_view_pyz,
-    silx_view_a.scripts,
-    silx_view_a.dependencies,
-    [],
-    exclude_binaries=True,
-    name="silx-view",
-    debug=False,
-    bootloader_ignore_signals=False,
+silx_coll = COLLECT(
+    silx_exe,
+    silx_a.binaries,
+    silx_a.zipfiles,
+    silx_a.datas,
     strip=False,
     upx=False,
-    console=False,
-    icon=icon,
+    name="silx",
 )
-if sys.platform == "win32":
-    silx_coll = COLLECT(
-        silx_view_exe,
-        silx_view_a.binaries,
-        silx_view_a.zipfiles,
-        silx_view_a.datas,
-        silx_exe,
-        silx_a.binaries,
-        silx_a.zipfiles,
-        silx_a.datas,
-        strip=False,
-        upx=False,
-        name="silx",
-    )
-elif sys.platform == "darwin":
-    # macOS application-bundle only for silx-view.
-    silx_view_coll = COLLECT(
-        silx_view_exe,
-        silx_view_a.binaries,
-        silx_view_a.zipfiles,
-        silx_view_a.datas,
-        strip=False,
-        upx=False,
-        name="silx-view",
-    )
 
+if sys.platform == "darwin":
     app = BUNDLE(
-        silx_view_coll,
-        name="silx-view.app",
+        silx_coll,
+        name="silx.app",
         icon=icon,
-        bundle_identifier="org.silx.silxview",
+        bundle_identifier="org.silx.silx",
         info_plist={
             "CFBundleIdentifier": "org.silx",
             "CFBundleShortVersionString": strictversion,
-            "CFBundleVersion": "silx-view " + strictversion,
+            "CFBundleVersion": "silx " + strictversion,
+            "CFBundleExecutable": "silx-view",
+            "LSBackgroundOnly": False,
+            "LSUIElement": False,
             "LSTypeIsPackage": True,
             "LSMinimumSystemVersion": "10.13.0",
             "NSHumanReadableCopyright": "MIT",
@@ -168,6 +128,25 @@ def run_script(script_name: str, description: str):
         sys.exit(1)
 
 
+def copy_silx_view_script():
+    """Copy the silx-view.sh script to the correct location in the macOS app bundle."""
+    contents = os.path.join("dist", "silx.app", "Contents")
+    source_script = os.path.join(contents, "Resources", "Scripts", "silx-view.sh")
+    dest_script = os.path.join(contents, "MacOS", "silx-view")
+
+    shutil.copy(source_script, dest_script)
+    os.chmod(dest_script, 0o755)
+
+
+def rename_dmg():
+    """Rename the created .dmg image to include version and machine type."""
+    source_dmg = os.path.join("artifacts", "silx.dmg")
+    dest_dmg = os.path.join(
+        "artifacts", f"silx-{strictversion}-macos-{platform.machine()}.dmg"
+    )
+    os.rename(source_dmg, dest_dmg)
+
+
 def innosetup():
     """Create an installer using Inno Setup."""
     from silx import strictversion
@@ -198,17 +177,12 @@ def make_zip():
 
 create_license_file("LICENSE")
 
-
 if sys.platform == "darwin":
+    copy_silx_view_script()
     run_script("codesign.sh", "Codesigning the application")
     run_script("create-dmg.sh", "Packing the application in a .dmg image")
     run_script("notarize.sh", "Submitting the image for notarization")
-
-    # Rename the created .dmg image.
-    os.rename(
-        os.path.join("artifacts", "silx-view.dmg"),
-        os.path.join("artifacts", f"silx-view-{strictversion}.dmg"),
-    )
+    rename_dmg()
 elif sys.platform == "win32":
     innosetup()
     make_zip()
