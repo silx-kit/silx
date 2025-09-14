@@ -130,9 +130,8 @@ def run_script(script_name: str, description: str):
 
 def copy_silx_view_script():
     """Copy the silx-view.sh script to the correct location in the macOS app bundle."""
-    contents = os.path.join("dist", "silx.app", "Contents")
-    source_script = os.path.join(contents, "Resources", "Scripts", "silx-view.sh")
-    dest_script = os.path.join(contents, "MacOS", "silx-view")
+    source_script = os.path.join(SPECPATH, "silx-view.sh")
+    dest_script = os.path.join("dist", "silx.app", "Contents", "MacOS", "silx-view")
 
     shutil.copy(source_script, dest_script)
     os.chmod(dest_script, 0o755)
