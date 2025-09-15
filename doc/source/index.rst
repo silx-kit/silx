@@ -11,15 +11,20 @@ silx |version|
    changelog.rst
 
 silx provides applications and Python modules to support the
-development of data assessment, reduction and analysis at synchrotron radiation
+development of data assessment, reduction, and analysis at synchrotron radiation
 facilities.
 It provides reading/writing tools for different file formats, data
-reduction routines and a set of Qt widgets to browse and visualise data.
+reduction routines, and a set of Qt widgets to browse and visualise data.
 
 :ref:`Installation`
 -------------------
 
-You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <https://docs.conda.io>`_ or on Linux with the following commands:
+You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda
+<https://anaconda.org>`_, or `apt
+<https://en.wikipedia.org/wiki/APT_(software)>`_ on Debian-flavoured Linux
+distributions, using the commands listed for each case. 
+Self contained macOS applications for Intel and Apple Silicon and a Windows
+installer are also available for download (see the links below).
 
 .. tab-set::
 
@@ -44,11 +49,31 @@ You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <http
 
       .. code-block:: bash
 
-         sudo apt-get install silx
+         sudo apt install silx
 
       See :ref:`Installation on Debian & Ubuntu`
 
-|silx_installer_btn| or decompress the |silx_archive|.
+   .. tab-item:: Windows
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
+
+         * - Installer (.exe)
+           - Archive (.zip)
+         * - |silx_windows_installer|
+           - |silx_windows_archive|
+
+   .. tab-item:: macOS
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 50 50
+
+         * - Intel (x86_64)
+           - Apple Silicon (arm64)
+         * - |silx_macos_intel|
+           - |silx_macos_apple|
 
 
 :ref:`Applications`
