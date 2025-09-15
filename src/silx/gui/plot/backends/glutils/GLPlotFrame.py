@@ -1224,19 +1224,19 @@ class GLPlotFrame2D(GLPlotFrame):
         trBounds = self.transformedDataRanges
 
         if self.isXAxisInverted:
-            unscaled_xData = self.size[0] - self.margins.right - x - 0.5
+            unscaledXData = self.size[0] - self.margins.right - x - 0.5
         else:
-            unscaled_xData = x - self.margins.left + 0.5
-        xData = trBounds.x[0] + unscaled_xData / float(plotWidth) * (
+            unscaledXData = x - self.margins.left + 0.5
+        xData = trBounds.x[0] + unscaledXData / float(plotWidth) * (
             trBounds.x[1] - trBounds.x[0]
         )
 
         if self.isYAxisInverted:
-            unscaled_yData = y - self.margins.top + 0.5
+            unscaledYData = y - self.margins.top + 0.5
         else:
-            unscaled_yData = self.size[1] - self.margins.bottom - y - 0.5
+            unscaledYData = self.size[1] - self.margins.bottom - y - 0.5
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
-        yData = usedAxis[0] + unscaled_yData / float(plotHeight) * (
+        yData = usedAxis[0] + unscaledYData / float(plotHeight) * (
             usedAxis[1] - usedAxis[0]
         )
 

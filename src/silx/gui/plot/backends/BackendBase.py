@@ -504,14 +504,14 @@ class BackendBase:
         """
         pass
 
-    def setXAxisInverted(self, flag):
+    def setXAxisInverted(self, flag: bool):
         """Invert the X axis.
 
-        :param bool flag: If True, put the horizontal axis origin on the right
+        :param flag: If True, put the horizontal axis origin on the right
         """
         self.__xAxisInverted = bool(flag)
 
-    def isXAxisInverted(self):
+    def isXAxisInverted(self) -> bool:
         """Return True if X axis is inverted, False otherwise."""
         return self.__xAxisInverted
 
