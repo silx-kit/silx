@@ -17,7 +17,7 @@ plotWindow.resize(800, 600)
 
 plot = Plot2D()
 plotLayout.addWidget(plot)
-infoWidget = LegendItemList(parent=plot)
+infoWidget = LegendItemList(parent=None, plotWidget=plot)
 
 # --- Curve Demonstration ---
 xCurve = numpy.linspace(0, 10, 100)
