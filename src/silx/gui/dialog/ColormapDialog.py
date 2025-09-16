@@ -1770,7 +1770,7 @@ class ColormapDialog(qt.QDialog):
 
         self._updateWidgetRange()
 
-    def _updateCentralPercentileVisibility(self):
+    def _updateCentralPercentileEnabled(self):
         enableCentralPercentile = (
             self._autoScaleCombo.currentText()
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
