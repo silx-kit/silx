@@ -1761,12 +1761,11 @@ class ColormapDialog(qt.QDialog):
                 == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
             )
             with self._colormapChange:
-                if enableCentralPercentile:
-                    colormap.setAutoscalePercentile(
-                        from_central_percentile_to_lateral_percentile_range(
-                            self._centralPercentileWidget.value()
-                        )
+                colormap.setAutoscalePercentile(
+                    from_central_percentile_to_lateral_percentile_range(
+                        self._centralPercentileWidget.value()
                     )
+                )
                 colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
