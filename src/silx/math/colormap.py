@@ -209,7 +209,7 @@ def get_colormap_lut(name: str) -> numpy.ndarray:
     return _COLORMAP_CACHE[name]
 
 
-AutoScaleModeType = Literal["minmax", "stddev3", "percentile_1_99"]
+AutoScaleModeType = Literal["minmax", "stddev3", "percentile"]
 
 
 # Normalizations
