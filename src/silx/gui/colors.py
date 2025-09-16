@@ -593,6 +593,12 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getAutoscalePercentile(self) -> tuple[float, float]:
+        """
+        Return the (min, max) percentiles used for autoscaling in 'percentile' mode.
+        'min' and 'max' are between 0 and 100 inclusive.
+
+        :return: (min, max)
+        """
         return self._percentiles
 
     def isAutoscale(self) -> bool:
