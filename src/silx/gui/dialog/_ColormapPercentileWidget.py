@@ -4,7 +4,7 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 
 
-class SliderWithSpinBox(qt.QWidget):
+class ColormapPercentileWidget(qt.QWidget):
     """
     Widget with a slider and a spin box for a float
     """

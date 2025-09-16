@@ -75,6 +75,7 @@ from ..colors import Colormap, cursorColorForColormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
 from ..plot.items import BoundingRect
+from ._ColormapPercentileWidget import ColormapPercentileWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
 from silx.math.combo import min_max
@@ -83,7 +84,6 @@ from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.gui.widgets.FormGridLayout import FormGridLayout
-from silx.gui.widgets._SliderWithSpinBox import SliderWithSpinBox
 from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
@@ -978,7 +978,7 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         # used percentile
-        self._centralPercentileWidget = SliderWithSpinBox(self)
+        self._centralPercentileWidget = ColormapPercentileWidget(self)
         self._centralPercentileWidget.setTickPosition(qt.QSlider.TicksBelow)
         self._centralPercentileWidget.setRange(0, 100)
 
