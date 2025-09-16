@@ -20,7 +20,7 @@ reduction routines, and a set of Qt widgets to browse and visualise data.
 -------------------
 
 You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda
-<https://anaconda.org>`_, or `apt
+<https://docs.conda.io>`_, or `apt
 <https://en.wikipedia.org/wiki/APT_(software)>`_ on Debian-flavoured Linux
 distributions, using the commands listed for each case. 
 Self contained macOS applications for Intel and Apple Silicon and a Windows
