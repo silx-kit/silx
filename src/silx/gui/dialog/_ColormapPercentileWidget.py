@@ -48,24 +48,24 @@ class ColormapPercentileWidget(qt.QWidget):
         self._slider.setTracking(enable)
 
     @staticmethod
-    def fromLateralPercentileRangeToCentralPercentile(
-        lateral_percentile_range: tuple[float, float],
+    def fromSaturationToPercentiles(
+        saturation: tuple[float, float],
     ) -> float:
         """
-        Example: if we use lateral percentile (1st, 99th) we use 98% of the percentiles. This is the central percentile
+        Example: if we want to have saturation = 90% then the percentile we will return percentiles (5th, 95th)
         """
-        return 100 - (lateral_percentile_range[0] + (100 - lateral_percentile_range[1]))
+        return 100 - (saturation[0] + (100 - saturation[1]))
 
     @staticmethod
-    def fromCentralPercentileToLateralPercentileRange(
-        central_percentile: float | int,
+    def fromPercentilesToSaturation(
+        percentiles: float | int,
     ) -> tuple[float, float]:
         """
-        Example: if we want to use 90% of the percentile we will return percentiles (5th, 95th)
+        Example: if we use percentiles (1st, 99th) we use 98% of the percentiles. This is the saturation (can be seen also as the central percentile)
         """
-        if not isinstance(central_percentile, (float, int)):
+        if not isinstance(percentiles, (float, int)):
             raise TypeError(
-                f"central_percentile is expected to be float. Got {type(central_percentile)}"
+                f"central_percentile is expected to be float. Got {type(percentiles)}"
             )
-        ignored_percentile = 100 - central_percentile
+        ignored_percentile = 100 - percentiles
         return (ignored_percentile / 2.0, 100 - (ignored_percentile / 2.0))

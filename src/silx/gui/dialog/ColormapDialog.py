@@ -978,21 +978,19 @@ class ColormapDialog(qt.QDialog):
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         # used percentile
-        self._centralPercentileWidget = ColormapPercentileWidget(self)
-        self._centralPercentileWidget.setTickPosition(qt.QSlider.TicksBelow)
-        self._centralPercentileWidget.setRange(0, 100)
+        self._percentileWidget = ColormapPercentileWidget(self)
+        self._percentileWidget.setTickPosition(qt.QSlider.TicksBelow)
+        self._percentileWidget.setRange(0, 100)
 
-        self._centralPercentileWidget.setValue(
+        self._percentileWidget.setValue(
             int(
-                ColormapPercentileWidget.fromLateralPercentileRangeToCentralPercentile(
+                ColormapPercentileWidget.fromSaturationToPercentiles(
                     Colormap._DEFAULT_PERCENTILES
                 )
             )
         )
-        self._centralPercentileWidget.setTracking(False)
-        self._centralPercentileWidget.valueChanged.connect(
-            self._usedCentralPercentileChanged
-        )
+        self._percentileWidget.setTracking(False)
+        self._percentileWidget.valueChanged.connect(self._saturationChanged)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1086,7 +1084,7 @@ class ColormapDialog(qt.QDialog):
             qt.QSpacerItem(0, 0, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed), 0, 2, 1, 1
         )
 
-        layoutScale.addWidget(self._centralPercentileWidget, 1, 1, 1, 1)
+        layoutScale.addWidget(self._percentileWidget, 1, 1, 1, 1)
 
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
@@ -1666,9 +1664,9 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
-            with utils.blockSignals(self._centralPercentileWidget):
-                self._centralPercentileWidget.setValue(
-                    ColormapPercentileWidget.fromLateralPercentileRangeToCentralPercentile(
+            with utils.blockSignals(self._percentileWidget):
+                self._percentileWidget.setValue(
+                    ColormapPercentileWidget.fromSaturationToPercentiles(
                         colormap.getAutoscalePercentile()
                     )
                 )
@@ -1762,30 +1760,28 @@ class ColormapDialog(qt.QDialog):
             )
             with self._colormapChange:
                 colormap.setAutoscalePercentiles(
-                    ColormapPercentileWidget.fromCentralPercentileToLateralPercentileRange(
-                        self._centralPercentileWidget.value()
+                    ColormapPercentileWidget.fromPercentilesToSaturation(
+                        self._percentileWidget.value()
                     )
                 )
                 colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
 
-    def _updateCentralPercentileEnabled(self):
+    def _updatePercentileWidgetEnabled(self):
         enableCentralPercentile = (
             self._autoScaleCombo.currentText()
             == _AutoscaleModeComboBox.DATA[Colormap.PERCENTILE][0]
         )
-        self._centralPercentileWidget.setEnabled(enableCentralPercentile)
+        self._percentileWidget.setEnabled(enableCentralPercentile)
 
-    def _usedCentralPercentileChanged(self, value):
+    def _saturationChanged(self, value):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
                 colormap.setAutoscalePercentiles(
-                    ColormapPercentileWidget.fromCentralPercentileToLateralPercentileRange(
-                        value
-                    )
+                    ColormapPercentileWidget.fromPercentilesToSaturation(value)
                 )
         self._updateWidgetRange()
 
