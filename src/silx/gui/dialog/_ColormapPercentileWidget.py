@@ -46,3 +46,26 @@ class ColormapPercentileWidget(qt.QWidget):
 
     def setTracking(self, enable: bool):
         self._slider.setTracking(enable)
+
+    @staticmethod
+    def fromLateralPercentileRangeToCentralPercentile(
+        lateral_percentile_range: tuple[float, float],
+    ) -> float:
+        """
+        Example: if we use lateral percentile (1st, 99th) we use 98% of the percentiles. This is the central percentile
+        """
+        return 100 - (lateral_percentile_range[0] + (100 - lateral_percentile_range[1]))
+
+    @staticmethod
+    def fromCentralPercentileToLateralPercentileRange(
+        central_percentile: float | int,
+    ) -> tuple[float, float]:
+        """
+        Example: if we want to use 90% of the percentile we will return percentiles (5th, 95th)
+        """
+        if not isinstance(central_percentile, (float, int)):
+            raise TypeError(
+                f"central_percentile is expected to be float. Got {type(central_percentile)}"
+            )
+        ignored_percentile = 100 - central_percentile
+        return (ignored_percentile / 2.0, 100 - (ignored_percentile / 2.0))
