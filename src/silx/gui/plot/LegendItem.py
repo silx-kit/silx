@@ -1,120 +1,39 @@
 import logging
-import weakref
 
 from .. import qt
 from ..widgets.LegendIconWidget import LegendIconWidget
 from . import items
+from .items.core import HighlightedMixIn
 from .PlotWidget import PlotWidget
 
 _logger = logging.getLogger(__name__)
-
-
-class LegendItemIcon(LegendIconWidget):
-
-    def __init__(self, parent=None, item=None):
-        super().__init__(parent)
-        self._itemRef = None
-        self.setItem(item)
-
-    def getItem(self):
-        """Returns item associated to this widget
-
-        :rtype: Union[~silx.gui.plot.items,...]
-        """
-        return None if self._itemRef is None else self._itemRef()
-
-    def setItem(self, item):
-        """Set the item with which to synchronize this widget.
-
-        :param item: Union[~silx.gui.plot.items,...]
-        """
-        assert (
-            item is None
-            or isinstance(item, items.ColormapMixIn)
-            or isinstance(item, items.SymbolMixIn)
-            or isinstance(item, items.ColorMixIn)
-            or isinstance(item, items.LineMixIn)
-        )
-
-        previousItem = self.getItem()
-        if item == previousItem:
-            return
-
-        if previousItem is not None:
-            previousItem.sigItemChanged.disconnect(self._itemChanged)
-
-        self._itemRef = None if item is None else weakref.ref(item)
-
-        if item is not None:
-            item.sigItemChanged.connect(self._itemChanged)
-
-        self._update()
-
-    def _update(self):
-        item = self.getItem()
-        if item is None:
-            _logger.debug("Item no longer exists, disabling legend widget.")
-            self.setEnabled(False)
-            return
-
-        self.setEnabled(item.isVisible())
-        if isinstance(item, items.SymbolMixIn):
-            self.setSymbol(item.getSymbol())
-        if isinstance(item, items.LineMixIn):
-            self.setLineWidth(item.getLineWidth())
-            self.setLineStyle(item.getLineStyle())
-        if isinstance(item, items.ColorMixIn):
-            color_rgba = item.getColor()
-            color = qt.QColor.fromRgbF(
-                color_rgba[0],
-                color_rgba[1],
-                color_rgba[2],
-                color_rgba[3],
-            )
-            self.setLineColor(color)
-            self.setSymbolColor(color)
-        if isinstance(item, items.ColormapMixIn):
-            self.setColormap(item.getColormap())
-
-        self.update()
-
-    def _itemChanged(self, event):
-        if event in (
-            items.ItemChangedType.VISIBLE,
-            items.ItemChangedType.SYMBOL,
-            items.ItemChangedType.SYMBOL_SIZE,
-            items.ItemChangedType.LINE_WIDTH,
-            items.ItemChangedType.LINE_STYLE,
-            items.ItemChangedType.COLOR,
-            items.ItemChangedType.ALPHA,
-            items.ItemChangedType.HIGHLIGHTED,
-            items.ItemChangedType.HIGHLIGHTED_STYLE,
-        ):
-            self._update()
 
 
 class LegendItemWidget(qt.QWidget):
     def __init__(self, parent, item: items):
         super().__init__(parent)
         self._item = item
-        self._itemRef = weakref.ref(item)
         self.setLayout(qt.QHBoxLayout())
-        self.setFixedWidth(200)
+        self.setSizePolicy(
+            qt.QSizePolicy.Policy.Preferred, qt.QSizePolicy.Policy.Minimum
+        )
+        self.setMinimumWidth(150)
+        self.setMaximumWidth(300)
         self.layout().setSpacing(20)
         self.layout().setContentsMargins(10, 0, 10, 0)
         item.sigItemChanged.connect(self._itemChanged)
 
-        self.icon = LegendItemIcon(parent=self, item=item)
-        self.layout().addWidget(self.icon)
+        self._icon = LegendIconWidget(parent=self)
+        self.layout().addWidget(self._icon)
 
-        self.label = qt.QLabel(self._item.getName())
-        self.label.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
-        self.layout().addWidget(self.label)
+        self._label = qt.QLabel(self._item.getName())
+        self._label.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
+        self.layout().addWidget(self._label)
         self.layout().addStretch()
 
-        self.label.setToolTip("Click to toggle visibility")
-        self.label.mousePressEvent = self._onLabelClicked
-        self.label.setCursor(qt.Qt.PointingHandCursor)
+        self._label.setToolTip("Click to toggle visibility")
+        self._label.mousePressEvent = self._onLabelClicked
+        self._label.setCursor(qt.Qt.PointingHandCursor)
         self._update()
 
     def _itemChanged(self, event: items.ItemChangedType):
@@ -123,71 +42,90 @@ class LegendItemWidget(qt.QWidget):
         """
         if event in (
             items.ItemChangedType.VISIBLE,
-            items.ItemChangedType.SYMBOL,
-            items.ItemChangedType.SYMBOL_SIZE,
-            items.ItemChangedType.LINE_WIDTH,
-            items.ItemChangedType.LINE_STYLE,
-            items.ItemChangedType.COLOR,
-            items.ItemChangedType.ALPHA,
             items.ItemChangedType.HIGHLIGHTED,
-            items.ItemChangedType.HIGHLIGHTED_STYLE,
+            items.ItemChangedType.NAME,
         ):
             self._update()
 
-    def item(self) -> items.Item | None:
-        return self._itemRef
+    def getItem(self) -> items.Item | None:
+        return self._item
 
     def _update(self):
-        _item = self._item
-        if _item is None:
+        item = self.getItem()
+        if item is None:
             _logger.debug("Item no longer exists, disabling legend widget.")
             self.setEnabled(False)
             return
 
-        self.label.setText(_item.getName())
+        self._icon.setEnabled(item.isVisible())
+        if isinstance(item, items.SymbolMixIn):
+            self._icon.setSymbol(item.getSymbol())
+        if isinstance(item, items.LineMixIn):
+            self._icon.setLineWidth(item.getLineWidth())
+            self._icon.setLineStyle(item.getLineStyle())
+        if isinstance(item, items.ColorMixIn):
+            color_rgba = item.getColor()
+            color = qt.QColor.fromRgbF(
+                color_rgba[0],
+                color_rgba[1],
+                color_rgba[2],
+                color_rgba[3],
+            )
+            self._icon.setLineColor(color)
+            self._icon.setSymbolColor(color)
+        if isinstance(item, items.ColormapMixIn):
+            self._icon.setColormap(item.getColormap())
+
+        self._label.setText(item.getName())
 
         style = ""
-        if isinstance(_item, items.Curve) and _item.isHighlighted():
+        palette = self.palette()
+        text_color = palette.color(qt.QPalette.ColorRole.Text).name()
+        disabled_text_color = (
+            palette.color(qt.QPalette.ColorRole.Text).darker(150).name()
+        )
+
+        if isinstance(item, HighlightedMixIn) and item.isHighlighted():
             style += "border: 1px solid black; "
 
-        if not _item.isVisible():
-            style += "color: gray;"
+        if not item.isVisible():
+            style += f"color: {disabled_text_color};"
         else:
-            style += "color: black;"
+            style += f"color: {text_color};"
 
-        self.label.setStyleSheet(style)
+        self._label.setStyleSheet(style)
 
     def _onLabelClicked(self, event):
         if event.button() == qt.Qt.LeftButton:
-            if self._item:
-                self._item.setVisible(not self._item.isVisible())
+            if self.getItem():
+                self.getItem().setVisible(not self._item.isVisible())
 
 
 class LegendItemList(qt.QWidget):
-    def __init__(self, parent: PlotWidget):
-        super().__init__(parent, qt.Qt.Window)
-        self.setFixedWidth(200)
-        self._layout = qt.QVBoxLayout(self)
-        self._plot: PlotWidget | None = None
-        self._binding(parent)
-        if hasattr(parent, "sigVisibilityChanged"):
-            parent.sigVisibilityChanged.connect(self._setVisibility)
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+        plotWidget: PlotWidget | None = None,
+    ):
+        super().__init__(parent)
+        self.setLayout(qt.QVBoxLayout(self))
+        self.setSizePolicy(
+            qt.QSizePolicy.Policy.Preferred, qt.QSizePolicy.Policy.Expanding
+        )
+        self.setMinimumWidth(150)
+        self.setMaximumWidth(300)
 
-    def _setVisibility(self, status: bool) -> None:
-        if status:
-            self.show()
-        else:
-            self.hide()
+        self._plot: PlotWidget | None = plotWidget
+        self._binding(plotWidget=plotWidget)
+        self._itemWidgets = {}
 
     def _binding(self, plotWidget: PlotWidget):
         """Binds this widget to the signals of a parent PlotWidget."""
         self._plot = plotWidget
-        self._plot.sigActiveCurveChanged.connect(self._onActiveItemChanged)
-        self._plot.sigActiveImageChanged.connect(self._onActiveItemChanged)
-        self._plot.sigActiveScatterChanged.connect(self._onActiveItemChanged)
-        self._plot.sigItemAdded.connect(self._onContentChanged)
-        self._plot.sigItemRemoved.connect(self._onContentChanged)
+        self._plot.sigItemAdded.connect(self._updateAllItemsList)
+        self._plot.sigItemRemoved.connect(self._onItemRemoved)
         self._updateAllItemsList()
+        self.show()
 
     def _clearLayout(self, layout):
         """Helper to clear all widgets from a layout."""
@@ -201,26 +139,18 @@ class LegendItemList(qt.QWidget):
 
         if self._plot is None:
             return
-        self._clearLayout(self._layout)
+        self._clearLayout(self.layout())
         _activeItem: tuple = self._plot.getItems()
 
         for item in _activeItem:
-            _legendIcon = LegendItemWidget(None, item)
-            self._layout.addWidget(_legendIcon)
+            self._onItemAdded(item)
 
-        self._updateHeigth()
+    def _onItemRemoved(self, item: items.Item):
+        if item in self._itemWidgets:
+            self.layout().removeWidget(self._itemWidgets[item])
+            del self._itemWidgets[item]
 
-    def _updateHeigth(self):
-        _totalHeight = (self._layout.count() - 1) * self._layout.spacing()
-        _totalHeight += self._layout.contentsMargins().top()
-        _totalHeight += self._layout.contentsMargins().bottom()
-        if self._layout.count() > 0:
-            item = self._layout.itemAt(0)
-            _totalHeight += item.widget().sizeHint().height() * self._layout.count()
-        self.setFixedHeight(_totalHeight)
-
-    def _onActiveItemChanged(self, previous, current):
-        self._updateAllItemsList()
-
-    def _onContentChanged(self, item):
-        self._updateAllItemsList()
+    def _onItemAdded(self, item: items.Item):
+        _legendIcon = LegendItemWidget(None, item)
+        self.layout().addWidget(_legendIcon)
+        self._itemWidgets[item] = _legendIcon
