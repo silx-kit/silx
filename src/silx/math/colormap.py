@@ -353,7 +353,7 @@ class _NormalizationMixIn:
         return self.autoscale_percentile(data, percentile=(1, 99))
 
     def autoscale_percentile(
-        self, data: numpy.ndarray, percentile: tuple[float, float]
+        self, data: numpy.ndarray, percentiles: tuple[float, float]
     ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using given percentiles
 
