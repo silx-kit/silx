@@ -507,7 +507,7 @@ def apply_colormap(
     vmin: float | None = None,
     vmax: float | None = None,
     gamma: float = 1.0,
-    percentile: tuple[float, float] | None = None,
+    percentiles: tuple[float, float] | None = None,
 ):
     """Apply colormap to data with given normalization and autoscale.
 
