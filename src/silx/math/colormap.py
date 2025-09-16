@@ -482,7 +482,7 @@ def _get_range(
     autoscale: AutoScaleModeType,
     vmin: float | None,
     vmax: float | None,
-    percentile: tuple[float, float] | None = None,
+    percentiles: tuple[float, float] | None = None,
 ) -> tuple[float, float]:
     """Returns effective range"""
     if vmin is None or vmax is None:
