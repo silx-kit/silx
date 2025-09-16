@@ -33,10 +33,10 @@ class SliderWithSpinBox(qt.QWidget):
             self._spinBox.setValue(value)
         self.valueChanged.emit(self.value())
 
-    def value(self) -> float:
+    def value(self) -> int:
         return self._slider.value()
 
-    def setRange(self, min: float, max: float):
+    def setRange(self, min: int, max: int):
         self._slider.setRange(min, max)
         self._spinBox.setRange(min, max)
 
