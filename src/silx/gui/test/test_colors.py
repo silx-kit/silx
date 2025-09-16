@@ -679,7 +679,7 @@ class TestAutoscaleRange(ParametricTestCase):
             with self.subTest(norm=norm, mode=mode, array=array):
                 colormap = Colormap()
                 colormap.setNormalization(norm)
-                colormap.setAutoscalePercentile((1, 99))
+                colormap.setAutoscalePercentiles((1, 99))
                 colormap.setAutoscaleMode(mode)
                 vRange = colormap._computeAutoscaleRange(array)
                 if vRange is None:
