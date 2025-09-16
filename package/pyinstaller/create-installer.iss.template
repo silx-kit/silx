@@ -27,7 +27,6 @@ Source: "silx.ico"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\silx view"; Filename: "{app}\silx.exe"; Parameters: "view"; IconFilename: "{app}\silx.ico"
-Name: "{group}\silx compare"; Filename: "{app}\silx.exe"; Parameters: "compare"; IconFilename: "{app}\silx.ico"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 // Code from https://stackoverflow.com/questions/2000296/inno-setup-how-to-automatically-uninstall-previous-installed-version/2099805#209980
