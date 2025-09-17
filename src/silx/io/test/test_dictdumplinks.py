@@ -404,3 +404,52 @@ def _assert_single_hdf5_source(tmp_path, target_type, source_index, target_index
             assert isinstance(link, h5py.HardLink)
         else:
             assert isinstance(link, h5py.ExternalLink)
+
+
+@pytest.mark.parametrize(
+    "target_type",
+    ["external_binary_link_v1", "external_binary_link_v1_extra", "string"],
+)
+def test_single_edf_source(tmp_path, target_type):
+    data = numpy.ones((3, 2), dtype=numpy.uint16)
+    data_file = str(tmp_path / "data.edf")
+    with EdfImage(data=data) as edfimage:
+        edfimage.write(data_file)
+
+    if target_type == "external_binary_link_v1_extra":
+        extra_dim = True
+        target = {
+            "dictdump_schema": "external_binary_link_v1",
+            "dtype": "uint16",
+            "shape": (1, 3, 2),
+            "sources": [{"file_path": "data.edf", "offset": 512, "size": 12}],
+        }
+    elif target_type == "external_binary_link_v1":
+        extra_dim = False
+        target = {
+            "dictdump_schema": "external_binary_link_v1",
+            "dtype": "uint16",
+            "shape": (3, 2),
+            "sources": [{"file_path": "data.edf", "offset": 512, "size": 12}],
+        }
+    elif target_type == "string":
+        extra_dim = False
+        target = "data.edf"
+    else:
+        raise ValueError(target_type)
+
+    master_file = tmp_path / "master.h5"
+    link = link_from_serialized(f"{master_file}::/data", target)
+    with h5py.File(master_file, "w") as h5f:
+        link.create(h5f, "data")
+
+    with h5py.File(master_file, "r") as h5f:
+        link = h5f.get("data", getlink=True)
+        dset = h5f["data"]
+        is_virtual = dset.is_virtual
+        data_final = dset[()]
+        if extra_dim:
+            data = data[numpy.newaxis, ...]
+        numpy.testing.assert_equal(data, data_final)
+        assert isinstance(link, h5py.HardLink)
+        assert is_virtual is False
