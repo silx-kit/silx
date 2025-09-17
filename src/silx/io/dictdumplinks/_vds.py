@@ -87,7 +87,10 @@ class VdsUrlsModelV1(Hdf5LinkModel, arbitrary_types_allowed=True):
             )
         else:
             target_schema = hdf5_urls_to_vds_schema(
-                source, self.sources, self.source_shape, self.source_dtype
+                source,
+                targets=self.sources,
+                target_shape=self.source_shape,
+                target_dtype=self.source_dtype,
             )
         return VdsModelV1(**target_schema).tolink(source)
 
