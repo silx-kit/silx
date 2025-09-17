@@ -25,21 +25,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 import importlib
-import logging
 import os.path
 import subprocess
 import sys
-
-
-try:
-    import pytest  # noqa: F401
-except ImportError:
-    logging.getLogger(__name__).error(
-        "pytest is required to run the tests, please install it."
-    )
-    raise
+from collections.abc import Sequence
 
 
 def run_tests(
