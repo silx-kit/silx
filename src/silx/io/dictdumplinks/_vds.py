@@ -72,11 +72,11 @@ class VdsUrlsModelV1(Hdf5LinkModel, arbitrary_types_allowed=True):
     @field_validator("sources", mode="before")
     @classmethod
     def as_dataurl(
-        cls, value: DataUrl | list[DataUrl] | str | Sequence[str]
+        cls, value: DataUrl | Sequence[DataUrl] | str | Sequence[str]
     ) -> RawDsetIndex:
         if isinstance(value, str):
             return DataUrl(value)
-        if isinstance(value, (list, tuple)) and isinstance(value[0], str):
+        if isinstance(value, Sequence) and isinstance(value[0], str):
             return [DataUrl(s) for s in value]
         return value
 
