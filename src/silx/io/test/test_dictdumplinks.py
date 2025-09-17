@@ -293,3 +293,114 @@ def test_external_tiff_from_str(tmp_path, len_urls, nimages_per_file):
         link2 = link_from_hdf5(fh, "/group/link")
 
     assert link2 is None
+
+
+_SINGLE_IDX = [
+    None,
+    tuple(),
+    slice(None),
+    (slice(None),),
+    (None,),
+    (slice(None), slice(None)),
+    (None, slice(None)),
+    (slice(None), None),
+    (None, None),
+]
+
+
+@pytest.mark.parametrize("target_type", ["vds_v1", "vds_v1_extra"])
+@pytest.mark.parametrize("source_index", _SINGLE_IDX)
+@pytest.mark.parametrize("target_index", _SINGLE_IDX)
+def test_single_hdf5_source_full_schema(
+    tmp_path, target_type, source_index, target_index
+):
+    _assert_single_hdf5_source(tmp_path, target_type, source_index, target_index)
+
+
+@pytest.mark.parametrize("target_type", ["vds_urls_v1", "string", "string_slice"])
+def test_single_hdf5_source(tmp_path, target_type):
+    _assert_single_hdf5_source(tmp_path, target_type, NotImplemented, NotImplemented)
+
+
+def _assert_single_hdf5_source(tmp_path, target_type, source_index, target_index):
+    data = numpy.ones((3, 2), dtype=numpy.uint16)
+    with h5py.File(tmp_path / "ext.h5", "w") as h5f:
+        h5f["data"] = data
+
+    if target_type == "vds_v1_extra":
+        vds = True
+        extra_dim = True
+        target = {
+            "dictdump_schema": "vds_v1",
+            "shape": (1, 3, 2),
+            "dtype": "uint16",
+            "sources": [
+                {
+                    "data_path": "/data",
+                    "dtype": "uint16",
+                    "file_path": "ext.h5",
+                    "shape": (3, 2),
+                    "source_index": source_index,
+                    "target_index": target_index,
+                }
+            ],
+        }
+    elif target_type == "vds_v1":
+        vds = True
+        extra_dim = False
+        target = {
+            "dictdump_schema": "vds_v1",
+            "shape": (3, 2),
+            "dtype": "uint16",
+            "sources": [
+                {
+                    "data_path": "/data",
+                    "dtype": "uint16",
+                    "file_path": "ext.h5",
+                    "shape": (3, 2),
+                    "source_index": source_index,
+                    "target_index": target_index,
+                }
+            ],
+        }
+    elif target_type == "vds_urls_v1":
+        vds = True
+        extra_dim = True
+        target = {
+            "dictdump_schema": "vds_urls_v1",
+            "source_shape": (3, 2),
+            "source_dtype": "uint16",
+            "sources": ["ext.h5?path=/data"],
+        }
+    elif target_type == "string":
+        vds = False
+        extra_dim = False
+        target = "ext.h5?path=/data"
+    elif target_type == "string_slice":
+        vds = True
+        extra_dim = False
+        target = "ext.h5?path=/data&slice=:"
+    else:
+        raise ValueError(target_type)
+
+    master_file = tmp_path / "master.h5"
+    link = link_from_serialized(f"{master_file}::/data", target)
+    with h5py.File(master_file, "w") as h5f:
+        if vds:
+            h5f.create_virtual_dataset("data", link)
+        else:
+            h5f["data"] = link
+
+    with h5py.File(master_file, "r") as h5f:
+        link = h5f.get("data", getlink=True)
+        dset = h5f["data"]
+        is_virtual = dset.is_virtual
+        data_final = dset[()]
+        if extra_dim:
+            data = data[numpy.newaxis, ...]
+        numpy.testing.assert_equal(data, data_final)
+        assert vds is is_virtual
+        if vds:
+            assert isinstance(link, h5py.HardLink)
+        else:
+            assert isinstance(link, h5py.ExternalLink)

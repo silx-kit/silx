@@ -123,7 +123,7 @@ def _read_hdf5_dataset_info(
 
 def _get_slice_shape(shape: tuple[int, ...], data_slice) -> tuple[int, ...]:
     if data_slice in (None, tuple()):
-        return tuple()
+        return shape
     else:
         dummy = numpy.empty(shape, dtype=bool)
         return dummy[data_slice].shape
