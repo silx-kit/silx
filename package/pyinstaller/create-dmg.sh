@@ -5,14 +5,14 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 # Print commands and their arguments as they are executed (debug mode)
-set -x
+# set -x
 
 log() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO [create-dmg] $1"
 }
 
 log "Setting environment variables."
-APP_NAME="silx-view"
+APP_NAME="silx"
 ROOT="${PWD}"
 APP="${ROOT}/dist/${APP_NAME}.app"
 RESOURCES="${ROOT}" # The path to resources (volume icon, background, ...)."

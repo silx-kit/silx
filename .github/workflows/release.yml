@@ -120,7 +120,7 @@ jobs:
       - name: Test
         run: |
           cd silx
-          ./silx-view.exe --help
+          ./silx.exe view --help
           ./silx.exe --help
 
   build_and_notarize_macos_app:
@@ -185,8 +185,9 @@ jobs:
         run: |
           VOLUME=$(hdiutil info | grep "/Volumes/" | tail -1 | awk '{print $3}')
           cd "$VOLUME"
-          if [ -d "silx-view.app" ]; then
-            ./silx-view.app/Contents/MacOS/silx-view --help
+          if [ -d "silx.app" ]; then
+            ./silx.app/Contents/MacOS/silx-view --help
+            ./silx.app/Contents/MacOS/silx --help
           fi
           hdiutil detach "$VOLUME"
 

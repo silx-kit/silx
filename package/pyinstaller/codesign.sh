@@ -5,7 +5,7 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 # Print commands and their arguments as they are executed (debug mode).
-set -x
+# set -x
 
 log() {
   echo "$(date "+%Y-%m-%d %H:%M:%S") INFO [codesign] $1"
@@ -18,7 +18,7 @@ if [[ -z "${APPLE_TEAM_ID}" || -z "${KEYCHAIN_PASSWORD}" || -z "${CERTIFICATE_BA
 fi
 
 log "Setting the required environment variables."
-APP_NAME="silx-view"
+APP_NAME="silx"
 ROOT="${PWD}"
 APP_PATH="${ROOT}/dist/${APP_NAME}.app"
 KEYCHAIN_PATH="${ROOT}/notarize.keychain-db"
