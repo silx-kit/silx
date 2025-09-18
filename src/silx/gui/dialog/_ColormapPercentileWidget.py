@@ -6,7 +6,9 @@ from silx.gui.utils import blockSignals
 
 class ColormapPercentilesWidget(qt.QWidget):
     """
-    Widget with a slider and a spin box for a float
+    Widget to define the percentiles to be used when computing the colormap in autoscale / percentile mode.
+
+    A scalar value (that can be seen as saturation) is defined by the user and then converted to percentiles using the 'fromSaturationToPercentiles' function.
     """
 
     valueChanged = qt.Signal(int)
