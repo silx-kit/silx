@@ -348,7 +348,7 @@ class Colormap(qt.QObject):
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
-    _DEFAULT_PERCENTILES = (1, 99)
+    _DEFAULT_PERCENTILES = (1.0, 99.0)
 
     def __init__(
         self,
