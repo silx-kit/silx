@@ -35,7 +35,7 @@ import logging
 import numbers
 import re
 from collections.abc import Iterable
-from typing import Any, Union, Literal
+from typing import Any, Union
 from collections.abc import Sequence
 
 import silx
@@ -563,11 +563,11 @@ class Colormap(qt.QObject):
         """Returns the gamma correction parameter value."""
         return self.__gamma
 
-    def getAutoscaleMode(self) -> Literal["minmax", "stddev3", "percentile"]:
+    def getAutoscaleMode(self) -> _colormap.AutoScaleModeType:
         """Return the autoscale mode of the colormap."""
         return self._autoscaleMode
 
-    def setAutoscaleMode(self, mode: Literal["minmax", "stddev3", "percentile"]):
+    def setAutoscaleMode(self, mode: _colormap.AutoScaleModeType):
         """Set the autoscale mode.
 
         :param mode: the mode to set
