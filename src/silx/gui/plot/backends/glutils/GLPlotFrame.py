@@ -879,6 +879,7 @@ class GLPlotFrame2D(GLPlotFrame):
             font=self._font,
         )
 
+        self._isXAxisInverted = False
         self._isYAxisInverted = False
 
         self._dataRanges = {"x": (1.0, 100.0), "y": (1.0, 100.0), "y2": (1.0, 100.0)}
@@ -933,15 +934,26 @@ class GLPlotFrame2D(GLPlotFrame):
             self._dirty()
 
     @property
-    def isYAxisInverted(self):
+    def isYAxisInverted(self) -> bool:
         """Whether Y axes are inverted or not as a bool."""
         return self._isYAxisInverted
 
     @isYAxisInverted.setter
-    def isYAxisInverted(self, value):
+    def isYAxisInverted(self, value: bool):
         value = bool(value)
         if value != self._isYAxisInverted:
             self._isYAxisInverted = value
+            self._dirty()
+
+    @property
+    def isXAxisInverted(self) -> bool:
+        return self._isXAxisInverted
+
+    @isXAxisInverted.setter
+    def isXAxisInverted(self, value: bool):
+        value = bool(value)
+        if value != self._isXAxisInverted:
+            self._isXAxisInverted = value
             self._dirty()
 
     DEFAULT_BASE_VECTORS = (1.0, 0.0), (0.0, 1.0)
@@ -1095,10 +1107,12 @@ class GLPlotFrame2D(GLPlotFrame):
             yMin, yMax = self.transformedDataRanges.y
 
             if self.isYAxisInverted:
-                mat = mat4Ortho(xMin, xMax, yMax, yMin, 1, -1)
-            else:
-                mat = mat4Ortho(xMin, xMax, yMin, yMax, 1, -1)
-            self._transformedDataProjMat = mat
+                yMax, yMin = yMin, yMax
+
+            if self.isXAxisInverted:
+                xMax, xMin = xMin, xMax
+
+            self._transformedDataProjMat = mat4Ortho(xMin, xMax, yMin, yMax, 1, -1)
 
         return self._transformedDataProjMat
 
@@ -1114,10 +1128,12 @@ class GLPlotFrame2D(GLPlotFrame):
             y2Min, y2Max = self.transformedDataRanges.y2
 
             if self.isYAxisInverted:
-                mat = mat4Ortho(xMin, xMax, y2Max, y2Min, 1, -1)
-            else:
-                mat = mat4Ortho(xMin, xMax, y2Min, y2Max, 1, -1)
-            self._transformedDataY2ProjMat = mat
+                y2Max, y2Min = y2Min, y2Max
+
+            if self.isXAxisInverted:
+                xMax, xMin = xMin, xMax
+
+            self._transformedDataY2ProjMat = mat4Ortho(xMin, xMax, y2Min, y2Max, 1, -1)
 
         return self._transformedDataY2ProjMat
 
@@ -1164,9 +1180,13 @@ class GLPlotFrame2D(GLPlotFrame):
 
         plotWidth, plotHeight = self.plotSize
 
-        xPixel = self.margins.left + plotWidth * (xDataTr - trBounds.x[0]) / (
-            trBounds.x[1] - trBounds.x[0]
+        xOffset = (
+            plotWidth * (xDataTr - trBounds.x[0]) / (trBounds.x[1] - trBounds.x[0])
         )
+        if self.isXAxisInverted:
+            xPixel = self.size[0] - self.margins.right - xOffset
+        else:
+            xPixel = self.margins.left + xOffset
 
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
         yOffset = plotHeight * (yDataTr - usedAxis[0]) / (usedAxis[1] - usedAxis[0])
@@ -1203,17 +1223,22 @@ class GLPlotFrame2D(GLPlotFrame):
 
         trBounds = self.transformedDataRanges
 
-        xData = (x - self.margins.left + 0.5) / float(plotWidth)
-        xData = trBounds.x[0] + xData * (trBounds.x[1] - trBounds.x[0])
-
-        usedAxis = trBounds.y if axis == "left" else trBounds.y2
-        if self.isYAxisInverted:
-            yData = (y - self.margins.top + 0.5) / float(plotHeight)
-            yData = usedAxis[0] + yData * (usedAxis[1] - usedAxis[0])
+        if self.isXAxisInverted:
+            unscaledXData = self.size[0] - self.margins.right - x - 0.5
         else:
-            yData = self.size[1] - self.margins.bottom - y - 0.5
-            yData /= float(plotHeight)
-            yData = usedAxis[0] + yData * (usedAxis[1] - usedAxis[0])
+            unscaledXData = x - self.margins.left + 0.5
+        xData = trBounds.x[0] + unscaledXData / float(plotWidth) * (
+            trBounds.x[1] - trBounds.x[0]
+        )
+
+        if self.isYAxisInverted:
+            unscaledYData = y - self.margins.top + 0.5
+        else:
+            unscaledYData = self.size[1] - self.margins.bottom - y - 0.5
+        usedAxis = trBounds.y if axis == "left" else trBounds.y2
+        yData = usedAxis[0] + unscaledYData / float(plotHeight) * (
+            usedAxis[1] - usedAxis[0]
+        )
 
         # non-orthogonal axis
         if self.baseVectors != self.DEFAULT_BASE_VECTORS:
@@ -1327,46 +1352,56 @@ class GLPlotFrame2D(GLPlotFrame):
     def _buildVerticesAndLabels(self):
         width, height = self.size
 
-        xCoords = (self.margins.left - 0.5, width - self.margins.right + 0.5)
-        yCoords = (height - self.margins.bottom + 0.5, self.margins.top - 0.5)
+        xLeft = self.margins.left - 0.5
+        xRight = width - self.margins.right + 0.5
+        yBottom = height - self.margins.bottom + 0.5
+        yTop = self.margins.top - 0.5
 
-        self.axes[0].displayCoords = (
-            (xCoords[0], yCoords[0]),
-            (xCoords[1], yCoords[0]),
-        )
+        self._x2AxisCoords = ((xLeft, yTop), (xRight, yTop))
 
-        self._x2AxisCoords = ((xCoords[0], yCoords[1]), (xCoords[1], yCoords[1]))
-
-        # Set order&offset anchor **before** handling Y axis inversion
+        # Set order&offset anchor **before** handling axis inversion
         fontPixelSize = self._font.pixelSize()
         if fontPixelSize == -1:
             fontPixelSize = self._font.pointSizeF() / 72.0 * self.dotsPerInch
 
         self.axes[0].orderOffetAnchor = (
-            xCoords[1],
-            yCoords[0] + fontPixelSize * 1.2,
+            xRight,
+            yBottom + fontPixelSize * 1.2,
         )
         self.axes[1].orderOffetAnchor = (
-            xCoords[0],
-            yCoords[1] - 4 * self.devicePixelRatio,
+            xLeft,
+            yTop - 4 * self.devicePixelRatio,
         )
         self._y2Axis.orderOffetAnchor = (
-            xCoords[1],
-            yCoords[1] - 4 * self.devicePixelRatio,
+            xRight,
+            yTop - 4 * self.devicePixelRatio,
         )
 
         if self.isYAxisInverted:
-            # Y axes are inverted, axes coordinates are inverted
-            yCoords = yCoords[1], yCoords[0]
+            # Y axis is inverted: goes top to bottom
+            yCoords = yTop, yBottom
+        else:
+            yCoords = yBottom, yTop
+
+        if self.isXAxisInverted:
+            # X axis is inverted: goes right to left
+            xCoords = xRight, xLeft
+        else:
+            xCoords = xLeft, xRight
+
+        self.axes[0].displayCoords = (
+            (xCoords[0], yBottom),
+            (xCoords[1], yBottom),
+        )
 
         self.axes[1].displayCoords = (
-            (xCoords[0], yCoords[0]),
-            (xCoords[0], yCoords[1]),
+            (xLeft, yCoords[0]),
+            (xLeft, yCoords[1]),
         )
 
         self._y2Axis.displayCoords = (
-            (xCoords[1], yCoords[0]),
-            (xCoords[1], yCoords[1]),
+            (xRight, yCoords[0]),
+            (xRight, yCoords[1]),
         )
 
         super()._buildVerticesAndLabels()
