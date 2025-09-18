@@ -980,17 +980,10 @@ class ColormapDialog(qt.QDialog):
         # used percentile
         self._percentilesWidget = ColormapPercentilesWidget(self)
         self._percentilesWidget.setTickPosition(qt.QSlider.TicksBelow)
-        self._percentilesWidget.setRange(0, 100)
 
-        self._percentilesWidget.setValue(
-            int(
-                ColormapPercentilesWidget.fromSaturationToPercentiles(
-                    Colormap._DEFAULT_PERCENTILES
-                )
-            )
-        )
+        self._percentilesWidget.setPercentilesRange(Colormap._DEFAULT_PERCENTILES)
         self._percentilesWidget.setTracking(False)
-        self._percentilesWidget.valueChanged.connect(self._saturationChanged)
+        self._percentilesWidget.percentilesChanged.connect(self._percentilesChanged)
 
         rangeLayout = qt.QGridLayout()
         miniFont = qt.QFont(self.font())
@@ -1665,10 +1658,8 @@ class ColormapDialog(qt.QDialog):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
             with utils.blockSignals(self._percentilesWidget):
-                self._percentilesWidget.setValue(
-                    ColormapPercentilesWidget.fromSaturationToPercentiles(
-                        colormap.getAutoscalePercentiles()
-                    )
+                self._percentilesWidget.setPercentilesRange(
+                    colormap.getAutoscalePercentiles()
                 )
 
             vmin, vmax = colormap.getVRange()
@@ -1760,9 +1751,7 @@ class ColormapDialog(qt.QDialog):
             )
             with self._colormapChange:
                 colormap.setAutoscalePercentiles(
-                    ColormapPercentilesWidget.fromPercentilesToSaturation(
-                        self._percentilesWidget.value()
-                    )
+                    self._percentilesWidget.getPercentilesRange()
                 )
                 colormap.setAutoscaleMode(mode)
 
@@ -1775,14 +1764,12 @@ class ColormapDialog(qt.QDialog):
         )
         self._percentilesWidget.setEnabled(enableWidget)
 
-    def _saturationChanged(self, value):
+    def _percentilesChanged(self, percentiles):
         """Callback executed when the saturation level has been changed (will impact the 'PERCENTILE' mode)"""
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
-                colormap.setAutoscalePercentiles(
-                    ColormapPercentilesWidget.fromPercentilesToSaturation(value)
-                )
+                colormap.setAutoscalePercentiles(percentiles)
         self._updateWidgetRange()
 
     def _minAutoscaleUpdated(self, autoEnabled):
