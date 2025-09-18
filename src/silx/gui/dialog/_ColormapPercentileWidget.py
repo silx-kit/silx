@@ -29,7 +29,7 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._slider.valueChanged.connect(self.setSaturationValue)
         self._spinBox.valueChanged.connect(self.setSaturationValue)
 
-    def setSaturationValue(self, value: float):
+    def setSaturationValue(self, value: int):
         with blockSignals(self._slider, self._spinBox):
             self._slider.setValue(value)
             self._spinBox.setValue(value)
@@ -61,11 +61,11 @@ class ColormapPercentilesWidget(qt.QWidget):
     @staticmethod
     def fromPercentilesToSaturation(
         percentiles: tuple[float, float],
-    ) -> float:
+    ) -> int:
         """
         Example: if we want to have saturation = 90% then the percentile we will return percentiles (5th, 95th)
         """
-        return 100 - (percentiles[0] + (100 - percentiles[1]))
+        return int(100 - (percentiles[0] + (100 - percentiles[1])))
 
     @staticmethod
     def fromSaturationToPercentiles(
