@@ -239,7 +239,7 @@ class _NormalizationMixIn:
         self,
         data: numpy.ndarray | None,
         mode: AutoScaleModeType,
-        percentile: tuple[float, float] | None = None,
+        percentiles: tuple[float, float] | None = None,
     ) -> tuple[float, float]:
         """Returns range for given data and autoscale mode.
 
@@ -260,7 +260,7 @@ class _NormalizationMixIn:
                 since_version="3.0",
             )
             mode = "percentile"
-            percentile = (1.0, 99.0)
+            percentiles = (1.0, 99.0)
 
         if mode == "minmax":
             vmin, vmax = self.autoscale_minmax(data)
@@ -281,7 +281,7 @@ class _NormalizationMixIn:
             else:
                 vmax = min(dmax, stdmax)
         elif mode == "percentile":
-            vmin, vmax = self.autoscale_percentile(data, percentile=percentile)
+            vmin, vmax = self.autoscale_percentiles(data, percentiles=percentiles)
 
         else:
             raise ValueError("Unsupported mode: %s" % mode)
@@ -351,9 +351,9 @@ class _NormalizationMixIn:
         :param data: The data to process
         :returns: (vmin, vmax)
         """
-        return self.autoscale_percentile(data, percentile=(1, 99))
+        return self.autoscale_percentiles(data, percentiles=(1, 99))
 
-    def autoscale_percentile(
+    def autoscale_percentiles(
         self, data: numpy.ndarray, percentiles: tuple[float, float]
     ) -> tuple[float, float] | tuple[None, None]:
         """Autoscale using given percentiles
@@ -366,7 +366,7 @@ class _NormalizationMixIn:
             data = data[numpy.isfinite(data)]
         if data.size == 0:
             return None, None
-        return numpy.nanpercentile(data, percentile)
+        return numpy.nanpercentile(data, percentiles)
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
@@ -488,7 +488,7 @@ def _get_range(
     """Returns effective range"""
     if vmin is None or vmax is None:
         auto_vmin, auto_vmax = normalizer.autoscale(
-            data, autoscale, percentile=percentile
+            data, autoscale, percentiles=percentiles
         )
         if vmin is None:  # Set vmin respecting provided vmax
             vmin = auto_vmin if vmax is None else min(auto_vmin, vmax)
@@ -525,7 +525,7 @@ def apply_colormap(
     """
     colors = get_colormap_lut(colormap)
     normalizer = _get_normalizer(norm, gamma)
-    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax, percentile)
+    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax, percentiles)
     return _colormap.cmap(
         data,
         colors,
@@ -552,7 +552,7 @@ def normalize(
     vmin: float | None = None,
     vmax: float | None = None,
     gamma: float = 1.0,
-    percentile: tuple[float, float] | None = None,
+    percentiles: tuple[float, float] | None = None,
 ) -> NormalizeResult:
     """Normalize data to an array of uint8.
 
@@ -563,12 +563,12 @@ def normalize(
     :param vmax: Upper bound, None (default) to autoscale
     :param gamma:
         Gamma correction parameter (used only for "gamma" normalization)
-    :param percentile: percentile to be used when computing the autoscale in percentile mode.
+    :param percentiles: percentiles to be used when computing the autoscale in percentile mode.
     :returns: Array of normalized values, vmin, vmax
     """
     normalizer = _get_normalizer(norm, gamma)
     vmin, vmax = _get_range(
-        normalizer, data, autoscale, vmin, vmax, percentile=percentile
+        normalizer, data, autoscale, vmin, vmax, percentiles=percentiles
     )
     norm_data = _colormap.cmap(
         data,

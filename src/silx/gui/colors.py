@@ -592,7 +592,7 @@ class Colormap(qt.QObject):
         self._percentiles = value
         self.sigChanged.emit()
 
-    def getAutoscalePercentile(self) -> tuple[float, float]:
+    def getAutoscalePercentiles(self) -> tuple[float, float]:
         """
         Return the (min, max) percentiles used for autoscaling in 'percentile' mode.
         'min' and 'max' are between 0 and 100 inclusive.
@@ -693,7 +693,7 @@ class Colormap(qt.QObject):
         return self._getNormalizer().autoscale(
             data,
             mode=self.getAutoscaleMode(),
-            percentile=self.getAutoscalePercentile(),
+            percentiles=self.getAutoscalePercentiles(),
         )
 
     def getColormapRange(
@@ -739,7 +739,7 @@ class Colormap(qt.QObject):
             fmin, fmax = normalizer.autoscale(
                 data,
                 mode=self.getAutoscaleMode(),
-                percentile=self.getAutoscalePercentile(),
+                percentiles=self.getAutoscalePercentiles(),
             )
 
         if vmin is None:  # Set vmin respecting provided vmax

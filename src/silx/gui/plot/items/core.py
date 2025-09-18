@@ -707,7 +707,7 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
         if autoscaleMode == Colormap.PERCENTILE:
-            percentile = colormap.getAutoscalePercentile()
+            percentile = colormap.getAutoscalePercentiles()
         else:
             percentile = None
 
