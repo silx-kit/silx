@@ -965,8 +965,6 @@ class ColormapRow(_ColormapBaseProxyRow):
         self.addRow(_ColormapBoundRow(item, name="Min.", index=0))
         self.addRow(_ColormapBoundRow(item, name="Max.", index=1))
 
-        # TODO: add option of the saturation for 3D
-
         self._sigColormapChanged.connect(self._updateColormapImage)
 
     def getColormapImage(self):
