@@ -30,9 +30,10 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._spinBox.valueChanged.connect(self.setValue)
 
     def setValue(self, value: float):
-        with blockSignals(self._slider, self._spinBox):
-            self._slider.setValue(value)
-            self._spinBox.setValue(value)
+        if value == self._slider.value():
+            return
+        self._slider.setValue(value)
+        self._spinBox.setValue(value)
         self.valueChanged.emit(self.value())
 
     def value(self) -> int:
