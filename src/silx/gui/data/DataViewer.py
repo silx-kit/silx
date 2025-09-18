@@ -30,9 +30,10 @@ import os.path
 import collections
 from silx.gui import qt
 from silx.gui.data import DataViews
-from silx.gui.data.DataViews import _normalizeData
+from silx.gui.data.DataViews import STACK_MODE, IMAGE_MODE, _normalizeData
 from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.utils.deprecation import deprecated_warning
 
 
 __authors__ = ["V. Valls"]
@@ -163,7 +164,6 @@ class DataViewer(qt.QFrame):
             DataViews._ImageView,
             DataViews._Plot3dView,
             DataViews._RawView,
-            DataViews._StackView,
             DataViews._Plot2dRecordView,
         ]
         views = []
@@ -349,27 +349,45 @@ class DataViewer(qt.QFrame):
         :param int modeId: Requested mode id
         :rtype: silx.gui.data.DataViews.DataView
         """
+        if modeId == STACK_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.STACK_MODE",
+                replacement="DataViews.IMAGE_MODE",
+                since_version="3.0.0",
+            )
+            return None
+
         for view in self.__views:
             if view.modeId() == modeId:
                 return view
         return None
 
-    def setDisplayMode(self, modeId):
+    def setDisplayMode(self, modeId: int):
         """Set the displayed view using display mode.
 
         Change the displayed view according to the requested mode.
 
-        :param int modeId: Display mode, one of
+        :param modeId: Display mode, one of
 
             - `DataViews.EMPTY_MODE`: display nothing
             - `DataViews.PLOT1D_MODE`: display the data as a curve
             - `DataViews.IMAGE_MODE`: display the data as an image
             - `DataViews.PLOT3D_MODE`: display the data as an isosurface
             - `DataViews.RAW_MODE`: display the data as a table
-            - `DataViews.STACK_MODE`: display the data as a stack of images
+            - `DataViews.STACK_MODE`: deprecated. Use `DataViews.IMAGE_MODE` instead.
             - `DataViews.HDF5_MODE`: display the data as a table of HDF5 info
             - `DataViews.NXDATA_MODE`: display the data as NXdata
         """
+        if modeId == STACK_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.STACK_MODE",
+                replacement="DataViews.IMAGE_MODE",
+                since_version="3.0.0",
+            )
+            modeId = IMAGE_MODE
+
         try:
             view = self.getViewFromModeId(modeId)
         except KeyError:
@@ -575,7 +593,7 @@ class DataViewer(qt.QFrame):
         """Returns the current display mode"""
         return self.__currentView.modeId()
 
-    def replaceView(self, modeId, newView):
+    def replaceView(self, modeId: int, newView: DataViews.DataView) -> bool:
         """Replace one of the builtin data views with a custom view.
         Return True in case of success, False in case of failure.
 
@@ -594,7 +612,6 @@ class DataViewer(qt.QFrame):
             - `DataViews.COMPLEX_IMAGE_MODE`
             - `DataViews.PLOT3D_MODE`
             - `DataViews.RAW_MODE`
-            - `DataViews.STACK_MODE`
             - `DataViews.HDF5_MODE`
             - `DataViews.NXDATA_MODE`
             - `DataViews.NXDATA_INVALID_MODE`
@@ -607,6 +624,15 @@ class DataViewer(qt.QFrame):
         :param DataViews.DataView newView: New data view
         :return: True if replacement was successful, else False
         """
+        if modeId == STACK_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.STACK_MODE",
+                replacement="DataViews.IMAGE_MODE",
+                since_version="3.0.0",
+            )
+            return False
+
         assert isinstance(newView, DataViews.DataView)
         isReplaced = False
         for idx, view in enumerate(self.__views):
