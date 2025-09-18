@@ -582,7 +582,7 @@ class Colormap(qt.QObject):
                 since_version="3.0",
             )
             mode = self.PERCENTILE
-            self.setAutoscalePercentiles((1.0, 99.0))
+            self.setAutoscalePercentiles(self._DEFAULT_PERCENTILES)
         assert mode in self.AUTOSCALE_MODES
         if mode != self._autoscaleMode:
             self._autoscaleMode = mode
