@@ -260,6 +260,7 @@ class _NormalizationMixIn:
                 since_version="3.0",
             )
             mode = "percentile"
+            percentile = (1.0, 99.0)
 
         if mode == "minmax":
             vmin, vmax = self.autoscale_minmax(data)
