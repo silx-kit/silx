@@ -663,9 +663,12 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
             if min_ is not None and numpy.isfinite(min_):
-                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX] = min_, max_
+                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX, None] = (
+                    min_,
+                    max_,
+                )
             if minPositive is not None and numpy.isfinite(minPositive):
-                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX] = (
+                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX, None] = (
                     minPositive,
                     max_,
                 )
@@ -703,7 +706,12 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
 
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
-        key = normalization, autoscaleMode
+        if autoscaleMode == Colormap.PERCENTILE:
+            percentile = colormap.getAutoscalePercentiles()
+        else:
+            percentile = None
+
+        key = normalization, autoscaleMode, percentile
         vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
             vRange = colormap._computeAutoscaleRange(data)
