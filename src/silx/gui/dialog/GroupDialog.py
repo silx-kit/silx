@@ -166,7 +166,7 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
 
     def setSelectedDataUrl(self, url: DataUrl):
         """
-        Make the given url the selected URL. Raise an error if doesn't exists
+        Make the given url the selected URL.
 
         :raises: ValueError if the url cannot be selected (file or data path not existing)
         """
