@@ -38,6 +38,7 @@ from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
 from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
+from ...io.url import DataUrl
 
 import h5py
 
@@ -565,6 +566,49 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
+    def _findNode(self, startIndex: qt.QModelIndex, name: str) -> qt.QModelIndex | None:
+        matchingItems = self.match(
+            startIndex,
+            qt.Qt.DisplayRole,
+            name,
+            hits=1,
+        )
+        if len(matchingItems) == 0:
+            return None
+
+        return matchingItems[0]
+
+    def _findChildren(self, parentNode: Hdf5Item, childName: str) -> Hdf5Item | None:
+        # TODO: FIXME: we should be able to use the generic 'model.match' but Hdf5Item is not inheriting from the default qt.QAbstractView
+        # cannot use the default 'search' function as the item is not inheriting from the default QTreeItem...
+        for i in range(parentNode.childCount()):
+            if parentNode.child(i).basename == childName:
+                return parentNode.child(i)
+
+    def findHdf5Item(self, url: DataUrl) -> Hdf5Item | None:
+        """Return the Hdf5Object matching the url if exists in the model. Else None"""
+
+        # 1.0 find file name
+        fileName = url.file_path()
+
+        startIndex = self._findNode(
+            startIndex=self.index(0, 0), name=os.path.basename(fileName)
+        )
+        if startIndex is None:
+            return None
+        node = self.nodeFromIndex(startIndex)
+
+        # 2.0 find data path node
+        nodeNames = filter(None, url.data_path().split("/"))
+
+        for nodeName in nodeNames:
+            # find file name
+            if node is None:
+                return None
+            node = self._findChildren(parentNode=node, childName=nodeName)
+
+        return node
+
     def _closeFileIfOwned(self, node):
         """Close the file if it was loaded from a filename or a
         drag-and-drop"""
@@ -720,6 +764,26 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def __releaseRunner(self, runner):
         self.__runnerSet.remove(runner)
 
+    def _getFiles(self) -> tuple[str, ...]:
+        """Return the list of files open in the model"""
+        files = []
+        for rowIndex in range(self.rowCount()):
+            modelIndex = self.index(row=rowIndex, column=0)
+            obj = self.data(modelIndex, self.H5PY_OBJECT_ROLE)
+            files.append(obj.file.filename)
+        return tuple(files)
+
+    def _cleanChildlessNodes(self):
+        """Remove any childless nodes
+
+        Use case: remove file nodes without at least one dataset
+        """
+        for rowIndex in range(self.rowCount()):
+            modelIndex = self.index(row=rowIndex, column=0)
+            hasChildren = self.hasChildren(modelIndex)
+            if not hasChildren:
+                self.removeIndex(modelIndex)
+
     def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
 
@@ -776,7 +840,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         found = False
         foundIndices = []
         for _ in range(1000 * len(rootIndices)):
-            # Avoid too much iterations, in case of recurssive links
+            # Avoid too much iterations, in case of recursive links
             if len(foundIndices) == 0:
                 if len(rootIndices) == 0:
                     # Nothing found
