@@ -1742,9 +1742,6 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
-                colormap.setAutoscalePercentiles(
-                    self._percentilesWidget.getPercentilesRange()
-                )
                 colormap.setAutoscaleMode(mode)
 
         self._updateWidgetRange()
