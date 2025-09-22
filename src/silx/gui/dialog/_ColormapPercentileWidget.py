@@ -30,10 +30,11 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._spinBox.valueChanged.connect(self.setSaturationValue)
 
     def setSaturationValue(self, value: int):
-        with blockSignals(self._slider, self._spinBox):
-            self._slider.setValue(value)
-            self._spinBox.setValue(value)
-        self.percentilesChanged.emit(self.getPercentilesRange())
+        previousValue = self.getSaturationValue()
+        self._slider.setValue(value)
+        self._spinBox.setValue(value)
+        if value != previousValue:
+            self.percentilesChanged.emit(self.getPercentilesRange())
 
     def getSaturationValue(self) -> int:
         return self._slider.value()
