@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from silx.gui import qt
 from silx.gui.utils import blockSignals
+from ..colors import Colormap
 
 
 class ColormapPercentilesWidget(qt.QWidget):
@@ -24,6 +25,11 @@ class ColormapPercentilesWidget(qt.QWidget):
         self.layout().addWidget(self._spinBox)
 
         self._setRange(0, 100)
+
+        self.setTickPosition(qt.QSlider.TicksBelow)
+
+        self.setPercentilesRange(Colormap._DEFAULT_PERCENTILES)
+        self.setTracking(False)
 
         # connect signal / slot
         self._slider.valueChanged.connect(self._setSaturation)

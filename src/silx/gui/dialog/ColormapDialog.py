@@ -979,10 +979,6 @@ class ColormapDialog(qt.QDialog):
 
         # used percentile
         self._percentilesWidget = ColormapPercentilesWidget(self)
-        self._percentilesWidget.setTickPosition(qt.QSlider.TicksBelow)
-
-        self._percentilesWidget.setPercentilesRange(Colormap._DEFAULT_PERCENTILES)
-        self._percentilesWidget.setTracking(False)
         self._percentilesWidget.percentilesChanged.connect(self._percentilesChanged)
 
         rangeLayout = qt.QGridLayout()
