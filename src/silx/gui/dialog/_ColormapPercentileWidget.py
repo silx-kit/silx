@@ -16,6 +16,8 @@ class ColormapPercentilesWidget(qt.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._saturationLastValue = None
+
         self.setLayout(qt.QHBoxLayout())
 
         self._slider = qt.QSlider(qt.Qt.Horizontal, self)
@@ -36,10 +38,10 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._spinBox.valueChanged.connect(self._setSaturation)
 
     def _setSaturation(self, value: int):
-        previousValue = self.getSaturationValue()
         self._slider.setValue(value)
         self._spinBox.setValue(value)
-        if value != previousValue:
+        if self._saturationLastValue != value:
+            self._saturationLastValue = value
             self.percentilesChanged.emit(self.getPercentilesRange())
 
     def _getSaturation(self) -> int:
