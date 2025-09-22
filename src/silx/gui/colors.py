@@ -595,7 +595,7 @@ class Colormap(qt.QObject):
     def getAutoscalePercentiles(self) -> tuple[float, float]:
         """
         Return the (min, max) percentiles used for autoscaling in 'percentile' mode.
-        'min' and 'max' are between 0 and 100 inclusive.
+        'min' and 'max' are between 0 and 100 included.
 
         :return: (min, max)
         """
