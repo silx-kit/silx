@@ -30,7 +30,12 @@ import os.path
 import collections
 from silx.gui import qt
 from silx.gui.data import DataViews
-from silx.gui.data.DataViews import STACK_MODE, IMAGE_MODE, _normalizeData
+from silx.gui.data.DataViews import (
+    NXDATA_STACK_MODE,
+    STACK_MODE,
+    IMAGE_MODE,
+    _normalizeData,
+)
 from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
@@ -619,7 +624,6 @@ class DataViewer(qt.QFrame):
             - `DataViews.NXDATA_CURVE_MODE`
             - `DataViews.NXDATA_XYVSCATTER_MODE`
             - `DataViews.NXDATA_IMAGE_MODE`
-            - `DataViews.NXDATA_STACK_MODE`
 
         :param DataViews.DataView newView: New data view
         :return: True if replacement was successful, else False
@@ -629,6 +633,15 @@ class DataViewer(qt.QFrame):
                 "Argument",
                 "DataViews.STACK_MODE",
                 replacement="DataViews.IMAGE_MODE",
+                since_version="3.0.0",
+            )
+            return False
+
+        if modeId == NXDATA_STACK_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.NXDATA_STACK_MODE",
+                replacement="DataViews.NXDATA_IMAGE_MODE",
                 since_version="3.0.0",
             )
             return False

@@ -1780,11 +1780,15 @@ class _NXdataImageView(_NXdataBaseDataView):
             keep_ratio=(x_units == y_units),
         )
 
-    def getDataPriority(self, data, info):
+    def getDataPriority(self, data, info: DataInfo):
         data = self.normalizeData(data)
 
         if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_image:
+            default = nxdata.get_default(data, validate=False)
+            if default is None:
+                return DataView.UNSUPPORTED
+
+            if default.is_image or default.is_stack:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -1843,61 +1847,6 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         if info.hasNXdata and not info.isInvalidNXdata:
             nxd = nxdata.get_default(data, validate=False)
             if nxd.is_image and numpy.iscomplexobj(nxd.signal):
-                return 100
-
-        return DataView.UNSUPPORTED
-
-
-class _NXdataStackView(_NXdataBaseDataView):
-    def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_STACK_MODE)
-
-    def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayStackPlot
-
-        widget = ArrayStackPlot(parent)
-        widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlotWidget().getColormapAction().setColormapDialog(
-            self.defaultColorDialog()
-        )
-        return widget
-
-    def axesNames(self, data, info):
-        # disabled (used by default axis selector widget in Hdf5Viewer)
-        return None
-
-    def clear(self):
-        self.getWidget().clear()
-
-    def setData(self, data):
-        data = self.normalizeData(data)
-        nxd = nxdata.get_default(data, validate=False)
-        signal_name = nxd.signal_name
-        z_axis, y_axis, x_axis = nxd.axes[-3:]
-        z_label, y_label, x_label = nxd.axes_names[-3:]
-        title = nxd.title or signal_name
-
-        self._updateColormap(nxd)
-
-        widget = self.getWidget()
-        widget.setStackData(
-            nxd.signal,
-            x_axis=x_axis,
-            y_axis=y_axis,
-            z_axis=z_axis,
-            signal_name=signal_name,
-            xlabel=x_label,
-            ylabel=y_label,
-            zlabel=z_label,
-            title=title,
-        )
-        # Override the colormap, while setStack overwrite it
-        widget.getStackView().setColormap(self.defaultColormap())
-
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_stack:
                 return 100
 
         return DataView.UNSUPPORTED
@@ -2104,7 +2053,6 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataXYVScatterView(parent))
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
-        self.addView(_NXdataStackView(parent))
 
         # The 3D view can be displayed using 2 ways
         nx3dViews = SelectManyDataView(parent)
