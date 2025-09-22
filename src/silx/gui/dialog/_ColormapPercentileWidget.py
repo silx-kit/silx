@@ -26,17 +26,17 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._setRange(0, 100)
 
         # connect signal / slot
-        self._slider.valueChanged.connect(self.setSaturationValue)
-        self._spinBox.valueChanged.connect(self.setSaturationValue)
+        self._slider.valueChanged.connect(self._setSaturation)
+        self._spinBox.valueChanged.connect(self._setSaturation)
 
-    def setSaturationValue(self, value: int):
+    def _setSaturation(self, value: int):
         previousValue = self.getSaturationValue()
         self._slider.setValue(value)
         self._spinBox.setValue(value)
         if value != previousValue:
             self.percentilesChanged.emit(self.getPercentilesRange())
 
-    def getSaturationValue(self) -> int:
+    def _getSaturation(self) -> int:
         return self._slider.value()
 
     def _setRange(self, min: int, max: int):
@@ -47,10 +47,10 @@ class ColormapPercentilesWidget(qt.QWidget):
         self._spinBox.setRange(min, max)
 
     def setPercentilesRange(self, percentiles: tuple[float, float]):
-        self.setSaturationValue(self.fromPercentilesToSaturation(percentiles))
+        self._setSaturation(self.fromPercentilesToSaturation(percentiles))
 
     def getPercentilesRange(self) -> tuple[float, float]:
-        return self.fromSaturationToPercentiles(self.getSaturationValue())
+        return self.fromSaturationToPercentiles(self._getSaturation())
 
     # expose API
     def setTickPosition(self, position):
