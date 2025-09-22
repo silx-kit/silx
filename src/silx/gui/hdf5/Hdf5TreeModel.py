@@ -607,7 +607,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             # find file name
             if node is None:
                 return None
-            node = self._findChildren(parent_node=node, child_node_name=nodeName)
+            node = self._findChildren(parentNode=node, childName=nodeName)
 
         return node
 
