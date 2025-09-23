@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from silx.gui import qt
-from silx.gui.utils import blockSignals
 from ..colors import Colormap
 
 
