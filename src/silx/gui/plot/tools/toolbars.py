@@ -136,6 +136,9 @@ class ImageToolBar(qt.QToolBar):
         )
         self.addWidget(self._keepDataAspectRatioButton)
 
+        self._xAxisInvertedButton = PlotToolButtons.XAxisOriginToolButton(
+            parent=self, plot=plot
+        )
         self._yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
             parent=self, plot=plot
         )
@@ -162,11 +165,12 @@ class ImageToolBar(qt.QToolBar):
         """
         return self._keepDataAspectRatioButton
 
-    def getYAxisInvertedButton(self):
-        """Returns the QToolButton controlling Y axis orientation.
+    def getXAxisInvertedButton(self) -> PlotToolButtons.XAxisOriginToolButton:
+        """Returns the QToolButton controlling X axis orientation."""
+        return self._xAxisInvertedButton
 
-        :rtype: QToolButton
-        """
+    def getYAxisInvertedButton(self) -> PlotToolButtons.YAxisOriginToolButton:
+        """Returns the QToolButton controlling Y axis orientation."""
         return self._yAxisInvertedButton
 
 
