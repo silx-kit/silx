@@ -457,6 +457,7 @@ class ArrayImagePlot(qt.QWidget):
         x_axis=None,
         y_axis=None,
         signals_names=None,
+        axes_names=None,
         xlabel=None,
         ylabel=None,
         title=None,
@@ -489,6 +490,7 @@ class ArrayImagePlot(qt.QWidget):
 
         self.__signals = signals
         self.__signals_names = signals_names
+        self.__axis_names = axes_names
         self.__x_axis = x_axis
         self.__x_axis_name = xlabel
         self.__y_axis = y_axis
@@ -508,6 +510,9 @@ class ArrayImagePlot(qt.QWidget):
             self._axesSelector.hide()
         else:
             self._axesSelector.show()
+
+        if self.__axis_names:
+            self._axesSelector.setLabels(self.__axis_names)
 
         self._signalSelector.setSignalNames(signals_names)
         if len(signals) > 1:
