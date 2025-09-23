@@ -1044,7 +1044,6 @@ class ColormapDialog(qt.QDialog):
         button.setDefault(True)
         button = self._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         button.clicked.connect(self.resetColormap)
-        button.clicked.connect(self._updatePercentilesWidgetEnabled)
 
         self._buttonsModal.setFocus(qt.Qt.OtherFocusReason)
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
