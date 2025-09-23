@@ -5,4 +5,5 @@ How to contribute
    :maxdepth: 1
 
    development
+   icons
    release
