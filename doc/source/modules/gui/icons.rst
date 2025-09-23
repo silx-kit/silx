@@ -289,8 +289,12 @@ Available icons
      - plot-window
    * - |plot-xauto|
      - plot-xauto
+   * - |plot-xleft|
+     - plot-xleft
    * - |plot-xlog|
      - plot-xlog
+   * - |plot-xright|
+     - plot-xright
    * - |plot-yauto|
      - plot-yauto
    * - |plot-ydown|
@@ -549,7 +553,9 @@ Available icons
 .. |plot-window-image| image:: ../../../../src/silx/resources/gui/icons/plot-window-image.png
 .. |plot-window| image:: ../../../../src/silx/resources/gui/icons/plot-window.png
 .. |plot-xauto| image:: ../../../../src/silx/resources/gui/icons/plot-xauto.png
+.. |plot-xleft| image:: ../../../../src/silx/resources/gui/icons/plot-xleft.png
 .. |plot-xlog| image:: ../../../../src/silx/resources/gui/icons/plot-xlog.png
+.. |plot-xright| image:: ../../../../src/silx/resources/gui/icons/plot-xright.png
 .. |plot-yauto| image:: ../../../../src/silx/resources/gui/icons/plot-yauto.png
 .. |plot-ydown| image:: ../../../../src/silx/resources/gui/icons/plot-ydown.png
 .. |plot-ylog| image:: ../../../../src/silx/resources/gui/icons/plot-ylog.png
