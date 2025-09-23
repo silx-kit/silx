@@ -43,14 +43,15 @@ import functools
 import logging
 from typing import TypedDict
 
-from silx.utils.deprecation import deprecated_warning
-
 from .. import icons
 from .. import qt
 from ... import config
+from ...utils.deprecation import deprecated_warning
 from .tools.PlotToolButton import PlotToolButton
 
 from .items import SymbolMixIn, Scatter
+from .items.axis import XAxis, YAxis, YRightAxis
+from .PlotWidget import PlotWidget
 
 
 _logger = logging.getLogger(__name__)
@@ -152,7 +153,7 @@ class _AxisOriginToolButton(PlotToolButton):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-    def _getAxis(self, plot):
+    def _getAxis(self, plot: PlotWidget):
         raise NotImplementedError()
 
     def _getState(self, inverted: bool) -> _AxisState:
@@ -162,17 +163,20 @@ class _AxisOriginToolButton(PlotToolButton):
         state = self._getState(inverted)
         return qt.QAction(state["icon"], state["action"], self)
 
-    def _connectPlot(self, plot):
+    def _connectPlot(self, plot: PlotWidget):
         axis = self._getAxis(plot)
         axis.sigInvertedChanged.connect(self._axisInvertedChanged)
         self._axisInvertedChanged(axis.isInverted())
 
-    def _disconnectPlot(self, plot):
+    def _disconnectPlot(self, plot: PlotWidget):
         self._getAxis(plot).sigInvertedChanged.disconnect(self._axisInvertedChanged)
 
     def setAxisInverted(self, inverted: bool):
         """Invert the axis"""
-        axis = self._getAxis(self.plot())
+        plot = self.plot()
+        if plot is None:
+            return
+        axis = self._getAxis(plot)
         if axis is not None:
             # This will trigger _axisInvertedChanged
             axis.setInverted(inverted)
@@ -184,7 +188,7 @@ class _AxisOriginToolButton(PlotToolButton):
 
 
 class XAxisOriginToolButton(_AxisOriginToolButton):
-    def _getAxis(self, plot):
+    def _getAxis(self, plot: PlotWidget) -> XAxis:
         return plot.getXAxis()
 
     def _getState(self, inverted: bool) -> _AxisState:
@@ -203,7 +207,7 @@ class XAxisOriginToolButton(_AxisOriginToolButton):
 
 
 class YAxisOriginToolButton(_AxisOriginToolButton):
-    def _getAxis(self, plot):
+    def _getAxis(self, plot: PlotWidget) -> YAxis | YRightAxis:
         return plot.getYAxis()
 
     def _getState(self, inverted: bool) -> _AxisState:
