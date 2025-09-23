@@ -2,7 +2,10 @@ How to add an icon to silx
 ==========================
 
 Icons are stored in the `src/silx/resources/gui/icons <https://github.com/silx-kit/silx/tree/main/src/silx/resources/gui/icons>`_ folder in both SVG and PNG format.
-
+There are three steps to add an icon:
+1. Create a SVG icon
+2. Export it as a PNG
+3. Add the files to silx
 Create a SVG icon 
 -----------------
 
@@ -13,7 +16,6 @@ Use `inkscape`_ to create a SVG icon with the following constraints:
 - No external resources such as fonts should be used: Convert text to paths using `inkscape`_'s "Path/Object to Path" menu.
 
 Save the icon as "Optimized SVG" without compression.
-Then, optimize the file with the `tools/optimize_svg.sh <https://github.com/silx-kit/silx/blob/main/tools/optimize_svg.sh>`_ script.
 
 Create a PNG icon
 -----------------
@@ -34,7 +36,7 @@ Make sure that the produced PNG file:
 Add the icon files to silx
 --------------------------
 
-Add both files to the `src/silx/resources/gui/icons <https://github.com/silx-kit/silx/tree/main/src/silx/resources/gui/icons>`_ folder.
+Add both files to the `src/silx/resources/gui/icons <https://github.com/silx-kit/silx/tree/main/src/silx/resources/gui/icons>`_ folder. Both the SVG and PNG should be added to Git.
 
 Run the `tools/update_icons_rst.py <https://github.com/silx-kit/silx/blob/main/tools/update_icons_rst.py>`_ script to update the `documentation page <http://www.silx.org/doc/silx/latest/modules/gui/icons.html#available-icons>`_.
 
