@@ -145,3 +145,15 @@ def testAxisSetScaleLinear(qapp, qWidgetFactory):
     assert xaxis.getLimits() == (10.0, 1000.0)
     assert yaxis.getLimits() == (20.0, 2000.0)
     assert y2axis.getLimits() == (30.0, 3000.0)
+
+
+def testInvertedAxis(qWidgetFactory):
+    plotWidget = qWidgetFactory(PlotWidget)
+
+    xaxis = plotWidget.getXAxis()
+    xaxis.setInverted(True)
+    assert xaxis.isInverted()
+
+    yaxis = plotWidget.getYAxis()
+    yaxis.setInverted(True)
+    assert yaxis.isInverted()
