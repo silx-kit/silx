@@ -1754,6 +1754,8 @@ class _NXdataImageView(_NXdataBaseDataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return
         isRgba = nxd.interpretation == "rgba-image"
 
         self._updateColormap(nxd)
@@ -1771,6 +1773,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             x_axis=x_axis,
             y_axis=y_axis,
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            axes_names=nxd.axes_names,
             xlabel=x_label,
             ylabel=y_label,
             title=nxd.title,
