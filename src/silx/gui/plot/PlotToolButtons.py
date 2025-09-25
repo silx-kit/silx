@@ -42,6 +42,7 @@ __date__ = "27/06/2017"
 import functools
 import logging
 from typing import TypedDict
+from weakref import WeakMethod
 
 from .. import icons
 from .. import qt
@@ -136,15 +137,20 @@ class _AxisState(TypedDict):
 class _AxisOriginToolButton(PlotToolButton):
     """Tool button to switch the axis orientation of a plot."""
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(
+        self, parent: qt.QWidget | None = None, plot: PlotWidget | None = None
+    ):
         super().__init__(parent=parent, plot=plot)
 
+        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
+        inversionTriggered = WeakMethod(self.setAxisInverted)
+
         disableInversionAction = self._createAction(False)
-        disableInversionAction.triggered.connect(lambda: self.setAxisInverted(False))
+        disableInversionAction.triggered.connect(lambda: inversionTriggered(False))
         disableInversionAction.setIconVisibleInMenu(True)
 
         enableInversionAction = self._createAction(True)
-        enableInversionAction.triggered.connect(lambda: self.setAxisInverted(True))
+        enableInversionAction.triggered.connect(lambda: inversionTriggered(True))
         enableInversionAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
@@ -226,13 +232,19 @@ class YAxisOriginToolButton(_AxisOriginToolButton):
 
     def setYAxisUpward(self):
         deprecated_warning(
-            "Method", name="setYAxisUpward", replacement="setAxisInverted(False)"
+            "Method",
+            name="setYAxisUpward",
+            since_version="3.0.0",
+            replacement="setAxisInverted(False)",
         )
         self.setAxisInverted(False)
 
     def setYAxisDownward(self):
         deprecated_warning(
-            "Method", name="setYAxisDownward", replacement="setAxisInverted(True)"
+            "Method",
+            name="setYAxisDownward",
+            since_version="3.0.0",
+            replacement="setAxisInverted(True)",
         )
         self.setAxisInverted(True)
 
