@@ -322,3 +322,16 @@ class TestDocstring(unittest.TestCase):
             pass
 
         self.assertEqual(f.__doc__, g.__doc__)
+
+    def test_typed_function(self):
+        def f(a: int) -> float:
+            """Docstring"""
+            pass
+
+        @docstring(f)
+        def g():
+            pass
+
+        self.assertEqual(f.__doc__, g.__doc__)
+        self.assertEqual(g.__annotations__["a"], int)
+        self.assertEqual(g.__annotations__["return"], float)
