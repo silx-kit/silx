@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 
 
 class LegendItemWidget(qt.QWidget):
-    def __init__(self, parent, item: items):
+    def __init__(self, parent, item: items.Item):
         super().__init__(parent)
         self._item = item
         self.setLayout(qt.QHBoxLayout())
@@ -33,7 +33,7 @@ class LegendItemWidget(qt.QWidget):
 
         self._label.setToolTip("Click to toggle visibility")
         self._label.mousePressEvent = self._onLabelClicked
-        self._label.setCursor(qt.Qt.PointingHandCursor)
+        self.setCursor(qt.Qt.PointingHandCursor)
         self._update()
 
     def _itemChanged(self, event: items.ItemChangedType):
@@ -44,6 +44,14 @@ class LegendItemWidget(qt.QWidget):
             items.ItemChangedType.VISIBLE,
             items.ItemChangedType.HIGHLIGHTED,
             items.ItemChangedType.NAME,
+            items.ItemChangedType.SYMBOL,
+            items.ItemChangedType.SYMBOL_SIZE,
+            items.ItemChangedType.LINE_WIDTH,
+            items.ItemChangedType.LINE_STYLE,
+            items.ItemChangedType.COLOR,
+            items.ItemChangedType.ALPHA,
+            items.ItemChangedType.HIGHLIGHTED,
+            items.ItemChangedType.HIGHLIGHTED_STYLE,
         ):
             self._update()
 
@@ -100,6 +108,13 @@ class LegendItemWidget(qt.QWidget):
             if self.getItem():
                 self.getItem().setVisible(not self._item.isVisible())
 
+    def eventFilter(self, obj, event):
+        if obj == self._label and event.type() == qt.QEvent.MouseButtonPress:
+            if event.button() == qt.Qt.LeftButton:
+                self._onLabelClicked(event)
+                return True
+        return super().eventFilter(obj, event)
+
 
 class LegendItemList(qt.QWidget):
     def __init__(
@@ -127,30 +142,32 @@ class LegendItemList(qt.QWidget):
         self._updateAllItemsList()
         self.show()
 
-    def _clearLayout(self, layout):
+    def _clear(self):
         """Helper to clear all widgets from a layout."""
+        layout = self.layout()
         if layout is not None:
+
             while layout.count():
                 child = layout.takeAt(0)
                 if child.widget():
                     child.widget().deleteLater()
 
     def _updateAllItemsList(self):
-
         if self._plot is None:
             return
-        self._clearLayout(self.layout())
-        _activeItem: tuple = self._plot.getItems()
+        self._clear()
+        activeItem: tuple = self._plot.getItems()
 
-        for item in _activeItem:
+        for item in activeItem:
             self._onItemAdded(item)
 
     def _onItemRemoved(self, item: items.Item):
-        if item in self._itemWidgets:
-            self.layout().removeWidget(self._itemWidgets[item])
-            del self._itemWidgets[item]
+        widget: qt.QWidget | None = self._itemWidgets.pop(item, None)
+        if widget is not None:
+            self.layout().removeWidget(widget)
+            widget.deleteLater()
 
     def _onItemAdded(self, item: items.Item):
-        _legendIcon = LegendItemWidget(None, item)
-        self.layout().addWidget(_legendIcon)
-        self._itemWidgets[item] = _legendIcon
+        legendIcon = LegendItemWidget(self, item)
+        self.layout().addWidget(legendIcon)
+        self._itemWidgets[item] = legendIcon
