@@ -90,6 +90,7 @@ dev = [
     'cython',
     "tomli>=1.0.0; python_version < '3.11'",  # For bootstrap.py and build_man_page.py
     'black[jupyter]',                         # Formatting
+    'flake8',                                 # Linting
     'pyinstaller>=6.0.0; sys_platform == "win32"',
 ]
 
