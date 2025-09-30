@@ -589,15 +589,21 @@ class ArrayImagePlot(qt.QWidget):
             self._plot.getXAxis().setScale("linear")
             self._plot.getYAxis().setScale("linear")
 
-            imageItem = ImageDataAggregated()
+            if image.ndim == 2:
+                imageItem = ImageDataAggregated()
+                imageItem.setColormap(self._plot.getDefaultColormap())
+                imageItem.setAggregationMode(
+                    self.getAggregationModeAction().getAggregationMode()
+                )
+            elif image.ndim == 3:
+                imageItem = items.ImageRgba()
+            else:
+                raise ValueError(f"image dims should be 2 or 3. Got {image.ndim}")
             imageItem.setName(legend)
             imageItem.setData(image)
             imageItem.setOrigin(origin)
             imageItem.setScale(scale)
-            imageItem.setColormap(self._plot.getDefaultColormap())
-            imageItem.setAggregationMode(
-                self.getAggregationModeAction().getAggregationMode()
-            )
+
             self._plot.addItem(imageItem)
             self._plot.setActiveImage(imageItem)
         else:
