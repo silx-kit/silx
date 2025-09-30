@@ -782,10 +782,10 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
         dicttonx(gauss,"test.h5")
     """
     h5file, h5path = _normalize_h5_path(h5file, h5path)
-    if isinstance(h5file, str):
-        file_path = h5file
-    else:
+    if is_h5_file_like(h5file):
         file_path = h5file.filename
+    else:
+        file_path = str(h5file)
     parents = tuple(p for p in h5path.split("/") if p)
     if add_nx_class is None:
         add_nx_class = kw.get("update_mode", None) in (None, "add")
