@@ -41,13 +41,17 @@ __date__ = "27/06/2017"
 
 import functools
 import logging
+from typing import TypedDict
 
 from .. import icons
 from .. import qt
 from ... import config
+from ...utils.deprecation import deprecated_warning
 from .tools.PlotToolButton import PlotToolButton
 
 from .items import SymbolMixIn, Scatter
+from .items.axis import XAxis, YAxis, YRightAxis
+from .PlotWidget import PlotWidget
 
 
 _logger = logging.getLogger(__name__)
@@ -123,73 +127,132 @@ class AspectToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
 
-class YAxisOriginToolButton(PlotToolButton):
-    """Tool button to switch the Y axis orientation of a plot."""
+class _AxisState(TypedDict):
+    icon: qt.QIcon
+    state: str
+    action: str
 
-    STATE = None
-    """Lazy loaded states used to feed YAxisOriginToolButton"""
 
-    def __init__(self, parent=None, plot=None):
-        if self.STATE is None:
-            self.STATE = {}
-            # is down
-            self.STATE[False, "icon"] = icons.getQIcon("plot-ydown")
-            self.STATE[False, "state"] = "Y-axis is oriented downward"
-            self.STATE[False, "action"] = "Orient Y-axis downward"
-            # keep ration
-            self.STATE[True, "icon"] = icons.getQIcon("plot-yup")
-            self.STATE[True, "state"] = "Y-axis is oriented upward"
-            self.STATE[True, "action"] = "Orient Y-axis upward"
+class _AxisOriginToolButton(PlotToolButton):
+    """Tool button to switch the axis orientation of a plot."""
 
+    def __init__(
+        self, parent: qt.QWidget | None = None, plot: PlotWidget | None = None
+    ):
         super().__init__(parent=parent, plot=plot)
 
-        upwardAction = self._createAction(True)
-        upwardAction.triggered.connect(self.setYAxisUpward)
-        upwardAction.setIconVisibleInMenu(True)
+        disableInversionAction = self._createAction(False)
+        disableInversionAction.triggered.connect(self._disableInversion)
+        disableInversionAction.setIconVisibleInMenu(True)
 
-        downwardAction = self._createAction(False)
-        downwardAction.triggered.connect(self.setYAxisDownward)
-        downwardAction.setIconVisibleInMenu(True)
+        enableInversionAction = self._createAction(True)
+        enableInversionAction.triggered.connect(self._enableInversion)
+        enableInversionAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
-        menu.addAction(upwardAction)
-        menu.addAction(downwardAction)
+        menu.addAction(disableInversionAction)
+        menu.addAction(enableInversionAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-    def _createAction(self, isUpward):
-        icon = self.STATE[isUpward, "icon"]
-        text = self.STATE[isUpward, "action"]
-        return qt.QAction(icon, text, self)
+    def _getAxis(self, plot: PlotWidget):
+        raise NotImplementedError()
 
-    def _connectPlot(self, plot):
-        yAxis = plot.getYAxis()
-        yAxis.sigInvertedChanged.connect(self._yAxisInvertedChanged)
-        self._yAxisInvertedChanged(yAxis.isInverted())
+    def _getState(self, inverted: bool) -> _AxisState:
+        raise NotImplementedError()
 
-    def _disconnectPlot(self, plot):
-        plot.getYAxis().sigInvertedChanged.disconnect(self._yAxisInvertedChanged)
+    def _createAction(self, inverted: bool) -> qt.QAction:
+        state = self._getState(inverted)
+        return qt.QAction(state["icon"], state["action"], self)
+
+    def _connectPlot(self, plot: PlotWidget):
+        axis = self._getAxis(plot)
+        axis.sigInvertedChanged.connect(self._axisInvertedChanged)
+        self._axisInvertedChanged(axis.isInverted())
+
+    def _disconnectPlot(self, plot: PlotWidget):
+        self._getAxis(plot).sigInvertedChanged.disconnect(self._axisInvertedChanged)
+
+    def setAxisInverted(self, inverted: bool):
+        """Invert the axis"""
+        plot = self.plot()
+        if plot is None:
+            return
+        axis = self._getAxis(plot)
+        if axis is not None:
+            # This will trigger _axisInvertedChanged
+            axis.setInverted(inverted)
+
+    def _enableInversion(self):
+        # Wrapper function to avoid mixed python/qt circular reference
+        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
+        self.setAxisInverted(True)
+
+    def _disableInversion(self):
+        # Wrapper function to avoid mixed python/qt circular reference
+        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
+        self.setAxisInverted(False)
+
+    def _axisInvertedChanged(self, inverted: bool):
+        state = self._getState(inverted)
+        self.setIcon(state["icon"])
+        self.setToolTip(state["state"])
+
+
+class XAxisOriginToolButton(_AxisOriginToolButton):
+    def _getAxis(self, plot: PlotWidget) -> XAxis:
+        return plot.getXAxis()
+
+    def _getState(self, inverted: bool) -> _AxisState:
+        if inverted:
+            return {
+                "icon": icons.getQIcon("plot-xleft"),
+                "state": "X-axis goes from right to left",
+                "action": "Orient X-axis from right to left",
+            }
+        else:
+            return {
+                "icon": icons.getQIcon("plot-xright"),
+                "state": "X-axis goes from left to right",
+                "action": "Orient X-axis from left to right",
+            }
+
+
+class YAxisOriginToolButton(_AxisOriginToolButton):
+    def _getAxis(self, plot: PlotWidget) -> YAxis | YRightAxis:
+        return plot.getYAxis()
+
+    def _getState(self, inverted: bool) -> _AxisState:
+        if inverted:
+            return {
+                "icon": icons.getQIcon("plot-ydown"),
+                "state": "Y-axis is oriented downward",
+                "action": "Orient Y-axis downward",
+            }
+        else:
+            return {
+                "icon": icons.getQIcon("plot-yup"),
+                "state": "Y-axis is oriented upward",
+                "action": "Orient Y-axis upward",
+            }
 
     def setYAxisUpward(self):
-        """Configure the plot to use y-axis upward"""
-        plot = self.plot()
-        if plot is not None:
-            # This will trigger _yAxisInvertedChanged
-            plot.getYAxis().setInverted(False)
+        deprecated_warning(
+            "Method",
+            name="setYAxisUpward",
+            since_version="3.0.0",
+            replacement="setAxisInverted(False)",
+        )
+        self.setAxisInverted(False)
 
     def setYAxisDownward(self):
-        """Configure the plot to use y-axis downward"""
-        plot = self.plot()
-        if plot is not None:
-            # This will trigger _yAxisInvertedChanged
-            plot.getYAxis().setInverted(True)
-
-    def _yAxisInvertedChanged(self, inverted):
-        """Handle Plot set y axis inverted signal"""
-        isUpward = not inverted
-        icon, toolTip = self.STATE[isUpward, "icon"], self.STATE[isUpward, "state"]
-        self.setIcon(icon)
-        self.setToolTip(toolTip)
+        deprecated_warning(
+            "Method",
+            name="setYAxisDownward",
+            since_version="3.0.0",
+            replacement="setAxisInverted(True)",
+        )
+        self.setAxisInverted(True)
 
 
 class ProfileOptionToolButton(PlotToolButton):

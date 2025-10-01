@@ -32,31 +32,30 @@ __license__ = "MIT"
 __date__ = "20/12/2023"
 
 
-import logging
 import weakref
 
 from silx.gui import qt
-
-
-_logger = logging.getLogger(__name__)
+from ..PlotWidget import PlotWidget
 
 
 class PlotToolButton(qt.QToolButton):
     """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`."""
 
-    def __init__(self, parent: qt.QWidget | None = None, plot=None):
+    def __init__(
+        self, parent: qt.QWidget | None = None, plot: PlotWidget | None = None
+    ):
         super().__init__(parent)
         self._plotRef = None
         if plot is not None:
             self.setPlot(plot)
 
-    def plot(self):
+    def plot(self) -> PlotWidget | None:
         """
         Returns the plot connected to the widget.
         """
         return None if self._plotRef is None else self._plotRef()
 
-    def setPlot(self, plot):
+    def setPlot(self, plot: PlotWidget):
         """
         Set the plot connected to the widget
 
@@ -75,7 +74,7 @@ class PlotToolButton(qt.QToolButton):
             self._plotRef = weakref.ref(plot)
             self._connectPlot(plot)
 
-    def _connectPlot(self, plot):
+    def _connectPlot(self, plot: PlotWidget):
         """
         Called when the plot is connected to the widget
 
@@ -83,7 +82,7 @@ class PlotToolButton(qt.QToolButton):
         """
         pass
 
-    def _disconnectPlot(self, plot):
+    def _disconnectPlot(self, plot: PlotWidget):
         """
         Called when the plot is disconnected from the widget
 
