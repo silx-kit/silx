@@ -1,4 +1,5 @@
 import logging
+import weakref
 
 from .. import qt
 from ..widgets.LegendIconWidget import LegendIconWidget
@@ -12,7 +13,7 @@ _logger = logging.getLogger(__name__)
 class LegendItemWidget(qt.QWidget):
     def __init__(self, parent, item: items.Item):
         super().__init__(parent)
-        self._item = item
+        self._item = weakref.ref(item)
         self.setLayout(qt.QHBoxLayout())
         self.setSizePolicy(
             qt.QSizePolicy.Policy.Preferred, qt.QSizePolicy.Policy.Minimum
@@ -26,7 +27,7 @@ class LegendItemWidget(qt.QWidget):
         self._icon = LegendIconWidget(parent=self)
         self.layout().addWidget(self._icon)
 
-        self._label = qt.QLabel(self._item.getName())
+        self._label = qt.QLabel(item.getName())
         self._label.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         self.layout().addWidget(self._label)
         self.layout().addStretch()
@@ -56,7 +57,7 @@ class LegendItemWidget(qt.QWidget):
             self._update()
 
     def getItem(self) -> items.Item | None:
-        return self._item
+        return self._item()
 
     def _update(self):
         item = self.getItem()
