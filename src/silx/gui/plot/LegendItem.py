@@ -107,7 +107,7 @@ class LegendItemWidget(qt.QWidget):
     def _onLabelClicked(self, event):
         if event.button() == qt.Qt.LeftButton:
             if self.getItem():
-                self.getItem().setVisible(not self._item.isVisible())
+                self.getItem().setVisible(not self._item().isVisible())
 
     def eventFilter(self, obj, event):
         if obj == self._label and event.type() == qt.QEvent.MouseButtonPress:
