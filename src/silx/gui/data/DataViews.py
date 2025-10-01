@@ -566,6 +566,9 @@ class SelectOneDataView(_CompositeDataView):
         self.__views = {}
         self.__currentView = None
 
+    def getCurrentView(self):
+        return self.__currentView
+
     def setHooks(self, hooks):
         """Set the data context to use with this view.
 
