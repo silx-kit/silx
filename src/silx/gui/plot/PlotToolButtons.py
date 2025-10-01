@@ -42,7 +42,6 @@ __date__ = "27/06/2017"
 import functools
 import logging
 from typing import TypedDict
-from weakref import WeakMethod
 
 from .. import icons
 from .. import qt
@@ -142,15 +141,12 @@ class _AxisOriginToolButton(PlotToolButton):
     ):
         super().__init__(parent=parent, plot=plot)
 
-        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
-        inversionTriggered = WeakMethod(self.setAxisInverted)
-
         disableInversionAction = self._createAction(False)
-        disableInversionAction.triggered.connect(lambda: inversionTriggered(False))
+        disableInversionAction.triggered.connect(self._disableInversion)
         disableInversionAction.setIconVisibleInMenu(True)
 
         enableInversionAction = self._createAction(True)
-        enableInversionAction.triggered.connect(lambda: inversionTriggered(True))
+        enableInversionAction.triggered.connect(self._enableInversion)
         enableInversionAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
@@ -186,6 +182,16 @@ class _AxisOriginToolButton(PlotToolButton):
         if axis is not None:
             # This will trigger _axisInvertedChanged
             axis.setInverted(inverted)
+
+    def _enableInversion(self):
+        # Wrapper function to avoid mixed python/qt circular reference
+        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
+        self.setAxisInverted(True)
+
+    def _disableInversion(self):
+        # Wrapper function to avoid mixed python/qt circular reference
+        # https://github.com/silx-kit/silx/pull/4425#discussion_r2378901544
+        self.setAxisInverted(False)
 
     def _axisInvertedChanged(self, inverted: bool):
         state = self._getState(inverted)
