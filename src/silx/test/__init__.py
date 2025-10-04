@@ -29,6 +29,7 @@ import importlib
 import os.path
 import subprocess
 import sys
+import tempfile
 from collections.abc import Sequence
 
 
@@ -43,6 +44,7 @@ def run_tests(
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
+    workdir = tempfile.mkdtemp(prefix="silx-")
     cmd = [
         sys.executable,
         "-m",
@@ -72,6 +74,6 @@ def run_tests(
             list_path.append(module_path)
         cmd += list_path
 
-    print("Running pytest with this command:")
+    print(f"Running pytest in `{workdir}` with this command:")
     print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
-    return subprocess.run(cmd, check=False).returncode
+    return subprocess.run(cmd, check=False, cwd=workdir).returncode
