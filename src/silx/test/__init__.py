@@ -44,7 +44,6 @@ def run_tests(
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    workdir = tempfile.mkdtemp(prefix="silx-")
     cmd = [
         sys.executable,
         "-m",
@@ -74,6 +73,8 @@ def run_tests(
             list_path.append(module_path)
         cmd += list_path
 
-    print(f"Running pytest in `{workdir}` with this command:")
-    print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
-    return subprocess.run(cmd, check=False, cwd=workdir).returncode
+    with tempfile.TemporaryDirectory(prefix="silx-") as workdir:
+        print(f"Running pytest in `{workdir}` with this command:")
+        print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
+        result = subprocess.run(cmd, check=False, cwd=workdir).returncode
+    return result
