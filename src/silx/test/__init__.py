@@ -29,6 +29,7 @@ import importlib
 import os.path
 import subprocess
 import sys
+import tempfile
 from collections.abc import Sequence
 
 
@@ -72,6 +73,8 @@ def run_tests(
             list_path.append(module_path)
         cmd += list_path
 
-    print("Running pytest with this command:")
-    print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
-    return subprocess.run(cmd, check=False).returncode
+    with tempfile.TemporaryDirectory(prefix="silx-") as workdir:
+        print(f"Running pytest in `{workdir}` with this command:")
+        print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
+        result = subprocess.run(cmd, check=False, cwd=workdir).returncode
+    return result
