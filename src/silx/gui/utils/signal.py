@@ -112,11 +112,11 @@ class SignalProxy(qt.QObject):
         self.blockSignal = True
         try:
             self.signal.disconnect(self.signalReceived)
-        except:
+        except Exception:
             pass
         try:
             self.sigDelayed.disconnect(self.slot)
-        except:
+        except Exception:
             pass
 
 

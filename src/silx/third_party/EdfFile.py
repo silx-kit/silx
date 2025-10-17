@@ -90,34 +90,37 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
       section is going to be translated into an 1D, 2D or 3D Numpy Array, and accessed
       through GetData method call.
 """
-DEBUG = 0
 ################################################################################
 import sys
 import numpy
 import os.path
 
+from fabio import TiffIO
+from silx.utils.deprecation import deprecated_warning
+
+
 try:
     import gzip
 
     GZIP = True
-except:
+except ImportError:
     GZIP = False
 try:
     import bz2
 
     BZ2 = True
-except:
+except ImportError:
     BZ2 = False
+
+
+DEBUG = 0
+
 
 MARCCD_SUPPORT = False
 PILATUS_CBF_SUPPORT = False
 CAN_USE_FASTEDF = False
-
-from fabio import TiffIO
-
 TIFF_SUPPORT = True
 
-from silx.utils.deprecation import deprecated_warning
 
 deprecated_warning(
     "Module",
@@ -301,7 +304,7 @@ class EdfFile:
             else:
                 try:
                     self.File.close()
-                except:
+                except Exception:
                     pass
                 raise OSError("EdfFile: Error opening file")
 
@@ -331,21 +334,16 @@ class EdfFile:
         parsingHeader = False
         while line not in selectedLines:
             # decode to make sure I have character string
-            # str to make sure python 2.x sees it as string and not unicode
-            if sys.version < "3.0":
-                if type(line) != str:
-                    line = "%s" % line
-            else:
+            try:
+                line = str(line.decode())
+            except UnicodeDecodeError:
                 try:
-                    line = str(line.decode())
+                    line = str(line.decode("utf-8"))
                 except UnicodeDecodeError:
                     try:
-                        line = str(line.decode("utf-8"))
+                        line = str(line.decode("latin-1"))
                     except UnicodeDecodeError:
-                        try:
-                            line = str(line.decode("latin-1"))
-                        except UnicodeDecodeError:
-                            line = "%s" % line
+                        line = "%s" % line
             if (line.count("{\n") >= 1) or (line.count("{\r\n") >= 1):
                 parsingHeader = True
                 Index = self.NumImages
@@ -431,7 +429,7 @@ class EdfFile:
                         header[key.strip()] = val.strip(" ;\n")
                     line = infile.readline()
                     bytesread = bytesread + len(line)
-            except:
+            except Exception:
                 raise Exception("Error processing adsc header")
             # banned by bzip/gzip???
             try:
@@ -1056,7 +1054,7 @@ class EdfFile:
     def __del__(self):
         try:
             self.__makeSureFileIsClosed()
-        except:
+        except Exception:
             pass
 
     def GetDefaultNumpyType(self, EdfType, index=None):

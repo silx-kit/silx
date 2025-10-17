@@ -33,14 +33,14 @@ import unittest
 import tempfile
 import shutil
 
-_logger = logging.getLogger(__name__)
-
 import fabio
 import fabio.file_series
 import h5py
 
 from .. import commonh5
 from .. import fabioh5
+
+_logger = logging.getLogger(__name__)
 
 
 class TestFabioH5(unittest.TestCase):

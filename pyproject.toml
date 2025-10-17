@@ -35,6 +35,7 @@ dependencies = [
    'packaging',
    'h5py',
    'fabio',
+   'pydantic >= 2',
 ]
 
 [build-system]
@@ -89,6 +90,7 @@ dev = [
     'cython',
     "tomli>=1.0.0; python_version < '3.11'",  # For bootstrap.py and build_man_page.py
     'black[jupyter]',                         # Formatting
+    'flake8',                                 # Linting
     'pyinstaller>=6.0.0; sys_platform == "win32"',
 ]
 
@@ -114,9 +116,12 @@ skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
 
 
 [tool.black]
-required-version = 25
+required-version = "25"
 target-version = ["py310", "py311", "py312", "py313"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [ "src/silx" ]
+
+[tool.uv]
+managed = false

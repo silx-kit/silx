@@ -143,8 +143,8 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_NXDATA = "Image as NXdata (%s)" % _NEXUS_HDF5_EXT_STR
 
     DEFAULT_IMAGE_FILTERS = (
-        IMAGE_FILTER_EDF,
         IMAGE_FILTER_TIFF,
+        IMAGE_FILTER_EDF,
         IMAGE_FILTER_NUMPY,
         IMAGE_FILTER_ASCII,
         IMAGE_FILTER_CSV_COMMA,

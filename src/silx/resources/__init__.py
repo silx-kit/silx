@@ -71,6 +71,10 @@ import importlib
 import importlib.resources as importlib_resources
 
 
+# Expose ExternalResources for compatibility (since silx 0.11)
+from ..utils.ExternalResources import ExternalResources  # noqa
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -277,7 +281,3 @@ def _resource_filename(resource: str, default_directory: str | None = None) -> s
         return resource_path
 
     return _get_resource_filename(resource_directory.package_name, resource_name)
-
-
-# Expose ExternalResources for compatibility (since silx 0.11)
-from ..utils.ExternalResources import ExternalResources

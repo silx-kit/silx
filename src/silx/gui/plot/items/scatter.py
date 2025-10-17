@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "29/03/2017"
 
 
-from collections import namedtuple
 import logging
 import threading
 import numpy

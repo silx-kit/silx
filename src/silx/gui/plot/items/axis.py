@@ -160,23 +160,24 @@ class Axis(qt.QObject):
         raise NotImplementedError()
 
     def isInverted(self) -> bool:
-        """Return True if the axis is inverted (top to bottom for the y-axis),
-        False otherwise. It is always False for the X axis.
-
-        :rtype: bool
+        """Return True if the axis is inverted, False otherwise.
+        An inverted x-axis goes right to left.
+        An inverted y-axis goes top to bottom.
         """
-        return False
+        raise NotImplementedError()
 
-    def setInverted(self, isInverted: bool):
+    def setInverted(self, flag: bool):
         """Set the axis orientation.
 
-        This is only available for the Y axis.
+        If True, x-axis will go right to left
+        and y-axis will go top to bottom.
+
+        If False, x-axis will go left to right
+        and y-axis will go bottom to top.
 
         :param flag: True for Y axis going from top to bottom,
                      False for Y axis going from bottom to top
         """
-        if isInverted == self.isInverted():
-            return
         raise NotImplementedError()
 
     def isVisible(self) -> bool:
@@ -428,6 +429,25 @@ class XAxis(Axis):
         ranges = self._getPlot().getDataRange()
         return ranges.x
 
+    def setInverted(self, flag: bool = True):
+        """Set the axis orientation.
+
+        :param flag: True for X axis going from left to right,
+                     False for X axis going from right to left
+        """
+        flag = bool(flag)
+        if self.isInverted() == flag:
+            return
+        self._getBackend().setXAxisInverted(flag)
+        self._getPlot()._setDirtyPlot()
+        self.sigInvertedChanged.emit(flag)
+
+    def isInverted(self) -> bool:
+        """Return True if the axis is inverted (right to left),
+        False otherwise.
+        """
+        return self._getBackend().isXAxisInverted()
+
 
 class YAxis(Axis):
     """Axis class defining primitives for the Y axis"""
@@ -450,10 +470,8 @@ class YAxis(Axis):
     def setInverted(self, flag: bool = True):
         """Set the axis orientation.
 
-        This is only available for the Y axis.
-
-        :param bool flag: True for Y axis going from top to bottom,
-                          False for Y axis going from bottom to top
+        :param flag: True for Y axis going from top to bottom,
+                     False for Y axis going from bottom to top
         """
         flag = bool(flag)
         if self.isInverted() == flag:
@@ -463,10 +481,8 @@ class YAxis(Axis):
         self.sigInvertedChanged.emit(flag)
 
     def isInverted(self) -> bool:
-        """Return True if the axis is inverted (top to bottom for the y-axis),
-        False otherwise. It is always False for the X axis.
-
-        :rtype: bool
+        """Return True if the axis is inverted (top to bottom),
+        False otherwise.
         """
         return self._getBackend().isYAxisInverted()
 

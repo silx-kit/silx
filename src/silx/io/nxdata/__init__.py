@@ -59,7 +59,7 @@ Functions
 .. autofunction:: save_NXdata
 
 """
-from .parse import (
+from .parse import (  # noqa F401
     NXdata,
     get_default,
     is_valid_nxdata,
@@ -68,5 +68,5 @@ from .parse import (
     is_NXroot_with_default_NXdata,
     is_group_with_default_NXdata,
 )
-from ._utils import get_attr_as_unicode, nxdata_logger
-from .write import save_NXdata
+from ._utils import get_attr_as_unicode, nxdata_logger  # noqa F401
+from .write import save_NXdata  # noqa F401

@@ -42,7 +42,7 @@ import pyopencl.array as cla
 def check_atomic32(device):
     try:
         ctx = pyopencl.Context(devices=[device])
-    except:
+    except Exception:
         return False, f"Unable to create context on {device}"
     else:
         queue = pyopencl.CommandQueue(ctx)
@@ -65,7 +65,7 @@ int res = atom_inc(ary);
 def check_atomic64(device):
     try:
         ctx = pyopencl.Context(devices=[device])
-    except:
+    except Exception:
         return False, f"Unable to create context on {device}"
     else:
         queue = pyopencl.CommandQueue(ctx)

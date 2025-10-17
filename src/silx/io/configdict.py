@@ -404,7 +404,7 @@ class ConfigDict(dict):
             ddict = self
             for subsectw in sect.split("."):
                 subsect = subsectw.replace("_|_", ".")
-                if not subsect in ddict:
+                if subsect not in ddict:
                     ddict[subsect] = {}
                 ddict = ddict[subsect]
             for opt in cfg.options(sect):

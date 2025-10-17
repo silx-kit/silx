@@ -57,7 +57,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
 
     def testFogEffect(self):
         """Test fog effect on scene primitive"""
-        image = self.widget.addImage(numpy.arange(100).reshape(10, 10))
+        _ = self.widget.addImage(numpy.arange(100).reshape(10, 10))
         scatter = self.widget.add3DScatter(*numpy.random.random(4000).reshape(4, -1))
         scatter.setTranslation(10, 10)
         scatter.setScale(10, 10, 10)

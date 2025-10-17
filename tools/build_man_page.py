@@ -29,10 +29,10 @@ The project's package MUST be installed in the current Python environment.
 
 import logging
 from pathlib import Path
-import re
 import subprocess
 import sys
 from collections.abc import Iterator
+
 if sys.version_info[:2] < (3, 11):
     import tomli
 else:
@@ -48,7 +48,7 @@ PROJECT_PATH = Path(__file__).parent.parent
 
 def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
     # search the executable in pyproject.toml
-    with open( project_path / "pyproject.toml") as f:
+    with open(project_path / "pyproject.toml") as f:
         pyproject = tomli.loads(f.read())
     # print(pyproject)
     entry_points_config = pyproject.get("project", {})
@@ -58,7 +58,7 @@ def entry_points(project_path: Path) -> Iterator[tuple[str, str, str]]:
         for entry, value in entry_points_config.get(group, {}).items():
             try:
                 module, fnt = value.split(":", 1)
-            except:
+            except ValueError:
                 logger.error(f"Unable to parse entry {value}!")
             else:
                 yield entry, module, fnt

@@ -390,8 +390,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
             self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
-            local = lambda x: x.local_filename + SEPARATOR + x.local_name
-            self.__data.addHeaderValueRow("Local", local)
+            self.__data.addHeaderValueRow(
+                "Local", lambda x: x.local_filename + SEPARATOR + x.local_name
+            )
         else:
             # it's a real H5py object
             self.__data.addHeaderValueRow(
@@ -404,10 +405,14 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 # That's a link
                 if hasattr(obj, "filename"):
                     # External link
-                    link = lambda x: x.filename + SEPARATOR + x.path
+                    def link(x):
+                        return x.filename + SEPARATOR + x.path
+
                 else:
                     # Soft link
-                    link = lambda x: x.path
+                    def link(x):
+                        return x.path
+
                 self.__data.addHeaderValueRow("Link", link)
                 showPhysicalLocation = False
 
@@ -478,10 +483,13 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             if len(obj.attrs) > 0:
                 self.__data.addHeaderRow(headerLabel="Attributes")
                 for key in sorted(obj.attrs.keys()):
-                    callback = lambda key, x: self.__formatter.toString(x.attrs[key])
-                    callbackTooltip = lambda key, x: self.__attributeTooltip(
-                        x.attrs[key]
-                    )
+
+                    def callback(key, x):
+                        return self.__formatter.toString(x.attrs[key])
+
+                    def callbackTooltip(key, x):
+                        return self.__attributeTooltip(x.attrs[key])
+
                     self.__data.addHeaderValueRow(
                         headerLabel=key,
                         value=functools.partial(callback, key),

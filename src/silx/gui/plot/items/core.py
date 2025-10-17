@@ -45,6 +45,7 @@ from ....math.combo import min_max
 from ... import qt
 from ... import colors
 from ...colors import Colormap, _Colormappable
+from ._cache import LRUCache
 from ._pick import PickingResult
 
 from silx import config
@@ -604,11 +605,15 @@ class DraggableMixIn(ItemMixInBase):
 class ColormapMixIn(_Colormappable, ItemMixInBase):
     """Mix-in class for items with colormap"""
 
+    COLORMAP_CACHE_SIZE = 128
+
     def __init__(self):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
-        self.__cacheColormapRange = {}  # Store {normalization: range}
+        self.__cacheColormapRange = LRUCache(
+            maxsize=self.COLORMAP_CACHE_SIZE
+        )  # Store {(normalization, autoscale mode): range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -653,14 +658,17 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         self.__data = (
             None if data is None else numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         )
-        self.__cacheColormapRange = {}  # Reset cache
+        self.__cacheColormapRange.clear()
 
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
             if min_ is not None and numpy.isfinite(min_):
-                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX] = min_, max_
+                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX, None] = (
+                    min_,
+                    max_,
+                )
             if minPositive is not None and numpy.isfinite(minPositive):
-                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX] = (
+                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX, None] = (
                     minPositive,
                     max_,
                 )
@@ -698,7 +706,12 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
 
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
-        key = normalization, autoscaleMode
+        if autoscaleMode == Colormap.PERCENTILE:
+            percentile = colormap.getAutoscalePercentiles()
+        else:
+            percentile = None
+
+        key = normalization, autoscaleMode, percentile
         vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
             vRange = colormap._computeAutoscaleRange(data)

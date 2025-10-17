@@ -213,6 +213,9 @@ class PlotWindow(PlotWidget):
         )
         self.keepDataAspectRatioButton.setVisible(aspectRatio)
 
+        self._xAxisInvertedButton = PlotToolButtons.XAxisOriginToolButton(
+            parent=self, plot=self
+        )
         self.yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
             parent=self, plot=self
         )
@@ -449,25 +452,19 @@ class PlotWindow(PlotWidget):
         toolbar = qt.QToolBar(title, parent)
 
         # Order widgets with actions
-        objects = self.group.actions()
+        toolbar.addActions(self.group.actions())
 
         # Add push buttons to list
-        index = objects.index(self.colormapAction)
-        objects.insert(index + 1, self.keepDataAspectRatioButton)
-        objects.insert(index + 2, self.yAxisInvertedButton)
+        self.keepDataAspectRatioAction = toolbar.insertWidget(
+            self.colorbarAction, self.keepDataAspectRatioButton
+        )
+        self._xAxisInvertedAction = toolbar.insertWidget(
+            self.colorbarAction, self._xAxisInvertedButton
+        )
+        self.yAxisInvertedAction = toolbar.insertWidget(
+            self.colorbarAction, self.yAxisInvertedButton
+        )
 
-        for obj in objects:
-            if isinstance(obj, qt.QAction):
-                toolbar.addAction(obj)
-            else:
-                # Add action for toolbutton in order to allow changing
-                # visibility (see doc QToolBar.addWidget doc)
-                if obj is self.keepDataAspectRatioButton:
-                    self.keepDataAspectRatioAction = toolbar.addWidget(obj)
-                elif obj is self.yAxisInvertedButton:
-                    self.yAxisInvertedAction = toolbar.addWidget(obj)
-                else:
-                    raise RuntimeError("unknow action to be defined")
         return toolbar
 
     def toolBar(self):
@@ -787,11 +784,20 @@ class PlotWindow(PlotWidget):
         """
         return self.keepDataAspectRatioAction
 
-    def getYAxisInvertedButton(self):
-        """Button to switch the Y axis orientation
+    def getXAxisInvertedButton(self) -> PlotToolButtons.XAxisOriginToolButton:
+        """Button to switch the X axis orientation"""
+        return self._xAxisInvertedButton
 
-        :rtype: PlotToolButtons.YAxisOriginToolButton
+    def getXAxisInvertedAction(self) -> qt.QAction:
+        """Action associated to xAxisInvertedButton.
+
+        Use this to change the visibility xAxisInvertedButton in the toolbar.
+        (See :meth:`QToolBar.addWidget` documentation).
         """
+        return self._xAxisInvertedAction
+
+    def getYAxisInvertedButton(self) -> PlotToolButtons.YAxisOriginToolButton:
+        """Button to switch the Y axis orientation"""
         return self.yAxisInvertedButton
 
     def getYAxisInvertedAction(self):

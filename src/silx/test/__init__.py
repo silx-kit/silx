@@ -25,21 +25,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 import importlib
-import logging
 import os.path
 import subprocess
 import sys
-
-
-try:
-    import pytest  # noqa: F401
-except ImportError:
-    logging.getLogger(__name__).error(
-        "pytest is required to run the tests, please install it."
-    )
-    raise
+import tempfile
+from collections.abc import Sequence
 
 
 def run_tests(
@@ -82,6 +73,8 @@ def run_tests(
             list_path.append(module_path)
         cmd += list_path
 
-    print("Running pytest with this command:")
-    print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
-    return subprocess.run(cmd, check=False).returncode
+    with tempfile.TemporaryDirectory(prefix="silx-") as workdir:
+        print(f"Running pytest in `{workdir}` with this command:")
+        print(" ".join(f'"{i}"' if " " in i else i for i in cmd))
+        result = subprocess.run(cmd, check=False, cwd=workdir).returncode
+    return result

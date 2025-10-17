@@ -216,7 +216,7 @@ class TestUnnumberedFioH5(unittest.TestCase):
 
     def testLogMissingScanno(self):
         with self.assertLogs(logger1, level="WARNING") as cm:
-            fioh5 = FioH5(self.fname_nosuffix)
+            _ = FioH5(self.fname_nosuffix)
         self.assertIn("Cannot parse scan number of file", cm.output[0])
 
     def testFallbackName(self):
@@ -279,7 +279,7 @@ class TestBrokenHeaderFioH5(unittest.TestCase):
 
     def testLogBrokenHeader(self):
         with self.assertLogs(logger1, level="WARNING") as cm:
-            fioh5 = FioH5(self.fname_numbered)
+            _ = FioH5(self.fname_numbered)
         self.assertIn("Cannot parse parameter section", cm.output[0])
         self.assertIn("Cannot parse default comment section", cm.output[1])
 

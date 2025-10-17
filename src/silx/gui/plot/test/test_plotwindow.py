@@ -119,9 +119,9 @@ class TestPlotWindow(TestCaseQt):
 
     def testToolYAxisOrigin(self):
         self.plot.toolBar()
-        self.plot.yAxisInvertedButton.setYAxisUpward()
+        self.plot.yAxisInvertedButton.setAxisInverted(False)
         self.assertFalse(self.plot.getYAxis().isInverted())
-        self.plot.yAxisInvertedButton.setYAxisDownward()
+        self.plot.yAxisInvertedButton.setAxisInverted(True)
         self.assertTrue(self.plot.getYAxis().isInverted())
 
     def testColormapAutoscaleCache(self):
