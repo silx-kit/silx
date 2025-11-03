@@ -50,7 +50,7 @@ else:
     from scipy.datasets import ascent
 
 import unittest
-from silx.opencl import ocl
+from ... import ocl
 
 if ocl:
     import pyopencl.array

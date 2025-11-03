@@ -457,6 +457,7 @@ class ArrayImagePlot(qt.QWidget):
         x_axis=None,
         y_axis=None,
         signals_names=None,
+        axes_names=None,
         xlabel=None,
         ylabel=None,
         title=None,
@@ -489,6 +490,7 @@ class ArrayImagePlot(qt.QWidget):
 
         self.__signals = signals
         self.__signals_names = signals_names
+        self.__axis_names = axes_names
         self.__x_axis = x_axis
         self.__x_axis_name = xlabel
         self.__y_axis = y_axis
@@ -508,6 +510,9 @@ class ArrayImagePlot(qt.QWidget):
             self._axesSelector.hide()
         else:
             self._axesSelector.show()
+
+        if self.__axis_names:
+            self._axesSelector.setLabels(self.__axis_names)
 
         self._signalSelector.setSignalNames(signals_names)
         if len(signals) > 1:
@@ -584,15 +589,21 @@ class ArrayImagePlot(qt.QWidget):
             self._plot.getXAxis().setScale("linear")
             self._plot.getYAxis().setScale("linear")
 
-            imageItem = ImageDataAggregated()
+            if image.ndim == 2:
+                imageItem = ImageDataAggregated()
+                imageItem.setColormap(self._plot.getDefaultColormap())
+                imageItem.setAggregationMode(
+                    self.getAggregationModeAction().getAggregationMode()
+                )
+            elif image.ndim == 3:
+                imageItem = items.ImageRgba()
+            else:
+                raise ValueError(f"image dims should be 2 or 3. Got {image.ndim}")
             imageItem.setName(legend)
             imageItem.setData(image)
             imageItem.setOrigin(origin)
             imageItem.setScale(scale)
-            imageItem.setColormap(self._plot.getDefaultColormap())
-            imageItem.setAggregationMode(
-                self.getAggregationModeAction().getAggregationMode()
-            )
+
             self._plot.addItem(imageItem)
             self._plot.setActiveImage(imageItem)
         else:

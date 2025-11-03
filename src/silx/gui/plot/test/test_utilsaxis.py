@@ -50,7 +50,7 @@ class TestAxisSync(TestCaseQt):
 
     def testMoveFirstAxis(self):
         """Test synchronization after construction"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()]
         )
 
@@ -61,7 +61,7 @@ class TestAxisSync(TestCaseQt):
 
     def testMoveSecondAxis(self):
         """Test synchronization after construction"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()]
         )
 
@@ -72,7 +72,7 @@ class TestAxisSync(TestCaseQt):
 
     def testMoveTwoAxes(self):
         """Test synchronization after construction"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()]
         )
 
@@ -96,7 +96,7 @@ class TestAxisSync(TestCaseQt):
 
     def testAxisDestruction(self):
         """Test synchronization when an axis disappear"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()]
         )
 
@@ -158,7 +158,7 @@ class TestAxisSync(TestCaseQt):
 
     def testScale(self):
         """Test scale change"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()]
         )
         self.plot1.getXAxis().setScale(self.plot1.getXAxis().LOGARITHMIC)
@@ -174,7 +174,7 @@ class TestAxisSync(TestCaseQt):
 
     def testDirection(self):
         """Test direction change"""
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getYAxis(), self.plot2.getYAxis(), self.plot3.getYAxis()]
         )
         self.plot1.getYAxis().setInverted(True)
@@ -188,7 +188,7 @@ class TestAxisSync(TestCaseQt):
         self.plot1.getXAxis().setLimits(0, 200)
         self.plot2.getXAxis().setLimits(0, 20)
         self.plot3.getXAxis().setLimits(0, 2)
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()],
             syncLimits=False,
             syncCenter=True,
@@ -204,7 +204,7 @@ class TestAxisSync(TestCaseQt):
         self.plot1.getXAxis().setLimits(0, 200)
         self.plot2.getXAxis().setLimits(0, 20)
         self.plot3.getXAxis().setLimits(0, 2)
-        _sync = SyncAxes(
+        _ = SyncAxes(
             [self.plot1.getXAxis(), self.plot2.getXAxis(), self.plot3.getXAxis()],
             syncLimits=False,
             syncCenter=True,

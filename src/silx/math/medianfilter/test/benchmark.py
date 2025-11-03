@@ -36,14 +36,14 @@ import logging
 
 try:
     import scipy
-except:
+except ImportError:
     scipy = None
 else:
     import scipy.ndimage
 
 try:
     import PyMca5.PyMca as pymca
-except:
+except ImportError:
     pymca = None
 else:
     from PyMca5.PyMca.median import medfilt2d as medfilt2d_pymca

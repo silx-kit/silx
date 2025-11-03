@@ -1,4 +1,4 @@
-name: CI
+name: Continuous integration
 
 on:
   push:
@@ -11,7 +11,26 @@ defaults:
     shell: bash
 
 jobs:
-  # This workflow contains a single job called "build"
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install
+        run: pip install --upgrade black build flake8
+      - run: black --check .
+      - run: flake8
+      - name: Build wheel
+        run: |
+          python -m build --wheel
+          ls dist
+      - name: Check meson.build files
+        run: |
+          python ./tools/check_meson.py dist/silx-*.whl
+
   build:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
     runs-on: ${{ matrix.os }}
@@ -59,25 +78,21 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v5        
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
-
       - uses: ./.github/actions/setup-system
-
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build cython setuptools wheel
-          pip list
+          pip install --upgrade --pre build wheel 
 
-      - name: Build
+      - name: Build wheel
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
-          python -m build --no-isolation
+          python -m build
           ls dist
 
       - name: Install
@@ -91,7 +106,6 @@ jobs:
       - name: Test
         env:
           QT_API: ${{ matrix.QT_API }}
-          SILX_TEST_LOW_MEM: "False"
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=1, args=['--qt-binding=${{ matrix.QT_API }}']));"
+          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"

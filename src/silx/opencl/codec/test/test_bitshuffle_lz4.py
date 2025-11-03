@@ -44,8 +44,8 @@ try:
     import bitshuffle
 except ImportError:
     bitshuffle = None
-from silx.opencl.common import ocl, pyopencl
-from silx.opencl.codec.bitshuffle_lz4 import BitshuffleLz4
+from ...common import ocl, pyopencl
+from ...codec.bitshuffle_lz4 import BitshuffleLz4
 
 
 TESTCASES = (  # dtype, shape

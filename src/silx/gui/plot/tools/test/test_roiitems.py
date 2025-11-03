@@ -171,9 +171,9 @@ def testRectangle_isIn(qapp):
     size = numpy.array([10, 20])
     item = roi_items.RectangleROI()
     item.setGeometry(origin=origin, size=size)
-    assert item.contains(position=(0, 0))
-    assert item.contains(position=(2, 14))
-    assert not item.contains(position=(14, 12))
+    assert item.contains((0, 0))
+    assert item.contains((2, 14))
+    assert not item.contains((14, 12))
 
 
 def testPolygon_emptyGeometry(qapp):

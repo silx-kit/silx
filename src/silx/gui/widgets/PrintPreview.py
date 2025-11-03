@@ -492,7 +492,7 @@ class PrintPreviewDialog(qt.QDialog):
             self.hide()
             self.accept()
             self._toBeCleared = True
-        except:  # FIXME
+        except Exception:  # FIXME
             painter.end()
             qt.QMessageBox.critical(
                 self, "ERROR", "Printing problem:\n %s" % sys.exc_info()[1]

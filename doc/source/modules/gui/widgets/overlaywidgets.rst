@@ -1,8 +1,19 @@
 
 .. currentmodule:: silx.gui.widgets
 
+
+:mod:`OverlayMixIn`
+--------------------
+
+.. automodule:: silx.gui.widgets.OverlayMixIn
+
+.. autoclass:: silx.gui.widgets.OverlayMixIn.OverlayMixIn
+   :members:
+   :show-inheritance:
+
+
 :mod:`ButtonOverlay`
--------------------
+--------------------
 
 .. automodule:: silx.gui.widgets.ButtonOverlay
 
@@ -12,7 +23,7 @@
 
 
 :mod:`WaitingOverlay`
--------------------
+---------------------
 
 .. automodule:: silx.gui.widgets.WaitingOverlay
 

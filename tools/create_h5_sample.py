@@ -34,17 +34,17 @@ import json
 import logging
 import sys
 
+import h5py
+import numpy
+
 logging.basicConfig()
 logger = logging.getLogger("create_h5file")
 
 
 try:
-    import hdf5plugin
+    import hdf5plugin  # noqa: F401
 except ImportError:
     logger.error("Backtrace", exc_info=True)
-
-import h5py
-import numpy
 
 
 if sys.version_info.major < 3:

@@ -36,7 +36,6 @@ __date__ = "30/11/2020"
 
 import logging
 import numpy
-import pytest
 
 import unittest
 from ..common import ocl, _measure_workgroup_size, query_kernel_info

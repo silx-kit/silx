@@ -34,7 +34,19 @@ from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
-from silx.gui.plot.items.roi import RectangleROI, PolygonROI
+from silx.gui.plot.items.roi import (
+    RectangleROI,
+    PolygonROI,
+    ArcROI,
+    LineROI,
+    HorizontalLineROI,
+    VerticalLineROI,
+    PointROI,
+    CrossROI,
+    CircleROI,
+    EllipseROI,
+    BandROI,
+)
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.stats.stats import Stats
 from silx.gui.plot.CurvesROIWidget import ROI
@@ -1141,3 +1153,209 @@ class TestAdvancedROIImageContext(TestCaseQt):
                         y_end = min(max(y_end, 0), self.data_dims[0])
                         th_sum = numpy.sum(self.data[y_start:y_end, x_start:x_end])
                         self.assertAlmostEqual(_stats["sum"].calculate(context), th_sum)
+
+
+class TestROIStatValues(TestCaseQt):
+    """
+    Test stat values based on ROI
+    """
+
+    def setUp(self):
+        self.plot2d = Plot2D()
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7,  8,  9],
+        #  [10, 11, 12, 13, 14],
+        #  [15, 16, 17, 18, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        self.simple_image = numpy.random.permutation(numpy.arange(25)).reshape((5, 5))
+        self.plot2d.addImage(data=self.simple_image, legend="test image", replace=False)
+
+    def tearDown(self):
+        self.plot2d.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot2d.close()
+        del self.plot2d
+
+    def testRectangleROIStats(self):
+        roi = RectangleROI()
+        roi.setGeometry(origin=(2, 1), size=(1, 2))
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7*,  8*, 9],
+        #  [10, 11, 12*, 13*, 14],
+        #  [15, 16, 17*, 18*, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [7, 8, 12, 13, 17, 18]
+        self._assertRoiStats(roi, indices)
+
+    def testPolygonROIStats(self):
+        roi = PolygonROI()
+        roi.setPoints(numpy.array([(2, 1), (4, 3), (2, 3)]))
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7*,  8,  9],
+        #  [10, 11, 12*, 13*, 14],
+        #  [15, 16, 17, 18, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [7, 12, 13]
+        self._assertRoiStats(roi, indices)
+
+    def testArcROIStats(self):
+        roi = ArcROI()
+        center = numpy.array([2, 2])
+        inner_radius = 0.5
+        outer_radius = 2.0
+        start_angle = 0.0
+        end_angle = 3 * numpy.pi / 4  # angles 0..135 deg CCW
+        roi.setGeometry(center, inner_radius, outer_radius, start_angle, end_angle)
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7,  8,  9],
+        #  [10, 11, 12, 13*, 14*],
+        #  [15, 16*, 17*, 18*, 19],
+        #  [20, 21, 22*, 23, 24]]
+
+        indices = [13, 14, 16, 17, 18, 22]
+        self._assertRoiStats(roi, indices)
+
+    def testLineROIStats(self):
+        roi = LineROI()
+        start = numpy.array([0, 0])
+        end = numpy.array([4, 4])
+        roi.setEndPoints(start, end)
+
+        # [[ 0*, 1*,  2,  3,  4],
+        #  [ 5*, 6*, 7*,  8,  9],
+        #  [10, 11*, 12*, 13*, 14],
+        #  [15, 16, 17*, 18*, 19*],
+        #  [20, 21, 22, 23*, 24*]]
+
+        indices = [0, 1, 5, 6, 7, 11, 12, 13, 17, 18, 19, 23, 24]
+        self._assertRoiStats(roi, indices)
+
+    def testBandROIStats(self):
+        roi = BandROI()
+        begin = (0, 0)
+        end = (4, 4)
+        width = 1.5
+        roi.setGeometry(begin, end, width)
+
+        # [[ 0*,  1*,  2,  3,  4],
+        #  [ 5*,  6*,  7*,  8,  9],
+        #  [10, 11*, 12*, 13*, 14],
+        #  [15, 16, 17*, 18*, 19*],
+        #  [20, 21, 22, 23*, 24]]
+
+        indices = [0, 1, 5, 6, 7, 11, 12, 13, 17, 18, 19, 23]
+        self._assertRoiStats(roi, indices)
+
+    def testHorizontalLineROIStats(self):
+        roi = HorizontalLineROI()
+        roi.setPosition(2)
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7,  8,  9],
+        #  [10*, 11*, 12*, 13*, 14*],
+        #  [15, 16, 17, 18, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [10, 11, 12, 13, 14]
+        self._assertRoiStats(roi, indices)
+
+    def testVerticalLineROIStats(self):
+        roi = VerticalLineROI()
+        roi.setPosition(3)
+
+        # [[ 0,  1,  2,  3*,  4],
+        #  [ 5,  6,  7,  8*,  9],
+        #  [10, 11, 12, 13*, 14],
+        #  [15, 16, 17, 18*, 19],
+        #  [20, 21, 22, 23*, 24]]
+
+        indices = [3, 8, 13, 18, 23]
+        self._assertRoiStats(roi, indices)
+
+    def testPointROIStats(self):
+        roi = PointROI()
+        roi.setPosition((2, 3))
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7,  8,  9],
+        #  [10, 11, 12, 13, 14],
+        #  [15, 16, 17*, 18, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [17]
+        self._assertRoiStats(roi, indices)
+
+    def testCrossROIStats(self):
+        roi = CrossROI()
+        roi.setPosition((3, 2))
+
+        # [[ 0,  1,  2,  3*,  4],
+        #  [ 5,  6,  7,  8*,  9],
+        #  [10*, 11*, 12*, 13*, 14*],
+        #  [15, 16, 17, 18*, 19],
+        #  [20, 21, 22, 23*, 24]]
+
+        indices = [3, 8, 10, 11, 12, 13, 14, 18, 23]
+        self._assertRoiStats(roi, indices)
+
+    def testCircleROIStats(self):
+        roi = CircleROI()
+        center = numpy.array([2, 2])
+        radius = 1.5
+        roi.setGeometry(center, radius)
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6*,  7*,  8*,  9],
+        #  [10, 11*, 12*, 13*, 14],
+        #  [15, 16*, 17*, 18*, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [6, 7, 8, 11, 12, 13, 16, 17, 18]
+        self._assertRoiStats(roi, indices)
+
+    def testEllipseROIStats(self):
+        roi = EllipseROI()
+        center = numpy.array([2, 2])
+        major_radius = 2
+        minor_radius = 1
+        orientation = 0.0  # horizontal major axis
+        roi.setGeometry(
+            center=center, radius=(major_radius, minor_radius), orientation=orientation
+        )
+
+        # [[ 0,  1,  2,  3,  4],
+        #  [ 5,  6,  7*,  8,  9],
+        #  [10*, 11*, 12*, 13*, 14*],
+        #  [15, 16, 17*, 18, 19],
+        #  [20, 21, 22, 23, 24]]
+
+        indices = [7, 10, 11, 12, 13, 14, 17]
+        self._assertRoiStats(roi, indices)
+
+    def _assertRoiStats(self, roi, indices):
+        coords = numpy.unravel_index(indices, self.simple_image.shape)
+        values = self.simple_image[coords]
+
+        expected = {
+            "sum": sum(values),
+            "mean": sum(values) / len(values),
+        }
+        stat_objects = [
+            stats.Stat(name="sum", fct=numpy.sum),
+            stats.Stat(name="mean", fct=numpy.mean),
+        ]
+        img_item = self.plot2d.getImage("test image")
+        context = stats._ImageContext(
+            item=img_item, plot=self.plot2d, onlimits=False, roi=roi
+        )
+        for stat in stat_objects:
+            value = stat.calculate(context)
+            exp_value = expected[stat.name]
+            error_msg = f"expected {stat.name} is {exp_value}, got {value}"
+            assert numpy.isclose(value, exp_value), error_msg

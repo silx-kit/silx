@@ -29,8 +29,10 @@ import unittest
 import numpy
 import logging
 
-logger = logging.getLogger(__name__)
 from ..bilinear import BilinearImage
+
+
+logger = logging.getLogger(__name__)
 
 
 class TestBilinear(unittest.TestCase):
@@ -53,11 +55,15 @@ class TestBilinear(unittest.TestCase):
         ok = 0
         for s in range(self.N):
             i, j = numpy.random.randint(100), numpy.random.randint(100)
-            k, l = b.local_maxi((i, j))
-            if abs(k - 40) > 1e-4 or abs(l - 60) > 1e-4:
-                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+            row, col = b.local_maxi((i, j))
+            if abs(row - 40) > 1e-4 or abs(col - 60) > 1e-4:
+                logger.warning(
+                    "Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, row, col
+                )
             else:
-                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+                logger.debug(
+                    "Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, row, col
+                )
                 ok += 1
         logger.debug("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")
@@ -73,11 +79,15 @@ class TestBilinear(unittest.TestCase):
         ok = 0
         for s in range(self.N):
             i, j = numpy.random.randint(100), numpy.random.randint(100)
-            k, l = b.local_maxi((i, j))
-            if abs(k - 40.5) > 0.5 or abs(l - 60.5) > 0.5:
-                logger.warning("Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+            row, col = b.local_maxi((i, j))
+            if abs(row - 40.5) > 0.5 or abs(col - 60.5) > 0.5:
+                logger.warning(
+                    "Wrong guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, row, col
+                )
             else:
-                logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
+                logger.debug(
+                    "Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, row, col
+                )
                 ok += 1
         logger.debug("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")
@@ -150,8 +160,8 @@ class TestBilinear(unittest.TestCase):
         img = numpy.arange(N * N).reshape(N, N)
         b = BilinearImage(img)
         res1 = b.profile_line((0, 0), (N - 1, N - 1))
-        l = numpy.ceil(numpy.sqrt(2) * N)
-        self.assertEqual(len(res1), l, "Profile has correct length")
+        expected_length = numpy.ceil(numpy.sqrt(2) * N)
+        self.assertEqual(len(res1), expected_length, "Profile has correct length")
         self.assertLess(
             (res1[:-2] - res1[1:-1]).std(),
             1e-3,

@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+export PYBUILD_NAME=silx
+export PYBUILD_SYSTEM=pyproject
+#export PYBUILD_BUILD_ARGS := -Csetup-args=-Dcython=cython3
+
+%:
+	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
+
+override_dh_clean:
+	dh_clean
+	rm -f $(patsubst %.pyx,%.c,$(wildcard *.pyx))
+	rm -rf build
+	rm -rf *.egg-info
+
+override_dh_install:
+	dh_numpy3
+
+	# move the scripts to right package
+	dh_install -p silx debian/python3-pyfai/usr/bin usr/
+	# remove all scripts installed by pybuild
+	rm -rf debian/python3-silx/usr/bin
+
+	#Finally install stuff
+	dh_install
+
+# inactive test for now
+override_dh_auto_test:
+	PYBUILD_SYSTEM=custom \
+	PYBUILD_TEST_ARGS="PYTHONPATH={build_dir} {interpreter} ./run_tests.py --installed" dh_auto_test
+
+override_dh_installman:
+	dh_installman -p silx build/man/*.1

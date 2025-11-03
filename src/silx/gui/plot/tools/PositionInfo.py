@@ -299,7 +299,7 @@ class PositionInfo(qt.QWidget):
                 value = func(xData, yData)
                 text = self.valueToString(value)
                 label.setText(text)
-            except:
+            except Exception:
                 label.setText("Error")
                 _logger.error(
                     "Error while converting coordinates (%f, %f)"

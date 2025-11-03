@@ -44,9 +44,9 @@ __status__ = "stable"
 
 import logging
 
-logger = logging.getLogger(__name__)
-
 from . import common
+
+logger = logging.getLogger(__name__)
 
 
 def __getattr__(name):

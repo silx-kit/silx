@@ -8,7 +8,7 @@ __license__ = "MIT"
 import sys
 import platform
 import subprocess
-
+from sysconfig import get_config_vars
 
 print("Python %s bits" % (tuple.__itemsize__ * 8))
 print(f"       maxsize: {sys.maxsize}\t maxunicode: {sys.maxunicode}")
@@ -19,7 +19,6 @@ print("Platform: " + platform.platform())
 print("- Machine: " + platform.machine())
 print(" ")
 
-from sysconfig import get_config_vars
 
 print("Config: " + str(get_config_vars("CONFIG_ARGS")))
 print("")

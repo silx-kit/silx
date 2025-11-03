@@ -28,14 +28,14 @@ tree.
    :members: addFile, addGroup, getSelectedDataUrl, setMode
 
 """
+import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeView import Hdf5TreeView
 import silx.io
 from silx.io.url import DataUrl
 
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "22/03/2018"
+
+_logger = logging.getLogger(__name__)
 
 
 class _Hdf5ItemSelectionDialog(qt.QDialog):
@@ -163,6 +163,30 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
             selected HDF5 item.
         """
         return self._selectedUrl
+
+    def setSelectedDataUrl(self, url: DataUrl):
+        """
+        Make the given url the selected URL.
+
+        :raises: ValueError if the url cannot be selected (file or data path not existing)
+        """
+        if url.file_path() not in self._model._getFiles():
+            try:
+                self.addFile(path=url.file_path())
+            except OSError:
+                raise ValueError(f"File {url.file_path()} doesn't exists")
+
+        model = self._tree.findHdf5TreeModel()
+        h5Object = model.findHdf5Item(url=url)
+
+        if h5Object is None:
+            # clean orphan nodes (in the case the file was added but the creation of the h5object failed)
+            model._cleanChildlessNodes()
+            raise ValueError(
+                f"Unable to find data path {url.data_path()} from {url.file_path()}"
+            )
+
+        self._tree.setSelectedH5Node(h5Object=h5Object.obj)
 
 
 class GroupDialog(_Hdf5ItemSelectionDialog):

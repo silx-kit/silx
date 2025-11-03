@@ -404,8 +404,5 @@ class Histogram(
         if histogramType == "center":
             edges = (edges[1:] + edges[:-1]) / 2.0
         if histogramType == "right":
-            width = 1
-            if len(x) > 1:
-                width = x[-1] + x[-2]
             edges = edges[:-1]
         return edges

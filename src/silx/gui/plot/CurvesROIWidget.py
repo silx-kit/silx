@@ -37,11 +37,13 @@ import os
 import sys
 import functools
 import numpy
+from typing import Union
 
 try:
     from numpy import trapezoid
 except ImportError:  # numpy v1 compatibility
     from numpy import trapz as trapezoid
+from numpy.typing import ArrayLike
 
 from silx.io import dictdump
 from silx.utils.weakref import WeakMethodProxy
@@ -51,7 +53,7 @@ from silx.math.combo import min_max
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
 from . import items
-from .items.roi import _RegionOfInterestBase
+from .items._roi_base import _RegionOfInterestBase
 from silx.utils.deprecation import deprecated
 
 
@@ -93,7 +95,7 @@ class CurvesROIWidget(qt.QWidget):
         """Store the last value emitted for the sigROISignal. In the case the
         active curve change we need to add this extra step in order to make
         sure we won't send twice the sigROISignal.
-        This come from the fact sigROISignal is connected to the 
+        This come from the fact sigROISignal is connected to the
         activeROIChanged signal which is emitted when raw and net counts
         values are changing but are not embed in the sigROISignal.
         """
@@ -188,10 +190,6 @@ class CurvesROIWidget(qt.QWidget):
         :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
-
-    def showEvent(self, event):
-        self._visibilityChangedHandler(visible=True)
-        qt.QWidget.showEvent(self, event)
 
     @property
     def roiFileDir(self):
@@ -882,7 +880,10 @@ class ROITable(TableWidget):
                 self._roiDict.keys(),
                 key=lambda roi_id: self._roiDict[roi_id].get(order),
             )
-            res = {roi.getName(): self._roiDict[id] for id in ordered_roilist}
+            res = {
+                self._roiDict[roiId].getName(): self._roiDict[roiId]
+                for roiId in ordered_roilist
+            }
 
         return res
 
@@ -1256,8 +1257,10 @@ class ROI(_RegionOfInterestBase):
         return rawArea, netArea
 
     @docstring(_RegionOfInterestBase)
-    def contains(self, position):
-        return self._fromdata <= position[0] <= self._todata
+    def contains(self, position: ArrayLike) -> Union[bool, numpy.ndarray]:
+        positions, is_single = self._normalize_positions_shape(position)
+        is_inside = self._fromdata <= positions[:, 0] <= self._todata
+        return is_inside[0] if is_single else is_inside
 
 
 class _RoiMarkerManager:

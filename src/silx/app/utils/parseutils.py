@@ -128,7 +128,7 @@ def to_enum(thing: Any, enum_type, default: object | None = None):
         if isinstance(v, enum_type):
             return v
         raise ValueError(f"{thing} is not a {enum_type.__name__}")
-    except (AttributeError, ValueError) as e:
+    except (AttributeError, ValueError):
         if default is not None:
             return default
         raise

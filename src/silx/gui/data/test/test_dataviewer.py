@@ -136,7 +136,7 @@ class _TestAbstractDataViewer(TestCaseQt):
 
             self.assertIn(DataViews.PLOT3D_MODE, availableModes)
         except ImportError:
-            self.assertIn(DataViews.STACK_MODE, availableModes)
+            self.assertIn(DataViews.IMAGE_MODE, availableModes)
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
@@ -312,11 +312,5 @@ class TestDataView(TestCaseQt):
             self.skipTest("OpenGL not available")
         data = self.createComplexData()
         dataViewClass = DataViews._Plot3dView
-        widget = self.createDataViewWithData(dataViewClass, data)
-        self.qWaitForWindowExposed(widget)
-
-    def testImageStackWithComplex(self):
-        data = self.createComplexData()
-        dataViewClass = DataViews._StackView
         widget = self.createDataViewWithData(dataViewClass, data)
         self.qWaitForWindowExposed(widget)

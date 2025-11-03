@@ -408,9 +408,9 @@ class ParametersTab(qt.QTabWidget):
         text += "<table>"
         text += "<tr>"
         ncols = table.columnCount()
-        for l in range(ncols):
+        for col in range(ncols):
             text += '<td align="left" bgcolor="%s"><b>' % hcolor
-            text += str(table.horizontalHeaderItem(l).text())
+            text += str(table.horizontalHeaderItem(col).text())
             text += "</b></td>"
         text += "</tr>"
         nrows = table.rowCount()
@@ -431,7 +431,7 @@ class ParametersTab(qt.QTabWidget):
                 cc = table.item(r, 0).color
                 cc = (f"#{cc.red():x}{cc.green():x}{cc.blue():x}").upper()
                 color = cc
-            except:
+            except Exception:
                 pass
             for c in range(ncols):
                 item = table.item(r, c)
@@ -473,8 +473,8 @@ class ParametersTab(qt.QTabWidget):
         table = self.tables[name]
         text = ""
         ncols = table.columnCount()
-        for l in range(ncols):
-            text += (str(table.horizontalHeaderItem(l).text())) + "\t"
+        for col in range(ncols):
+            text += (str(table.horizontalHeaderItem(col).text())) + "\t"
         text += "\n"
         nrows = table.rowCount()
         for r in range(nrows):

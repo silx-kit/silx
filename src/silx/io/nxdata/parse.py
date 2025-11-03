@@ -293,7 +293,6 @@ class NXdata:
                         )
 
             # Test individual axes
-            is_scatter = True  # true if all axes have the same size as the signal
             signal_size = 1
             for dim in self.group[signal_name].shape:
                 signal_size *= dim
@@ -332,7 +331,6 @@ class NXdata:
                         continue
                     elif axis_len in (1, 2):
                         polynomial_axes_names.append(axis_name)
-                    is_scatter = False
 
                 # Test individual uncertainties
                 errors_name = axis_name + "_errors"

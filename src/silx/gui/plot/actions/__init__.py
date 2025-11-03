@@ -35,8 +35,8 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "16/08/2017"
 
-from .PlotAction import PlotAction
-from . import control
-from . import mode
-from . import io
-from . import image
+from .PlotAction import PlotAction  # noqa: F401
+from . import control  # noqa: F401
+from . import mode  # noqa: F401
+from . import io  # noqa: F401
+from . import image  # noqa: F401

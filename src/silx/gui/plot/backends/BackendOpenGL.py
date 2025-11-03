@@ -1596,12 +1596,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.yAxis.isLog = flag
             self._plotFrame.y2Axis.isLog = flag
 
-    def setYAxisInverted(self, flag):
-        if flag != self._plotFrame.isYAxisInverted:
-            self._plotFrame.isYAxisInverted = flag
+    def setYAxisInverted(self, flag: bool):
+        self._plotFrame.isYAxisInverted = flag
 
-    def isYAxisInverted(self):
+    def isYAxisInverted(self) -> bool:
         return self._plotFrame.isYAxisInverted
+
+    def setXAxisInverted(self, flag: bool):
+        self._plotFrame.isXAxisInverted = flag
+
+    def isXAxisInverted(self) -> bool:
+        return self._plotFrame.isXAxisInverted
 
     def isYRightAxisVisible(self):
         return self._plotFrame.isY2Axis
