@@ -132,7 +132,7 @@ class DataUrl:
         be false.
     """
 
-    _SCHEMES = ("fabio", "silx", "http", "https")
+    _SCHEMES = ("fabio", "silx", "http", "https", "blissdata")
 
     def __init__(
         self,
