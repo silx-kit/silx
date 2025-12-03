@@ -495,7 +495,7 @@ class TestSaveNXdata(unittest.TestCase):
         try:
             os.unlink(self.h5fname)
         except Exception as err:
-           print(f"{type(err).__name__}: {err}\nWhile deleting `{self.h5fname}`")
+            print(f"{type(err).__name__}: {err}\nWhile deleting `{self.h5fname}`")
 
     def testSimpleSave(self):
         sig = numpy.array([0, 1, 2])

@@ -88,7 +88,9 @@ except Exception:
     pass
 else:
     if "RepeatedKernelRetrieval" in dir(pyopencl):
-        _FILTERWARNINGS = _FILTERWARNINGS + ("ignore::pyopencl.RepeatedKernelRetrieval",)
+        _FILTERWARNINGS = _FILTERWARNINGS + (
+            "ignore::pyopencl.RepeatedKernelRetrieval",
+        )
 
 
 def pytest_collection_modifyitems(items):
