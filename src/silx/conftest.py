@@ -84,7 +84,7 @@ _FILTERWARNINGS = (
 )
 try:
     import pyopencl
-except:
+except Exception:
     pass
 else:
     if "RepeatedKernelRetrieval" in dir(pyopencl):
