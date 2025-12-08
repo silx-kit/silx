@@ -87,7 +87,8 @@ try:
 except Exception:
     pass
 else:
-    if "RepeatedKernelRetrieval" in dir(pyopencl):
+    pyopen_version = tuple(int(i) for i in pyopencl.__version__.split(".")[:2])
+    if pyopen_version >= (2025, 2):
         _FILTERWARNINGS = _FILTERWARNINGS + (
             "ignore::pyopencl.RepeatedKernelRetrieval",
         )
