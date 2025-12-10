@@ -24,9 +24,10 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2020"
+__date__ = "02/12/2025"
 
 
+import os
 import tempfile
 import unittest
 
@@ -489,6 +490,12 @@ class TestSaveNXdata(unittest.TestCase):
         tmp = tempfile.NamedTemporaryFile(prefix="nxdata", suffix=".h5", delete=True)
         tmp.file.close()
         self.h5fname = tmp.name
+
+    def tearDown(self):
+        try:
+            os.unlink(self.h5fname)
+        except Exception as err:
+            print(f"{type(err).__name__}: {err}\nWhile deleting `{self.h5fname}`")
 
     def testSimpleSave(self):
         sig = numpy.array([0, 1, 2])
