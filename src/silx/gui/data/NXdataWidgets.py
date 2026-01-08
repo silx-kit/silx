@@ -484,9 +484,11 @@ class ArrayImagePlot(qt.QWidget):
 
         if not isRgba:
             self._axesSelector.setAxisNames(["Y", "X"])
+            self._axesSelector.setNamedAxesSelectorVisibility(True)
             img_ndim = 2
         else:
             self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
+            self._axesSelector.setNamedAxesSelectorVisibility(False)
             img_ndim = 3
         # Labels need to be set before the data
         if self.__axes_names:
