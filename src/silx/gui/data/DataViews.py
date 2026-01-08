@@ -52,7 +52,7 @@ PLOT1D_MODE = 10
 RECORD_PLOT_MODE = 15
 IMAGE_MODE = 20
 PLOT2D_MODE = 21
-COMPLEX_IMAGE_MODE = 22
+COMPLEX_PLOT2D_MODE = 22
 PLOT3D_MODE = 30
 RAW_MODE = 40
 RAW_ARRAY_MODE = 41
@@ -1125,6 +1125,8 @@ class _Plot2dView(DataView):
             return DataView.UNSUPPORTED
         if data is None or not info.isArray or not (info.isNumeric or info.isBoolean):
             return DataView.UNSUPPORTED
+        if info.isComplex:
+            return DataView.UNSUPPORTED
         if info.dim < 2:
             return DataView.UNSUPPORTED
         if info.interpretation == "image":
@@ -1193,8 +1195,8 @@ class _ComplexImageView(DataView):
     def __init__(self, parent):
         super().__init__(
             parent=parent,
-            modeId=COMPLEX_IMAGE_MODE,
-            label="Complex Image",
+            modeId=COMPLEX_PLOT2D_MODE,
+            label="Image",
             icon=icons.getQIcon("view-2d"),
         )
 
@@ -1462,23 +1464,6 @@ class _RawView(CompositeDataView):
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
-
-
-class _ImageView(CompositeDataView):
-    """View displaying data as 2D image
-
-    It choose between Plot2D and ComplexImageView widgets
-    """
-
-    def __init__(self, parent):
-        super().__init__(
-            parent=parent,
-            modeId=IMAGE_MODE,
-            label="Image",
-            icon=icons.getQIcon("view-2d"),
-        )
-        self.addView(_ComplexImageView(parent))
-        self.addView(_Plot2dView(parent))
 
 
 class _InvalidNXdataView(DataView):

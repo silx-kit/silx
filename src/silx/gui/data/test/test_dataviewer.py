@@ -105,7 +105,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         widget.setData(data)
         availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
-        self.assertIn(DataViews.IMAGE_MODE, availableModes)
+        self.assertIn(DataViews.PLOT2D_MODE, availableModes)
 
     def test_image_bool(self):
         data = numpy.zeros((10, 10), dtype=bool)
@@ -114,7 +114,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         widget.setData(data)
         availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
-        self.assertIn(DataViews.IMAGE_MODE, availableModes)
+        self.assertIn(DataViews.PLOT2D_MODE, availableModes)
 
     def test_image_complex_data(self):
         data = numpy.arange(3**2, dtype=numpy.complex64)
@@ -123,7 +123,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         widget.setData(data)
         availableModes = {v.modeId() for v in widget.currentAvailableViews()}
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
-        self.assertIn(DataViews.IMAGE_MODE, availableModes)
+        self.assertIn(DataViews.COMPLEX_PLOT2D_MODE, availableModes)
 
     def test_plot_3d_data(self):
         data = numpy.arange(3**3)
@@ -136,7 +136,7 @@ class _TestAbstractDataViewer(TestCaseQt):
 
             self.assertIn(DataViews.PLOT3D_MODE, availableModes)
         except ImportError:
-            self.assertIn(DataViews.IMAGE_MODE, availableModes)
+            self.assertIn(DataViews.PLOT2D_MODE, availableModes)
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
@@ -205,8 +205,8 @@ class _TestAbstractDataViewer(TestCaseQt):
         assert listener.arguments() == [((0, 0, 0, slice(None)), None)]
         listener.clear()
 
-        widget.setDisplayMode(DataViews.IMAGE_MODE)
-        self.assertEqual(widget.displayedView().modeId(), DataViews.IMAGE_MODE)
+        widget.setDisplayMode(DataViews.PLOT2D_MODE)
+        self.assertEqual(widget.displayedView().modeId(), DataViews.PLOT2D_MODE)
         self.qWait(200)
         assert listener.arguments() == [((0, 0, slice(None), slice(None)), None)]
         listener.clear()
