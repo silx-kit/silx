@@ -595,3 +595,11 @@ class NumpyAxesSelector(qt.QWidget):
         self.__namedAxesVisibility = visible
         for axis in self.__axis:
             axis.setNamedAxisSelectorVisibility(visible)
+
+    def getIndicesOfNamedAxes(self) -> dict[str, int]:
+        result: dict[str, int] = {}
+        for i, axis in enumerate(self.__axis):
+            name = axis.axisName()
+            if name:
+                result[name] = i
+        return result
