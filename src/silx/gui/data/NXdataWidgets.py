@@ -40,6 +40,7 @@ from silx.gui.plot.actions.image import AggregationModeAction
 from silx.gui.colors import Colormap
 from silx.gui.data._SignalSelector import SignalSelector
 
+from silx.io.commonh5 import Dataset
 from silx.io.nxdata._utils import get_attr_as_unicode
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
 
@@ -374,7 +375,7 @@ class ArrayImagePlot(qt.QWidget):
     the signal array, and the plot is updated to show the image corresponding
     to the selection.
 
-    The dimensions can be changed with the signal array has more than 2 dimensions.
+    The dimensions can be changed when the signal array has more than 2 dimensions.
 
     If one or both of the axes does not have regularly spaced values, the
     the image is plotted as a coloured scatter plot.
@@ -449,8 +450,8 @@ class ArrayImagePlot(qt.QWidget):
 
     def setImageData(
         self,
-        signals: list[h5py.Dataset],
-        axes: list[h5py.Dataset] | None = None,
+        signals: list[h5py.Dataset | Dataset],
+        axes: list[h5py.Dataset | Dataset] | None = None,
         signals_names: list[str] | None = None,
         axes_names: list[str] | None = None,
         axes_scales: list[Literal["linear", "log"] | None] | None = None,
@@ -480,21 +481,22 @@ class ArrayImagePlot(qt.QWidget):
         self.__title = title
 
         self._axesSelector.clear()
+
         if not isRgba:
             self._axesSelector.setAxisNames(["Y", "X"])
             img_ndim = 2
         else:
             self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
             img_ndim = 3
+        # Labels need to be set before the data
+        if self.__axes_names:
+            self._axesSelector.setLabels(self.__axes_names)
         self._axesSelector.setData(signals[0])
 
         if len(signals[0].shape) <= img_ndim:
             self._axesSelector.hide()
         else:
             self._axesSelector.show()
-
-        if self.__axes_names:
-            self._axesSelector.setLabels(self.__axes_names)
 
         self._signalSelector.setSignalNames(signals_names)
         if len(signals) > 1:
@@ -510,19 +512,27 @@ class ArrayImagePlot(qt.QWidget):
         self._updateImageAxes()
         self._plot.resetZoom()
 
+    def __getImageToDisplay(self):
+        signal_index = self._signalSelector.getSignalIndex()
+        try:
+            signal = self.__signals[signal_index]
+        except KeyError:
+            raise KeyError("No image found. Was an image loaded?")
+        return signal[self._axesSelector.selection()]
+
     def _updateImageAxes(self):
         """Updates the image axes. Called when the user selects a different axis than the displayed one."""
-        axes_selection = self._axesSelector.selection()
         signal_index = self._signalSelector.getSignalIndex()
-
         legend = self.__signals_names[signal_index]
 
-        images = [img[axes_selection] for img in self.__signals]
-        image = images[signal_index]
+        image = self.__getImageToDisplay()
 
         axis_indices = self._axesSelector.getIndicesOfNamedAxes()
-        x_axis_index = axis_indices["X"]
-        y_axis_index = axis_indices["Y"]
+        try:
+            x_axis_index = axis_indices["X"]
+            y_axis_index = axis_indices["Y"]
+        except KeyError:
+            raise KeyError("Axes X and Y not found. Was an image loaded?")
 
         if self.__axes:
             x_axis = self.__axes[x_axis_index]
@@ -639,21 +649,19 @@ class ArrayImagePlot(qt.QWidget):
 
     def _updateImage(self):
         """Updates the image itself. Called when the user slices through the image without changing the axes."""
-        axes_selection = self._axesSelector.selection()
-        signal_index = self._signalSelector.getSignalIndex()
-        images = [img[axes_selection] for img in self.__signals]
-        image = images[signal_index]
+        image = self.__getImageToDisplay()
+        activeImageItem = self._plot.getActiveImage()
+        if activeImageItem:
+            activeImageItem.setData(image)
 
-        self._plot.getActiveImage().setData(image)
-
-    def _graphTitle(self):
+    def _graphTitle(self) -> str:
         signal_index = self._signalSelector.getSignalIndex()
-        if not self.__title:
+        title = self.__title
+        if not title:
             if not self.__signals_names:
                 return ""
             return self.__signals_names[signal_index]
 
-        title = self.__title
         if self.__signals_names and len(self.__signals_names) > 1:
             # Append dataset name only when there are many datasets
             title += "\n" + self.__signals_names[signal_index]
