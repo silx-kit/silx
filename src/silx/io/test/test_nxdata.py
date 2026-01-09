@@ -27,9 +27,6 @@ __license__ = "MIT"
 __date__ = "24/03/2020"
 
 
-import tempfile
-import unittest
-
 import h5py
 import numpy
 import pytest
@@ -543,18 +540,15 @@ class TestLegacyNXdata:
             assert nxd.axes_dataset_names == ["yaxis", None]
 
 
-class TestSaveNXdata(unittest.TestCase):
-    def setUp(self):
-        tmp = tempfile.NamedTemporaryFile(prefix="nxdata", suffix=".h5", delete=True)
-        tmp.file.close()
-        self.h5fname = tmp.name
+class TestSaveNXdata:
+    def testSimpleSave(self, tmp_path):
+        filename = str(tmp_path / "nxdata_simple.h5")
 
-    def testSimpleSave(self):
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
         nxdata.save_NXdata(
-            filename=self.h5fname,
+            filename=filename,
             signal=sig,
             axes=[a0, a1],
             signal_name="sig",
@@ -563,33 +557,35 @@ class TestSaveNXdata(unittest.TestCase):
             nxdata_name="mydata",
         )
 
-        h5f = h5py.File(self.h5fname, "r")
-        self.assertTrue(nxdata.is_valid_nxdata(h5f["a/mydata"]))
+        with h5py.File(filename, "r") as h5f:
+            assert nxdata.is_valid_nxdata(h5f["a/mydata"])
 
-        nxd = nxdata.NXdata(h5f["/a/mydata"])
-        self.assertTrue(numpy.array_equal(nxd.signal, sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
+            nxd = nxdata.NXdata(h5f["/a/mydata"])
 
-        h5f.close()
+            assert numpy.array_equal(nxd.signal, sig)
+            assert numpy.array_equal(nxd.axes[0], a0)
 
-    def testSimplestSave(self):
+    def testSimplestSave(self, tmp_path):
+        filename = str(tmp_path / "nxdata_simplest.h5")
+
         sig = numpy.array([0, 1, 2])
-        nxdata.save_NXdata(filename=self.h5fname, signal=sig)
+        nxdata.save_NXdata(filename=filename, signal=sig)
 
-        h5f = h5py.File(self.h5fname, "r")
+        with h5py.File(filename, "r") as h5f:
+            assert nxdata.is_valid_nxdata(h5f["/entry/data0"])
 
-        self.assertTrue(nxdata.is_valid_nxdata(h5f["/entry/data0"]))
+            nxd = nxdata.NXdata(h5f["/entry/data0"])
 
-        nxd = nxdata.NXdata(h5f["/entry/data0"])
-        self.assertTrue(numpy.array_equal(nxd.signal, sig))
-        h5f.close()
+            assert numpy.array_equal(nxd.signal, sig)
 
-    def testSaveDefaultAxesNames(self):
+    def testSaveDefaultAxesNames(self, tmp_path):
+        filename = str(tmp_path / "nxdata_default_axes_names.h5")
+
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
         nxdata.save_NXdata(
-            filename=self.h5fname,
+            filename=filename,
             signal=sig,
             axes=[a0, a1],
             signal_name="sig",
@@ -599,28 +595,28 @@ class TestSaveNXdata(unittest.TestCase):
             nxdata_name="mydata",
         )
 
-        h5f = h5py.File(self.h5fname, "r")
-        self.assertTrue(nxdata.is_valid_nxdata(h5f["a/mydata"]))
+        with h5py.File(filename, "r") as h5f:
+            assert nxdata.is_valid_nxdata(h5f["a/mydata"])
 
-        nxd = nxdata.NXdata(h5f["/a/mydata"])
-        self.assertTrue(numpy.array_equal(nxd.signal, sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
-        self.assertEqual(nxd.axes_dataset_names, ["dim0", "dim1"])
-        self.assertEqual(nxd.axes_names, ["a", "b"])
+            nxd = nxdata.NXdata(h5f["/a/mydata"])
 
-        h5f.close()
+            assert numpy.array_equal(nxd.signal, sig)
+            assert numpy.array_equal(nxd.axes[0], a0)
+            assert nxd.axes_dataset_names == ["dim0", "dim1"]
+            assert nxd.axes_names == ["a", "b"]
 
-    def testSaveToExistingEntry(self):
-        h5f = h5py.File(self.h5fname, "w")
-        g = h5f.create_group("myentry")
-        g.attrs["NX_class"] = "NXentry"
-        h5f.close()
+    def testSaveToExistingEntry(self, tmp_path):
+        filename = str(tmp_path / "nxdata_save_to_existing_path.h5")
+
+        with h5py.File(filename, "w") as h5f:
+            group = h5f.create_group("myentry")
+            group.attrs["NX_class"] = "NXentry"
 
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
         nxdata.save_NXdata(
-            filename=self.h5fname,
+            filename=filename,
             signal=sig,
             axes=[a0, a1],
             signal_name="sig",
@@ -629,13 +625,13 @@ class TestSaveNXdata(unittest.TestCase):
             nxdata_name="toto",
         )
 
-        h5f = h5py.File(self.h5fname, "r")
-        self.assertTrue(nxdata.is_valid_nxdata(h5f["myentry/toto"]))
+        with h5py.File(filename, "r") as h5f:
+            assert nxdata.is_valid_nxdata(h5f["myentry/toto"])
 
-        nxd = nxdata.NXdata(h5f["myentry/toto"])
-        self.assertTrue(numpy.array_equal(nxd.signal, sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
-        h5f.close()
+            nxd = nxdata.NXdata(h5f["myentry/toto"])
+
+            assert numpy.array_equal(nxd.signal, sig)
+            assert numpy.array_equal(nxd.axes[0], a0)
 
 
 class TestGetDefault:
