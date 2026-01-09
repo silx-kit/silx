@@ -103,8 +103,8 @@ class _RegionOfInterestBase(qt.QObject):
         """Check which positions are inside the ROI.
 
         :param position: array-like of positions, where each position is given as ``(x, y)``.
-        If multiple positions are provided, the shape should be ``(N, 2)``.
-        For a single position, the shape should be ``(2,)``.
+            If multiple positions are provided, the shape should be ``(N, 2)``.
+            For a single position, the shape should be ``(2,)``.
         :return: boolean or boolean array of shape ``(N,)``, True if the point is inside the ROI.
         """
         # Overwrite in subclass
