@@ -71,26 +71,18 @@ class _Axis(qt.QWidget):
         else:
             axisLabel = f"{label} (Dim{number})"
 
-        self.__label = qt.QLabel(axisLabel, parent=self)
+        self._label = qt.QLabel(axisLabel, parent=self)
 
-        self.__axes = qt.QComboBox(self)
-        self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
+        self._axes = qt.QComboBox(self)
+        self._axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
 
-        self.__slider = HorizontalSliderWithBrowser(self)
-        self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
-        self.__slider.setMaximum(size - 1)
-
-        layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.__label)
-        layout.addWidget(self.__axes)
-        layout.addWidget(self.__slider, 10000)
-        layout.addStretch(1)
-        self.setLayout(layout)
+        self._slider = HorizontalSliderWithBrowser(self)
+        self._slider.valueChanged[int].connect(self.__sliderValueChanged)
+        self._slider.setMaximum(size - 1)
 
     def slider(self) -> HorizontalSliderWithBrowser:
         """Returns the slider used to display axes location."""
-        return self.__slider
+        return self._slider
 
     def axisNumber(self) -> int:
         """Returns the axis number."""
@@ -105,15 +97,15 @@ class _Axis(qt.QWidget):
         :param axisName: The new name of the axis
         :raise ValueError: When the name is not available
         """
-        if axisName == "" and self.__axes.count() == 0:
-            self.__axes.setCurrentIndex(-1)
+        if axisName == "" and self._axes.count() == 0:
+            self._axes.setCurrentIndex(-1)
             self.__updateSliderVisibility()
             return
 
-        for index in range(self.__axes.count()):
-            name = self.__axes.itemData(index)
+        for index in range(self._axes.count()):
+            name = self._axes.itemData(index)
             if name == axisName:
-                self.__axes.setCurrentIndex(index)
+                self._axes.setCurrentIndex(index)
                 self.__updateSliderVisibility()
                 return
         raise ValueError("Axis name '%s' not found", axisName)
@@ -123,21 +115,21 @@ class _Axis(qt.QWidget):
 
         If no name is selected, an empty string is returned.
         """
-        index = self.__axes.currentIndex()
+        index = self._axes.currentIndex()
         if index == -1:
             return ""
-        return self.__axes.itemData(index)
+        return self._axes.itemData(index)
 
     def setAxisNames(self, axesNames: list[str]):
         """Set the available list of names for the axis.
 
         :param axesNames: List of available names
         """
-        self.__axes.clear()
-        with blockSignals(self.__axes):
-            self.__axes.addItem(" ", "")
+        self._axes.clear()
+        with blockSignals(self._axes):
+            self._axes.addItem(" ", "")
             for axis in axesNames:
-                self.__axes.addItem(axis, axis)
+                self._axes.addItem(axis, axis)
 
         self.__updateSliderVisibility()
 
@@ -163,18 +155,18 @@ class _Axis(qt.QWidget):
         customable axis names."""
         name = self.axisName()
         isVisible = name == "" or name in self.__customAxisNames
-        self.__slider.setVisible(isVisible)
+        self._slider.setVisible(isVisible)
 
     def value(self) -> int:
         """Returns the currently selected position in the axis."""
-        return self.__slider.value()
+        return self._slider.value()
 
     def setValue(self, value: int):
         """Set the currently selected position in the axis.
 
         :param value:
         """
-        self.__slider.setValue(value)
+        self._slider.setValue(value)
 
     def __sliderValueChanged(self, value: int):
         """Called when the selected position in the axis change.
@@ -188,9 +180,24 @@ class _Axis(qt.QWidget):
 
         If both the selector and the slider are hidden, hide the entire widget.
         """
-        self.__axes.setVisible(visible)
+        self._axes.setVisible(visible)
         name = self.axisName()
         self.setVisible(visible or name == "")
+
+
+class _AxisLayout(qt.QGridLayout):
+    def addAxis(self, axis: _Axis, row: int):
+        self.addWidget(axis._label, row, 0)
+        self.addWidget(axis._axes, row, 1)
+        self.addWidget(axis._slider, row, 2)
+
+    def removeAxis(self, axis: _Axis):
+        self.removeWidget(axis._label)
+        axis._label.deleteLater()
+        self.removeWidget(axis._axes)
+        axis._axes.deleteLater()
+        self.removeWidget(axis._slider)
+        axis._slider.deleteLater()
 
 
 class NumpyAxesSelector(qt.QWidget):
@@ -237,7 +244,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__customAxisNames: set[str] = set()
         self.__labels: list[str] = []
         self.__namedAxesVisibility = True
-        layout = qt.QVBoxLayout(self)
+        layout = _AxisLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
         self.setLayout(layout)
@@ -299,7 +306,7 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__data is not None:
             # clean up
             for widget in self.__axis:
-                self.layout().removeWidget(widget)
+                self.layout().removeAxis(widget)
                 widget.deleteLater()
             self.__axis = []
 
@@ -331,7 +338,7 @@ class NumpyAxesSelector(qt.QWidget):
                 )
                 axis.axisNameChanged.connect(callback)
                 axis.setNamedAxisSelectorVisibility(self.__namedAxesVisibility)
-                self.layout().addWidget(axis)
+                self.layout().addAxis(axis, index)
                 self.__axis.append(axis)
         self.__normalizeAxisGeometry()
 
