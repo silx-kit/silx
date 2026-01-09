@@ -452,90 +452,95 @@ class TestNXdata:
             assert nxd.interpretation is None
 
 
-class TestLegacyNXdata(unittest.TestCase):
-    def setUp(self):
-        tmp = tempfile.NamedTemporaryFile(
-            prefix="nxdata_legacy_examples_", suffix=".h5", delete=True
-        )
-        tmp.file.close()
-        self.h5fname = tmp.name
-        self.h5f = h5py.File(tmp.name, "w")
+class TestLegacyNXdata:
+    def testSignalAttrOnDataset(self, tmp_path):
+        with h5py.File(tmp_path / "nxdata.h5", "w") as h5f:
+            group = h5f.create_group("2D")
+            group.attrs["NX_class"] = "NXdata"
 
-    def tearDown(self):
-        self.h5f.close()
+            ds0 = group.create_dataset(
+                "image0", data=numpy.arange(4 * 6).reshape((4, 6))
+            )
+            ds0.attrs["signal"] = 1
+            ds0.attrs["long_name"] = "My first image"
 
-    def testSignalAttrOnDataset(self):
-        g = self.h5f.create_group("2D")
-        g.attrs["NX_class"] = "NXdata"
+            ds1 = group.create_dataset(
+                "image1", data=numpy.arange(4 * 6).reshape((4, 6))
+            )
+            ds1.attrs["signal"] = "2"
+            ds1.attrs["long_name"] = "My 2nd image"
 
-        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
-        ds0.attrs["signal"] = 1
-        ds0.attrs["long_name"] = "My first image"
+            ds2 = group.create_dataset(
+                "image2", data=numpy.arange(4 * 6).reshape((4, 6))
+            )
+            ds2.attrs["signal"] = 3
 
-        ds1 = g.create_dataset("image1", data=numpy.arange(4 * 6).reshape((4, 6)))
-        ds1.attrs["signal"] = "2"
-        ds1.attrs["long_name"] = "My 2nd image"
+            nxd = nxdata.NXdata(group)
 
-        ds2 = g.create_dataset("image2", data=numpy.arange(4 * 6).reshape((4, 6)))
-        ds2.attrs["signal"] = 3
+            assert nxd.signal_dataset_name == "image0"
+            assert nxd.signal_name == "My first image"
+            assert nxd.signal.shape == (4, 6)
 
-        nxd = nxdata.NXdata(self.h5f["2D"])
+            assert len(nxd.auxiliary_signals) == 2
+            assert nxd.auxiliary_signals[1].shape == (4, 6)
 
-        self.assertEqual(nxd.signal_dataset_name, "image0")
-        self.assertEqual(nxd.signal_name, "My first image")
-        self.assertEqual(nxd.signal.shape, (4, 6))
+            assert nxd.auxiliary_signals_dataset_names == ["image1", "image2"]
+            assert nxd.auxiliary_signals_names == ["My 2nd image", "image2"]
 
-        self.assertEqual(len(nxd.auxiliary_signals), 2)
-        self.assertEqual(nxd.auxiliary_signals[1].shape, (4, 6))
+    def testAxesOnSignalDataset(self, tmp_path):
+        with h5py.File(tmp_path / "nxdata.h5", "w") as h5f:
+            group = h5f.create_group("2D")
+            group.attrs["NX_class"] = "NXdata"
 
-        self.assertEqual(nxd.auxiliary_signals_dataset_names, ["image1", "image2"])
-        self.assertEqual(nxd.auxiliary_signals_names, ["My 2nd image", "image2"])
+            ds0 = group.create_dataset(
+                "image0", data=numpy.arange(4 * 6).reshape((4, 6))
+            )
+            ds0.attrs["signal"] = 1
+            ds0.attrs["axes"] = "yaxis:xaxis"
 
-    def testAxesOnSignalDataset(self):
-        g = self.h5f.create_group("2D")
-        g.attrs["NX_class"] = "NXdata"
+            group.create_dataset("yaxis", data=numpy.arange(4))
+            group.create_dataset("xaxis", data=numpy.arange(6))
 
-        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
-        ds0.attrs["signal"] = 1
-        ds0.attrs["axes"] = "yaxis:xaxis"
+            nxd = nxdata.NXdata(group)
 
-        _ = g.create_dataset("yaxis", data=numpy.arange(4))
-        _ = g.create_dataset("xaxis", data=numpy.arange(6))
+            assert nxd.axes_dataset_names == ["yaxis", "xaxis"]
+            assert numpy.array_equal(nxd.axes[0], numpy.arange(4))
+            assert numpy.array_equal(nxd.axes[1], numpy.arange(6))
 
-        nxd = nxdata.NXdata(self.h5f["2D"])
+    def testAxesOnAxesDatasets(self, tmp_path):
+        with h5py.File(tmp_path / "nxdata.h5", "w") as h5f:
+            group = h5f.create_group("2D")
+            group.attrs["NX_class"] = "NXdata"
 
-        self.assertEqual(nxd.axes_dataset_names, ["yaxis", "xaxis"])
-        self.assertTrue(numpy.array_equal(nxd.axes[0], numpy.arange(4)))
-        self.assertTrue(numpy.array_equal(nxd.axes[1], numpy.arange(6)))
+            ds0 = group.create_dataset(
+                "image0", data=numpy.arange(4 * 6).reshape((4, 6))
+            )
+            ds0.attrs["signal"] = 1
+            ds1 = group.create_dataset("yaxis", data=numpy.arange(4))
+            ds1.attrs["axis"] = 0
+            ds2 = group.create_dataset("xaxis", data=numpy.arange(6))
+            ds2.attrs["axis"] = "1"
 
-    def testAxesOnAxesDatasets(self):
-        g = self.h5f.create_group("2D")
-        g.attrs["NX_class"] = "NXdata"
+            nxd = nxdata.NXdata(group)
 
-        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
-        ds0.attrs["signal"] = 1
-        ds1 = g.create_dataset("yaxis", data=numpy.arange(4))
-        ds1.attrs["axis"] = 0
-        ds2 = g.create_dataset("xaxis", data=numpy.arange(6))
-        ds2.attrs["axis"] = "1"
+            assert nxd.axes_dataset_names == ["yaxis", "xaxis"]
+            assert numpy.array_equal(nxd.axes[0], numpy.arange(4))
+            assert numpy.array_equal(nxd.axes[1], numpy.arange(6))
 
-        nxd = nxdata.NXdata(self.h5f["2D"])
-        self.assertEqual(nxd.axes_dataset_names, ["yaxis", "xaxis"])
-        self.assertTrue(numpy.array_equal(nxd.axes[0], numpy.arange(4)))
-        self.assertTrue(numpy.array_equal(nxd.axes[1], numpy.arange(6)))
-
-    def testAsciiUndefinedAxesAttrs(self):
+    def testAsciiUndefinedAxesAttrs(self, tmp_path):
         """Some files may not be using utf8 for str attrs"""
-        g = self.h5f.create_group("bytes_attrs")
-        g.attrs["NX_class"] = b"NXdata"
-        g.attrs["signal"] = b"image0"
-        g.attrs["axes"] = b"yaxis", b"."
+        with h5py.File(tmp_path / "nxdata.h5", "w") as h5f:
+            group = h5f.create_group("bytes_attrs")
+            group.attrs["NX_class"] = b"NXdata"
+            group.attrs["signal"] = b"image0"
+            group.attrs["axes"] = b"yaxis", b"."
 
-        g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
-        g.create_dataset("yaxis", data=numpy.arange(4))
+            group.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
+            group.create_dataset("yaxis", data=numpy.arange(4))
 
-        nxd = nxdata.NXdata(self.h5f["bytes_attrs"])
-        self.assertEqual(nxd.axes_dataset_names, ["yaxis", None])
+            nxd = nxdata.NXdata(group)
+
+            assert nxd.axes_dataset_names == ["yaxis", None]
 
 
 class TestSaveNXdata(unittest.TestCase):
