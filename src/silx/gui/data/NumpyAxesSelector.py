@@ -36,6 +36,7 @@ import functools
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui import qt
 from silx.gui.utils import blockSignals
+from silx.utils.deprecation import deprecated
 import silx.utils.weakref
 
 
@@ -273,11 +274,8 @@ class NumpyAxesSelector(qt.QWidget):
                     axis.setAxisName("")
         self.__updateSelectedData()
 
+    @deprecated(reason="Not used", since_version="3.0.0")
     def setCustomAxis(self, axesNames: Sequence[str]):
-        """Set the available list of named axis which can be set to a value.
-
-        :param axesNames: List of customable axis names
-        """
         self.__customAxisNames = set(axesNames)
         for axis in self.__axis:
             axis.setCustomAxis(self.__customAxisNames)
