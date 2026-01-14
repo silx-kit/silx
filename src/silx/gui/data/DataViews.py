@@ -39,6 +39,7 @@ from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
+from silx.utils.deprecation import deprecated
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -328,18 +329,12 @@ class DataView:
         Else returns the data."""
         return _normalizeData(data)
 
+    @deprecated(reason="Not used", since_version="3.0.0")
     def customAxisNames(self):
-        """Returns names of axes which can be custom by the user and provided
-        to the view."""
         return []
 
+    @deprecated(reason="Not used", since_version="3.0.0")
     def setCustomAxisValue(self, name, value):
-        """
-        Set the value of a custom axis
-
-        :param str name: Name of the custom axis
-        :param int value: Value of the custom axis
-        """
         pass
 
     def isWidgetInitialized(self):
@@ -631,16 +626,6 @@ class SelectOneDataView(_CompositeDataView):
         else:
             return views[0][1]
 
-    def customAxisNames(self):
-        if self.__currentView is None:
-            return
-        return self.__currentView.customAxisNames()
-
-    def setCustomAxisValue(self, name, value):
-        if self.__currentView is None:
-            return
-        self.__currentView.setCustomAxisValue(name, value)
-
     def __updateDisplayedView(self):
         widget = self.getWidget()
         if self.__currentView is None:
@@ -794,12 +779,6 @@ class SelectManyDataView(_CompositeDataView):
             if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED
         ]
         return views
-
-    def customAxisNames(self):
-        raise RuntimeError("Abstract view")
-
-    def setCustomAxisValue(self, name, value):
-        raise RuntimeError("Abstract view")
 
     def select(self):
         raise RuntimeError("Abstract view")

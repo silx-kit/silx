@@ -111,7 +111,6 @@ class DataViewer(qt.QFrame):
         self.__numpySelection = NumpyAxesSelector(self)
         self.__numpySelection.selectedAxisChanged.connect(self.__numpyAxisChanged)
         self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
-        self.__numpySelection.customAxisChanged.connect(self.__numpyCustomAxisChanged)
 
         self.setLayout(qt.QVBoxLayout(self))
         self.layout().addWidget(self.__stack, 1)
@@ -216,11 +215,6 @@ class DataViewer(qt.QFrame):
         if view is not None:
             view.clear()
 
-    def __numpyCustomAxisChanged(self, name, value):
-        view = self.__currentView
-        if view is not None:
-            view.setCustomAxisValue(name, value)
-
     def __updateNumpySelectionAxis(self):
         """
         Update the numpy-selector according to the needed axis names
@@ -241,9 +235,6 @@ class DataViewer(qt.QFrame):
             ):
                 self.__useAxisSelection = True
                 self.__numpySelection.setAxisNames(axisNames)
-                self.__numpySelection.setCustomAxis(
-                    self.__currentView.customAxisNames()
-                )
                 data = self.normalizeData(self.__data)
                 self.__numpySelection.setData(data)
 
