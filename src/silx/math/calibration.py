@@ -147,8 +147,8 @@ class ArrayCalibration(AbstractCalibration):
             return False
         delta = numpy.diff(self.calibration_array)
         # use a less strict relative tolerance to account for rounding errors
-        # e.g. when using float64 into float32 (see #1823)
-        return numpy.allclose(delta, delta[0], rtol=1e-4)
+        # e.g. when using float64 into float32 (see #1823, #4465)
+        return numpy.allclose(delta, delta[0], rtol=1e-3)
 
     def get_slope(self):
         """If the calibration array is regularly spaced, return the spacing."""
