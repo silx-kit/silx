@@ -49,7 +49,6 @@ from .items import ItemChangedType, Scatter
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from ..colors import cursorColorForColormap, rgba
 
-
 _logger = logging.getLogger(__name__)
 
 

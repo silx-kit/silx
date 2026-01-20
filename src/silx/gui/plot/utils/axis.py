@@ -35,7 +35,6 @@ import silx.utils.weakref as silxWeakref
 from silx.gui.plot.items.axis import Axis, XAxis, YAxis
 from ...qt.inspect import isValid as _isQObjectValid
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -30,6 +30,7 @@
 .. image:: img/BackgroundDialog.png
    :height: 300px
 """
+
 import sys
 import numpy
 from silx.gui import qt

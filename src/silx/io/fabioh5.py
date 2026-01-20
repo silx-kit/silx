@@ -44,7 +44,6 @@ from silx import version as silx_version
 import silx.utils.number
 import h5py
 
-
 _logger = logging.getLogger(__name__)
 
 

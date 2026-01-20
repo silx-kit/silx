@@ -32,7 +32,6 @@ from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.data.DataViews import DataView
 
-
 logging.basicConfig()
 _logger = logging.getLogger("customDataView")
 """Module logger"""

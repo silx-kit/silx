@@ -22,6 +22,7 @@
 #
 # ###########################################################################*/
 """This module provides markers item of the :class:`Plot`."""
+
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
@@ -44,7 +45,6 @@ from .core import (
 from silx import config
 from silx.gui import qt
 from silx.gui import colors
-
 
 _logger = logging.getLogger(__name__)
 

@@ -36,7 +36,6 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 
-
 logger = logging.getLogger(__name__)
 
 

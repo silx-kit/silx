@@ -21,13 +21,13 @@
 #
 # ############################################################################*/
 """Tests for fioh5"""
+
 import numpy
 import os
 import tempfile
 import unittest
 
 from ..fioh5 import FioH5, is_fiofile, logger1, dtypeConverter
-
 
 __authors__ = ["T. Fuchs"]
 __license__ = "MIT"

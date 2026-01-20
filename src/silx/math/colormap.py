@@ -40,7 +40,6 @@ from ._colormap import cmap  # noqa
 from ..utils.proxy import docstring
 from silx.utils.deprecation import deprecated_warning, deprecated
 
-
 __all__ = ["apply_colormap", "cmap"]
 
 

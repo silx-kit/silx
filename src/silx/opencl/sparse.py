@@ -172,14 +172,11 @@ class CSR(OpenclProcessing):
         self._setup_decompaction_kernel()
 
     def _setup_compaction_kernel(self):
-        kernel_signature = str(
-            "__global %s *data, \
+        kernel_signature = str("__global %s *data, \
             __global %s *data_compacted, \
             __global %s *indices, \
             __global %s* indptr \
-            "
-            "" % (self.c_dtype, self.c_dtype, self.idx_c_dtype, self.idx_c_dtype)
-        )
+            " "" % (self.c_dtype, self.c_dtype, self.idx_c_dtype, self.idx_c_dtype))
         if self.dtype.kind == "f":
             map_nonzero_expr = "(fabs(data[i]) > %s) ? 1 : 0" % self._c_zero_str
         elif self.dtype.kind in ["u", "i"]:

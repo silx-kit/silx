@@ -37,7 +37,6 @@ import numpy
 from silx._utils import NP_OPTIONAL_COPY
 from . import gl, utils
 
-
 _logger = logging.getLogger(__name__)
 
 

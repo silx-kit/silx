@@ -55,7 +55,6 @@ from ._band_roi import BandROI  # noqa
 from ._roi_base import InteractionModeMixIn  # noqa
 from ._roi_base import RoiInteractionMode  # noqa
 
-
 logger = logging.getLogger(__name__)
 
 

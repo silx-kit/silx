@@ -22,8 +22,8 @@
 #
 # ###########################################################################*/
 """This module provides the base class for items of the :class:`Plot`."""
-from __future__ import annotations
 
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -50,7 +50,6 @@ from ._pick import PickingResult
 
 from silx import config
 from silx._utils import NP_OPTIONAL_COPY
-
 
 _logger = logging.getLogger(__name__)
 

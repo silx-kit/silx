@@ -47,7 +47,6 @@ from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, ComplexMixIn, InterpolationMixIn, PlaneMixIn
 from ._pick import PickingResult
 
-
 _logger = logging.getLogger(__name__)
 
 

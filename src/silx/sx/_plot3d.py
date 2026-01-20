@@ -39,7 +39,6 @@ from ..gui.plot3d import SFViewParamTree
 from ..gui.colors import Colormap
 from ..gui.colors import rgba
 
-
 _logger = logging.getLogger(__name__)
 
 

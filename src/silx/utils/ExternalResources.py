@@ -41,7 +41,6 @@ import urllib.request
 import urllib.error
 import zipfile
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -190,22 +189,16 @@ class ExternalResources:
                 with open(fullfilename, mode="wb") as outfile:
                     outfile.write(data)
             except OSError:
-                raise OSError(
-                    "unable to write downloaded \
-                    data to disk at %s"
-                    % self.data_home
-                )
+                raise OSError("unable to write downloaded \
+                    data to disk at %s" % self.data_home)
 
             if not os.path.isfile(fullfilename):
-                raise RuntimeError(
-                    """Could not automatically download test files %s!
+                raise RuntimeError("""Could not automatically download test files %s!
                     If you are behind a firewall, please set both environment variable
                      http_proxy and https_proxy.
                     This even works under windows !
                     Otherwise please try to download the files manually from
-                    %s/%s"""
-                    % (filename, self.url_base, filename)
-                )
+                    %s/%s""" % (filename, self.url_base, filename))
             else:
                 self.all_data[filename] = self.get_hash(data=data)
                 self.save_json()
@@ -301,14 +294,11 @@ class ExternalResources:
         if not os.path.isfile(fullfilename_bz2):
             self.getfile(bzip2name)
             if not os.path.isfile(fullfilename_bz2):
-                raise RuntimeError(
-                    """Could not automatically download test files %s!
+                raise RuntimeError("""Could not automatically download test files %s!
                     If you are behind a firewall, please set the environment variable
                      http_proxy.
                     Otherwise please try to download the files manually from
-                    %s"""
-                    % (self.url_base, filename)
-                )
+                    %s""" % (self.url_base, filename))
 
         try:
             import bz2
@@ -331,11 +321,8 @@ class ExternalResources:
                     with open(fullfilename_raw, "wb") as fullfile:
                         fullfile.write(decompressed)
                 except OSError:
-                    raise OSError(
-                        "unable to write decompressed \
-                    data to disk at %s"
-                        % self.data_home
-                    )
+                    raise OSError("unable to write decompressed \
+                    data to disk at %s" % self.data_home)
 
             if not gz_file_exists:
                 if gzip is None:
@@ -343,11 +330,8 @@ class ExternalResources:
                 try:
                     gzip.open(fullfilename_gz, "wb").write(decompressed)
                 except OSError:
-                    raise OSError(
-                        "unable to write gzipped \
-                    data to disk at %s"
-                        % self.data_home
-                    )
+                    raise OSError("unable to write gzipped \
+                    data to disk at %s" % self.data_home)
 
         return fullfilename
 

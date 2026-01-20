@@ -47,7 +47,6 @@ from . import rois
 from . import core
 from . import editors
 
-
 _logger = logging.getLogger(__name__)
 
 

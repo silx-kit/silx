@@ -45,7 +45,6 @@ from .FileTypeComboBox import FileTypeComboBox
 
 import fabio
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -37,7 +37,6 @@ from . import manager
 from .. import roi as roi_mdl
 from silx.gui.plot import items
 
-
 _logger = logging.getLogger(__name__)
 
 

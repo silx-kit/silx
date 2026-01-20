@@ -32,7 +32,6 @@ import os.path
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 
-
 _logger = logging.getLogger(__name__)
 
 

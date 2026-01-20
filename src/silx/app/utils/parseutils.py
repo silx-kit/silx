@@ -35,7 +35,6 @@ from typing import Any
 from collections.abc import Generator, Iterable
 from pathlib import Path
 
-
 _logger = logging.getLogger(__name__)
 """Module logger"""
 

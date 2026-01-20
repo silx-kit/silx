@@ -46,7 +46,6 @@ from ..Plot3DWidget import Plot3DWidget
 
 from .core import AngleDegreeRow, BaseRow, ColorProxyRow, ProxyRow, StaticRow
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -24,5 +24,4 @@
 import numpy
 from packaging.version import Version
 
-
 NP_OPTIONAL_COPY = False if Version(numpy.version.version).major < 2 else None

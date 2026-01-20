@@ -37,6 +37,7 @@ This example illustrates:
 See shiftPlotAction.py for a simpler example with more basic comments.
 
 """
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "27/06/2017"

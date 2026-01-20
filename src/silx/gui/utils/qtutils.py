@@ -25,7 +25,6 @@
 
 from silx.gui import qt
 
-
 QT_EVENT_NAMES = {
     0: "None",
     114: "ActionAdded",

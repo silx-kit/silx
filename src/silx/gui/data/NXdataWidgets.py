@@ -22,6 +22,7 @@
 #
 # ###########################################################################*/
 """This module defines widgets used by _NXdataView."""
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/11/2018"
@@ -43,7 +44,6 @@ from silx.gui.data._SignalSelector import SignalSelector
 from silx.io.commonh5 import Dataset
 from silx.io.nxdata._utils import get_attr_as_unicode
 from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
-
 
 _logger = logging.getLogger(__name__)
 

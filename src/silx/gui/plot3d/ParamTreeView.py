@@ -31,6 +31,7 @@ This module contains:
   :class:`FloatEditor`, :class:`Vector3DEditor`,
   :class:`Vector4DEditor`, :class:`IntSliderEditor`, :class:`BooleanEditor`
 """
+
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]

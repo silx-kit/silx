@@ -38,7 +38,6 @@ from ..qt import inspect as qt_inspect
 from silx.gui import colors
 from silx.math.colormap import LogarithmicNormalization
 
-
 _logger = logging.getLogger(__name__)
 
 

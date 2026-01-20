@@ -37,7 +37,6 @@ from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 
-
 logging.basicConfig()
 _logger = logging.getLogger("hdf5widget")
 """Module logger"""

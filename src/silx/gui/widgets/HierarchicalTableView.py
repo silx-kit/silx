@@ -37,6 +37,7 @@ changes of this information.
 
 A default item delegate is used to redefine the paint of the cells.
 """
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "07/04/2017"

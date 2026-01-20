@@ -53,7 +53,6 @@ from .items import SymbolMixIn, Scatter
 from .items.axis import XAxis, YAxis, YRightAxis
 from .PlotWidget import PlotWidget
 
-
 _logger = logging.getLogger(__name__)
 
 

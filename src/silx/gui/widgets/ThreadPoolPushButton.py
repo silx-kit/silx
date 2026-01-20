@@ -31,7 +31,6 @@ import logging
 from .. import qt
 from .WaitingPushButton import WaitingPushButton
 
-
 _logger = logging.getLogger(__name__)
 
 

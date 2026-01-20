@@ -44,7 +44,6 @@ from . import scene
 
 import numpy
 
-
 _logger = logging.getLogger(__name__)
 
 

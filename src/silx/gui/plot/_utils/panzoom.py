@@ -35,7 +35,6 @@ import math
 from typing import NamedTuple
 import numpy
 
-
 _logger = logging.getLogger(__name__)
 
 

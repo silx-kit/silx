@@ -56,9 +56,7 @@ expected_spec1 = r"""#F .*
 3  6\.00
 """
 
-expected_spec2 = (
-    expected_spec1
-    + r"""
+expected_spec2 = expected_spec1 + r"""
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -67,7 +65,6 @@ expected_spec2 = (
 2  8\.00
 3  9\.00
 """
-)
 
 expected_spec2reg = r"""#F .*
 #D .*
@@ -81,9 +78,7 @@ expected_spec2reg = r"""#F .*
 3  6\.00  9\.00
 """
 
-expected_spec2irr = (
-    expected_spec1
-    + r"""
+expected_spec2irr = expected_spec1 + r"""
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -91,7 +86,6 @@ expected_spec2irr = (
 1  7\.00
 2  8\.00
 """
-)
 
 expected_csv = r"""Abscissa;Ordinate1;Ordinate2
 1;4\.00;7\.00e\+00

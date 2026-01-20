@@ -34,7 +34,6 @@ from silx.gui._glutils import gl, OpenGLWidget
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -33,7 +33,6 @@ import weakref
 
 from silx.gui import qt
 
-
 _logger = logging.getLogger(__name__)
 
 

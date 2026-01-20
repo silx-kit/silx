@@ -42,7 +42,6 @@ from ...io.url import DataUrl
 
 import h5py
 
-
 _logger = logging.getLogger(__name__)
 
 

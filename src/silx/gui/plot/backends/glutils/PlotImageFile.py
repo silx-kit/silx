@@ -34,7 +34,6 @@ import zlib
 
 from fabio.TiffIO import TiffIO
 
-
 # Image writer ################################################################
 
 

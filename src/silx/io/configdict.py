@@ -83,7 +83,6 @@ Classes:
 
 """
 
-
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/09/2016"

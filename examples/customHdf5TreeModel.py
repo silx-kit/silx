@@ -36,7 +36,6 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 
-
 logging.basicConfig()
 _logger = logging.getLogger("customHdf5TreeModel")
 """Module logger"""

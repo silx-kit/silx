@@ -44,7 +44,6 @@ import silx.io
 from .utils import is_dataset, is_group, is_softlink, visitall
 from . import fabioh5
 
-
 _logger = logging.getLogger(__name__)
 
 

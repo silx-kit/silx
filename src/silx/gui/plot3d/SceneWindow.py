@@ -42,7 +42,6 @@ from .ParamTreeView import ParamTreeView
 # Imported here for convenience
 from . import items  # noqa
 
-
 __all__ = ["items", "SceneWidget", "SceneWindow"]
 
 

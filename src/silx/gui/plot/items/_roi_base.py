@@ -48,7 +48,6 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -41,7 +41,6 @@ from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
 
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "12/02/2019"

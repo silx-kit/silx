@@ -455,8 +455,7 @@ class Lines(Geometry):
         vColor = color;
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -471,8 +470,7 @@ class Lines(Geometry):
         gl_FragColor = $lightingCall(vColor, vPosition, vNormal);
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     def __init__(
@@ -574,8 +572,7 @@ class DashedLines(Lines):
         vOriginFragCoord = (ndcOrigin.xy + vec2(1.0, 1.0)) * 0.5 * viewportSize + vec2(0.5, 0.5);
     }
     """,  # noqa
-        string.Template(
-            """
+        string.Template("""
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -600,8 +597,7 @@ class DashedLines(Lines):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     def __init__(self, positions, colors=(1.0, 1.0, 1.0, 1.0), indices=None, width=1.0):
@@ -1303,8 +1299,7 @@ class _Points(Geometry):
     }
 
     _shaders = (
-        string.Template(
-            """
+        string.Template("""
     #version 120
 
     attribute float x;
@@ -1331,10 +1326,8 @@ class _Points(Geometry):
         gl_PointSize = size;
         vSize = size;
     }
-    """
-        ),
-        string.Template(
-            """
+    """),
+        string.Template("""
     #version 120
 
     varying vec4 vCameraPosition;
@@ -1359,8 +1352,7 @@ class _Points(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     _ATTR_INFO = {
@@ -1556,8 +1548,7 @@ class GridPoints(Geometry):
         gl_PointSize = size;
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     #version 130
 
     in vec4 vCameraPosition;
@@ -1574,8 +1565,7 @@ class GridPoints(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     _ATTR_INFO = {
@@ -1722,8 +1712,7 @@ class Spheres(Geometry):
         vViewDepth = vCameraPosition.z;
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     # version 120
 
     uniform mat4 projMat;
@@ -1763,8 +1752,7 @@ class Spheres(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     _ATTR_INFO = {
@@ -1851,8 +1839,7 @@ class Mesh3D(Geometry):
         gl_Position = matrix * vec4(position, 1.0);
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -1869,8 +1856,7 @@ class Mesh3D(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     def __init__(
@@ -1962,8 +1948,7 @@ class ColormapMesh3D(Geometry):
         gl_Position = matrix * vec4(position, 1.0);
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     uniform float alpha;
 
     varying vec4 vCameraPosition;
@@ -1985,8 +1970,7 @@ class ColormapMesh3D(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     def __init__(
@@ -2120,8 +2104,7 @@ class _Image(Geometry):
         gl_Position = matrix * positionVec4;
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec2 vTexCoords;
@@ -2147,8 +2130,7 @@ class _Image(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     _UNIT_SQUARE = numpy.array(
@@ -2307,8 +2289,7 @@ class _Image(Geometry):
 class ImageData(_Image):
     """Display a 2x2 data array with a texture."""
 
-    _imageDecl = string.Template(
-        """
+    _imageDecl = string.Template("""
     $colormapDecl
 
     vec4 imageColor(sampler2D data, vec2 texCoords) {
@@ -2316,8 +2297,7 @@ class ImageData(_Image):
         vec4 color = $colormapCall(value);
         return color;
     }
-    """
-    )
+    """)
 
     def __init__(self, data, copy=True, colormap=None):
         super().__init__(data, copy=copy)

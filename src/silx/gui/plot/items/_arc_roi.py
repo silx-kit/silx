@@ -42,7 +42,6 @@ from ._roi_base import HandleBasedROI
 from ._roi_base import InteractionModeMixIn
 from ._roi_base import RoiInteractionMode
 
-
 logger = logging.getLogger(__name__)
 
 

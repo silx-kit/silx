@@ -39,7 +39,6 @@ from silx.utils import testutils
 from ..specfile import SpecFile, Scan
 from .. import specfile
 
-
 logger1 = logging.getLogger(__name__)
 
 sftext = """#F /tmp/sf.dat
