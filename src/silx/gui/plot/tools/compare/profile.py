@@ -34,7 +34,6 @@ from silx.gui.plot.tools.profile import rois
 from silx.gui.plot.tools.profile import core
 from .core import _CompareImageItem
 
-
 COLOR_A = "C0"
 COLOR_B = "C8"
 

@@ -39,7 +39,6 @@ from ..._glutils import gl
 from . import event
 from . import utils
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -388,8 +387,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
 
 class Colormap(event.Notifier, ProgramFunction):
-    _declTemplate = string.Template(
-        """
+    _declTemplate = string.Template("""
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
     uniform float cmap_parameter;
@@ -438,8 +436,7 @@ class Colormap(event.Notifier, ProgramFunction):
         }
         return color;
     }
-    """
-    )
+    """)
 
     _discardCode = """
         if (value == 0.) {

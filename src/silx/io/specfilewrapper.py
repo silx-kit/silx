@@ -45,6 +45,7 @@ from the ones in :class:`silx.io.specfile.SpecFile` and
 :class:`silx.io.specfile.Scan`. You should refer to the documentation of these
 base classes for more information.
 """
+
 from silx.io.specfile import SpecFile, Scan
 
 __authors__ = ["P. Knobel"]
@@ -163,7 +164,7 @@ class Specfile(SpecFile):
             raise TypeError(msg)
 
         try:
-            (number, order) = map(int, key.split("."))
+            number, order = map(int, key.split("."))
             scan_index = self.index(number, order)
         except (ValueError, IndexError):
             # self.index can raise an index error

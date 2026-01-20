@@ -33,7 +33,6 @@ import numpy
 
 from . import event
 
-
 # Functions ###################################################################
 
 # Projections

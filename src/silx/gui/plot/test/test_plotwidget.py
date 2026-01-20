@@ -45,7 +45,6 @@ from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
 
-
 SIZE = 1024
 """Size of the test image"""
 

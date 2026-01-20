@@ -25,6 +25,7 @@
 This module defines a data model for displaying and editing arrays of any
 number of dimensions in a table view.
 """
+
 import numpy
 import logging
 from silx.gui import qt

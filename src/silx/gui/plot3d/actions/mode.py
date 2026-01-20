@@ -39,7 +39,6 @@ from ... import qt
 from ...icons import getQIcon
 from .Plot3DAction import Plot3DAction
 
-
 _logger = logging.getLogger(__name__)
 
 

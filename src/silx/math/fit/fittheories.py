@@ -75,6 +75,7 @@ for more information.
 Module members:
 ---------------
 """
+
 import numpy
 import logging
 

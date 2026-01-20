@@ -70,7 +70,6 @@ from ...qt import inspect as qt_inspect
 from .... import config
 from silx.gui.colors import RGBAColorType
 
-
 _logger = logging.getLogger(__name__)
 
 

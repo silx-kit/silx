@@ -38,7 +38,6 @@ import os
 from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
 
-
 _logger = logging.getLogger(__name__)
 
 

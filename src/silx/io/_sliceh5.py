@@ -32,7 +32,6 @@ import numpy
 from . import commonh5
 from . import utils
 
-
 IndexType = Union[int, slice, type(Ellipsis)]
 IndicesType = Union[IndexType, tuple[IndexType, ...]]
 NormalisedIndicesType = tuple[Union[int, slice], ...]

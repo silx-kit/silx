@@ -22,8 +22,8 @@
 #
 # ###########################################################################*/
 """Module contains a float editor"""
-from __future__ import annotations
 
+from __future__ import annotations
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"

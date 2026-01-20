@@ -25,6 +25,7 @@
 """This script is a simple example to illustrate how to use the
 :mod:`~silx.gui.plot.StackView` widget.
 """
+
 import numpy
 import sys
 from silx.gui import qt

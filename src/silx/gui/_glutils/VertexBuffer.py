@@ -35,7 +35,6 @@ import numpy
 from . import gl
 from .utils import numpyToGLType, sizeofGLType
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -101,8 +100,7 @@ class VertexBuffer:
             return self._name
         else:
             raise RuntimeError(
-                "No OpenGL buffer resource, \
-                               discard has already been called"
+                "No OpenGL buffer resource, discard has already been called"
             )
 
     @property
@@ -112,8 +110,7 @@ class VertexBuffer:
             return self._size
         else:
             raise RuntimeError(
-                "No OpenGL buffer resource, \
-                               discard has already been called"
+                "No OpenGL buffer resource, discard has already been called"
             )
 
     def bind(self):

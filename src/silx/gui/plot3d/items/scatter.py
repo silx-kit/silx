@@ -42,7 +42,6 @@ from .mixins import ColormapMixIn, SymbolMixIn
 from ._pick import PickingResult
 from silx._utils import NP_OPTIONAL_COPY
 
-
 _logger = logging.getLogger(__name__)
 
 

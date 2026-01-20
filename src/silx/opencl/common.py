@@ -341,10 +341,8 @@ def _measure_workgroup_size(device_or_context, fast=False):
         )
         device = ctx.devices[0]
     else:
-        raise RuntimeError(
-            """given parameter device_or_context is not an
-            instanciation of a device or a context"""
-        )
+        raise RuntimeError("""given parameter device_or_context is not an
+            instanciation of a device or a context""")
     shape = device.max_work_group_size
     # get the context
 

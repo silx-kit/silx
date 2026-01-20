@@ -46,7 +46,6 @@ from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
 from silx.utils.deprecation import deprecated_warning
 
-
 _logger = logging.getLogger(__name__)
 
 try:

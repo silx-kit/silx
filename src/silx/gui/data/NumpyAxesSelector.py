@@ -39,7 +39,6 @@ from silx.gui.utils import blockSignals
 from silx.utils.deprecation import deprecated
 import silx.utils.weakref
 
-
 _logger = logging.getLogger(__name__)
 
 

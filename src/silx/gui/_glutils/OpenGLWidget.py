@@ -39,7 +39,6 @@ from .. import qt
 from ..utils.glutils import isOpenGLAvailable
 from .._glutils import gl
 
-
 _logger = logging.getLogger(__name__)
 
 

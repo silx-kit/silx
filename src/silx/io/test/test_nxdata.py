@@ -34,7 +34,6 @@ import pytest
 from .. import nxdata
 from ..dictdump import dicttoh5
 
-
 text_dtype = h5py.special_dtype(vlen=str)
 
 

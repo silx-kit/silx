@@ -42,7 +42,6 @@ from silx.gui.widgets.FloatEdit import FloatEdit
 
 from .ScalarFieldView import Isosurface
 
-
 _logger = logging.getLogger(__name__)
 
 

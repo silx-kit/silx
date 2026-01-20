@@ -64,12 +64,12 @@ with data and plot it.
 See `this tutorial <https://plot.ly/python/ipython-notebook-tutorial/>`_
 for more information on some of the rich features of IPython.
 """
+
 __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "24/05/2016"
 
 from . import qt
-
 
 # This widget cannot be used inside an interactive IPython shell.
 # It would raise MultipleInstanceError("Multiple incompatible subclass

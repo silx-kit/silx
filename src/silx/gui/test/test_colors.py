@@ -39,7 +39,6 @@ from silx.gui.colors import Colormap
 from silx.gui.plot import items
 from silx.utils.exceptions import NotEditableError
 
-
 RGBA_TEST_CASES = (
     # name
     ("blue", (0.0, 0.0, 1.0, 1.0)),

@@ -35,7 +35,6 @@ from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 
-
 _logger = logging.getLogger(__name__)
 
 

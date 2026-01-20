@@ -59,13 +59,11 @@ class RenderContext:
     :param Context glContext: The operating system OpenGL context in use.
     """
 
-    _FRAGMENT_SHADER_SRC = string.Template(
-        """
+    _FRAGMENT_SHADER_SRC = string.Template("""
         void scene_post(vec4 cameraPosition) {
             gl_FragColor = $fogCall(gl_FragColor, cameraPosition);
         }
-        """
-    )
+        """)
 
     def __init__(self, viewport, glContext):
         self._viewport = viewport

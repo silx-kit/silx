@@ -37,7 +37,6 @@ from .. import items
 from ..items import volume
 from ..SceneWidget import SceneWidget
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -35,7 +35,6 @@ import numpy
 
 from ...._glutils import gl, Texture, numpyToGLType
 
-
 _logger = logging.getLogger(__name__)
 
 

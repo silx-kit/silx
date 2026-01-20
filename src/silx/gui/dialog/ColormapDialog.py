@@ -1244,8 +1244,7 @@ class ColormapDialog(qt.QDialog):
 
         if data.ndim == 3:  # RGB(A) images
             _logger.info(
-                "Converting current image from RGB(A) to grayscale\
-                in order to compute the intensity distribution"
+                "Converting current image from RGB(A) to grayscale in order to compute the intensity distribution"
             )
             data = data[:, :, 0] * 0.299 + data[:, :, 1] * 0.587 + data[:, :, 2] * 0.114
 

@@ -48,7 +48,6 @@ from silx.gui.widgets.FlowLayout import FlowLayout
 from . import PlotWidget
 from . import items as plotitems
 
-
 _logger = logging.getLogger(__name__)
 
 

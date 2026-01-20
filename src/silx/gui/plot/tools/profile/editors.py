@@ -37,7 +37,6 @@ from silx.gui.plot.PlotToolButtons import ProfileToolButton
 from . import rois
 from . import core
 
-
 _logger = logging.getLogger(__name__)
 
 

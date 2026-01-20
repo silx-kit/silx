@@ -45,7 +45,6 @@ import weakref
 import h5py
 import pytest
 
-
 h5py2_9 = Version(h5py.version.version) >= Version("2.9.0")
 
 

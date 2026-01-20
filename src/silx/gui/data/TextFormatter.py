@@ -37,7 +37,6 @@ from silx.gui import qt
 
 import h5py
 
-
 _logger = logging.getLogger(__name__)
 
 

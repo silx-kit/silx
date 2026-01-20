@@ -43,7 +43,6 @@ from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.items.roi import LineROI
 from silx.gui.plot import items
 
-
 _logger = logging.getLogger(__name__)
 
 

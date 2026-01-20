@@ -42,7 +42,6 @@ from ...._glutils import Program, vertexBuffer, VertexBufferAttrib
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 from .GLPlotImage import GLPlotItem
 
-
 _logger = logging.getLogger(__name__)
 
 

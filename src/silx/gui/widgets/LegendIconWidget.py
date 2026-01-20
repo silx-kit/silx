@@ -36,7 +36,6 @@ import numpy
 
 from .. import qt, colors
 
-
 _logger = logging.getLogger(__name__)
 
 

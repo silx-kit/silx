@@ -36,7 +36,6 @@ import numpy
 
 from . import event
 
-
 _logger = logging.getLogger(__name__)
 
 

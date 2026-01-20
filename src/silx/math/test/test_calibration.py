@@ -38,7 +38,6 @@ from silx.math.calibration import (
     FunctionCalibration,
 )
 
-
 X = numpy.array([3.14, 2.73, 1337])
 
 

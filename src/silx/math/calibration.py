@@ -31,6 +31,7 @@ Classes
 - :class:`ArrayCalibration`
 
 """
+
 import functools
 import numpy
 

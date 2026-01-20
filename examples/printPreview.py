@@ -31,6 +31,7 @@ while the other two use a
 :class:`~silx.gui.plot.PrintPreviewToolButton.SingletonPrintPreviewToolButton`
 which allows them to send their content to the same print preview page.
 """
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "25/07/2017"

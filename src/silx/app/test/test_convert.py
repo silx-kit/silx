@@ -39,7 +39,6 @@ from .. import convert
 from silx.utils import testutils
 from silx.io.utils import h5py_read_dataset
 
-
 # content of a spec file
 sftext = """#F /tmp/sf.dat
 #E 1455180875

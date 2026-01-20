@@ -37,7 +37,6 @@ from ...widgets.FlowLayout import FlowLayout as _FlowLayout
 from ..LegendSelector import LegendIcon as _LegendIcon
 from .. import items
 
-
 _logger = logging.getLogger(__name__)
 
 

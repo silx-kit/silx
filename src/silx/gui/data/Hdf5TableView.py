@@ -45,7 +45,6 @@ from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
 from ..hdf5._utils import htmlFromDict
 
-
 _logger = logging.getLogger(__name__)
 
 

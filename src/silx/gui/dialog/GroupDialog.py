@@ -28,12 +28,12 @@ tree.
    :members: addFile, addGroup, getSelectedDataUrl, setMode
 
 """
+
 import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeView import Hdf5TreeView
 import silx.io
 from silx.io.url import DataUrl
-
 
 _logger = logging.getLogger(__name__)
 

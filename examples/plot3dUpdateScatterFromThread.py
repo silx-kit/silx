@@ -48,7 +48,6 @@ from silx.gui.utils import concurrent
 from silx.gui.plot3d.SceneWindow import SceneWindow
 from silx.gui.plot3d import items
 
-
 MAX_NUMBER_OF_POINTS = 10**6
 
 

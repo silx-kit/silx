@@ -74,7 +74,6 @@ from PySide6.QtCore import QMetaObject, Property, Qt
 from PySide6.QtWidgets import QFrame
 from PySide6.QtUiTools import QUiLoader
 
-
 _logger = logging.getLogger(__name__)
 
 

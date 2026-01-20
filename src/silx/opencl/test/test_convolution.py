@@ -100,13 +100,10 @@ class ConvolutionData:
 
     @staticmethod
     def print_err(conv):
-        errmsg = str(
-            """
+        errmsg = str("""
             Something wrong with %s
             mode=%s, texture=%s
-            """
-            % (conv.use_case_desc, conv.mode, conv.use_textures)
-        )
+            """ % (conv.use_case_desc, conv.mode, conv.use_textures))
         return errmsg
 
     def instantiate_convol(self, shape, kernel, axes=None):

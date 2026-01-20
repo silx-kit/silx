@@ -21,6 +21,7 @@
 #
 # ############################################################################*/
 """Tests for url module"""
+
 from __future__ import annotations
 
 __authors__ = ["V. Valls"]

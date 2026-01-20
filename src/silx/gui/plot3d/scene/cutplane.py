@@ -68,8 +68,7 @@ class ColormapMesh3D(Geometry):
         gl_Position = matrix * vec4(position, 1.0);
     }
     """,
-        string.Template(
-            """
+        string.Template("""
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -93,8 +92,7 @@ class ColormapMesh3D(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """
-        ),
+    """),
     )
 
     def __init__(

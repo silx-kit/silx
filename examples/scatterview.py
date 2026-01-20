@@ -34,7 +34,6 @@ from silx.gui import qt
 import numpy
 import scipy.signal
 
-
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 

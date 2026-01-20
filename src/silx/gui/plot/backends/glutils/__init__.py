@@ -30,7 +30,6 @@ __date__ = "03/04/2017"
 
 import logging
 
-
 _logger = logging.getLogger(__name__)
 
 

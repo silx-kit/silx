@@ -24,7 +24,6 @@
 """Utility functions, toolbars and actions  to create profile on images
 and stacks of images"""
 
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
 __date__ = "12/04/2019"

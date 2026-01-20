@@ -51,7 +51,6 @@ import numbers
 
 from .._utils import NP_OPTIONAL_COPY
 
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/04/2017"

@@ -55,7 +55,6 @@ __date__ = "03/07/2017"
 import sys
 from .. import qt
 
-
 if sys.platform.startswith("win"):
     row_separator = "\r\n"
 else:

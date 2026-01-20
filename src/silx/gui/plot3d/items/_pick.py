@@ -34,7 +34,6 @@ from ...plot.items._pick import PickingResult as _PickingResult
 from ..scene import Viewport, Base
 from silx._utils import NP_OPTIONAL_COPY
 
-
 _logger = logging.getLogger(__name__)
 
 
