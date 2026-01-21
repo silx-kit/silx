@@ -37,6 +37,8 @@ import weakref
 from typing import NamedTuple
 
 from silx.gui import qt
+from silx.math.combo import min_max
+
 from .. import colors
 from . import items
 from .Interaction import (
@@ -1642,6 +1644,73 @@ class PanAndSelect(ItemsInteraction):
             return super().endDrag(startPos, endPos, btn)
 
 
+class DynamicColormapMode(ItemsInteraction):
+    """This mode automatically adjusts the colormap range of the image
+    based on a NxM ROI centered on the current cursor position. N and M are defined in the ROI_SIZE class variable.
+
+    :param plot: The Plot to which this interaction is attached
+    """
+
+    ROI_SIZE = (10, 10)  # (y,x). The ROI <<radius>>
+    COLOR = "blue"
+    LINESTYLE = "--"
+
+    @staticmethod
+    def _compute_vmin_vmax(data: numpy.ndarray, dataPos: tuple[float, float]):
+        """Compute the min and max values of the data in a ROI centered on (x,y)"""
+        roi_size = DynamicColormapMode.ROI_SIZE
+        idx_x, idx_y = int(dataPos[0]), int(dataPos[1])
+        x_start = max((0, idx_x - roi_size[1]))
+        x_end = min((idx_x + roi_size[1], data.shape[1]))
+        y_start = max((0, idx_y - roi_size[0]))
+        y_end = min((idx_y + roi_size[0], data.shape[0]))
+
+        data_values = data[y_start:y_end, x_start:x_end]
+        vmin, vmax = min_max(data_values)
+        bb_x = (x_start, x_start, x_end, x_end)
+        bb_y = (y_start, y_end, y_end, y_start)
+        return vmin, vmax, bb_x, bb_y
+
+    def handleEvent(self, eventName, *args, **kwargs):
+        super().handleEvent(eventName, *args, **kwargs)
+
+        try:
+            x, y = args[:2]
+        except ValueError:
+            return
+
+        # Get data
+        result = self.plot._pickTopMost(x, y, lambda i: isinstance(i, items.ImageBase))
+        if result is None:
+            return
+        else:
+            item = result.getItem()
+        colormap = item.getColormap()
+        dataPos = self.plot.pixelToData(x, y)
+        data = item.getData()
+
+        # Extract ROI min and max
+        vmin, vmax, bb_x, bb_y = self._compute_vmin_vmax(data, dataPos)
+
+        # Add a blue rectangle that shows the ROI
+        self.plot.addShape(
+            bb_x,
+            bb_y,
+            legend="ColorMap reference",
+            replace=False,
+            fill=False,
+            color=self.COLOR,
+            gapcolor=None,
+            linestyle=self.LINESTYLE,
+            overlay=True,
+            z=1,
+        )
+
+        # Set new min and max
+        colormap.setVRange(vmin, vmax)
+        item.setColormap(colormap)
+
+
 # Interaction mode control ####################################################
 
 # Mapping of draw modes: event handler
@@ -1794,6 +1863,9 @@ class PlotInteraction(qt.QObject):
         elif isinstance(self._eventHandler, PanAndSelect):
             return {"mode": "pan"}
 
+        elif isinstance(self._eventHandler, DynamicColormapMode):
+            return {"mode": "dynamic_colormap"}
+
         else:
             return {"mode": "select"}
 
@@ -1823,8 +1895,14 @@ class PlotInteraction(qt.QObject):
         :param str label: Only for 'draw' mode.
         :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        assert mode in ("draw", "pan", "select", "select-draw", "zoom")
-
+        assert mode in (
+            "draw",
+            "pan",
+            "select",
+            "select-draw",
+            "zoom",
+            "dynamic_colormap",
+        )
         plotWidget = self.parent()
         assert plotWidget is not None
 
@@ -1846,6 +1924,10 @@ class PlotInteraction(qt.QObject):
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plotWidget, color)
             self._eventHandler.zoomEnabledAxes = self.getZoomEnabledAxes()
+
+        elif mode == "dynamic_colormap":
+            self._eventHandler.cancel()
+            self._eventHandler = DynamicColormapMode(plotWidget)
 
         else:  # Default mode: interaction with plot objects
             # Ignores color, shape and label
