@@ -365,6 +365,15 @@ class Colormap(qt.QObject):
         self.__nanColor = numpy.array(self._DEFAULT_NAN_COLOR, dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
+
+        if autoscaleMode == self.PERCENTILE_1_99:
+            deprecated_warning(
+                type_="Argument",
+                name="autoscaleMode='percentile_1_99'",
+                replacement="autoscaleMode='percentile'",
+                since_version="3.0",
+            )
+            autoscaleMode = self.PERCENTILE
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
 
         if normalization is Colormap.LOGARITHM:
@@ -575,9 +584,9 @@ class Colormap(qt.QObject):
             raise NotEditableError("Colormap is not editable")
         if mode == self.PERCENTILE_1_99:
             deprecated_warning(
-                type_="Mode",
-                name="mode",
-                replacement="percentile",
+                type_="Argument",
+                name="mode='percentile_1_99'",
+                replacement="mode='percentile'",
                 since_version="3.0",
             )
             mode = self.PERCENTILE
