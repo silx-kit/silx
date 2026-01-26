@@ -1,5 +1,6 @@
 import logging
 import weakref
+from typing import Optional
 
 from .. import qt
 from ..widgets.LegendIconWidget import LegendIconWidget
@@ -11,15 +12,10 @@ _logger = logging.getLogger(__name__)
 
 
 class LegendItemWidget(qt.QWidget):
-    def __init__(self, parent, item: items.Item):
+    def __init__(self, parent: qt.QWidget, item: items.Item):
         super().__init__(parent)
-        self._item = weakref.ref(item)
+        self._itemRef = weakref.ref(item)
         self.setLayout(qt.QHBoxLayout())
-        self.setSizePolicy(
-            qt.QSizePolicy.Policy.Preferred, qt.QSizePolicy.Policy.Minimum
-        )
-        self.setMinimumWidth(150)
-        self.setMaximumWidth(300)
         self.layout().setSpacing(20)
         self.layout().setContentsMargins(10, 0, 10, 0)
         item.sigItemChanged.connect(self._itemChanged)
@@ -33,9 +29,11 @@ class LegendItemWidget(qt.QWidget):
         self.layout().addStretch()
 
         self._label.setToolTip("Click to toggle visibility")
-        self._label.mousePressEvent = self._onLabelClicked
         self.setCursor(qt.Qt.PointingHandCursor)
         self._update()
+
+    def getItem(self) -> Optional[items.Item]:
+        return self._itemRef()
 
     def _itemChanged(self, event: items.ItemChangedType):
         """Handle update of curve/scatter item
@@ -51,13 +49,8 @@ class LegendItemWidget(qt.QWidget):
             items.ItemChangedType.LINE_STYLE,
             items.ItemChangedType.COLOR,
             items.ItemChangedType.ALPHA,
-            items.ItemChangedType.HIGHLIGHTED,
-            items.ItemChangedType.HIGHLIGHTED_STYLE,
         ):
             self._update()
-
-    def getItem(self) -> items.Item | None:
-        return self._item()
 
     def _update(self):
         item = self.getItem()
@@ -73,13 +66,7 @@ class LegendItemWidget(qt.QWidget):
             self._icon.setLineWidth(item.getLineWidth())
             self._icon.setLineStyle(item.getLineStyle())
         if isinstance(item, items.ColorMixIn):
-            color_rgba = item.getColor()
-            color = qt.QColor.fromRgbF(
-                color_rgba[0],
-                color_rgba[1],
-                color_rgba[2],
-                color_rgba[3],
-            )
+            color = qt.QColor.fromRgbF(*item.getColor())
             self._icon.setLineColor(color)
             self._icon.setSymbolColor(color)
         if isinstance(item, items.ColormapMixIn):
@@ -87,88 +74,80 @@ class LegendItemWidget(qt.QWidget):
 
         self._label.setText(item.getName())
 
-        style = ""
         palette = self.palette()
-        text_color = palette.color(qt.QPalette.ColorRole.Text).name()
-        disabled_text_color = (
-            palette.color(qt.QPalette.ColorRole.Text).darker(150).name()
-        )
+        if not item.isVisible():
+            self._label.setStyleSheet(
+                f"color: {palette.color(qt.QPalette.Disabled, qt.QPalette.WindowText).name()};"
+            )
+        else:
+            self._label.setStyleSheet(
+                f"color: {palette.color(qt.QPalette.Active, qt.QPalette.WindowText).name()};"
+            )
 
         if isinstance(item, HighlightedMixIn) and item.isHighlighted():
-            style += "border: 1px solid black; "
-
-        if not item.isVisible():
-            style += f"color: {disabled_text_color};"
+            self.setAutoFillBackground(True)
+            self.setBackgroundRole(qt.QPalette.Highlight)
         else:
-            style += f"color: {text_color};"
+            self.setAutoFillBackground(False)
 
-        self._label.setStyleSheet(style)
-
-    def _onLabelClicked(self, event):
+    def mousePressEvent(self, event: qt.QMouseEvent):
+        """Handle toggle visibility on click without monkey-patching."""
         if event.button() == qt.Qt.LeftButton:
-            if self.getItem():
-                self.getItem().setVisible(not self._item().isVisible())
-
-    def eventFilter(self, obj, event):
-        if obj == self._label and event.type() == qt.QEvent.MouseButtonPress:
-            if event.button() == qt.Qt.LeftButton:
-                self._onLabelClicked(event)
-                return True
-        return super().eventFilter(obj, event)
+            item = self.getItem()
+            if item:
+                item.setVisible(not item.isVisible())
+        super().mousePressEvent(event)
 
 
 class LegendItemList(qt.QWidget):
     def __init__(
         self,
-        parent: qt.QWidget | None = None,
-        plotWidget: PlotWidget | None = None,
+        parent: Optional[qt.QWidget] = None,
+        plotWidget: Optional[PlotWidget] = None,
     ):
         super().__init__(parent)
-        self.setLayout(qt.QVBoxLayout(self))
-        self.setSizePolicy(
-            qt.QSizePolicy.Policy.Preferred, qt.QSizePolicy.Policy.Expanding
-        )
-        self.setMinimumWidth(150)
-        self.setMaximumWidth(300)
-
-        self._plot: PlotWidget | None = plotWidget
-        self._binding(plotWidget=plotWidget)
+        self.setLayout(qt.QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setSpacing(0)
+        self.layout().addStretch()
+        self._plotRef = None
         self._itemWidgets = {}
 
-    def _binding(self, plotWidget: PlotWidget):
-        """Binds this widget to the signals of a parent PlotWidget."""
-        self._plot = plotWidget
-        self._plot.sigItemAdded.connect(self._updateAllItemsList)
-        self._plot.sigItemRemoved.connect(self._onItemRemoved)
-        self._updateAllItemsList()
-        self.show()
+        if plotWidget:
+            self.setPlotWidget(plotWidget)
+
+    def setPlotWidget(self, plot: PlotWidget):
+        if self._plotRef is not None and self._plotRef() is not None:
+            prev_plot = self._plotRef()
+            prev_plot.sigItemAdded.disconnect(self._onItemAdded)
+            prev_plot.sigItemRemoved.disconnect(self._onItemRemoved)
+
+        self._plotRef = weakref.ref(plot)
+        plot.sigItemAdded.connect(self._onItemAdded)
+        plot.sigItemRemoved.connect(self._onItemRemoved)
+
+        self._clear()
+        for item in plot.getItems():
+            self._onItemAdded(item)
 
     def _clear(self):
         """Helper to clear all widgets from a layout."""
         layout = self.layout()
-        if layout is not None:
+        while layout.count() > 1:
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        self._itemWidgets.clear()
 
-            while layout.count():
-                child = layout.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
-
-    def _updateAllItemsList(self):
-        if self._plot is None:
+    def _onItemAdded(self, item: items.Item):
+        if not isinstance(item, items.Item) or item in self._itemWidgets:
             return
-        self._clear()
-        activeItem: tuple = self._plot.getItems()
-
-        for item in activeItem:
-            self._onItemAdded(item)
+        widget = LegendItemWidget(self, item)
+        self.layout().insertWidget(self.layout().count() - 1, widget)
+        self._itemWidgets[item] = widget
 
     def _onItemRemoved(self, item: items.Item):
         widget: qt.QWidget | None = self._itemWidgets.pop(item, None)
         if widget is not None:
             self.layout().removeWidget(widget)
             widget.deleteLater()
-
-    def _onItemAdded(self, item: items.Item):
-        legendIcon = LegendItemWidget(self, item)
-        self.layout().addWidget(legendIcon)
-        self._itemWidgets[item] = legendIcon
