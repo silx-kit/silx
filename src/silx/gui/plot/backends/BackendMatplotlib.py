@@ -34,8 +34,6 @@ import logging
 import datetime as dt
 import numpy
 
-from packaging.version import Version
-
 from ... import qt
 
 # First of all init matplotlib and set its backend
@@ -44,7 +42,6 @@ from ...utils.matplotlib import (
     FigureCanvasQTAgg,
     qFontToFontProperties,
 )
-import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
@@ -530,7 +527,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
-        self._matplotlibVersion = Version(matplotlib.__version__)
 
         self.fig = Figure(
             tight_layout=config._MPL_TIGHT_LAYOUT,
@@ -756,7 +752,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 markersize=symbolsize,
             )
 
-            if gapcolor is not None and self._matplotlibVersion >= Version("3.6.0"):
+            if gapcolor is not None:
                 for line2d in curveList:
                     line2d.set_gapcolor(gapcolor)
             artists += list(curveList)
@@ -1417,10 +1413,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             0,
             0,
         )
-        if self._matplotlibVersion >= Version("3.6"):
-            self.fig.set_layout_engine("tight" if istight else None)
-        else:
-            self.fig.set_tight_layout(True if istight else None)
+        self.fig.set_layout_engine("tight" if istight else None)
 
         # Toggle display of axes and viewbox rect
         isFrameOn = position != (0.0, 0.0, 1.0, 1.0)
