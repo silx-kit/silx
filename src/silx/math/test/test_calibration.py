@@ -66,6 +66,12 @@ class TestArrayCalibration:
         assert calib.is_affine()
         assert calib.get_slope() == 0.1
 
+    def testAffineArrayWithHighDynamicRange(self):
+        array = numpy.linspace(1e-12, 4, 100000, dtype=numpy.float32)
+        calib = ArrayCalibration(array)
+        assert calib.is_affine()
+        assert numpy.isclose(calib.get_slope(), numpy.mean(numpy.diff(array)))
+
     def testNotAffineArray(self):
         array = numpy.array([45.2, 25.3, 666.0, -8.0])
         calib = ArrayCalibration(array)
