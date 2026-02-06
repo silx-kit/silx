@@ -139,7 +139,6 @@ def mainQt(options):
     from silx.gui import qt
 
     # Make sure matplotlib is configured
-    # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
     import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])

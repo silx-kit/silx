@@ -69,12 +69,6 @@ class DefaultTickFormatter(_ScalarFormatter):
         self.set_scientific(True)
         self.create_dummy_axis()
 
-    if _MATPLOTLIB_VERSION < Version("3.1.0"):
-
-        def format_ticks(self, values):
-            self.set_locs(values)
-            return [self(value, i) for i, value in enumerate(values)]
-
 
 _FONT_STYLES = {
     qt.QFont.StyleNormal: "normal",
