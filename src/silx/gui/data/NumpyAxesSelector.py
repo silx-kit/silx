@@ -352,7 +352,7 @@ class NumpyAxesSelector(qt.QWidget):
             a.slider().lineEdit().setFixedWidth(lineEditWidth)
             a.slider().limitWidget().setFixedWidth(limitWidth)
 
-        labelWidth = max([a.label().width() for a in self.__axis])
+        labelWidth = max([a.label().minimumSizeHint().width() for a in self.__axis])
         for a in self.__axis:
             a.label().setFixedWidth(labelWidth)
 
