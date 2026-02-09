@@ -27,19 +27,14 @@ def test_add_remove_items(qapp, plot_with_legend):
     qapp.processEvents()
     assert len(legend_widget._itemWidgets) == 0
 
-
-def test_visibility_toggle(qapp, plot_with_legend):
+def test_visibility_toggle(qapp, qapp_utils, plot_with_legend):
     plot, legend_widget = plot_with_legend
     plot.addCurve([0, 1], [0, 1], legend="test_item")
     qapp.processEvents()
     item = plot.getCurve("test_item")
     item_widget = legend_widget._itemWidgets[item]
     assert item.isVisible() is True
-    from silx.gui.utils.testutils import QTest
-
-    QTest.mouseClick(item_widget, qt.Qt.LeftButton)
-    qapp.processEvents()
+    qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
     assert item.isVisible() is False
-    QTest.mouseClick(item_widget, qt.Qt.LeftButton)
-    qapp.processEvents()
+    qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
     assert item.isVisible() is True
