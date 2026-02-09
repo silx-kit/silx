@@ -146,7 +146,7 @@ The GUI widgets depend on the following extra packages:
 * A Qt binding: either `PySide6 <https://pypi.org/project/PySide6/>`_ (>= 6.4),
   `PyQt6 <https://pypi.org/project/PyQt6/>`_ (>= 6.3) or
   `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ (>= 5.14)
-* `matplotlib <http://matplotlib.org/>`_
+* `matplotlib <http://matplotlib.org/>`_ (>= 3.6)
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `qtconsole <https://pypi.org/project/qtconsole>`_
   for the ``silx.gui.console`` widget.
