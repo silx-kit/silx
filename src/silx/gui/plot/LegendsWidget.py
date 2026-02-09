@@ -108,7 +108,7 @@ class _LegendItemWidget(qt.QWidget):
         super().mousePressEvent(event)
 
 
-class LegendItemList(qt.QWidget):
+class LegendsWidget(qt.QWidget):
     def __init__(
         self,
         parent: qt.QWidget | None = None,
