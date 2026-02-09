@@ -27,6 +27,7 @@ def test_add_remove_items(qapp, plot_with_legend):
     qapp.processEvents()
     assert len(legend_widget._itemWidgets) == 0
 
+
 def test_visibility_toggle(qapp, qapp_utils, plot_with_legend):
     plot, legend_widget = plot_with_legend
     plot.addCurve([0, 1], [0, 1], legend="test_item")
