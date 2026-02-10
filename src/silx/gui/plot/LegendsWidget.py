@@ -121,25 +121,28 @@ class LegendsWidget(qt.QWidget):
         self.layout().addStretch()
         self._plotRef = None
         self._itemWidgets = {}
+
         self.setPlotWidget(plotWidget)
 
     def setPlotWidget(self, plot: PlotWidget | None):
         previousPlot = None if self._plotRef is None else self._plotRef()
         if previousPlot is not None:
-            previousPlot.sigItemRemoved.disconnect(self._onItemRemovedFromPlot)
-            self.clearItems()
+            previousPlot.sigItemAdded.disconnect(self.addItem)
+            previousPlot.sigItemRemoved.disconnect(self.removeItem)
+            for item in previousPlot.getItems():
+                self.removeItem(item)
 
         if plot is None:
             self._plotRef = None
         else:
-            plot.sigItemRemoved.connect(self._onItemRemovedFromPlot)
+            plot.sigItemAdded.connect(self.addItem)
+            plot.sigItemRemoved.connect(self.removeItem)
             self._plotRef = weakref.ref(plot)
 
-    def _onItemRemovedFromPlot(self, item: items.Item):
-        if item in self._itemWidgets:
-            self.removeItem(item)
+            for item in plot.getItems():
+                self.addItem(item)
 
-    def _clear(self):
+    def clear(self):
         layout = self.layout()
         while layout.count() > 1:
             child = layout.takeAt(0)
@@ -159,6 +162,3 @@ class LegendsWidget(qt.QWidget):
         if widget is not None:
             self.layout().removeWidget(widget)
             widget.deleteLater()
-
-    def clearItems(self):
-        self._clear()

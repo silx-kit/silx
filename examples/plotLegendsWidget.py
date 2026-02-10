@@ -18,14 +18,10 @@ dock.setWidget(legends)
 window.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 
 x = numpy.linspace(0, 10, 100)
-c1 = plot.addCurve(x, numpy.sin(x), legend="Sin Curve", color="blue")
-legends.addItem(plot.getCurve("Sin Curve"))
-c2 = plot.addCurve(x, numpy.cos(x), legend="Cosine Curve", color="red")
-legends.addItem(plot.getCurve("Cosine Curve"))
+plot.addCurve(x, numpy.sin(x), legend="Sin Curve", color="blue")
+plot.addCurve(x, numpy.cos(x), legend="Cosine Curve", color="red")
 xScatter = numpy.random.rand(50) * 10
 yScatter = numpy.random.rand(50) * 2 - 1
-s1 = plot.addScatter(xScatter, yScatter, value=yScatter * 10, legend="Points")
-legends.addItem(plot.getScatter("Points"))
-s2 = plot.addScatter(xScatter - 1, yScatter - 1, value=yScatter * 10, legend="Points_2")
+plot.addScatter(xScatter, yScatter, value=yScatter * 10, legend="Points")
 window.show()
 app.exec_()
