@@ -6,6 +6,7 @@ from silx.gui.plot import PlotWidget
 from silx.gui.plot.LegendsWidget import LegendsWidget
 from .. import items
 
+
 @pytest.fixture
 def plot_with_legend(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget)
@@ -40,6 +41,7 @@ def test_visibility_toggle(qapp, qapp_utils, plot_with_legend):
     qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
     assert item.isVisible() is True
 
+
 def test_manual_add_same_item(qapp, plot_with_legend):
     plot, legend_widget = plot_with_legend
     plot.addCurve([0, 1], [0, 1], legend="c1")
@@ -49,6 +51,7 @@ def test_manual_add_same_item(qapp, plot_with_legend):
     legend_widget.addItem(item)
     qapp.processEvents()
     assert len(legend_widget._itemWidgets) == 1
+
 
 def test_manual_remove_item_and_then_from_plot(qapp, plot_with_legend):
     plot, legend_widget = plot_with_legend
@@ -62,6 +65,7 @@ def test_manual_remove_item_and_then_from_plot(qapp, plot_with_legend):
     plot.remove("c1")
     qapp.processEvents()
     assert len(legend_widget._itemWidgets) == 1
+
 
 def test_setPlotWidget_switch_cases(qapp, qWidgetFactory):
     plot1 = qWidgetFactory(PlotWidget)
@@ -77,6 +81,7 @@ def test_setPlotWidget_switch_cases(qapp, qWidgetFactory):
     qapp.processEvents()
     assert "p1_item" not in [it.getName() for it in legend_widget._itemWidgets]
     assert "orphan_item" in [it.getName() for it in legend_widget._itemWidgets]
+
 
 def test_orphan_item_interaction(qapp, qapp_utils, qWidgetFactory):
     legend_widget = qWidgetFactory(LegendsWidget)
