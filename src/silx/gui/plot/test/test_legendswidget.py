@@ -35,11 +35,11 @@ def test_visibility_toggle(qapp, qapp_utils, plot_with_legend):
     qapp.processEvents()
     item = plot.getCurve("test_item")
     item_widget = legend_widget._itemWidgets[item]
-    assert item.isVisible() is True
+    assert item.isVisible()
     qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
-    assert item.isVisible() is False
+    assert not item.isVisible()
     qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
-    assert item.isVisible() is True
+    assert item.isVisible()
 
 
 def test_manual_add_same_item(qapp, plot_with_legend):
@@ -90,12 +90,12 @@ def test_orphan_item_interaction(qapp, qapp_utils, qWidgetFactory):
     legend_widget.addItem(orphan_item)
     qapp.processEvents()
     item_widget = legend_widget._itemWidgets[orphan_item]
-    assert orphan_item.isVisible() is True
-    assert item_widget._label.isEnabled() is True
+    assert orphan_item.isVisible()
+    assert item_widget._label.isEnabled()
     qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
     qapp.processEvents()
-    assert orphan_item.isVisible() is False
-    assert item_widget._label.isEnabled() is False
+    assert not orphan_item.isVisible()
+    assert not item_widget._label.isEnabled()
     qapp_utils.mouseClick(item_widget, qt.Qt.LeftButton)
-    assert orphan_item.isVisible() is True
-    assert item_widget._label.isEnabled() is True
+    assert orphan_item.isVisible()
+    assert item_widget._label.isEnabled()
