@@ -406,6 +406,7 @@ class HistogramWidget(qt.QWidget):
             n_bins=max(2, self.__nbinsLineEdit.getValue()),
             histo_range=self.__rangeSlider.getValues(),
             weights=data,
+            last_bin_closed=True,
         )
         if len(histogram.edges) != 1:
             _logger.error("Error while computing the histogram")
