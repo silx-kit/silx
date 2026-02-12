@@ -45,8 +45,8 @@ from .. import qt
 
 # This must be performed before any import from matplotlib
 if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
-    matplotlib.use("Qt5Agg", force=False)
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
+    matplotlib.use("QtAgg", force=False)
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg  # noqa
 
 else:
     raise ImportError("Unsupported Qt binding: %s" % qt.BINDING)
