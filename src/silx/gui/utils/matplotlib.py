@@ -143,7 +143,7 @@ def rasterMathText(
     fig.set_dpi(dotsPerInch)
     text = fig.text(
         0,
-        1,
+        1 - 2 / figure_height,
         stripped_text,
         fontproperties=font_prop,
         verticalalignment="top",
