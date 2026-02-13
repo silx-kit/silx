@@ -146,10 +146,13 @@ class ArrayCalibration(AbstractCalibration):
         return True."""
         if self.calibration_array.size < 2:
             return False
-        delta = numpy.diff(self.calibration_array)
-        # use a less strict relative tolerance to account for rounding errors
-        # e.g. when using float64 into float32 (see #1823, #4465)
-        return numpy.allclose(delta, delta[0], rtol=1e-3)
+        affine_values = numpy.linspace(
+            self.calibration_array[0],
+            self.calibration_array[-1],
+            len(self.calibration_array),
+            dtype=self.calibration_array.dtype,
+        )
+        return numpy.allclose(self.calibration_array, affine_values)
 
     def get_slope(self):
         """If the calibration array is regularly spaced, return the spacing."""
