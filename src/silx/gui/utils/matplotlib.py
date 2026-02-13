@@ -120,15 +120,15 @@ def rasterMathText(
         parser.parse(line, prop=font_prop, dpi=dotsPerInch)
         for line in stripped_text.split("\n")
     ]
-    max_line_width = max(info[0] for info in lines_info)
+    max_line_width = max(info.width for info in lines_info)
     # Use lp string as minimum height/ascent
     ref_info = parser.parse("lp", prop=font_prop, dpi=dotsPerInch)
     line_height = max(
-        ref_info[1],
-        *(info[1] for info in lines_info),
+        ref_info.height,
+        *(info.height for info in lines_info),
     )
     first_line_ascent = max(
-        ref_info[1] - ref_info[2], lines_info[0][1] - lines_info[0][2]
+        ref_info.height - ref_info.depth, lines_info[0].height - lines_info[0].depth
     )
 
     linespacing = 1.2
