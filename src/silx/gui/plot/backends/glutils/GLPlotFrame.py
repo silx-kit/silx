@@ -315,14 +315,7 @@ class PlotAxis:
         labels.append(axisTitle)
 
         if self._orderAndOffsetText:
-            orderAndOffsetFont = qt.QFont(self.font)
-            orderAndOffsetFont.setWeight(qt.QFont.ExtraBold)
-            pointSize = orderAndOffsetFont.pointSizeF()
-            if pointSize > 0:
-                orderAndOffsetFont.setPointSizeF(1.2 * pointSize)
-            pixelSize = orderAndOffsetFont.pixelSize()
-            if pixelSize > 0:
-                orderAndOffsetFont.setPixelSize(int(1.2 * pixelSize))
+            orderAndOffsetFont = self._orderAndOffsetFont(self.font)
 
             xOrderOffset, yOrderOffet = self.orderOffsetAnchor
             labels.append(
@@ -338,6 +331,20 @@ class PlotAxis:
                 )
             )
         return vertices, labels
+
+    @staticmethod
+    def _orderAndOffsetFont(font: qt.QFont) -> qt.QFont:
+        """Returns a larger bold font"""
+        boldBiggerFont = qt.QFont(font)
+        boldBiggerFont.setWeight(qt.QFont.ExtraBold)
+        # Increase font size which is either in pixel or in points
+        pointSize = boldBiggerFont.pointSizeF()
+        if pointSize > 0:
+            boldBiggerFont.setPointSizeF(1.2 * pointSize)
+        pixelSize = boldBiggerFont.pixelSize()
+        if pixelSize > 0:
+            boldBiggerFont.setPixelSize(int(1.2 * pixelSize))
+        return boldBiggerFont
 
     def _dirtyPlotFrame(self):
         """Dirty parent GLPlotFrame"""
