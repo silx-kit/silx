@@ -340,10 +340,10 @@ class PlotAxis:
         # Increase font size which is either in pixel or in points
         pointSize = boldBiggerFont.pointSizeF()
         if pointSize > 0:
-            boldBiggerFont.setPointSizeF(1.2 * pointSize)
+            boldBiggerFont.setPointSizeF(1.1 * pointSize)
         pixelSize = boldBiggerFont.pixelSize()
         if pixelSize > 0:
-            boldBiggerFont.setPixelSize(int(1.2 * pixelSize))
+            boldBiggerFont.setPixelSize(int(1.1 * pixelSize))
         return boldBiggerFont
 
     def _dirtyPlotFrame(self):
