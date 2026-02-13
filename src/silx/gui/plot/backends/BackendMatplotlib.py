@@ -539,6 +539,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax = self.fig.add_axes([0.15, 0.15, 0.75, 0.75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
+
+        xOffsetText = self.ax.xaxis.get_offset_text()
+        xOffsetText.set_weight("heavy")
+        xOffsetText.set_fontsize(1.1 * xOffsetText.get_fontsize())
+
+        self.ax.yaxis.OFFSETTEXTPAD = 10
+        yOffsetText = self.ax.yaxis.get_offset_text()
+        yOffsetText.set_weight("heavy")
+        yOffsetText.set_fontsize(1.1 * yOffsetText.get_fontsize())
+        yOffsetText.set_ha("right")
+
+        self.ax2.yaxis.OFFSETTEXTPAD = 10
+        y2OffsetText = self.ax2.yaxis.get_offset_text()
+        y2OffsetText.set_weight("heavy")
+        y2OffsetText.set_fontsize(1.1 * y2OffsetText.get_fontsize())
+        y2OffsetText.set_ha("left")
+
         # Make sure background of Axes is displayed
         self.ax2.patch.set_visible(False)
         self.ax.patch.set_visible(True)

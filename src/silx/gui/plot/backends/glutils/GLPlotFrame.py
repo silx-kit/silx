@@ -103,7 +103,7 @@ class PlotAxis:
         self._foregroundColor = foregroundColor
         self._labelAlign = labelAlign
         self._labelVAlign = labelVAlign
-        self._orderOffetAnchor = (1.0, 0.0)
+        self._orderOffsetAnchor = (1.0, 0.0)
         self._orderOffsetAlign = orderOffsetAlign
         self._orderOffsetVAlign = orderOffsetVAlign
         self._titleAlign = titleAlign
@@ -211,14 +211,14 @@ class PlotAxis:
             self._dirtyPlotFrame()
 
     @property
-    def orderOffetAnchor(self) -> tuple[float, float]:
+    def orderOffsetAnchor(self) -> tuple[float, float]:
         """Anchor position for the tick order&offset text"""
-        return self._orderOffetAnchor
+        return self._orderOffsetAnchor
 
-    @orderOffetAnchor.setter
-    def orderOffetAnchor(self, position: tuple[float, float]):
-        if position != self._orderOffetAnchor:
-            self._orderOffetAnchor = position
+    @orderOffsetAnchor.setter
+    def orderOffsetAnchor(self, position: tuple[float, float]):
+        if position != self._orderOffsetAnchor:
+            self._orderOffsetAnchor = position
             self._dirtyTicks()
 
     @property
@@ -315,11 +315,13 @@ class PlotAxis:
         labels.append(axisTitle)
 
         if self._orderAndOffsetText:
-            xOrderOffset, yOrderOffet = self.orderOffetAnchor
+            orderAndOffsetFont = self._orderAndOffsetFont(self.font)
+
+            xOrderOffset, yOrderOffet = self.orderOffsetAnchor
             labels.append(
                 Text2D(
                     text=self._orderAndOffsetText,
-                    font=self.font,
+                    font=orderAndOffsetFont,
                     color=self._foregroundColor,
                     x=xOrderOffset,
                     y=yOrderOffet,
@@ -329,6 +331,20 @@ class PlotAxis:
                 )
             )
         return vertices, labels
+
+    @staticmethod
+    def _orderAndOffsetFont(font: qt.QFont) -> qt.QFont:
+        """Returns a larger bold font"""
+        boldBiggerFont = qt.QFont(font)
+        boldBiggerFont.setWeight(qt.QFont.ExtraBold)
+        # Increase font size which is either in pixel or in points
+        pointSize = boldBiggerFont.pointSizeF()
+        if pointSize > 0:
+            boldBiggerFont.setPointSizeF(1.2 * pointSize)
+        pixelSize = boldBiggerFont.pixelSize()
+        if pixelSize > 0:
+            boldBiggerFont.setPixelSize(int(1.2 * pixelSize))
+        return boldBiggerFont
 
     def _dirtyPlotFrame(self):
         """Dirty parent GLPlotFrame"""
@@ -856,7 +872,7 @@ class GLPlotFrame2D(GLPlotFrame):
                 foregroundColor=self._foregroundColor,
                 labelAlign=RIGHT,
                 labelVAlign=CENTER,
-                orderOffsetAlign=LEFT,
+                orderOffsetAlign=RIGHT,
                 orderOffsetVAlign=BOTTOM,
                 titleAlign=CENTER,
                 titleVAlign=BOTTOM,
@@ -871,7 +887,7 @@ class GLPlotFrame2D(GLPlotFrame):
             foregroundColor=self._foregroundColor,
             labelAlign=LEFT,
             labelVAlign=CENTER,
-            orderOffsetAlign=RIGHT,
+            orderOffsetAlign=LEFT,
             orderOffsetVAlign=BOTTOM,
             titleAlign=CENTER,
             titleVAlign=TOP,
@@ -1364,17 +1380,17 @@ class GLPlotFrame2D(GLPlotFrame):
         if fontPixelSize == -1:
             fontPixelSize = self._font.pointSizeF() / 72.0 * self.dotsPerInch
 
-        self.axes[0].orderOffetAnchor = (
+        self.axes[0].orderOffsetAnchor = (
             xRight,
             yBottom + fontPixelSize * 1.2,
         )
-        self.axes[1].orderOffetAnchor = (
+        self.axes[1].orderOffsetAnchor = (
             xLeft,
-            yTop - 4 * self.devicePixelRatio,
+            yTop - 4 * self.devicePixelRatio - fontPixelSize / 2.0,
         )
-        self._y2Axis.orderOffetAnchor = (
+        self._y2Axis.orderOffsetAnchor = (
             xRight,
-            yTop - 4 * self.devicePixelRatio,
+            yTop - 4 * self.devicePixelRatio - fontPixelSize / 2.0,
         )
 
         if self.isYAxisInverted:
