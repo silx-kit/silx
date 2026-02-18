@@ -396,37 +396,27 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
-        if self.isOn and self._direction is not None:
+        if self.isOn and self._direction is not None and "dLight" in program.uniforms:
             # Transform light direction from camera space to object coords
-            if "dLight.lightDir" in program.uniforms:
-                lightdir = context.objectToCamera.transformDir(
-                    self._direction, direct=False
-                )
-                lightdir /= numpy.linalg.norm(lightdir)
-                gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
+            lightdir = context.objectToCamera.transformDir(
+                self._direction, direct=False
+            )
+            lightdir /= numpy.linalg.norm(lightdir)
+
+            gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
 
             # Convert view position to object coords
-            if "dLight.viewPos" in program.uniforms:
-                viewpos = context.objectToCamera.transformPoint(
-                    numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
-                    direct=False,
-                    perspectiveDivide=True,
-                )[:3]
-                gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+            viewpos = context.objectToCamera.transformPoint(
+                numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
+                direct=False,
+                perspectiveDivide=True,
+            )[:3]
+            gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
 
-            if "dLight.ambient" in program.uniforms:
-                gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
-
-            if "dLight.diffuse" in program.uniforms:
-                gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
-
-            if "dLight.specular" in program.uniforms:
-                gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
-
-            if "dLight.shininess" in program.uniforms:
-                gl.glUniform1f(
-                    program.uniforms["dLight.shininess"], float(self.shininess)
-                )
+            gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
+            gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
+            gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
+            gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
 
 
 class Colormap(event.Notifier, ProgramFunction):
