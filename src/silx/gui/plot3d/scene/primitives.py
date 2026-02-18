@@ -369,9 +369,7 @@ class Geometry(core.Elem):
 
                 toCopy = min(len(min_), 3 - index)
                 if toCopy != len(min_):
-                    _logger.error(
-                        "Attribute defining bounds" " has too many dimensions"
-                    )
+                    _logger.error("Attribute defining bounds has too many dimensions")
 
                 self.__bounds[0, index : index + toCopy] = min_[:toCopy]
                 self.__bounds[1, index : index + toCopy] = max_[:toCopy]
@@ -1489,6 +1487,7 @@ class ColorPoints(_Points):
 class GridPoints(Geometry):
     # GLSL 1.30 !
     """Data points on a regular grid with an associated value and size."""
+
     _shaders = (
         """
     #version 130
