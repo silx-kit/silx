@@ -281,6 +281,32 @@ class DirectionalLight(event.Notifier, ProgramFunction):
     }
     """
 
+    cameraSpaceLighting = """
+    vec4 lighting(vec4 color, vec3 position, vec3 normal)
+    {
+        // 1. Normalize the input normal
+        vec3 n = normalize(normal);
+
+        // 2. Setup the fixed Camera-Space light direction
+        vec3 lightDir = normalize(vec3(0.2, 0.2, 1.0));
+        
+        // 3. Calculate Diffuse with a 'wrap' so it doesn't go to pure black
+        float nDotL = dot(n, lightDir);
+        float diffuseTerm = max(0.0, nDotL) * 0.7 + 0.3; 
+        
+        // 4. Calculate Specular (Shiny highlight)
+        float spec = 0.0;
+        if (nDotL > 0.0) {
+            vec3 halfDir = normalize(lightDir + vec3(0.0, 0.0, 1.0));
+            spec = pow(max(0.0, dot(n, halfDir)), 32.0);
+        }
+        
+        // 5. Combine everything
+        vec3 litColor = color.rgb * diffuseTerm + (vec3(0.3) * spec);
+        return vec4(litColor, color.a);
+    }
+    """
+
     def __init__(
         self,
         direction=None,
@@ -352,6 +378,13 @@ class DirectionalLight(event.Notifier, ProgramFunction):
             return self.fragmentShaderFunctionNoop
 
     @property
+    def cameraSpaceLightingDef(self):
+        if self.isOn:
+            return self.cameraSpaceLighting
+        else:
+            return self.fragmentShaderFunctionNoop
+
+    @property
     def fragmentCall(self):
         """Function name to call in fragment shader"""
         return "lighting"
@@ -365,25 +398,35 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         """
         if self.isOn and self._direction is not None:
             # Transform light direction from camera space to object coords
-            lightdir = context.objectToCamera.transformDir(
-                self._direction, direct=False
-            )
-            lightdir /= numpy.linalg.norm(lightdir)
-
-            gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
+            if "dLight.lightDir" in program.uniforms:
+                lightdir = context.objectToCamera.transformDir(
+                    self._direction, direct=False
+                )
+                lightdir /= numpy.linalg.norm(lightdir)
+                gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
 
             # Convert view position to object coords
-            viewpos = context.objectToCamera.transformPoint(
-                numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
-                direct=False,
-                perspectiveDivide=True,
-            )[:3]
-            gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+            if "dLight.viewPos" in program.uniforms:
+                viewpos = context.objectToCamera.transformPoint(
+                    numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
+                    direct=False,
+                    perspectiveDivide=True,
+                )[:3]
+                gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
 
-            gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
-            gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
-            gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
-            gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
+            if "dLight.ambient" in program.uniforms:
+                gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
+
+            if "dLight.diffuse" in program.uniforms:
+                gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
+
+            if "dLight.specular" in program.uniforms:
+                gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
+
+            if "dLight.shininess" in program.uniforms:
+                gl.glUniform1f(
+                    program.uniforms["dLight.shininess"], float(self.shininess)
+                )
 
 
 class Colormap(event.Notifier, ProgramFunction):

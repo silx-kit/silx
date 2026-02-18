@@ -1772,7 +1772,7 @@ class Spheres(Geometry):
             sceneDecl=ctx.fragDecl,
             scenePreCall=ctx.fragCallPre,
             scenePostCall=ctx.fragCallPost,
-            lightingFunction=ctx.viewport.light.fragmentDef,
+            lightingFunction=ctx.viewport.light.cameraSpaceLightingDef,
             lightingCall=ctx.viewport.light.fragmentCall,
         )
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
