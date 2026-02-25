@@ -1133,3 +1133,32 @@ def test_recursive_match_commonh5():
 
         result = list(utils.match(fobj, "**/data"))
         assert result == ["entry_0000/bar/data", "entry_0001/foo/data"]
+
+
+def test_open_h5pyd(httpserver):
+    httpserver.check_assertions()
+    httpserver.expect_request("/", query_string=None).respond_with_json(
+        {
+            "created": 1771620465.190004,
+            "lastModified": 1771620465.1900046,
+            "root": "g-h5dict-2F",
+            "owner": "admin",
+            "class": "domain",
+        }
+    )
+
+    httpserver.expect_request(
+        "/groups/g-h5dict-2F", query_string=None
+    ).respond_with_json(
+        {
+            "created": 1771621135.0002592,
+            "lastModified": 1771621135.0002594,
+            "root": "g-h5dict-2F",
+            "id": "g-h5dict-2F",
+            "linkCount": 0,
+            "attributeCount": 0,
+        }
+    )
+
+    f = utils._open_url_with_h5pyd(httpserver.url_for("/"))
+    assert str(f) == '<HDF5 file "" (mode r)>'

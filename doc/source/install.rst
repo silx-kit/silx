@@ -157,6 +157,10 @@ The GUI widgets depend on the following extra packages:
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
 * `Mako <http://www.makotemplates.org/>`_
 
+*h5pyd* support to access HSDS urls depends on:
+
+* `h5pyd <https://github.com/HDFGroup/h5pyd>`_ (>= 0.20.0)
+
 
 Build dependencies
 ++++++++++++++++++

@@ -64,6 +64,9 @@ full = [
     'PySide6 >= 6.4',        # PyQt6, PyQt5  # For silx.gui
     'hdf5plugin',            # For HDF5 compression filters handling
 ]
+h5pyd = [
+    'h5pyd >= 0.20.0'
+]
 doc =[
     'silx[full]',
     'Sphinx',                    # To build the documentation in doc/
@@ -75,12 +78,13 @@ doc =[
     'pandoc',                    # For documentation Qt snapshot updates
 ]
 test = [
-    'silx[full]',
+    'silx[full,h5pyd]',
     'bitshuffle',
     'pytest',                    # For testing
     'pytest-xvfb',               # For GUI testing
     'pytest-cov',                # For coverage
     'pytest-mock',
+    'pytest-httpserver',         # For mocking HSDS
 ]
 dev = [
     'silx[full,doc,test]',
