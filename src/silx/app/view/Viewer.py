@@ -501,10 +501,13 @@ class Viewer(qt.QMainWindow):
             # show in normal to catch the normal geometry
             self.showNormal()
 
+        colorScheme = self._colorSchemeActionGroup.checkedAction().data()
+
         settings.beginGroup("mainwindow")
         settings.setValue("size", self.size())
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
+        settings.setValue("color-scheme", colorScheme)
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
@@ -532,6 +535,7 @@ class Viewer(qt.QMainWindow):
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
         isFullScreen = parseutils.to_bool(isFullScreen, False)
+        colorScheme = settings.value("color-scheme", "default")
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
@@ -565,6 +569,10 @@ class Viewer(qt.QMainWindow):
             self.resize(size)
         if isFullScreen:
             self.showFullScreen()
+
+        for action in self._colorSchemeActionGroup.actions():
+            if action.data() == colorScheme:
+                action.setChecked(True)
 
     def createActions(self):
         action = qt.QAction("E&xit", self)
@@ -653,6 +661,30 @@ class Viewer(qt.QMainWindow):
         self._plotImageOrientationMenu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # color scheme
+        self._colorSchemeActionGroup = qt.QActionGroup(self)
+        self._colorSchemeActionGroup.setExclusive(True)
+
+        action = qt.QAction("Dark", self._colorSchemeActionGroup)
+        action.setData("dark")  # saved as settings
+        action.setCheckable(True)
+        action.toggled.connect(self.__darkColorSchemeActionToggled)
+
+        action = qt.QAction("Light", self._colorSchemeActionGroup)
+        action.setData("light")  # saved as settings
+        action.setCheckable(True)
+        action.toggled.connect(self.__lightColorSchemeActionToggled)
+
+        action = qt.QAction("Automatic", self._colorSchemeActionGroup)
+        action.setData("default")
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.toggled.connect(self.__defaultColorSchemeActionToggled)
+
+        self._colorSchemeMenu = qt.QMenu("Color Scheme", self)
+        for action in self._colorSchemeActionGroup.actions():
+            self._colorSchemeMenu.addAction(action)
+
         # mpl layout
 
         action = qt.QAction("Use MPL tight layout", self)
@@ -689,6 +721,22 @@ class Viewer(qt.QMainWindow):
     def __togglePlotSelectionWindow(self):
         isVisible = self._displayCustomPlotSelectionWindow.isChecked()
         self._customPlotSelectionWindow.setVisible(isVisible)
+
+    def __darkColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().setColorScheme(
+                qt.Qt.ColorScheme.Dark
+            )
+
+    def __lightColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().setColorScheme(
+                qt.Qt.ColorScheme.Light
+            )
+
+    def __defaultColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().unsetColorScheme()
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
@@ -783,6 +831,7 @@ class Viewer(qt.QMainWindow):
         optionMenu = self.menuBar().addMenu("&Options")
         optionMenu.addMenu(self._plotImageOrientationMenu)
         optionMenu.addMenu(self._plotBackendMenu)
+        optionMenu.addMenu(self._colorSchemeMenu)
         optionMenu.addAction(self._useMplTightLayout)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
