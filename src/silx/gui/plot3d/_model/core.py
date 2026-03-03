@@ -287,8 +287,9 @@ class ProxyRow(BaseRow):
         toModelData=None,
         fromModelData=None,
         editorHint=None,
+        children=(),
     ):
-        super().__init__()
+        super().__init__(children)
         self.__name = name
         self.__editorHint = editorHint
 
