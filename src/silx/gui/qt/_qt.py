@@ -160,7 +160,7 @@ elif BINDING == "PySide6":
 
     import PySide6 as QtBinding  # noqa
 
-    if Version(QtBinding.__version__) < Version("6.4"):
+    if Version(QtBinding.__version__) < Version("6.5"):
         raise RuntimeError(
             f"PySide6 v{QtBinding.__version__} is not supported, please upgrade it."
         )
@@ -199,7 +199,7 @@ elif BINDING == "PyQt6":
     from . import _pyqt6
     from PyQt6 import QtCore
 
-    if QtCore.PYQT_VERSION < int("0x60300", 16):
+    if QtCore.PYQT_VERSION < int("0x60500", 16):
         raise RuntimeError(
             "PyQt6 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
         )
