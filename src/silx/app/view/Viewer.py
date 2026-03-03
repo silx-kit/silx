@@ -501,13 +501,13 @@ class Viewer(qt.QMainWindow):
             # show in normal to catch the normal geometry
             self.showNormal()
 
-        colorScheme = self._colorSchemeActionGroup.checkedAction().data()
-
         settings.beginGroup("mainwindow")
         settings.setValue("size", self.size())
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
-        settings.setValue("color-scheme", colorScheme)
+        if qt.BINDING != "PyQt5":
+            colorScheme = self._colorSchemeActionGroup.checkedAction().data()
+            settings.setValue("color-scheme", colorScheme)
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
@@ -570,9 +570,10 @@ class Viewer(qt.QMainWindow):
         if isFullScreen:
             self.showFullScreen()
 
-        for action in self._colorSchemeActionGroup.actions():
-            if action.data() == colorScheme:
-                action.setChecked(True)
+        if qt.BINDING != "PyQt5":
+            for action in self._colorSchemeActionGroup.actions():
+                if action.data() == colorScheme:
+                    action.setChecked(True)
 
     def createActions(self):
         action = qt.QAction("E&xit", self)
@@ -676,12 +677,14 @@ class Viewer(qt.QMainWindow):
         action.toggled.connect(self.__lightColorSchemeActionToggled)
 
         action = qt.QAction("Automatic", self._colorSchemeActionGroup)
-        action.setData("default")
+        action.setData("default")  # saved as settings
         action.setCheckable(True)
         action.setChecked(True)
         action.toggled.connect(self.__defaultColorSchemeActionToggled)
 
         self._colorSchemeMenu = qt.QMenu("Color Scheme", self)
+        if qt.BINDING == "PyQt5":
+            self._colorSchemeMenu.setEnabled(False)
         for action in self._colorSchemeActionGroup.actions():
             self._colorSchemeMenu.addAction(action)
 
