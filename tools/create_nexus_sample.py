@@ -57,6 +57,125 @@ def default_attribute_entry(path: str) -> dict:
     }
 
 
+def plot_title_entry() -> dict:
+    return {
+        "@NX_class": "NXentry",
+        "title": "Test plot title",
+        "no_title": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "axis": [1, 2, 3],
+        },
+        "title_dataset": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "title": "Title dataset",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "axis": [1, 2, 3],
+        },
+        "title_attribute (not Nexus)": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@title": "Title attribute",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "axis": [1, 2, 3],
+        },
+    }
+
+
+def plot_labels_entry() -> dict:
+    return {
+        "@NX_class": "NXentry",
+        "title": "Test plot axis labels",
+        "1d_no_axes_attribute": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": [1, 2, 1],
+        },
+        "1d_dot_axes": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["."],
+            "signal": [1, 2, 1],
+        },
+        "1d_axis_dataset": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "axis": [1, 2, 3],
+        },
+        "1d_with_units": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "signal@units": "deg",
+            "axis": [1, 2, 3],
+            "axis@units": "mm",
+        },
+        "1d_with_long_name_and_units": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["axis"],
+            "signal": [1, 2, 1],
+            "signal@long_name": "Signal long name",
+            "signal@units": "deg",
+            "axis": [1, 2, 3],
+            "axis@long_name": "Axis long name",
+            "axis@units": "mm",
+        },
+        "2d_no_axes_attribute": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": [[1, 2, 3], [4, 5, 6]],
+        },
+        "2d_dot_axes": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": [".", "."],
+            "signal": [[1, 2, 3], [4, 5, 6]],
+        },
+        "2d_axis_datasets": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["rows", "columns"],
+            "signal": [[1, 2, 3], [4, 5, 6]],
+            "rows": [1, 2],
+            "columns": [1, 2, 3],
+        },
+        "2d_with_units": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["rows", "columns"],
+            "signal": [[1, 2, 3], [4, 5, 6]],
+            "signal@units": "V",
+            "rows": [1, 2],
+            "rows@units": "deg",
+            "columns": [1, 2, 3],
+            "columns@units": "mm",
+        },
+        "2d_with_long_name_and_units": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@axes": ["rows", "columns"],
+            "signal": [[1, 2, 3], [4, 5, 6]],
+            "signal@long_name": "Signal long name",
+            "signal@units": "V",
+            "rows": [1, 2],
+            "rows@long_name": "Rows long name",
+            "rows@units": "deg",
+            "columns": [1, 2, 3],
+            "columns@long_name": "Columns long name",
+            "columns@units": "mm",
+        },
+    }
+
+
 def nxdata_documentation_examples_entry() -> dict:
     entry = {
         "@NX_class": "NXentry",
@@ -692,6 +811,8 @@ def main():
         dicttonx(
             default_attribute_entry("/default_attribute"), h5, "/default_attribute"
         )
+        dicttonx(plot_title_entry(), h5, "/plot_title")
+        dicttonx(plot_labels_entry(), h5, "/plot_labels")
         dicttonx(
             nxdata_documentation_examples_entry(), h5, "/nxdata_documentation_examples"
         )
