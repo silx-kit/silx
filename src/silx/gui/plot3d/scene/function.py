@@ -32,6 +32,7 @@ import contextlib
 import logging
 import string
 import numpy
+from typing import Literal
 
 from ... import _glutils
 from ..._glutils import gl
@@ -356,19 +357,30 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         """Function name to call in fragment shader"""
         return "lighting"
 
-    def setupProgram(self, context, program):
+    def setupProgram(
+        self,
+        context,
+        program,
+        frame: Literal["camera", "object"] = "object",
+    ):
         """Sets-up uniforms of a program using this shader function.
 
         :param RenderContext context: The current rendering context
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
+        :param frame: The frame of reference in which to apply the lighting
         """
         if self.isOn and self._direction is not None:
-            # Transform light direction from camera space to object coords
-            lightdir = context.objectToCamera.transformDir(
-                self._direction, direct=False
-            )
-            lightdir /= numpy.linalg.norm(lightdir)
+            if frame == "object":
+                # Transform light direction from camera space to object coords
+                lightdir = context.objectToCamera.transformDir(
+                    self._direction, direct=False
+                )
+                lightdir /= numpy.linalg.norm(lightdir)
+            elif frame == "camera":
+                lightdir = self._direction
+            else:
+                raise ValueError(f"Unsupported frame of reference: {frame}")
 
             gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
 
