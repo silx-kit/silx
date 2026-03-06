@@ -468,7 +468,7 @@ class _SymbolToolButtonBase(PlotToolButton):
             return
 
         for item in plot.getItems():
-            if isinstance(item, SymbolMixIn):
+            if isinstance(item, SymbolMixIn) and item.isSingleSymbolSize():
                 item.setSymbolSize(value)
 
     def _markerChanged(self, marker):

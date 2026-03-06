@@ -1469,7 +1469,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.getVisualizationParameter(parameter)
 
 
-class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
+class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
 
     # note: _filterData must be overloaded if you overload
@@ -1481,7 +1481,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
     def __init__(self):
         DataItem.__init__(self)
-        SymbolMixIn.__init__(self)
+        SymbolSingleSizeMixIn.__init__(self)
         AlphaMixIn.__init__(self)
         self._x = ()
         self._y = ()
