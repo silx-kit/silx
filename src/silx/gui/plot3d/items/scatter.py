@@ -137,12 +137,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         """
         return self._scatter.getAttribute("value", copy=copy).reshape(-1)
 
-    def _pickFull(self, context, threshold=0.0, sort="depth"):
+    def _pickFull(self, context, sort="depth"):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :param float threshold: Picking threshold in pixel.
-            Perform picking in a square of size threshold x threshold.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
@@ -180,8 +178,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold += self.getSymbolSize(copy=False)
-        thresholdNdc = 2.0 * threshold / numpy.array(primitive.viewport.size)
+        threshold = numpy.maximum(0.5 * self.getSymbolSize(copy=False), 3.0).reshape(
+            -1, 1
+        )
+        thresholdNdc = 2.0 * threshold / primitive.viewport.size
         picked = numpy.where(
             numpy.logical_and(
                 numpy.all(distancesNdc < thresholdNdc, axis=1),
@@ -400,7 +400,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         """Perform picking while in 'points' visualization mode
 
         :param PickContext context: Current picking context
-        :param float threshold: Picking threshold in pixel.
+        :param Union[float,numpy.ndarray threshold: Picking threshold in pixel.
             Perform picking in a square of size threshold x threshold.
         :param str sort: How returned indices are sorted:
 
@@ -424,7 +424,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
-        thresholdNdc = threshold / numpy.array(primitive.viewport.size)
+        thresholdNdc = numpy.array(threshold).reshape(-1, 1) / primitive.viewport.size
         picked = numpy.where(
             numpy.logical_and(
                 numpy.all(distancesNdc < thresholdNdc, axis=1),
@@ -505,8 +505,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         if mode is self.Visualization.POINTS:
             # TODO issue with symbol size: using pixel instead of points
             # Get "corrected" symbol size
-            _, threshold = self._getSceneSymbol()
-            return self._pickPoints(context, points, threshold=max(3.0, threshold))
+            _, size = self._getSceneSymbol()
+            return self._pickPoints(
+                context, points, threshold=numpy.maximum(0.5 * size, 3.0)
+            )
 
         elif mode is self.Visualization.LINES:
             # Picking only at point
