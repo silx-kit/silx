@@ -29,6 +29,7 @@ __date__ = "24/04/2018"
 
 
 import numpy
+from numpy.typing import ArrayLike
 
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
@@ -167,13 +168,37 @@ class SymbolMixIn(_SymbolMixIn):
         )
     )
 
-    def _getSceneSymbol(self):
+    def __init__(self):
+        super().__init__()
+        self.__primitive = None
+
+    def _setPrimitive(self, primitive: primitives.Points):
+        """Set the scene primitive on which to set the symbol and size"""
+        self.__primitive = primitive
+        self._syncPointsPrimitive()
+
+    def setSymbol(self, symbol):
+        super().setSymbol(symbol)
+        self._syncPointsPrimitive()
+
+    def setSymbolSize(self, size: float | ArrayLike | None, copy: bool = True):
+        super().setSymbolSize(size, copy)
+        self._syncPointsPrimitive()
+
+    def _syncPointsPrimitive(self):
+        """Synchronize scene object's symbol and size"""
+        if self.__primitive is not None:
+            symbol, size = self._getSceneSymbol()
+            self.__primitive.marker = symbol
+            self.__primitive.setAttribute("size", size, copy=False)
+
+    def _getSceneSymbol(self) -> tuple[str, float | ArrayLike]:
         """Returns a symbol name and size suitable for scene primitives.
 
         :return: (symbol, size)
         """
         symbol = self.getSymbol()
-        size = self.getSymbolSize()
+        size = self.getSymbolSize(copy=False)
         if symbol == ",":  # pixel
             return "s", 1.0
         elif symbol == ".":  # point

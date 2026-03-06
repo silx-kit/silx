@@ -51,32 +51,18 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
     :param parent: The View widget this item belongs to.
     """
 
-    # TODO supports different size for each point
-
     def __init__(self, parent=None):
         DataItem3D.__init__(self, parent=parent)
         ColormapMixIn.__init__(self)
         SymbolMixIn.__init__(self)
 
         noData = numpy.zeros((0, 1), dtype=numpy.float32)
-        symbol, size = self._getSceneSymbol()
-        self._scatter = primitives.Points(
-            x=noData, y=noData, z=noData, value=noData, size=size
-        )
-        self._scatter.marker = symbol
+        self._scatter = primitives.Points(x=noData, y=noData, z=noData, value=noData)
         self._getScenePrimitive().children.append(self._scatter)
 
         # Connect scene primitive to mix-in class
+        SymbolMixIn._setPrimitive(self, self._scatter)
         ColormapMixIn._setSceneColormap(self, self._scatter.colormap)
-
-    def _updated(self, event=None):
-        """Handle mix-in class updates"""
-        if event in (ItemChangedType.SYMBOL, ItemChangedType.SYMBOL_SIZE):
-            symbol, size = self._getSceneSymbol()
-            self._scatter.marker = symbol
-            self._scatter.setAttribute("size", size, copy=True)
-
-        super()._updated(event)
 
     def setData(self, x, y, z, value, copy=True):
         """Set the data of the scatter plot
@@ -194,6 +180,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
+        # TODO support size!
         threshold += self.getSymbolSize()
         thresholdNdc = 2.0 * threshold / numpy.array(primitive.viewport.size)
         picked = numpy.where(
@@ -257,14 +244,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
     def _updated(self, event=None):
         """Handle mix-in class updates"""
-        if event in (ItemChangedType.SYMBOL, ItemChangedType.SYMBOL_SIZE):
-            symbol, size = self._getSceneSymbol()
-            for child in self._getScenePrimitive().children:
-                if isinstance(child, primitives.Points):
-                    child.marker = symbol
-                    child.setAttribute("size", size, copy=True)
-
-        elif event is ItemChangedType.VISIBLE:
+        if event is ItemChangedType.VISIBLE:
             # TODO smart update?, need dirty flags
             self._updateScene()
 
@@ -445,6 +425,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
+        # TODO picking with different sizes
         thresholdNdc = threshold / numpy.array(primitive.viewport.size)
         picked = numpy.where(
             numpy.logical_and(
@@ -551,11 +532,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
         if mode is self.Visualization.POINTS:
             z = value if heightMap else 0.0
-            symbol, size = self._getSceneSymbol()
             primitive = primitives.Points(
-                x=x, y=y, z=z, value=value, size=size, colormap=self._getSceneColormap()
+                x=x, y=y, z=z, value=value, colormap=self._getSceneColormap()
             )
-            primitive.marker = symbol
+            SymbolMixIn._setPrimitive(self, primitive)
 
         else:
             # TODO run delaunay in a thread
@@ -621,5 +601,6 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
             )
             primitive.lineWidth = self.getLineWidth()
             primitive.lineSmooth = False
+            SymbolMixIn._setPrimitive(self, None)
 
         self._getScenePrimitive().children = [primitive]
