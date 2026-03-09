@@ -707,8 +707,8 @@ def h5web_mock_entry(path: str) -> dict:
         "@signal": "scatter_data",
         "@axes": ["X", "Y_scatter"],
         "scatter_data": np.random.rand(100),
-        "X": np.random.rand(100),
-        "Y_scatter": np.random.rand(100),
+        "X": np.linspace(1.0, -1.0, 100),
+        "Y_scatter": np.linspace(1.0, -1.0, 100),
     }
     nexus_entry["bigint"] = {
         "@NX_class": "NXdata",
