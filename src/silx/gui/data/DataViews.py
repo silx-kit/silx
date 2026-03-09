@@ -129,20 +129,7 @@ class DataInfo:
             nx_class = get_attr_as_unicode(data, "NX_class")
             if nxd is not None:
                 self.hasNXdata = True
-                # can we plot it?
-                is_scalar = nxd.signal_is_0d or nxd.interpretation in [
-                    "scalar",
-                    "scaler",
-                ]
-                if not (
-                    is_scalar
-                    or nxd.is_curve
-                    or nxd.is_x_y_value_scatter
-                    or nxd.is_image
-                    or nxd.is_stack
-                ):
-                    # invalid: cannot be plotted by any widget
-                    self.isInvalidNXdata = True
+                self.isInvalidNXdata = False
             elif nx_class == "NXdata":
                 # group claiming to be NXdata could not be parsed
                 self.isInvalidNXdata = True
