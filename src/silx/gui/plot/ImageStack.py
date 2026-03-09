@@ -160,10 +160,10 @@ class ImageStack(qt.QMainWindow):
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the current url change"""
 
-    def __init__(self, parent=None, cacheMaxSize=-1) -> None:
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
-        self._urlData = LRUCache(maxsize=cacheMaxSize)
+        self._urlData = LRUCache(maxsize=-1)
         """How many image we prefetch"""
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
