@@ -25,3 +25,30 @@ def test_LRU_CACHE():
     cache["e"] = "5"
     assert cache["b"] == 2
     assert "c" not in cache
+
+    # test maxsize
+    assert cache._cache == OrderedDict(
+        {
+            "d": 4,
+            "e": "5",
+            "b": 2,
+        }
+    )
+
+    cache.maxsize = 10
+    assert cache._cache == OrderedDict(
+        {
+            "d": 4,
+            "e": "5",
+            "b": 2,
+        }
+    )
+
+    cache.maxsize = 2
+    assert cache._cache == OrderedDict(
+        {
+            "e": "5",
+            "b": 2,
+        }
+    )
+    cache.maxsize = 3
