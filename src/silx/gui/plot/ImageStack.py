@@ -38,6 +38,7 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui.widgets.UrlList import UrlList
 from silx.gui.utils import blockSignals
 from silx.utils.deprecation import deprecated
+from silx.gui.plot.items._cache import LRUCache
 
 import logging
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
@@ -159,9 +160,11 @@ class ImageStack(qt.QMainWindow):
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the current url change"""
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent=None, cacheMaxSize=-1) -> None:
         super().__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
+        self._urlData = LRUCache(maxsize=cacheMaxSize)
+        """How many image we prefetch"""
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
         self._current_url = None
@@ -242,7 +245,7 @@ class ImageStack(qt.QMainWindow):
         self._freeLoadingThreads()
         self._urls = None
         self._urlIndexes = {}
-        self._urlData = {}
+        self._urlData.clear()
         self._current_url = None
         self._plot.clear()
         self._urlsTable.clear()
@@ -298,6 +301,12 @@ class ImageStack(qt.QMainWindow):
         :param int n: number of url to prefetch on left and right sides.
                       In total n*2 DataUrl will be prefetch
         """
+        if n < 0:
+            raise ValueError("'n' should be positive")
+        if self._urlData.maxsize < self.__n_prefetch:
+            _logger.warning("Incoherent value set for n-prefetch. Will overwrite NKeepInMemory")
+            self._urlData.maxsize = -1
+
         self.__n_prefetch = n
         current_url = self.getCurrentUrl()
         if current_url is not None:
@@ -310,6 +319,22 @@ class ImageStack(qt.QMainWindow):
                  will load 2* NPrefetch DataUrls
         """
         return self.__n_prefetch
+
+    def getDataCacheSize(self) -> int:
+        """
+        Return the number of image we want to keep in cache at most.
+        """
+        return self._urlData.maxsize
+
+    def setDataCacheSize(self, n: int) -> None:
+        """
+        Define the number of image we want to keep in cache at most.
+
+        :param n: number of images to keeps in cache at most. If -1: all images will be kept.
+        """
+        if n < self.__n_prefetch:
+            raise ValueError("'n' should be higher than 'n' prefetch")
+        self._urlData.maxsize = n
 
     def setUrlsEditable(self, editable: bool):
         self._urlsTable._urlsTable.setEditable(editable)
