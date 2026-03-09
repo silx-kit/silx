@@ -25,21 +25,23 @@
 view from the ones provided by silx.
 """
 
+import collections
 import logging
 import os.path
-import collections
+
 from silx.gui import qt
 from silx.gui.data import DataViews
-from silx.gui.data.DataViews import (
+from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.gui.utils import blockSignals
+from silx.utils.deprecation import deprecated_warning
+
+from ._utils import normalizeData
+from .modes import (
+    IMAGE_MODE,
     NXDATA_STACK_MODE,
     PLOT2D_MODE,
     STACK_MODE,
-    IMAGE_MODE,
-    _normalizeData,
 )
-from silx.gui.utils import blockSignals
-from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.utils.deprecation import deprecated_warning
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -191,7 +193,7 @@ class DataViewer(qt.QFrame):
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
-        return _normalizeData(data)
+        return normalizeData(data)
 
     def __getStackIndex(self, view):
         """Get the stack index containing the view.

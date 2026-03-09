@@ -5,3 +5,5 @@ exclude =
     .eggs
     build
     dist
+per-file-ignores =
+    src/silx/gui/data/DataViews.py: F401
