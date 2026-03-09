@@ -317,14 +317,14 @@ class PlotAxis:
         if self._orderAndOffsetText:
             orderAndOffsetFont = self._orderAndOffsetFont(self.font)
 
-            xOrderOffset, yOrderOffet = self.orderOffsetAnchor
+            xOrderOffset, yOrderOffset = self.orderOffsetAnchor
             labels.append(
                 Text2D(
                     text=self._orderAndOffsetText,
                     font=orderAndOffsetFont,
                     color=self._foregroundColor,
                     x=xOrderOffset,
-                    y=yOrderOffet,
+                    y=yOrderOffset,
                     align=self._orderOffsetAlign,
                     valign=self._orderOffsetVAlign,
                     devicePixelRatio=self.devicePixelRatio,
