@@ -176,6 +176,68 @@ def plot_labels_entry() -> dict:
     }
 
 
+def interpertation_attribute_entry() -> dict:
+    entry = {
+        "@NX_class": "NXentry",
+        "title": "Test interpretation attribute",
+        "reference": "https://manual.nexusformat.org/nxdl_desc.html#interpretation",
+    }
+
+    datasets = {
+        0: 1.0,
+        1: np.sin(np.linspace(0, 2 * np.pi, 200)),
+        2: np.random.random(10 * 20).reshape(10, 20),
+        3: np.random.random(10 * 20 * 30).reshape(10, 20, 30),
+        4: np.random.random(10 * 20 * 30 * 40).reshape(10, 20, 30, 40),
+    }
+    for ndim, data in datasets.items():
+        entry[f"no_interpretation_{ndim}D"] = {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": data,
+        }
+    for interpretation in ("scalar", "scaler", "spectrum", "image", "vertex"):
+        for ndim, data in datasets.items():
+            entry[f"{interpretation}_{ndim}D"] = {
+                "@NX_class": "NXdata",
+                "@signal": "signal",
+                "signal": data,
+                "signal@interpretation": interpretation,
+            }
+
+    datasets = {
+        (0, 0): 1.0,
+        (1, 200): np.linspace(0, 1, 200),
+        (2, 20): np.random.random(10 * 20).reshape(10, 20),
+        (3, 3): np.random.random(10 * 20 * 3).reshape(10, 20, 3),
+        (3, 4): np.random.random(10 * 20 * 4).reshape(10, 20, 4),
+        (4, 3): np.random.random(10 * 20 * 30 * 3).reshape(10, 20, 30, 3),
+        (4, 4): np.random.random(10 * 20 * 30 * 4).reshape(10, 20, 30, 4),
+    }
+    for (ndim, last_dim), data in datasets.items():
+        entry[f"no_interpretation_{ndim}D_{last_dim}channels"] = {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": data,
+        }
+    for interpretation in (
+        "rgb-image",
+        "rgba-image",
+        "hsl-image",
+        "hsla-image",
+        "cmyk-image",
+    ):
+        for (ndim, last_dim), data in datasets.items():
+            entry[f"{interpretation}_{ndim}D_{last_dim}channels"] = {
+                "@NX_class": "NXdata",
+                "@signal": "signal",
+                "signal": data,
+                "signal@interpretation": interpretation,
+            }
+
+    return entry
+
+
 def nxdata_documentation_examples_entry() -> dict:
     entry = {
         "@NX_class": "NXentry",
