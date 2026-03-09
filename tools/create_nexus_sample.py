@@ -539,8 +539,10 @@ def h5web_mock_entry(path: str) -> dict:
         "twoD_cplx": np.random.rand(10, 20) + 1j * np.random.rand(10, 20),
         "twoD_compound": np.array(
             [
-                (f"{j},{i}", i, float(j), bool((j + i) % 2), j + 1j * i)
-                for i in range(10)
+                [
+                    (f"{j},{i}", i, float(j), bool((j + i) % 2), j + 1j * i)
+                    for i in range(10)
+                ]
                 for j in range(20)
             ],
             dtype=coumpound_dtype,
@@ -659,7 +661,7 @@ def h5web_mock_entry(path: str) -> dict:
         "twoD@interpretation": "image",
         "X": np.linspace(0, 1, 40),
         "Y": np.linspace(0, 1, 30),
-        "auxiliary_signals": ["secondary", "tertiary"],
+        "@auxiliary_signals": ["secondary", "tertiary"],
         "secondary": np.random.rand(30, 40),
         "tertiary": np.random.rand(30, 40),
     }
@@ -668,7 +670,7 @@ def h5web_mock_entry(path: str) -> dict:
         "@signal": "twoD_cplx",
         "twoD_cplx": np.random.rand(10, 20) + 1j * np.random.rand(10, 20),
         "twoD_cplx@interpretation": "spectrum",
-        "auxiliary_signals": ["secondary_cplx", "tertiary_float"],
+        "@auxiliary_signals": ["secondary_cplx", "tertiary_float"],
         "secondary_cplx": np.random.rand(10, 20) + 1j * np.random.rand(10, 20),
         "tertiary_float": np.random.rand(10, 20),
     }
@@ -875,8 +877,11 @@ def main():
         )
         dicttonx(plot_title_entry(), h5, "/plot_title")
         dicttonx(plot_labels_entry(), h5, "/plot_labels")
+        dicttonx(interpertation_attribute_entry(), h5, "/interpretation_attribute")
         dicttonx(
-            nxdata_documentation_examples_entry(), h5, "/nxdata_documentation_examples"
+            nxdata_documentation_examples_entry(),
+            h5,
+            "/nxdata_documentation_examples",
         )
         dicttonx(
             nxdata_documentation_snippets_entry(), h5, "/nxdata_documentation_snippets"
