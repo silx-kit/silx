@@ -23,7 +23,7 @@ def test_image_no_interpretation(qWidgetFactory, tmp_path):
         isinstance(plot.getImage("signal"), ImageDataAggregated)
 
 
-def test_rgb_image_with_interpretation(qWidgetFactory, tmp_path):
+def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
     widget: DataViewer = qWidgetFactory(DataViewer)
     with h5py.File(tmp_path / "test.h5", "w") as h5file:
         h5file.attrs["NX_class"] = "NXdata"
@@ -35,9 +35,11 @@ def test_rgb_image_with_interpretation(qWidgetFactory, tmp_path):
 
         widget.setData(h5file["/"])
 
+        qapp.processEvents()
+
         currentCompositeView = widget.currentAvailableViews()[0]
         assert isinstance(currentCompositeView, DataViews._NXdataView)
         currentView = currentCompositeView.getCurrentView()
         assert isinstance(currentView, DataViews._NXdataImageView)
         plot = currentView.getWidget().getPlot()
-        isinstance(plot.getImage("rgb"), ImageRgba)
+        assert isinstance(plot.getImage("rgb"), ImageRgba)
