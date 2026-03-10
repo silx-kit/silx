@@ -475,7 +475,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     # Guess it is a virtual node
                     return "No physical location"
 
-            self.__data.addHeaderValueRow("Physical", _physical_location)
+            self.__data.addHeaderValueRow("Physical", _physical_location, copyable=True)
 
         if external_dataset_info is not None:
             self.__data.addHeaderRow(headerLabel="External sources")
