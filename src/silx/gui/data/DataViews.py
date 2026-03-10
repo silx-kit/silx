@@ -24,14 +24,18 @@
 """This module defines a views used by :class:`silx.gui.data.DataViewer`."""
 
 import logging
+from typing import Any
 import numpy
 
 from silx.gui.data.NXdataWidgets import ArrayImagePlot
+from silx.gui.plot3d import items
+from silx.gui.plot3d.SceneWindow import SceneWindow
 import silx.io
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
 from silx.io.nxdata import get_attr_as_unicode
+from silx.io.nxdata.parse import NXdata
 from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
 from ._DataInfo import DataInfo
@@ -73,6 +77,7 @@ NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
 NXDATA_VOLUME_MODE = 77
 NXDATA_VOLUME_AS_STACK_MODE = 78
+NXDATA_3D_SCATTER = 79
 
 
 class _CompositeDataView(DataView):
@@ -1566,6 +1571,45 @@ class _NXdataComplexVolumeAsStackView(_NXdataBaseDataView):
         return DataView.UNSUPPORTED
 
 
+class _NxDataScatter3D(_NXdataBaseDataView):
+    """Display a scatter plot with three axes."""
+
+    def __init__(self, parent):
+        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_3D_SCATTER)
+        self._scatterItem = items.Scatter3D()
+
+    def createWidget(self, parent):
+        sceneWindow = SceneWindow()
+        sceneWidget = sceneWindow.getSceneWidget()
+        sceneWidget.addItem(self._scatterItem)
+
+        return sceneWindow
+
+    def setData(self, data: Any):
+        nxd = nxdata.get_default(self.normalizeData(data), validate=False)
+        if not isinstance(nxd, NXdata):
+            return
+
+        self._scatterItem.setData(
+            nxd.axes[0], nxd.axes[1], nxd.axes[2], nxd.signal, copy=False
+        )
+
+    def getDataPriority(self, data: Any, info: DataInfo) -> int:
+        data = self.normalizeData(data)
+
+        if not info.hasNXdata or info.isInvalidNXdata:
+            return DataView.UNSUPPORTED
+
+        nxd = nxdata.get_default(data, validate=False)
+        if not isinstance(nxd, NXdata):
+            return DataView.UNSUPPORTED
+
+        if nxd.is_scatter and len(nxd.axes) == 3:
+            return 200
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
@@ -1584,6 +1628,7 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataXYVScatterView(parent))
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
+        self.addView(_NxDataScatter3D(parent))
 
         # The 3D view can be displayed using 2 ways
         nx3dViews = SelectManyDataView(parent)
