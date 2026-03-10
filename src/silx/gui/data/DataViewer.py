@@ -40,7 +40,7 @@ from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
 
-from ._utils import normalizeData as normalizeData
+from ._utils import normalizeData as _normalizeData
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
