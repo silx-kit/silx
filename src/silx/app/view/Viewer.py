@@ -984,6 +984,9 @@ class Viewer(qt.QMainWindow):
         model = self.__customNxdata.model()
         model.createFromNxdata(h5nxdata)
 
+    def copyNameToClipboard(self, obj):
+        qt.Application.clipboard().setText(obj.name)
+
     def customContextMenu(self, event):
         """Called to populate the context menu
 
@@ -1045,6 +1048,14 @@ class Viewer(qt.QMainWindow):
                     "Synchronize %s" % obj.local_filename, event.source()
                 )
                 action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
+                menu.addAction(action)
+
+            if silx.io.is_group(h5) or silx.io.is_dataset(h5):
+                menu.addSeparator()
+                action = qt.QAction("Copy path", event.source())
+                action.triggered.connect(
+                    lambda: self.copyNameToClipboard(h5)
+                )
                 menu.addAction(action)
 
     def __errorButtonClicked(self):
