@@ -1292,7 +1292,11 @@ class _NXdataImageView(_NXdataBaseDataView):
         nxd = nxdata.get_default(data, validate=False)
         if nxd is None:
             return
-        isRgba = nxd.interpretation in ("rgb-image", "rgba-image")
+        isRgba = (
+            nxd.interpretation in ("rgb-image", "rgba-image")
+            and nxd.signal_ndim >= 3
+            and nxd.signal.shape[-1] in (3, 4)
+        )
 
         self._updateColormap(nxd)
 
