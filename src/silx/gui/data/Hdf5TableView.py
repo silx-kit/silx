@@ -240,7 +240,7 @@ class _CellFilterAvailableData(_CellData):
 class _CopyableCellData(_CellData):
     """Cell that display a given icon and that the content can be copied to the clipboard."""
 
-    def __init__(self, clipboardValue: str):
+    def __init__(self, clipboardValue: str, span: tuple | None = None):
         """
         Constructor
 
@@ -248,7 +248,7 @@ class _CopyableCellData(_CellData):
         :param icon: icon to be displayed
         """
         self.__clipboardValue = clipboardValue
-        super().__init__()
+        super().__init__(span=span)
 
     @staticmethod
     @lru_cache(maxsize=1)
