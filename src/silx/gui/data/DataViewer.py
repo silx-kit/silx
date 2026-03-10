@@ -35,11 +35,12 @@ from silx.gui.data.DataViews import (
     PLOT2D_MODE,
     STACK_MODE,
     IMAGE_MODE,
-    _normalizeData,
 )
 from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
+
+from ._utils import normalizeData as normalizeData
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -191,7 +192,7 @@ class DataViewer(qt.QFrame):
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
-        return _normalizeData(data)
+        return normalizeData(data)
 
     def __getStackIndex(self, view):
         """Get the stack index containing the view.
