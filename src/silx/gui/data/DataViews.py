@@ -837,8 +837,6 @@ class _ArrayView(DataView):
             return DataView.UNSUPPORTED
         if info.dim < 2:
             return DataView.UNSUPPORTED
-        if info.interpretation in ["scalar", "scaler"]:
-            return 1000
         return 500
 
 
@@ -920,8 +918,6 @@ class _RecordView(DataView):
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
         if info.dim == 1:
-            if info.interpretation in ["scalar", "scaler"]:
-                return 1000
             if info.shape[0] == 1:
                 return 510
             return 500
@@ -1103,8 +1099,7 @@ class _NXdataBaseDataView(DataView):
 
 
 class _NXdataScalarView(_NXdataBaseDataView):
-    """DataView using a table view for displaying NXdata scalars:
-    0-D signal or n-D signal with *@interpretation=scalar*"""
+    """DataView using a table view for displaying NXdata 0-D signal"""
 
     def __init__(self, parent):
         _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_SCALAR_MODE)
@@ -1134,7 +1129,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
 
         if info.hasNXdata and not info.isInvalidNXdata:
             nxd = nxdata.get_default(data, validate=False)
-            if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
+            if nxd.signal_is_0d:
                 return 100
         return DataView.UNSUPPORTED
 
