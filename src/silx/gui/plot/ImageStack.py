@@ -305,7 +305,7 @@ class ImageStack(qt.QMainWindow):
             raise ValueError("'n' should be positive")
         if self._urlData.maxsize < self.__n_prefetch:
             _logger.warning("Incoherent value set for n-prefetch. Will overwrite NKeepInMemory")
-            self._urlData.maxsize = -1
+            self._urlData.maxsize = None
 
         self.__n_prefetch = n
         current_url = self.getCurrentUrl()
