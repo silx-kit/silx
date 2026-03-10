@@ -61,7 +61,7 @@ full = [
     'pooch',                 # For scipy.datasets.ascent
     'Pillow',                # For silx.opencl.image.test
     'pint',                  # For silx.io.dictdump
-    'PySide6 >= 6.4',        # PyQt6, PyQt5  # For silx.gui
+    'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
     'hdf5plugin',            # For HDF5 compression filters handling
 ]
 h5pyd = [
