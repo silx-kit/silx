@@ -51,7 +51,9 @@ class LRUCache:
         if maxsize is not None and maxsize < 0:
             raise ValueError("cache max size should be None or higher than 0")
         new_cache = OrderedDict()
-        max_elmts_kepts = min(len(self._cache), maxsize if maxsize is not None else len(self._cache))
+        max_elmts_kepts = min(
+            len(self._cache), maxsize if maxsize is not None else len(self._cache)
+        )
         # Preserve the most recently added element as the final entry in the cache to maintain state continuity between operations.
         items_to_copy = tuple(reversed(self._cache.items()))[:max_elmts_kepts]
         for key, value in reversed(items_to_copy):
