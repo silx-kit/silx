@@ -679,8 +679,6 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         header.setStretchLastSection(False)
 
         for row in range(model.rowCount()):
-            print("model.rowCount()", model.rowCount())
-            print("model.columnCount()", model.columnCount())
             for column in range(model.columnCount()):
                 index = model.index(row, column)
                 if (
@@ -691,6 +689,3 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
                     is False
                 ):
                     self.openPersistentEditor(index)
-
-                self._copyableNameButton = qt.QPushButton("select")
-                self._copyableNameButton.released.connect(lambda a: print("toto"))
