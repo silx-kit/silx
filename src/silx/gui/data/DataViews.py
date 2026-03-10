@@ -1108,7 +1108,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
 
         widget = ArrayTableWidget(parent)
-        # widget.displayAxesSelector(False)
+        widget.displayAxesSelector(False)
         return widget
 
     def axesNames(self, data, info):
