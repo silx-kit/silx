@@ -82,6 +82,9 @@ class HierarchicalItemDelegate(qt.QStyledItemDelegate):
     also the header cells.
     """
 
+    cellClicked = qt.Signal(int, int)
+    # row, column
+
     def __init__(self, parent=None):
         """
         Constructor
@@ -148,6 +151,14 @@ class HierarchicalTableView(qt.QTableView):
         self.setItemDelegate(HierarchicalItemDelegate(self))
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setVisible(False)
+
+    def mousePressEvent(self, event):
+        if event.button() == qt.Qt.LeftButton:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self.model().copyToClipBoard(index.row(), index.column())
+
+        super().mousePressEvent(event)
 
     def setModel(self, model):
         """Override the default function to connect the model to update

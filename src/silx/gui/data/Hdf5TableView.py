@@ -26,6 +26,8 @@ This module  define model and widget to display 1D slices from numpy
 array using compound data types or hdf5 databases.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "12/02/2019"
@@ -59,13 +61,11 @@ class _CellData:
         :param str value: Label of this property
         :param bool isHeader: True if the cell is an header
         :param tuple span: Tuple of row, column span
-        :param icon: icon to be displayed
         """
         self.__value = value
         self.__isHeader = isHeader
         self.__span = span
         self.__tooltip = tooltip
-        self.__icon = icon
 
     def isHeader(self):
         """Returns true if the property is a sub-header title.
@@ -99,8 +99,6 @@ class _CellData:
         self.__tooltip = None
 
     def data(self, role):
-        if role == qt.Qt.DecorationRole:
-            return self.__icon
         return None
 
 
@@ -166,15 +164,17 @@ class _TableData:
         other cells as a single cell for the value.
 
         :param str headerLabel: label of the header.
-        :param object value: value to store.
+        :param object value: value to st__colCountore.
         """
-        header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip, icon=value_icon)
-        cells = [header, value]
-        # if value_icon:
-        #     icon = _CellData(value="", icon=value_icon)
-        #     cells.append(icon)
-        self.__data.append(cells)
+        header_cell = _CellData(value=headerLabel, isHeader=True)
+        value_cell = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
+
+        row = [header_cell, value_cell]
+        # print("value is", value, type(value))
+        if value_icon:
+            icon = _CopyableCellData(clipboardValue=value, icon=value_icon)
+            row.append(icon)
+        self.__data.append(row)
 
     def addRow(self, *args):
         """Append the table with a row using arguments for each cells
@@ -233,6 +233,29 @@ class _CellFilterAvailableData(_CellData):
             return state[2]
         else:
             return None
+
+
+class _CopyableCellData(_CellData):
+    """Cell that display a given icon and that the content can be copied to the clipboard."""
+
+    def __init__(self, clipboardValue: str, icon: qt.QIcon | qt.QColor | qt.QPixmap):
+        """
+        Constructor
+
+        :param clipboardValue: value to be copied to the clipboard
+        :param icon: icon to be displayed
+        """
+        self.__clipboardValue = clipboardValue
+        self.__icon = icon
+        super().__init__()
+
+    def clipboardValue(self) -> str | callable:
+        return self.__clipboardValue
+
+    def data(self, role):
+        if role == qt.Qt.DecorationRole:
+            return self.__icon
+        return None
 
 
 class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
@@ -402,7 +425,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
             self.__data.addHeaderValueRow("Name", lambda x: x.local_name, value_icon=self.__copyableIcon)
             self.__data.addHeaderValueRow(
-                "Local", lambda x: x.local_filename + SEPARATOR + x.local_name
+                "Local",
+                lambda x: x.local_filename + SEPARATOR + x.local_name,
+                value_icon=self.__copyableIcon
             )
         else:
             # it's a real H5py object
@@ -412,7 +437,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
             self.__data.addHeaderValueRow("Name", lambda x: x.name, value_icon=self.__copyableIcon)
             if obj.file is not None:
-                self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+                self.__data.addHeaderValueRow("File", lambda x: x.file.filename, value_icon=self.__copyableIcon)
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
@@ -478,7 +503,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     self.__data.addHeaderRow(headerLabel="Compression info")
                     pos = _CellData(value="Position", isHeader=True)
                     hdf5id = _CellData(value="HDF5 ID", isHeader=True)
-                    name = _CellData(value="Name", isHeader=True, icon=self.__copyableIcon)
+                    name = _CellData(value="Name", isHeader=True)
                     options = _CellData(value="Options", isHeader=True)
                     availability = _CellData(value="", isHeader=True)
                     self.__data.addRow(pos, hdf5id, name, options, availability)
@@ -486,7 +511,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     filterId, name, options = self.__getFilterInfo(obj, index)
                     pos = _CellData(value=str(index))
                     hdf5id = _CellData(value=str(filterId))
-                    name = _CellData(value=name, icon=self.__copyableIcon)
+                    name = _CellData(value=name)
                     options = _CellData(value=options)
                     availability = _CellFilterAvailableData(filterId=filterId)
                     self.__data.addRow(pos, hdf5id, name, options, availability)
@@ -563,6 +588,24 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
     def __formatChanged(self):
         """Called when the format changed."""
         self.reset()
+
+    def copyToClipBoard(self, row: int, column: int) -> None:
+        """Copy data to the clipboard"""
+        cell = self.__data.cellAt(row, column)
+        if cell is None or not isinstance(cell, _CopyableCellData):
+            return
+
+        value = cell.clipboardValue()
+        if callable(value):
+            print("process it")
+            try:
+                value = value(self.__obj)
+            except Exception:
+                value = None
+        print("value is", value, type(value))
+        if value is None:
+            return
+        qt.QApplication.clipboard().setText(value)
 
 
 class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
