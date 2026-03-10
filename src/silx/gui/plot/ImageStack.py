@@ -163,7 +163,7 @@ class ImageStack(qt.QMainWindow):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
-        self._urlData = LRUCache(maxsize=-1)
+        self._urlData = LRUCache(maxsize=None)
         """How many image we prefetch"""
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
@@ -320,19 +320,19 @@ class ImageStack(qt.QMainWindow):
         """
         return self.__n_prefetch
 
-    def getDataCacheSize(self) -> int:
+    def getDataCacheSize(self) -> int | None:
         """
         Return the number of image we want to keep in cache at most.
         """
         return self._urlData.maxsize
 
-    def setDataCacheSize(self, n: int) -> None:
+    def setDataCacheSize(self, n: int | None) -> None:
         """
         Define the number of image we want to keep in cache at most.
 
         :param n: number of images to keeps in cache at most. If -1: all images will be kept.
         """
-        if n < self.__n_prefetch:
+        if n is not None and n < self.__n_prefetch:
             raise ValueError("'n' should be higher than 'n' prefetch")
         self._urlData.maxsize = n
 

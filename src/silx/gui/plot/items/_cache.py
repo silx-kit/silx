@@ -12,8 +12,8 @@ class LRUCache:
     Inspired by https://docs.python.org/3/library/collections.html#ordereddict-examples-and-recipes
     """
 
-    def __init__(self, maxsize: int = 128):
-        if maxsize < 1 and maxsize != -1:
+    def __init__(self, maxsize: int | None = 128):
+        if maxsize is None and maxsize != -1:
             raise ValueError("cache max size should be -1 or higher than 0")
         self._maxsize = maxsize
         self._cache = OrderedDict()
@@ -22,7 +22,7 @@ class LRUCache:
         self._cache[key] = value
         self._cache.move_to_end(key)
 
-        if (self._maxsize != -1) and len(self) > self._maxsize:
+        if self._maxsize is not None and len(self) > self._maxsize:
             self._cache.popitem(last=False)
 
     def __getitem__(self, key):
@@ -34,22 +34,22 @@ class LRUCache:
         return self[key] if key in self else default
 
     @property
-    def maxsize(self) -> int:
+    def maxsize(self) -> int | None:
         """
         Return cache maximal number of element kept. If None the cache has no size limit.
         """
         return self._maxsize
 
     @maxsize.setter
-    def maxsize(self, maxsize: int) -> None:
+    def maxsize(self, maxsize: int | None) -> None:
         """
         Modify the number of elements kept in the cache.
         If -1 the cache has no size limit.
 
         .. warning: modifying the maximal size might affect the cache.
         """
-        if maxsize < 1 and maxsize != -1:
-            raise ValueError("cache max size should be -1 or higher than 0")
+        if maxsize is not None and maxsize < 0:
+            raise ValueError("cache max size should be None or higher than 0")
         new_cache = OrderedDict()
         max_elmts_kepts = min(len(self._cache), maxsize if maxsize is not None else len(self._cache))
         # Preserve the most recently added element as the final entry in the cache to maintain state continuity between operations.
