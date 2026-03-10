@@ -285,8 +285,6 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         formatter = TextFormatter(self)
         self.setFormatter(formatter)
 
-        self.__copyableIcon = qtawesome.icon("fa6.clipboard")
-
         self.setObject(data)
 
     def rowCount(self, parent_idx=None):
