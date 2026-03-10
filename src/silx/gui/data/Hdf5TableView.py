@@ -55,7 +55,7 @@ _logger = logging.getLogger(__name__)
 class _CellData:
     """Store a table item"""
 
-    def __init__(self, value=None, isHeader=False, span=None, tooltip=None, icon: None | qt.QIcon | qt.QColor | qt.QPixmap=None):
+    def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
         """
         Constructor
 
