@@ -38,6 +38,7 @@ import logging
 import h5py
 import numpy
 import qtawesome
+from functools import lru_cache
 
 from silx.gui import qt
 import silx.io
@@ -159,20 +160,21 @@ class _TableData:
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value, tooltip=None, value_icon=None):
+    def addHeaderValueRow(self, headerLabel, value, tooltip=None, copyable: bool=False):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
         :param str headerLabel: label of the header.
         :param object value: value to st__colCountore.
+        :param bool copyable: if True then the given value can be copied to the clipboard by clicking on the dedicated cell.
         """
         header_cell = _CellData(value=headerLabel, isHeader=True)
         value_cell = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
 
         row = [header_cell, value_cell]
         # print("value is", value, type(value))
-        if value_icon:
-            icon = _CopyableCellData(clipboardValue=value, icon=value_icon)
+        if copyable:
+            icon = _CopyableCellData(clipboardValue=value)
             row.append(icon)
         self.__data.append(row)
 
@@ -238,7 +240,7 @@ class _CellFilterAvailableData(_CellData):
 class _CopyableCellData(_CellData):
     """Cell that display a given icon and that the content can be copied to the clipboard."""
 
-    def __init__(self, clipboardValue: str, icon: qt.QIcon | qt.QColor | qt.QPixmap):
+    def __init__(self, clipboardValue: str):
         """
         Constructor
 
@@ -246,15 +248,19 @@ class _CopyableCellData(_CellData):
         :param icon: icon to be displayed
         """
         self.__clipboardValue = clipboardValue
-        self.__icon = icon
         super().__init__()
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _getIcon() -> qt.QIcon | qt.QColor | qt.QPixmap:
+        return qtawesome.icon("fa6.clipboard")
 
     def clipboardValue(self) -> str | callable:
         return self.__clipboardValue
 
     def data(self, role):
         if role == qt.Qt.DecorationRole:
-            return self.__icon
+            return _CopyableCellData._getIcon()
         return None
 
 
@@ -423,11 +429,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("Name", lambda x: x.local_name, value_icon=self.__copyableIcon)
+            self.__data.addHeaderValueRow("Name", lambda x: x.local_name, copyable=True)
             self.__data.addHeaderValueRow(
                 "Local",
                 lambda x: x.local_filename + SEPARATOR + x.local_name,
-                value_icon=self.__copyableIcon
+                copyable=True,
             )
         else:
             # it's a real H5py object
@@ -435,9 +441,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 "Basename", lambda x: os.path.basename(x.name)
             )
 
-            self.__data.addHeaderValueRow("Name", lambda x: x.name, value_icon=self.__copyableIcon)
+            self.__data.addHeaderValueRow("Name", lambda x: x.name, copyable=True)
             if obj.file is not None:
-                self.__data.addHeaderValueRow("File", lambda x: x.file.filename, value_icon=self.__copyableIcon)
+                self.__data.addHeaderValueRow("File", lambda x: x.file.filename, copyable=True)
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
