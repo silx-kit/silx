@@ -169,13 +169,18 @@ class _TableData:
         :param bool copyable: if True then the given value can be copied to the clipboard by clicking on the dedicated cell.
         """
         header_cell = _CellData(value=headerLabel, isHeader=True)
-        value_cell = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
+
+        value_cell = _CellData(value=value, span=(1, self.__colCount - 2 ), tooltip=tooltip)
 
         row = [header_cell, value_cell]
-        # print("value is", value, type(value))
         if copyable:
-            icon = _CopyableCellData(clipboardValue=value)
-            row.append(icon)
+            empty_cell_to_create = self.__colCount - 3
+            # we must complete all empty cells until the 'copyable_cell'.
+            # to operate with span we need to add some empty cells and make sure the '_CopyableCellData' is the last one
+            row.extend([None] * empty_cell_to_create)
+
+            copyable_cell = _CopyableCellData(clipboardValue=value)
+            row.append(copyable_cell)
         self.__data.append(row)
 
     def addRow(self, *args):
