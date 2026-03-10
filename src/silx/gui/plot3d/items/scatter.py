@@ -400,7 +400,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         """Perform picking while in 'points' visualization mode
 
         :param PickContext context: Current picking context
-        :param Union[float,numpy.ndarray threshold: Picking threshold in pixel.
+        :param Union[float,numpy.ndarray] threshold: Picking threshold in pixel.
             Perform picking in a square of size threshold x threshold.
         :param str sort: How returned indices are sorted:
 

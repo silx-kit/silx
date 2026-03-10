@@ -72,7 +72,7 @@ class PointROI(RegionOfInterest, items.SymbolSingleSizeMixIn):
     _DEFAULT_SYMBOL = "+"
     """Default symbol of the PointROI
 
-    It overwrite the `SymbolSingleSizeMixIn` class attribute.
+    It overwrites the `SymbolSingleSizeMixIn` class attribute.
     """
 
     def __init__(self, parent=None):

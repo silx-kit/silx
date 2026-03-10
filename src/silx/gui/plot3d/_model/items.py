@@ -1069,6 +1069,7 @@ class SymbolSizeRow(ItemProxyRow):
             events=items.ItemChangedType.SYMBOL_SIZE,
             editorHint=(1, 20),
         )  # TODO link with OpenGL max point size
+        # Disable tree row if the item size is an array
         self.__isEnabled = item.isSingleSymbolSize()
 
         if setflags:
