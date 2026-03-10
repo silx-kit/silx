@@ -674,15 +674,19 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
 
         model.setObject(data)
         header = self.horizontalHeader()
-        # column name
         header.setSectionResizeMode(0, qt.QHeaderView.Fixed)
-        # Path info
+        # column name or Position
         header.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
-        # 
+        # Path info. Warning: span might affect cells on the right
+        # or hdf5 id
         header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
+        # (Optional) Position or name
         header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
+        # (Optional) options
         header.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
+        # (Optional) availability
         header.setSectionResizeMode(5, qt.QHeaderView.ResizeToContents)
+        # _CopyableCellData
         header.setStretchLastSection(False)
 
         for row in range(model.rowCount()):
