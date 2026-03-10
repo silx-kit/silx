@@ -35,6 +35,7 @@ import os.path
 import logging
 import h5py
 import numpy
+import qtawesome
 
 from silx.gui import qt
 import silx.io
@@ -51,18 +52,20 @@ _logger = logging.getLogger(__name__)
 class _CellData:
     """Store a table item"""
 
-    def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
+    def __init__(self, value=None, isHeader=False, span=None, tooltip=None, icon: None | qt.QIcon | qt.QColor | qt.QPixmap=None):
         """
         Constructor
 
         :param str value: Label of this property
         :param bool isHeader: True if the cell is an header
         :param tuple span: Tuple of row, column span
+        :param icon: icon to be displayed
         """
         self.__value = value
         self.__isHeader = isHeader
         self.__span = span
         self.__tooltip = tooltip
+        self.__icon = icon
 
     def isHeader(self):
         """Returns true if the property is a sub-header title.
@@ -96,6 +99,8 @@ class _CellData:
         self.__tooltip = None
 
     def data(self, role):
+        if role == qt.Qt.DecorationRole:
+            return self.__icon
         return None
 
 
@@ -156,7 +161,7 @@ class _TableData:
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value, tooltip=None):
+    def addHeaderValueRow(self, headerLabel, value, tooltip=None, value_icon=None):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
@@ -164,8 +169,12 @@ class _TableData:
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
-        self.__data.append([header, value])
+        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip, icon=value_icon)
+        cells = [header, value]
+        # if value_icon:
+        #     icon = _CellData(value="", icon=value_icon)
+        #     cells.append(icon)
+        self.__data.append(cells)
 
     def addRow(self, *args):
         """Append the table with a row using arguments for each cells
@@ -241,11 +250,14 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         super().__init__(parent)
 
         self.__obj = None
-        self.__data = _TableData(columnCount=5)
+        self.__data = _TableData(columnCount=6)
         self.__formatter = None
         self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
         self.setFormatter(formatter)
+
+        self.__copyableIcon = qtawesome.icon("fa6.clipboard")
+
         self.setObject(data)
 
     def rowCount(self, parent_idx=None):
@@ -388,7 +400,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
+            self.__data.addHeaderValueRow("Name", lambda x: x.local_name, value_icon=self.__copyableIcon)
             self.__data.addHeaderValueRow(
                 "Local", lambda x: x.local_filename + SEPARATOR + x.local_name
             )
@@ -397,7 +409,8 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.__data.addHeaderValueRow(
                 "Basename", lambda x: os.path.basename(x.name)
             )
-            self.__data.addHeaderValueRow("Name", lambda x: x.name)
+
+            self.__data.addHeaderValueRow("Name", lambda x: x.name, value_icon=self.__copyableIcon)
             if obj.file is not None:
                 self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
             if hasattr(obj, "path"):
@@ -465,7 +478,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     self.__data.addHeaderRow(headerLabel="Compression info")
                     pos = _CellData(value="Position", isHeader=True)
                     hdf5id = _CellData(value="HDF5 ID", isHeader=True)
-                    name = _CellData(value="Name", isHeader=True)
+                    name = _CellData(value="Name", isHeader=True, icon=self.__copyableIcon)
                     options = _CellData(value="Options", isHeader=True)
                     availability = _CellData(value="", isHeader=True)
                     self.__data.addRow(pos, hdf5id, name, options, availability)
@@ -473,7 +486,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     filterId, name, options = self.__getFilterInfo(obj, index)
                     pos = _CellData(value=str(index))
                     hdf5id = _CellData(value=str(filterId))
-                    name = _CellData(value=name)
+                    name = _CellData(value=name, icon=self.__copyableIcon)
                     options = _CellData(value=options)
                     availability = _CellFilterAvailableData(filterId=filterId)
                     self.__data.addRow(pos, hdf5id, name, options, availability)
@@ -611,14 +624,20 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
 
         model.setObject(data)
         header = self.horizontalHeader()
+        # column name
         header.setSectionResizeMode(0, qt.QHeaderView.Fixed)
+        # Path info
         header.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        # 
         header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
         header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, qt.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
 
         for row in range(model.rowCount()):
+            print("model.rowCount()", model.rowCount())
+            print("model.columnCount()", model.columnCount())
             for column in range(model.columnCount()):
                 index = model.index(row, column)
                 if (
@@ -629,3 +648,6 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
                     is False
                 ):
                     self.openPersistentEditor(index)
+
+                self._copyableNameButton = qt.QPushButton("select")
+                self._copyableNameButton.released.connect(lambda a: print("toto"))
