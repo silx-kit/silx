@@ -13,8 +13,8 @@ class LRUCache:
     """
 
     def __init__(self, maxsize: int | None = 128):
-        if maxsize is None and maxsize != -1:
-            raise ValueError("cache max size should be -1 or higher than 0")
+        if maxsize is not None and maxsize < 1:
+            raise ValueError("cache max size should be 'None' or higher than 1")
         self._maxsize = maxsize
         self._cache = OrderedDict()
 
