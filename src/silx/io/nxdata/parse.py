@@ -837,7 +837,12 @@ class NXdata:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
+        if self.signal_is_0d or self.interpretation not in [
+            None,
+            "scalar",
+            "scaler",
+            "spectrum",
+        ]:
             return False
         # the axis, if any, must be of the same length as the last dimension
         # of the signal, or of length 2 (a + b *x scale)
@@ -846,7 +851,7 @@ class NXdata:
             2,
         ]:
             return False
-        if self.interpretation is None:
+        if self.interpretation in (None, "scalar", "scaler"):
             # We no longer test whether x values are monotonic
             # (in the past, in that case, we used to consider it a scatter)
             return self.signal_is_1d
@@ -862,7 +867,7 @@ class NXdata:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if self.interpretation in ["scalar", "spectrum", "scaler"]:
+        if self.interpretation == "spectrum":
             return False
         if self.signal_is_0d or self.signal_is_1d:
             return False
@@ -897,8 +902,6 @@ class NXdata:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
         if self.signal_ndim < 3 or self.interpretation in [
-            "scalar",
-            "scaler",
             "spectrum",
             "image",
             "rgb-image",
