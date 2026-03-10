@@ -601,12 +601,10 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
         value = cell.clipboardValue()
         if callable(value):
-            print("process it")
             try:
                 value = value(self.__obj)
             except Exception:
                 value = None
-        print("value is", value, type(value))
         if value is None:
             return
         qt.QApplication.clipboard().setText(value)
