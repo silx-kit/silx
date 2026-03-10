@@ -1065,7 +1065,9 @@ class SymbolSizeRow(ItemProxyRow):
             name="Marker size",
             fget=item.getSymbolSize,
             fset=item.setSymbolSize,
-            toModelData=lambda data: None if isinstance(data, numpy.ndarray) else data,
+            toModelData=lambda data: (
+                "From data" if isinstance(data, numpy.ndarray) else data
+            ),
             events=items.ItemChangedType.SYMBOL_SIZE,
             editorHint=(1, 20),
         )  # TODO link with OpenGL max point size
@@ -1657,7 +1659,7 @@ class Scatter2DPropertyMixInRow:
         item.sigItemChanged.connect(self._itemChanged)
 
     def data(self, column, role):
-        if column == 1 and not self._isEnabled():
+        if column == 1 and not self.__isEnabled:
             # Discard data and editorHint if disabled
             return None
         else:
