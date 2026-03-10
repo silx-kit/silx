@@ -181,7 +181,15 @@ class SymbolMixIn(_SymbolMixIn):
         super().setSymbol(symbol)
         self._syncPointsPrimitive()
 
+    def getSymbolSize(self, copy: bool = True) -> float | numpy.ndarray:
+        """Return the marker size in pixels."""
+        return super().getSymbolSize(copy)
+
     def setSymbolSize(self, size: float | ArrayLike | None, copy: bool = True):
+        """Set the marker size in pixels.
+
+        See :meth:`getSymbolSize`.
+        """
         super().setSymbolSize(size, copy)
         self._syncPointsPrimitive()
 
