@@ -1711,7 +1711,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         nxd = nxdata.get_default(data, validate=False)
         if nxd is None:
             return
-        isRgba = nxd.interpretation == "rgba-image"
+        isRgba = nxd.interpretation in ("rgb-image", "rgba-image")
 
         self._updateColormap(nxd)
 

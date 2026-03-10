@@ -39,14 +39,17 @@ __date__ = "17/04/2018"
 
 nxdata_logger = logging.getLogger("silx.io.nxdata")
 
-Interpretation = Literal["scalar", "spectrum", "image", "rgba-image", "vertex"]
+Interpretation = Literal[
+    "scalar", "spectrum", "image", "rgb-image", "rgba-image", "vertex"
+]
 
 
 INTERPDIM: dict[Interpretation, int] = {
     "scalar": 0,
     "spectrum": 1,
     "image": 2,
-    "rgba-image": 3,  # "hsla-image": 3, "cmyk-image": 3, # TODO
+    "rgb-image": 3,
+    "rgba-image": 3,
     "vertex": 1,
 }  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
 """Number of signal dimensions associated to each possible @interpretation
@@ -180,7 +183,7 @@ def validate_number_of_axes(
             issues.append(
                 f"Unrecognized @interpretation={interpretation} for data with wrong number of defined @axes"
             )
-        elif interpretation == "rgba-image":
+        elif interpretation in ("rgb-image", "rgba-image"):
             if ndims != 3 or group[signal_name].shape[-1] not in [3, 4]:
                 issues.append(
                     "Inconsistent RGBA Image. Expected 3 dimensions with "
