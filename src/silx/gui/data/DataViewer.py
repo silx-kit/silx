@@ -192,7 +192,7 @@ class DataViewer(qt.QFrame):
     def normalizeData(self, data):
         """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
-        return normalizeData(data)
+        return _normalizeData(data)
 
     def __getStackIndex(self, view):
         """Get the stack index containing the view.
