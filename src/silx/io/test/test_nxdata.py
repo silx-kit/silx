@@ -361,7 +361,9 @@ class TestNXdata:
             assert not nxd.is_x_y_value_scatter
             assert nxd.interpretation == "image"
 
-    def testRGBAImage(self, tmp_path):
+    @pytest.mark.parametrize("interpretation", ("rgb-image", "rgba-image"))
+    @pytest.mark.parametrize("nchannels", (3, 4))
+    def testRGBAImage(self, tmp_path, interpretation, nchannels):
         with h5py.File(tmp_path / "nxdata_rgba_image.h5", "w") as h5f:
             group = h5f.create_group("rgba_image")
             group.attrs["NX_class"] = "NXdata"
@@ -369,12 +371,14 @@ class TestNXdata:
             group.attrs["axes"] = numpy.array(
                 ["rows_calib", "columns_coordinates"], dtype=text_dtype
             )
-            rgba_image = numpy.linspace(0, 1, num=7 * 8 * 3).reshape((7, 8, 3))
+            rgba_image = numpy.linspace(0, 1, num=7 * 8 * nchannels).reshape(
+                (7, 8, nchannels)
+            )
             rgba_image[:, :, 1] = (
                 1 - rgba_image[:, :, 1]
             )  # invert G channel to add some color
             ds = group.create_dataset("image", data=rgba_image)
-            ds.attrs["interpretation"] = "rgba-image"
+            ds.attrs["interpretation"] = interpretation
             ds = group.create_dataset("rows_calib", data=(10, 5))
             ds.attrs["long_name"] = "Calibrated Y"
             group.create_dataset(
@@ -386,7 +390,7 @@ class TestNXdata:
             nxd = nxdata.NXdata(group)
 
             assert nxd.is_image
-            assert nxd.interpretation == "rgba-image"
+            assert nxd.interpretation == interpretation
             assert nxd.signal_is_3d
             assert nxd.axes_names == ["Calibrated Y", "columns_coordinates", None]
             assert list(nxd.axes_dataset_names) == [
