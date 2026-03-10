@@ -13,6 +13,7 @@ Public modules:
     :maxdepth: 2
 
     collapsiblewidget.rst
+    editwidgets.rst
     flowlayout.rst
     framebrowser.rst
     periodictable.rst
