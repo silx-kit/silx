@@ -985,7 +985,7 @@ class Viewer(qt.QMainWindow):
         model.createFromNxdata(h5nxdata)
 
     def copyNameToClipboard(self, obj):
-        qt.Application.clipboard().setText(obj.name)
+        qt.QApplication.clipboard().setText(obj.name)
 
     def customContextMenu(self, event):
         """Called to populate the context menu
