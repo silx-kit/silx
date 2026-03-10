@@ -178,9 +178,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold = numpy.maximum(0.5 * self.getSymbolSize(copy=False), 3.0).reshape(
-            -1, 1
-        )
+        threshold = self._getPickingDistances().reshape(-1, 1)
         thresholdNdc = 2.0 * threshold / primitive.viewport.size
         picked = numpy.where(
             numpy.logical_and(
@@ -504,10 +502,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         mode = self.getVisualization()
         if mode is self.Visualization.POINTS:
             # TODO issue with symbol size: using pixel instead of points
-            # Get "corrected" symbol size
-            _, size = self._getSceneSymbol()
             return self._pickPoints(
-                context, points, threshold=numpy.maximum(0.5 * size, 3.0)
+                context, points, threshold=self._getPickingDistances()
             )
 
         elif mode is self.Visualization.LINES:

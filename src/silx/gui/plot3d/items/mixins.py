@@ -200,6 +200,14 @@ class SymbolMixIn(_SymbolMixIn):
             self.__primitive.marker = symbol
             self.__primitive.setAttribute("size", size, copy=False)
 
+    def _getPickingDistances(self) -> float | numpy.ndarray:
+        """Returns distances below which to consider a point as picked
+
+        Distances are in screen pixels
+        """
+        _, size = self._getSceneSymbol()
+        return numpy.maximum(size, 3.0)
+
     def _getSceneSymbol(self) -> tuple[str, float | ArrayLike]:
         """Returns a symbol name and size suitable for scene primitives.
 
