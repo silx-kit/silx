@@ -76,98 +76,7 @@ class HierarchicalTableModel(qt.QAbstractTableModel):
         return None
 
 
-class _BorderlessItemDelegate(qt.QStyledItemDelegate):
-    """
-    Delegate item that simply don't display borders of the last cell (expected to be some 'clickable' icons)
-    """
-    def __init__(self, parent=None, columns_with_borders: tuple[int, ...] = ()):
-        self.__columns_with_borders = columns_with_borders
-        super().__init__(parent)
-
-    def paint(self, painter, opt, index):
-        col = index.column()
-        header_style = qt.QStyleOptionHeader()
-        palette = header_style.palette
-        original_pen = painter.pen()
-        # original_pen.setColor(palette.color(qt.QPalette.Pen))
-        # painter.setPen(header_style. )
-
-        # Set pen based on column
-        rect = opt.rect
-
-        # if col == 0:
-        #     pass
-        #     # painter.drawRect(rect.right(), rect.bottom(), rect.left(), rect.top())
-        # else:
-        #     style = qt.QApplication.instance().style()
-        #     style.drawControl(qt.QStyle.CE_HeaderSection, opt, painter, None)
-            # painter.drawLine(rect.right(), rect.bottom(), rect.left(), rect.bottom())
-        # if col in self.__columns_with_borders:
-        #     painter.setPen(qt.Qt.NoPen)
-
-        # painter.save()
-
-        # span = index.data(role=HierarchicalTableModel.SpanRole)
-        # span = 1 if span is None else span[1]
-        # columnCount = index.model().columnCount()
-        # if span == columnCount:
-        #     mainTitle = True
-        #     position = qt.QStyleOptionHeader.OnlyOneSection
-        # else:
-        #     mainTitle = False
-        #     col = index.column()
-        #     if col == 0:
-        #         position = qt.QStyleOptionHeader.Beginning
-        #     elif col < columnCount - 1:
-        #         position = qt.QStyleOptionHeader.Middle
-        #     else:
-        #         position = qt.QStyleOptionHeader.End
-        # opt = qt.QStyleOptionHeader()
-        # opt.direction = opt.direction
-        # opt.text = index.data()
-        # opt.textAlignment = qt.Qt.AlignCenter if mainTitle else qt.Qt.AlignVCenter
-        # opt.direction = opt.direction
-        # opt.fontMetrics = opt.fontMetrics
-        # opt.palette = opt.palette
-        # opt.rect = opt.rect
-        # opt.state = opt.state
-        # opt.position = position
-        # painter.setPen(qt.QPen(qt.Qt.black, 1))
-        # rect = opt.rect
-
-        # painter.drawLine(rect.right(), rect.bottom(), rect.left(), rect.bottom())
-        # painter.restore()
-        # # Manually draw borders for non-last columns
-        # if col not in self.__columns_with_borders:
-        #     # Draw vertical line on the right edge
-        #     rect = opt.rect
-        #     painter.save()
-        #     painter.setPen(qt.QPen(qt.Qt.black, 1))
-        #     painter.drawLine(rect.right(), rect.bottom(), rect.left(), rect.bottom())
-        #     painter.restore()
-
-        #     # style = qt.QApplication.instance().style()
-        #     # margin = -1
-        #     # opt.rect = opt.rect.adjusted(margin, margin, -margin, -margin)
-
-        #     # style.drawControl(qt.QStyle.CE_HeaderSection, opt, painter, None)
-
-        #     # painter.restore()
-        #     # # Restore original pen
-        #     # painter.setPen(original_pen)
-        #     super().paint(painter, opt, index)
-
-        # else:
-        #     painter.setPen(qt.Qt.NoPen)
-            # Restore original pen
-            # painter.setPen(original_pen)
-
-        # # Paint cell content
-        # # painter.setPen(qt.Qt.NoPen)
-        super().paint(painter, opt, index)
-
-
-class HierarchicalItemDelegate(_BorderlessItemDelegate):
+class HierarchicalItemDelegate(qt.QStyledItemDelegate):
     """
     Delegate item to take care of the rendering of the default table cells and
     also the header cells.
@@ -176,13 +85,13 @@ class HierarchicalItemDelegate(_BorderlessItemDelegate):
     cellClicked = qt.Signal(int, int)
     # row, column
 
-    def __init__(self, parent=None, columns_without_borders: tuple[int, ...] = ()):
+    def __init__(self, parent=None):
         """
         Constructor
 
         :param qt.QObject parent: Parent of the widget
         """
-        super().__init__(parent, columns_with_borders=columns_without_borders)
+        qt.QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
         """Override the paint function to inject the style of the header.
@@ -193,8 +102,6 @@ class HierarchicalItemDelegate(_BorderlessItemDelegate):
         """
         isHeader = index.data(role=HierarchicalTableModel.IsHeaderRole)
         if isHeader:
-            _BorderlessItemDelegate.paint(self, painter, option, index)
-
             span = index.data(role=HierarchicalTableModel.SpanRole)
             span = 1 if span is None else span[1]
             columnCount = index.model().columnCount()
@@ -228,7 +135,7 @@ class HierarchicalItemDelegate(_BorderlessItemDelegate):
             opt.rect = opt.rect.adjusted(margin, margin, -margin, -margin)
             style.drawControl(qt.QStyle.CE_HeaderLabel, opt, painter, None)
         else:
-            _BorderlessItemDelegate.paint(self, painter, option, index)
+            qt.QStyledItemDelegate.paint(self, painter, option, index)
 
 
 class HierarchicalTableView(qt.QTableView):
@@ -241,10 +148,9 @@ class HierarchicalTableView(qt.QTableView):
         :param qt.QWidget parent: Parent of the widget
         """
         super().__init__(parent)
-        self.setItemDelegate(HierarchicalItemDelegate(self, columns_without_borders=(0, 1, 2, 3, 4, 5, 6)))
+        self.setItemDelegate(HierarchicalItemDelegate(self))
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setVisible(False)
-        self.setShowGrid(True)
 
     def mousePressEvent(self, event):
         if event.button() == qt.Qt.LeftButton:

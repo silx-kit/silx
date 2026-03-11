@@ -284,7 +284,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         super().__init__(parent)
 
         self.__obj = None
-        self.__data = _TableData(columnCount=5)
+        self.__data = _TableData(columnCount=6)
         self.__formatter = None
         self.__hdf5Formatter = Hdf5Formatter(self)
         formatter = TextFormatter(self)
@@ -655,7 +655,6 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         self.setItemDelegate(Hdf5TableItemDelegate(self))
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
         self.setHorizontalScrollMode(qt.QAbstractItemView.ScrollPerPixel)
-        self.setShowGrid(True)
 
     def isSupportedData(self, data):
         """
@@ -690,14 +689,14 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         # _CopyableCellData
         header.setStretchLastSection(False)
 
-        # for row in range(model.rowCount()):
-        #     for column in range(model.columnCount()):
-        #         index = model.index(row, column)
-        #         if (
-        #             index.isValid()
-        #             and index.data(
-        #                 HierarchicalTableView.HierarchicalTableModel.IsHeaderRole
-        #             )
-        #             is False
-        #         ):
-        #             self.openPersistentEditor(index)
+        for row in range(model.rowCount()):
+            for column in range(model.columnCount()):
+                index = model.index(row, column)
+                if (
+                    index.isValid()
+                    and index.data(
+                        HierarchicalTableView.HierarchicalTableModel.IsHeaderRole
+                    )
+                    is False
+                ):
+                    self.openPersistentEditor(index)
