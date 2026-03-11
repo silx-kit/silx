@@ -44,7 +44,7 @@ from ._DataView import DataView
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
 
-from ._utils import normalizeComplex as _normalizeComplex
+from ._utils import isRgba, normalizeComplex as _normalizeComplex
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -78,6 +78,7 @@ NXDATA_STACK_MODE = 76
 NXDATA_VOLUME_MODE = 77
 NXDATA_VOLUME_AS_STACK_MODE = 78
 NXDATA_3D_SCATTER = 79
+NXDATA_RGBA_IMAGE_MODE = 80
 
 
 class _CompositeDataView(DataView):
@@ -1292,11 +1293,57 @@ class _NXdataImageView(_NXdataBaseDataView):
         nxd = nxdata.get_default(data, validate=False)
         if nxd is None:
             return
-        isRgba = (
-            nxd.interpretation in ("rgb-image", "rgba-image")
-            and nxd.signal_ndim >= 3
-            and nxd.signal.shape[-1] in (3, 4)
+        self._updateColormap(nxd)
+
+        widget: ArrayImagePlot = self.getWidget()
+        widget.setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            axes=nxd.axes,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            axes_names=nxd.axes_names,
+            axes_scales=nxd.plot_style.axes_scale_types,
+            title=nxd.title,
+            isRgba=False,
         )
+
+    def getDataPriority(self, data, info: DataInfo):
+        data = self.normalizeData(data)
+
+        if info.hasNXdata and not info.isInvalidNXdata:
+            default = nxdata.get_default(data, validate=False)
+            if default is None:
+                return DataView.UNSUPPORTED
+
+            if (default.is_image or default.is_stack) and not isRgba(default):
+                return 100
+
+        return DataView.UNSUPPORTED
+
+
+class _NXDataRgbaImageView(_NXdataBaseDataView):
+    """DataView using a Plot2D for displaying NXdata RGB(A) images"""
+
+    def __init__(self, parent):
+        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_RGBA_IMAGE_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayImagePlot
+
+        widget = ArrayImagePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return
 
         self._updateColormap(nxd)
 
@@ -1308,21 +1355,23 @@ class _NXdataImageView(_NXdataBaseDataView):
             axes_names=nxd.axes_names,
             axes_scales=nxd.plot_style.axes_scale_types,
             title=nxd.title,
-            isRgba=isRgba,
+            isRgba=True,
         )
 
     def getDataPriority(self, data, info: DataInfo):
         data = self.normalizeData(data)
 
-        if info.hasNXdata and not info.isInvalidNXdata:
-            default = nxdata.get_default(data, validate=False)
-            if default is None:
-                return DataView.UNSUPPORTED
+        if not info.hasNXdata or info.isInvalidNXdata:
+            return DataView.UNSUPPORTED
 
-            if default.is_image or default.is_stack:
-                return 100
+        nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return DataView.UNSUPPORTED
 
-        return DataView.UNSUPPORTED
+        if (nxd.is_image or nxd.is_stack) and isRgba(nxd):
+            return 100
+        else:
+            return DataView.UNSUPPORTED
 
 
 class _NXdataComplexImageView(_NXdataBaseDataView):
@@ -1623,6 +1672,7 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataXYVScatterView(parent))
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
+        self.addView(_NXDataRgbaImageView(parent))
         self.addView(_NxDataScatter3D(parent))
 
         # The 3D view can be displayed using 2 ways
