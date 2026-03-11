@@ -492,7 +492,6 @@ class NXdata:
 
         allowed_interpretations = [
             None,
-            "scaler",  # TODO: Is this part of the spec?
             "scalar",
             "spectrum",
             "image",
@@ -504,6 +503,8 @@ class NXdata:
         interpretation = get_attr_as_unicode(self.signal, "interpretation")
         if interpretation is None:
             interpretation = get_attr_as_unicode(self.group, "interpretation")
+        if interpretation == "scaler":  # deprecated alias of scalar
+            interpretation = "scalar"
 
         if interpretation not in allowed_interpretations:
             nxdata_logger.warning(
@@ -837,12 +838,7 @@ class NXdata:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if self.signal_is_0d or self.interpretation not in [
-            None,
-            "scalar",
-            "scaler",
-            "spectrum",
-        ]:
+        if self.signal_is_0d or self.interpretation not in [None, "scalar", "spectrum"]:
             return False
         # the axis, if any, must be of the same length as the last dimension
         # of the signal, or of length 2 (a + b *x scale)
@@ -851,7 +847,7 @@ class NXdata:
             2,
         ]:
             return False
-        if self.interpretation in (None, "scalar", "scaler"):
+        if self.interpretation in (None, "scalar"):
             # We no longer test whether x values are monotonic
             # (in the past, in that case, we used to consider it a scatter)
             return self.signal_is_1d
@@ -927,8 +923,8 @@ class NXdata:
 
         if self.signal_ndim != 3:
             return False
-        if self.interpretation not in [None, "scalar", "scaler"]:
-            # 'scaler' and 'scalar' for a three dimensional array indicate a scalar field in 3D
+        if self.interpretation not in [None, "scalar"]:
+            # 'scalar' for a three dimensional array indicate a scalar field in 3D
             return False
         volume_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):

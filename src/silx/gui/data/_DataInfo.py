@@ -61,6 +61,8 @@ class DataInfo:
         if silx.io.is_dataset(data):
             if "interpretation" in data.attrs:
                 self.interpretation = get_attr_as_unicode(data, "interpretation")
+                if self.interpretation == "scaler":
+                    self.interpretation = "scalar"
             else:
                 self.interpretation = None
         elif self.hasNXdata:
