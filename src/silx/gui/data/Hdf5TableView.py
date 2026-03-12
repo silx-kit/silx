@@ -579,7 +579,7 @@ class _CopyableQLineEdit(qt.QWidget):
 
         self.setLayout(qt.QHBoxLayout())
         self.layout().addWidget(self._qLineEdit)
-        self._button = qt.QPushButton(icon=_CopyableQLineEdit._getIcon())
+        self._button = qt.QPushButton(icon=qtawesome.icon("fa6.clipboard"))
         self._button.setFlat(True)
         self.layout().addWidget(self._button)
 
@@ -600,11 +600,6 @@ class _CopyableQLineEdit(qt.QWidget):
     def copyToClipBoard(self) -> None:
         """Copy data to the clipboard"""
         qt.QApplication.clipboard().setText(self._qLineEdit.text())
-
-    @staticmethod
-    @lru_cache(maxsize=1)
-    def _getIcon() -> qt.QIcon | qt.QColor | qt.QPixmap:
-        return qtawesome.icon("fa6.clipboard")
 
     # expose API
     def setText(self, txt):
