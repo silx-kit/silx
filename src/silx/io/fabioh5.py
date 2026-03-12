@@ -575,7 +575,6 @@ class FabioReader:
         return previous
 
     def _normalize_vector_type(self, dtype):
-        """Normalize the"""
         if self.__at_least_32bits:
             if numpy.issubdtype(dtype, numpy.signedinteger):
                 dtype = numpy.result_type(dtype, numpy.uint32)
@@ -591,85 +590,62 @@ class FabioReader:
                 dtype = numpy.result_type(dtype, signed)
         return dtype
 
-    def _convert_metadata_vector(self, values):
+    def _get_none_value(self, dtype: numpy.dtype):
+        """Finds the fill value for missing data according to the array type"""
+        if dtype.kind == "S":
+            return b""
+        if dtype.kind == "U":
+            return ""
+        if dtype.kind == "f":
+            return dtype.type("NaN")
+        if dtype.kind in ("i", "u", "b"):
+            return dtype.type(0)
+
+        return None
+
+    def _convert_metadata_vector(self, values: list):
         """Convert a list of numpy data into a numpy array with the better
         fitting type."""
-        converted = []
-        types = set()
-        has_none = False
-        is_array = False
-        array = []
+        converted_values = list(self._convert_value(v) for v in values)
+        valid_converted_values = list(v for v in converted_values if v is not None)
 
-        for v in values:
-            if v is None:
-                converted.append(None)
-                has_none = True
-                array.append(None)
-            else:
-                c = self._convert_value(v)
-                if c.shape != tuple():
-                    array.append(v.split(" "))
-                    is_array = True
-                else:
-                    array.append(v)
-                converted.append(c)
-                types.add(c.dtype)
-
-        if has_none and len(types) == 0:
+        if len(valid_converted_values) == 0:
             # That's a list of none values
             return numpy.array([0] * len(values), numpy.int8)
 
-        result_type = numpy.result_type(*types)
-
-        if issubclass(result_type.type, numpy.bytes_):
+        types = set(v.dtype for v in valid_converted_values)
+        result_type = self._normalize_vector_type(numpy.result_type(*types))
+        if issubclass(result_type.type, (numpy.bytes_, numpy.str_)):
             # use the raw data to create the array
-            result = values
-        elif issubclass(result_type.type, numpy.str_):
-            # use the raw data to create the array
-            result = values
+            raw_result = values
+        elif result_type.kind in "uifd" and len(values) > 1 and len(types) > 1:
+            raw_result = values
         else:
-            result = converted
+            raw_result = converted_values
 
-        result_type = self._normalize_vector_type(result_type)
+        none_value = self._get_none_value(result_type)
+        result = list(v if v is not None else none_value for v in raw_result)
 
-        if has_none:
-            # Fix missing data according to the array type
-            if result_type.kind == "S":
-                none_value = b""
-            elif result_type.kind == "U":
-                none_value = ""
-            elif result_type.kind == "f":
-                none_value = numpy.float64("NaN")
-            elif result_type.kind == "i":
-                none_value = numpy.int64(0)
-            elif result_type.kind == "u":
-                none_value = numpy.int64(0)
-            elif result_type.kind == "b":
-                none_value = numpy.bool_(False)
-            else:
-                none_value = None
-
-            for index, r in enumerate(result):
-                if r is not None:
-                    continue
-                result[index] = none_value
-                values[index] = none_value
-                array[index] = none_value
-
-        if result_type.kind in "uifd" and len(types) > 1 and len(values) > 1:
-            # Catch numerical precision
-            if is_array and len(array) > 1:
-                return numpy.array(array, dtype=result_type)
-            else:
-                return numpy.array(values, dtype=result_type)
         return numpy.array(result, dtype=result_type)
 
-    def _convert_value(self, value):
-        """Convert a string into a numpy object (scalar or array).
+    def _convert_value(
+        self, value: list | dict | str | bytes | None
+    ) -> (
+        numpy.ndarray
+        | numpy.void
+        | numpy.floating
+        | numpy.integer
+        | numpy.bytes_
+        | numpy.str_
+        | None
+    ):
+        """Convert an object into a numpy object (scalar or array).
 
         The value is most of the time a string, but it can be python object
         in case if TIFF decoder for example.
         """
+        if value is None:
+            return None
         if isinstance(value, list):
             # convert to a numpy array
             return numpy.array(value)
@@ -697,7 +673,9 @@ class FabioReader:
             result = self._convert_scalar_value(value)
         return result
 
-    def _convert_scalar_value(self, value):
+    def _convert_scalar_value(
+        self, value: str
+    ) -> numpy.bytes_ | numpy.integer | numpy.floating:
         """Convert a string into a numpy int or float.
 
         If it is not possible it returns a numpy string.
@@ -709,7 +687,7 @@ class FabioReader:
             converted = numpy.bytes_(value)
         return converted
 
-    def _convert_list(self, value):
+    def _convert_list(self, value: str) -> numpy.ndarray | numpy.bytes_ | numpy.str_:
         """Convert a string into a typed numpy array.
 
         If it is not possible it returns a numpy string.
