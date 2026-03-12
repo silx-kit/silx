@@ -1740,10 +1740,9 @@ class Spheres(Geometry):
         }
         normal.z = sqrt(1.0 - sqLength);
 
-        /*Lighting performed in NDC*/
-        /*TODO update this when lighting changed*/
-        //XXX vec3 position = vPosition + vViewRadius * normal;
-        gl_FragColor = $lightingCall(vColor, vPosition, normal);
+        /*Lighting performed in camera*/
+        vec3 position = vCameraPosition.xyz + vViewRadius * normal;
+        gl_FragColor = $lightingCall(vColor, position, normal);
 
         /*Offset depth*/
         float viewDepth = vViewDepth + vViewRadius * normal.z;
@@ -1778,7 +1777,7 @@ class Spheres(Geometry):
         prog = ctx.glCtx.prog(self._shaders[0], fragment)
         prog.use()
 
-        ctx.viewport.light.setupProgram(ctx, prog)
+        ctx.viewport.light.setupProgram(ctx, prog, frame="camera")
 
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
