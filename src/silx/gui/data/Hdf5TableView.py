@@ -590,13 +590,13 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
 
 class _CopyableQLineEdit(qt.QWidget):
-    """A non editable QLineEdit embedding an optional button to copy the text contained"""
+    """A widget composed of a QLineEdit with a button to copy the QLineEdit text to the clipboard"""
 
     textChanged = qt.Signal(str)
 
-    def __init__(self, qlineEdit: qt.QLineEdit):
-        super().__init__(parent=qlineEdit.parent())
-        self._qLineEdit = qt.QLineEdit()
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        self._qLineEdit = qt.QLineEdit(parent)
         self._qLineEdit.setFrame(False)
 
         self.setLayout(qt.QHBoxLayout())
@@ -608,16 +608,9 @@ class _CopyableQLineEdit(qt.QWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
 
-        # set up
-        self._qLineEdit.setReadOnly(True)
-        self._isCopyable = True
-
         # connect signal / slot
         self._button.clicked.connect(self.copyToClipBoard)
         self._qLineEdit.textChanged.connect(self.textChanged)
-
-    def setCopyable(self, copyable: bool):
-        self._isCopyable = copyable
 
     def copyToClipBoard(self) -> None:
         """Copy data to the clipboard"""
@@ -626,10 +619,24 @@ class _CopyableQLineEdit(qt.QWidget):
     # expose API
     def setText(self, txt):
         self._qLineEdit.setText(txt)
-        self._button.setVisible(self._isCopyable and txt != "")
+        self._button.setVisible(txt != "")
+
+    def getText(self) -> str:
+        return self._qLineEdit.text()
+
+    def setReadOnly(self, value, /):
+        self._qLineEdit.setReadOnly(value)
 
     def deselect(self):
         self._qLineEdit.deselect()
+
+    text = qt.Property(
+        str,
+        fget=getText,
+        fset=setText,
+        user=True,
+        notify=textChanged,
+    )
 
 
 class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
@@ -637,22 +644,18 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
 
     def createEditor(self, parent, option, index):
         """See :meth:`QStyledItemDelegate.createEditor`"""
-        editor = super().createEditor(parent, option, index)
-        if isinstance(editor, qt.QLineEdit):
-            editor = _CopyableQLineEdit(editor)
-            editor.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
-            self.installEventFilter(editor)
-        return editor
-
-    def setEditorData(self, editor, index):
-        if isinstance(editor, _CopyableQLineEdit):
-            is_copyable = index.model().data(
-                index, HierarchicalTableView.HierarchicalTableModel.IsCopyableRole
-            )
-            editor.setCopyable(is_copyable)
-            editor.setText(index.model().data(index, qt.Qt.DisplayRole))
+        isCopyable = index.data(Hdf5TableModel.IsCopyableRole)
+        if isCopyable:
+            widget = _CopyableQLineEdit(parent)
         else:
-            super().setEditorData(editor, index)
+            widget = super().createEditor(parent, option, index)
+
+        if isinstance(widget, (qt.QLineEdit, _CopyableQLineEdit)):
+            widget.setReadOnly(True)
+            widget.deselect()
+            widget.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
+            self.installEventFilter(widget)
+        return widget
 
     def __textChanged(self, text):
         sender = self.sender()
