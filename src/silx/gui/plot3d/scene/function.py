@@ -370,33 +370,35 @@ class DirectionalLight(event.Notifier, ProgramFunction):
                                   It MUST be in use and using this function.
         :param frame: The frame of reference in which to apply the lighting
         """
-        if self.isOn and self._direction is not None:
-            if frame == "object":
-                # Transform light direction from camera space to object coords
-                lightdir = context.objectToCamera.transformDir(
-                    self._direction, direct=False
-                )
-                lightdir /= numpy.linalg.norm(lightdir)
+        if not self.isOn or self._direction is None:
+            return
 
-                # Convert view position to object coords
-                viewpos = context.objectToCamera.transformPoint(
-                    numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
-                    direct=False,
-                    perspectiveDivide=True,
-                )[:3]
-            elif frame == "camera":
-                lightdir = self._direction
-                viewpos = numpy.array((0.0, 0.0, 0.0), dtype=numpy.float32)
-            else:
-                raise ValueError(f"Unsupported frame of reference: {frame}")
+        if frame == "object":
+            # Transform light direction from camera space to object coords
+            lightdir = context.objectToCamera.transformDir(
+                self._direction, direct=False
+            )
+            lightdir /= numpy.linalg.norm(lightdir)
 
-            gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
-            gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+            # Convert view position to object coords
+            viewpos = context.objectToCamera.transformPoint(
+                numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
+                direct=False,
+                perspectiveDivide=True,
+            )[:3]
+        elif frame == "camera":
+            lightdir = self._direction
+            viewpos = numpy.array((0.0, 0.0, 0.0), dtype=numpy.float32)
+        else:
+            raise ValueError(f"Unsupported frame of reference: {frame}")
 
-            gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
-            gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
-            gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
-            gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
+        gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
+        gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+
+        gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
+        gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
+        gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
+        gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
 
 
 class Colormap(event.Notifier, ProgramFunction):
