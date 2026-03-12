@@ -44,7 +44,8 @@ class LRUCache:
     def maxsize(self, maxsize: int | None) -> None:
         """
         Modify the number of elements kept in the cache.
-        If -1 the cache has no size limit.
+
+        If None, the cache has no size limit.
 
         .. warning: modifying the maximal size might affect the cache.
         """
