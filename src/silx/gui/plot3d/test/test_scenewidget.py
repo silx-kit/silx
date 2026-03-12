@@ -31,42 +31,45 @@ import pytest
 
 import numpy
 
-from silx.utils.testutils import ParametricTestCase
-from silx.gui.utils.testutils import TestCaseQt
-from silx.gui import qt
-
 from silx.gui.plot3d.SceneWidget import SceneWidget
 
 
 @pytest.mark.usefixtures("use_opengl")
-class TestSceneWidget(TestCaseQt, ParametricTestCase):
-    """Tests SceneWidget picking feature"""
-
-    def setUp(self):
-        super().setUp()
-        self.widget = SceneWidget()
-        self.widget.show()
-        self.qWaitForWindowExposed(self.widget)
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.widget.close()
-        del self.widget
-        super().tearDown()
-
-    def testFogEffect(self):
-        """Test fog effect on scene primitive"""
-        _ = self.widget.addImage(numpy.arange(100).reshape(10, 10))
-        scatter = self.widget.add3DScatter(*numpy.random.random(4000).reshape(4, -1))
+class TestPlot3DWidget:
+    def testFogMode(self, qWidgetFactory, qapp):
+        sceneWidget = qWidgetFactory(SceneWidget)
+        _ = sceneWidget.addImage(numpy.arange(100).reshape(10, 10))
+        scatter = sceneWidget.add3DScatter(*numpy.random.random(400).reshape(4, -1))
         scatter.setTranslation(10, 10)
         scatter.setScale(10, 10, 10)
 
-        self.widget.resetZoom("front")
-        self.qapp.processEvents()
+        sceneWidget.resetZoom("front")
+        qapp.processEvents()
+        assert sceneWidget.getFogMode() == sceneWidget.FogMode.NONE
 
-        self.widget.setFogMode(self.widget.FogMode.LINEAR)
-        self.qapp.processEvents()
+        sceneWidget.setFogMode(sceneWidget.FogMode.LINEAR)
+        qapp.processEvents()
+        assert sceneWidget.getFogMode() == sceneWidget.FogMode.LINEAR
 
-        self.widget.setFogMode(self.widget.FogMode.NONE)
-        self.qapp.processEvents()
+        sceneWidget.setFogMode(sceneWidget.FogMode.NONE)
+        qapp.processEvents()
+        assert sceneWidget.getFogMode() == sceneWidget.FogMode.NONE
+
+    def testLightMode(self, qWidgetFactory, qapp):
+        sceneWidget = qWidgetFactory(SceneWidget)
+        _ = sceneWidget.addImage(numpy.arange(100).reshape(10, 10))
+        scatter = sceneWidget.add3DScatter(*numpy.random.random(400).reshape(4, -1))
+        scatter.setTranslation(10, 10)
+        scatter.setScale(10, 10, 10)
+        sceneWidget.resetZoom("front")
+        qapp.processEvents()
+
+        assert sceneWidget.getLightMode() == "directional"
+
+        sceneWidget.setLightMode(None)
+        qapp.processEvents()
+        assert sceneWidget.getLightMode() is None
+
+        sceneWidget.setLightMode("directional")
+        qapp.processEvents()
+        assert sceneWidget.getLightMode() == "directional"

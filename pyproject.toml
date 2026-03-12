@@ -67,6 +67,7 @@ full = [
     'pint',                  # For silx.io.dictdump
     'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
     'hdf5plugin',            # For HDF5 compression filters handling
+    'qtawesome',             # For icons
 ]
 h5pyd = [
     'h5pyd >= 0.20.0'

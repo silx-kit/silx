@@ -137,9 +137,6 @@ class ExternalResources:
                             self.save_json()
                     self._initialized = True
 
-    def clean_up(self):
-        pass
-
     def getfile(self, filename):
         """Downloads the requested file from web-server available
         at https://www.silx.org/pub/silx/
