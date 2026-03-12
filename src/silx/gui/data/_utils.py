@@ -2,6 +2,7 @@ import numbers
 
 import numpy
 
+from ...io.nxdata.parse import NXdata
 from ..hdf5 import H5Node
 
 
@@ -30,3 +31,11 @@ def normalizeComplex(data):
     if isComplex:
         data = numpy.absolute(data)
     return data
+
+
+def isRgba(nxd: NXdata) -> bool:
+    return (
+        nxd.interpretation in ("rgb-image", "rgba-image")
+        and nxd.signal_ndim >= 3
+        and nxd.signal.shape[-1] in (3, 4)
+    )

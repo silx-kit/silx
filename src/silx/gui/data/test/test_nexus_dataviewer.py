@@ -41,7 +41,7 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
         currentCompositeView = widget.currentAvailableViews()[0]
         assert isinstance(currentCompositeView, DataViews._NXdataView)
         currentView = currentCompositeView.getCurrentView()
-        assert isinstance(currentView, DataViews._NXdataImageView)
+        assert isinstance(currentView, DataViews._NXDataRgbaImageView)
         plot = currentView.getWidget().getPlot()
         assert isinstance(plot.getImage("rgb"), ImageRgba)
 
