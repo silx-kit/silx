@@ -1496,8 +1496,9 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(image)
 
-        if len(self.getAllImages()) == 1 or image is self.getActiveImage():
-            self.setActiveImage(image)
+        if self.getActiveImage() != image:
+            if len(self.getAllImages()) == 1:
+                self.setActiveImage(image)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
