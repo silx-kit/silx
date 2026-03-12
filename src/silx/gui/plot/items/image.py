@@ -376,7 +376,7 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         renderer = self._backendRenderer
         if (
             renderer is not None
-            and hasattr(renderer, 'updateData')
+            and hasattr(renderer, "updateData")
             and self._data.shape == data.shape
         ):
             self._data = data
@@ -519,7 +519,7 @@ class ImageData(ImageDataBase):
             if (
                 data_arr.ndim == 2
                 and self._backendRenderer is not None
-                and hasattr(self._backendRenderer, 'updateData')
+                and hasattr(self._backendRenderer, "updateData")
                 and self._data is not None
                 and self._data.shape == data_arr.shape
             ):
