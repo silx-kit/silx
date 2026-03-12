@@ -574,7 +574,7 @@ class _CopyableQLineEdit(qt.QWidget):
 
     def __init__(self, qlineEdit: qt.QLineEdit):
         super().__init__(parent=qlineEdit.parent())
-        self._qLineEdit = qt.QLineEdit(text=qlineEdit.text())
+        self._qLineEdit = qt.QLineEdit()
         self._qLineEdit.setFrame(False)
 
         self.setLayout(qt.QHBoxLayout())
