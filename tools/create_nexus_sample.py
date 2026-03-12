@@ -715,8 +715,8 @@ def h5web_mock_entry(path: str) -> dict:
         "@signal": "twoD_bigint",
         "@auxiliary_signals": ["secondary_bigint"],
         "@axes": [".", "X_bigint"],
-        "twoD_bigint": np.random.randint(10**15, 10**16, (10, 20)),
-        "secondary_bigint": np.random.randint(10**15, 10**16, (10, 20)),
+        "twoD_bigint": np.random.randint(10**15, 10**16, (10, 20), dtype=np.int64),
+        "secondary_bigint": np.random.randint(10**15, 10**16, (10, 20), dtype=np.int64),
         "X_bigint": np.linspace(0, 1, 20),
     }
     nexus_entry["old-style"] = {
