@@ -238,10 +238,6 @@ class RecordTableModel(qt.QAbstractTableModel):
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the
         horizontal and vertical headers"""
-        if section == -1:
-            # PyQt4 send -1 when there is columns but no rows
-            return None
-
         # Handle clipping of huge tables
         if (
             self.__isClipped()
