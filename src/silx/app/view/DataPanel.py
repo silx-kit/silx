@@ -117,6 +117,9 @@ class _HeaderFrame(qt.QFrame):
     def setData(self, filename, path):
         self._qLineEdit.setData(filename=filename, path=path)
 
+    def setText(self, text):
+        self._qLineEdit.setText(text)
+
 
 class DataPanel(qt.QWidget):
     def __init__(self, parent=None, context=None):
