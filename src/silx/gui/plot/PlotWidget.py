@@ -2535,44 +2535,6 @@ class PlotWidget(qt.QMainWindow):
             return legend
         return self._getItem(kind="image", legend=legend)
 
-    def updateImageData(
-        self,
-        data: numpy.ndarray,
-        legend: str | None = None,
-    ) -> items.ImageBase | None:
-        """Update image data efficiently for streaming.
-
-        This is an optimized path for updating pixel data of an existing
-        image without rebuilding the full display pipeline. Useful for
-        real-time image streaming where only pixel values change.
-
-        If the backend supports direct data updates, this bypasses the
-        item dirty/remove/add cycle. Otherwise falls back to the normal
-        setData() path.
-
-        For maximum throughput, set explicit vmin/vmax on the colormap
-        to skip per-frame autoscale computation::
-
-            colormap = plot.getDefaultColormap()
-            colormap.setVMin(0.0)
-            colormap.setVMax(1.0)
-
-        The image must already exist. Use :meth:`addImage` for first display.
-
-        :param data: New image data (2D scalar or 3D RGB(A))
-        :param legend: Legend of the image to update.
-            If None, updates the active image.
-        :returns: The updated image item, or None if not found
-        """
-        item = self.getImage(legend)
-        if item is None:
-            return None
-        if hasattr(item, "updateData"):
-            item.updateData(data)
-        else:
-            item.setData(data, copy=False)
-        return item
-
     def getScatter(
         self, legend: str | items.Scatter | None = None
     ) -> items.Scatter | None:
