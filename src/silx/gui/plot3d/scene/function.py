@@ -51,6 +51,9 @@ if TYPE_CHECKING:
 _logger = logging.getLogger(__name__)
 
 
+Vec3 = tuple[float, float, float]
+
+
 class ProgramFunction:
     """Class providing a function to add to a GLProgram shaders."""
 
@@ -189,8 +192,8 @@ class ClippingPlane(ProgramFunction):
 
     def __init__(
         self,
-        point: Sequence[float] = (0.0, 0.0, 0.0),
-        normal: Sequence[float] = (0.0, 0.0, 0.0),
+        point: Vec3 = (0.0, 0.0, 0.0),
+        normal: Vec3 = (0.0, 0.0, 0.0),
     ):
         self._plane = utils.Plane(point, normal)
 
@@ -285,10 +288,10 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
     def __init__(
         self,
-        direction: Sequence[float] | None = None,
-        ambient: tuple[float, float, float] = (1.0, 1.0, 1.0),
-        diffuse: tuple[float, float, float] = (0.0, 0.0, 0.0),
-        specular: tuple[float, float, float] = (1.0, 1.0, 1.0),
+        direction: Vec3 | None = None,
+        ambient: Vec3 = (1.0, 1.0, 1.0),
+        diffuse: Vec3 = (0.0, 0.0, 0.0),
+        specular: Vec3 = (1.0, 1.0, 1.0),
         shininess: float = 0.0,
     ):
         super().__init__()
@@ -334,7 +337,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         return self._direction
 
     @direction.setter
-    def direction(self, direction: Sequence[float] | None) -> None:
+    def direction(self, direction: Vec3 | None) -> None:
         if direction is None:
             self._direction = None
         else:
