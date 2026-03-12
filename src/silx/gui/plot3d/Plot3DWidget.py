@@ -30,6 +30,7 @@ __date__ = "24/04/2018"
 
 import enum
 import logging
+from typing import Literal
 
 from silx.gui import qt
 from silx.gui.colors import rgba
@@ -90,6 +91,9 @@ class _OverviewViewport(scene.Viewport):
         self.camera.extrinsic.setOrientation(
             source.extrinsic.direction, source.extrinsic.up
         )
+
+
+LightMode = Literal["directional"] | None
 
 
 class Plot3DWidget(glu.OpenGLWidget):
@@ -293,6 +297,23 @@ class Plot3DWidget(glu.OpenGLWidget):
             return self.FogMode.LINEAR
         else:
             return self.FogMode.NONE
+
+    def setLightMode(self, mode: LightMode):
+        """Set the type of lighting"""
+        if mode == self.getLightMode():
+            return
+
+        if mode is None:
+            self.viewport.light.isOn = False
+        elif mode == "directional":
+            self.viewport.light.isOn = True
+        else:
+            raise ValueError(f"Unsupported light mode: {mode}")
+        self.sigStyleChanged.emit("lightMode")
+
+    def getLightMode(self) -> LightMode:
+        """Returns the current type of lighting"""
+        return "directional" if self.viewport.light.isOn else None
 
     def isOrientationIndicatorVisible(self):
         """Returns True if the orientation indicator is displayed.

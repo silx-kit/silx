@@ -269,8 +269,14 @@ class Settings(StaticRow):
             editorHint=(-90, 90),
         )
 
-        lightDirection = StaticRow(
-            ("Light Direction", None), children=(azimuthNode, altitudeNode)
+        lightDirection = ProxyRow(
+            name="Light",
+            fget=sceneWidget.getLightMode,
+            fset=sceneWidget.setLightMode,
+            notify=sceneWidget.sigStyleChanged,
+            toModelData=lambda mode: mode == "directional",
+            fromModelData=lambda mode: ("directional" if mode else None),
+            children=(azimuthNode, altitudeNode),
         )
 
         # Fog
