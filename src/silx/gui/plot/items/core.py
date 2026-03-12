@@ -660,6 +660,16 @@ class ColormapMixIn(_Colormappable, ItemMixInBase):
         )
         self.__cacheColormapRange.clear()
 
+        # GPU backend: pre-fill cache with GPU-computed stats
+        if data is not None and min_ is None and max_ is None:
+            plot = self.getPlot() if hasattr(self, "getPlot") else None
+            if plot is not None:
+                backend = getattr(plot, "_backend", None)
+                if backend is not None and hasattr(backend, "_computeGpuDataStats"):
+                    stats = backend._computeGpuDataStats(data)
+                    if stats is not None:
+                        min_, minPositive, max_ = stats
+
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
             if min_ is not None and numpy.isfinite(min_):

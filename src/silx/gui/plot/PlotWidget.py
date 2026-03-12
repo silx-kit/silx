@@ -534,6 +534,13 @@ class PlotWidget(qt.QMainWindow):
                     _logger.debug("Backtrace", exc_info=True)
                     raise RuntimeError("OpenGL backend is not available")
 
+            elif backend in ("pygfx", "wgpu"):
+                try:
+                    from .backends.BackendPygfx import BackendPygfx as backendClass
+                except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
+                    raise RuntimeError("pygfx backend is not available")
+
             elif backend == "none":
                 from .backends.BackendBase import BackendBase as backendClass
 
@@ -566,11 +573,12 @@ class PlotWidget(qt.QMainWindow):
 
         - 'matplotlib' and 'mpl': Matplotlib with Qt.
         - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
+        - 'pygfx' and 'wgpu': pygfx/WGPU backend (requires pygfx and rendercanvas)
         - 'none': No backend, to run headless for testing purpose.
 
         :param backend:
             The backend to use, in:
-            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none',
+            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'pygfx', 'wgpu', 'none',
             a :class:`BackendBase.BackendBase` class.
             If multiple backends are provided, the first available one is used.
         :raises ValueError: Unsupported backend descriptor
@@ -2526,6 +2534,44 @@ class PlotWidget(qt.QMainWindow):
             _logger.warning("getImage call not needed: legend is already an item")
             return legend
         return self._getItem(kind="image", legend=legend)
+
+    def updateImageData(
+        self,
+        data: numpy.ndarray,
+        legend: str | None = None,
+    ) -> items.ImageBase | None:
+        """Update image data efficiently for streaming.
+
+        This is an optimized path for updating pixel data of an existing
+        image without rebuilding the full display pipeline. Useful for
+        real-time image streaming where only pixel values change.
+
+        If the backend supports direct data updates, this bypasses the
+        item dirty/remove/add cycle. Otherwise falls back to the normal
+        setData() path.
+
+        For maximum throughput, set explicit vmin/vmax on the colormap
+        to skip per-frame autoscale computation::
+
+            colormap = plot.getDefaultColormap()
+            colormap.setVMin(0.0)
+            colormap.setVMax(1.0)
+
+        The image must already exist. Use :meth:`addImage` for first display.
+
+        :param data: New image data (2D scalar or 3D RGB(A))
+        :param legend: Legend of the image to update.
+            If None, updates the active image.
+        :returns: The updated image item, or None if not found
+        """
+        item = self.getImage(legend)
+        if item is None:
+            return None
+        if hasattr(item, "updateData"):
+            item.updateData(data)
+        else:
+            item.setData(data, copy=False)
+        return item
 
     def getScatter(
         self, legend: str | items.Scatter | None = None

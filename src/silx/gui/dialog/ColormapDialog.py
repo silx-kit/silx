@@ -426,6 +426,26 @@ class _ColormapHistogram(qt.QWidget):
         dataRange = self._getNormalizedDataRange()
         if dataRange[0] is None or dataRange[1] is None:
             return None, None
+
+        # Try GPU histogram from backend (pygfx async compute)
+        # Match CPU computeHistogram behavior: only LOG transforms data
+        item = self.parent()._getItem()
+        if item is not None and hasattr(item, "getPlot"):
+            plot = item.getPlot()
+            if plot is not None:
+                backend = getattr(plot, "_backend", None)
+                if backend is not None and hasattr(backend, "_computeGpuHistogram"):
+                    # norm_mode: 0=linear (no transform), 1=log10
+                    gpu_norm = 1 if norm == Colormap.LOGARITHM else 0
+                    result = backend._computeGpuHistogram(
+                        data,
+                        dataRange[0],
+                        dataRange[1],
+                        norm_mode=gpu_norm,
+                    )
+                    if result is not None:
+                        return result
+
         counts, edges = self.parent().computeHistogram(
             data, scale=norm, dataRange=dataRange
         )
