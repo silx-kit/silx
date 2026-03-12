@@ -28,6 +28,7 @@ __date__ = "12/10/2018"
 
 import logging
 import os.path
+import qtawesome
 
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
@@ -35,10 +36,10 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 _logger = logging.getLogger(__name__)
 
 
-class _HeaderLabel(qt.QLabel):
+class _HeaderQLineEdit(qt.QLineEdit):
     def __init__(self, parent=None):
-        qt.QLabel.__init__(self, parent=parent)
-        self.setFrameShape(qt.QFrame.StyledPanel)
+        super().__init__(parent=parent)
+        self.setReadOnly(True)
 
     def sizeHint(self):
         return qt.QSize(10, 30)
@@ -86,13 +87,44 @@ class _HeaderLabel(qt.QLabel):
         super().paintEvent(event)
 
 
+class _HeaderFrame(qt.QFrame):
+
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        self.setFrameShape(qt.QFrame.StyledPanel)
+        self._qLineEdit = _HeaderQLineEdit(parent)
+        self._qLineEdit.setFrame(False)
+
+        self.setLayout(qt.QHBoxLayout())
+        self.layout().addWidget(self._qLineEdit)
+        self._button = qt.QPushButton(icon=qtawesome.icon("mdi6.content-copy"))
+        self._button.setFlat(True)
+
+        self.layout().addWidget(self._button)
+
+        self._qLineEdit.setSizePolicy(
+            qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred
+        )
+
+        # connect signal / slot
+        self._button.clicked.connect(self.copyToClipBoard)
+
+    def copyToClipBoard(self) -> None:
+        """Copy data to the clipboard"""
+        qt.QApplication.clipboard().setText(self._qLineEdit.text())
+
+    # expose API
+    def setData(self, filename, path):
+        self._qLineEdit.setData(filename=filename, path=path)
+
+
 class DataPanel(qt.QWidget):
     def __init__(self, parent=None, context=None):
         qt.QWidget.__init__(self, parent=parent)
 
         self.__customNxdataItem = None
 
-        self.__dataTitle = _HeaderLabel(self)
+        self.__dataTitle = _HeaderFrame(self)
         self.__dataTitle.setVisible(False)
 
         self.__dataViewer = DataViewerFrame(self)
