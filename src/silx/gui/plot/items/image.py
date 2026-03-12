@@ -380,7 +380,6 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         super()._updated(event=event, checkVisibility=checkVisibility)
 
 
-
 class ImageData(ImageDataBase):
     """Description of a data image with a colormap"""
 
