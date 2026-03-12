@@ -53,7 +53,14 @@ _logger = logging.getLogger(__name__)
 class _CellData:
     """Store a table item"""
 
-    def __init__(self, value=None, isHeader=False, span=None, tooltip=None, isCopyable: bool = False):
+    def __init__(
+        self,
+        value=None,
+        isHeader=False,
+        span=None,
+        tooltip=None,
+        isCopyable: bool = False,
+    ):
         """
         Constructor
 
@@ -163,7 +170,9 @@ class _TableData:
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value, tooltip=None, isCopyable: bool = False):
+    def addHeaderValueRow(
+        self, headerLabel, value, tooltip=None, isCopyable: bool = False
+    ):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
@@ -171,7 +180,12 @@ class _TableData:
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip, isCopyable=isCopyable)
+        value = _CellData(
+            value=value,
+            span=(1, self.__colCount),
+            tooltip=tooltip,
+            isCopyable=isCopyable,
+        )
         self.__data.append([header, value])
 
     def addRow(self, *args):
@@ -404,9 +418,13 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("Name", lambda x: x.local_name, isCopyable=True)
             self.__data.addHeaderValueRow(
-                "Local", lambda x: x.local_filename + SEPARATOR + x.local_name, isCopyable=True
+                "Name", lambda x: x.local_name, isCopyable=True
+            )
+            self.__data.addHeaderValueRow(
+                "Local",
+                lambda x: x.local_filename + SEPARATOR + x.local_name,
+                isCopyable=True,
             )
         else:
             # it's a real H5py object
@@ -415,7 +433,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             )
             self.__data.addHeaderValueRow("Name", lambda x: x.name, isCopyable=True)
             if obj.file is not None:
-                self.__data.addHeaderValueRow("File", lambda x: x.file.filename, isCopyable=True)
+                self.__data.addHeaderValueRow(
+                    "File", lambda x: x.file.filename, isCopyable=True
+                )
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
@@ -447,7 +467,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     # Guess it is a virtual node
                     return "No physical location"
 
-            self.__data.addHeaderValueRow("Physical", _physical_location, isCopyable=True)
+            self.__data.addHeaderValueRow(
+                "Physical", _physical_location, isCopyable=True
+            )
 
         if external_dataset_info is not None:
             self.__data.addHeaderRow(headerLabel="External sources")
@@ -570,6 +592,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
 class _CopyableQLineEdit(qt.QWidget):
     """A non editable QLineEdit embedding an optional button to copy the text contained"""
+
     textChanged = qt.Signal(str)
 
     def __init__(self, qlineEdit: qt.QLineEdit):
@@ -624,7 +647,9 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
 
     def setEditorData(self, editor, index):
         if isinstance(editor, _CopyableQLineEdit):
-            is_copyable = index.model().data(index, HierarchicalTableView.HierarchicalTableModel.IsCopyableRole)
+            is_copyable = index.model().data(
+                index, HierarchicalTableView.HierarchicalTableModel.IsCopyableRole
+            )
             editor.setCopyable(is_copyable)
             editor.setText(index.model().data(index, qt.Qt.DisplayRole))
         else:
