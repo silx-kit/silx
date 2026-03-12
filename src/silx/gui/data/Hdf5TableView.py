@@ -592,7 +592,7 @@ class _CopyableQLineEdit(qt.QWidget):
         self._isCopyable = True
 
         # connect signal / slot
-        self._button.released.connect(self.copyToClipBoard)
+        self._button.clicked.connect(self.copyToClipBoard)
         self._qLineEdit.textChanged.connect(self.textChanged)
 
     def setCopyable(self, copyable: bool):
@@ -636,8 +636,8 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
             is_copyable = index.model().data(index, HierarchicalTableView.HierarchicalTableModel.IsCopyableRole)
             editor.setCopyable(is_copyable)
             editor.setText(index.model().data(index, qt.Qt.DisplayRole))
-
-        super().setEditorData(editor, index)
+        else:
+            super().setEditorData(editor, index)
 
     def __textChanged(self, text):
         sender = self.sender()
