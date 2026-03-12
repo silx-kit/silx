@@ -74,7 +74,7 @@ class _CellData:
         """
         return self.__isHeader
 
-    def isCopyable(self):
+    def isCopyable(self) -> bool:
         """Returns true if the content of this cell can be copied to clipboard by the user (by clicking on a dedicated button)."""
         return self.__isCopyable
 

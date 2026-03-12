@@ -67,7 +67,7 @@ class HierarchicalTableModel(qt.QAbstractTableModel):
     """First index of user defined roles"""
 
     IsCopyableRole = qt.Qt.UserRole + 3
-    """Role returning True if the content of the cell can be copyable by the user"""
+    """Role returning True if the content of the cell can be copied to clipboard by the user"""
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the
