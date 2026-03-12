@@ -1073,7 +1073,7 @@ class _PygfxImageItem:
         Requires the image object to already exist and data shape to match.
 
         :param data: New image data (2D array)
-        :param clim: (vmin, vmax) tuple for color limits, or None to keep current
+        :param clim: (vmin, vmax) tuple for color limits, or None to compute from data
         """
         if self._imageObj is None:
             return
@@ -1082,8 +1082,14 @@ class _PygfxImageItem:
         else:
             scalarData = numpy.ascontiguousarray(data, dtype=numpy.float32)
         self._imageObj.geometry.grid.set_data(scalarData)
-        if clim is not None:
-            self._imageObj.material.clim = clim
+        if clim is None:
+            dmin = float(numpy.nanmin(data))
+            dmax = float(numpy.nanmax(data))
+            if dmin >= dmax:
+                dmax = dmin + 1.0
+            clim = (dmin, dmax)
+
+        self._imageObj.material.clim = clim
 
     def _buildRGBA(self, data, origin, scale, alpha):
         self._scalarShape = None
