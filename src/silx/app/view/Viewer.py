@@ -1036,7 +1036,7 @@ class Viewer(qt.QMainWindow):
         model = self.__customNxdata.model()
         model.createFromNxdata(h5nxdata)
 
-    def copyNameToClipboard(self, obj):
+    def _copyNameToClipboard(self, obj):
         qt.Application.clipboard().setText(obj.name)
 
     def customContextMenu(self, event):
@@ -1105,7 +1105,7 @@ class Viewer(qt.QMainWindow):
             if silx.io.is_group(h5) or silx.io.is_dataset(h5):
                 menu.addSeparator()
                 action = qt.QAction("Copy path", event.source())
-                action.triggered.connect(lambda: self.copyNameToClipboard(h5))
+                action.triggered.connect(lambda: self._copyNameToClipboard(h5))
                 menu.addAction(action)
 
     def __errorButtonClicked(self):
