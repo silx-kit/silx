@@ -169,10 +169,6 @@ class HexaTableModel(qt.QAbstractTableModel):
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the
         horizontal and vertical headers"""
-        if section == -1:
-            # PyQt4 send -1 when there is columns but no rows
-            return None
-
         if role == qt.Qt.DisplayRole:
             if orientation == qt.Qt.Vertical:
                 return "%02X" % (section << 4)
