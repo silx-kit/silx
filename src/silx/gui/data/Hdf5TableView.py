@@ -588,7 +588,6 @@ class _CopyableQLineEdit(qt.QWidget):
 
         # set up
         self._qLineEdit.setReadOnly(True)
-        self._qLineEdit.deselect()
         self._isCopyable = True
 
         # connect signal / slot
