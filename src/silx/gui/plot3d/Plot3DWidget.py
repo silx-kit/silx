@@ -93,6 +93,9 @@ class _OverviewViewport(scene.Viewport):
         )
 
 
+LightMode = Literal["directional"] | None
+
+
 class Plot3DWidget(glu.OpenGLWidget):
     """OpenGL widget with a 3D viewport and an overview."""
 
@@ -295,7 +298,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         else:
             return self.FogMode.NONE
 
-    def setLightMode(self, mode: Literal["directional"] | None):
+    def setLightMode(self, mode: LightMode):
         """Set the type of lighting"""
         if mode == self.getLightMode():
             return
@@ -308,7 +311,7 @@ class Plot3DWidget(glu.OpenGLWidget):
             raise ValueError(f"Unsupported light mode: {mode}")
         self.sigStyleChanged.emit("lightMode")
 
-    def getLightMode(self) -> Literal["directional"] | None:
+    def getLightMode(self) -> LightMode:
         """Returns the current type of lighting"""
         return "directional" if self.viewport.light.isOn else None
 

@@ -312,7 +312,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
     def isOn(self, isOn):
         isOn = bool(isOn)
         if self._isOn != isOn:
-            self._isOn = bool(isOn)
+            self._isOn = isOn
             self.notify()
 
     @contextlib.contextmanager
