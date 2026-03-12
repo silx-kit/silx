@@ -613,9 +613,6 @@ class _CopyableQLineEdit(qt.QWidget):
 class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
     """Item delegate the :class:`Hdf5TableView` with read-only text editor"""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
     def createEditor(self, parent, option, index):
         """See :meth:`QStyledItemDelegate.createEditor`"""
         editor = super().createEditor(parent, option, index)
