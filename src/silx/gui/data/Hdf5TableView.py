@@ -36,7 +36,6 @@ import logging
 import h5py
 import numpy
 import qtawesome
-from functools import lru_cache
 
 from silx.gui import qt
 import silx.io
