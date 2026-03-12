@@ -164,7 +164,6 @@ class ImageStack(qt.QMainWindow):
         super().__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
         self._urlData = LRUCache(maxsize=None)
-        """How many image we prefetch"""
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
         self._current_url = None
@@ -305,7 +304,7 @@ class ImageStack(qt.QMainWindow):
             raise ValueError("'n' should be positive")
         if self._urlData.maxsize < self.__n_prefetch:
             _logger.warning(
-                "Incoherent value set for n-prefetch. Will overwrite NKeepInMemory"
+                "Number of prefetchs lower that data cache size: This is not optimal"
             )
             self._urlData.maxsize = None
 
@@ -324,18 +323,18 @@ class ImageStack(qt.QMainWindow):
 
     def getDataCacheSize(self) -> int | None:
         """
-        Return the number of image we want to keep in cache at most.
+        Return the maximum number of images kept in cache.
         """
         return self._urlData.maxsize
 
     def setDataCacheSize(self, n: int | None) -> None:
         """
-        Define the number of image we want to keep in cache at most.
+        Define the maximum number of images to cache.
 
-        :param n: number of images to keeps in cache at most. If -1: all images will be kept.
+        :param n: Maximum number of images to keep in cache. If None: All images are cached.
         """
         if n is not None and n < self.__n_prefetch:
-            raise ValueError("'n' should be higher than 'n' prefetch")
+            raise ValueError("'Data cache size should be higher than 'n' prefetch")
         self._urlData.maxsize = n
 
     def setUrlsEditable(self, editable: bool):

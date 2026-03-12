@@ -47,7 +47,7 @@ class LRUCache:
 
         If None, the cache has no size limit.
 
-        .. warning: modifying the maximal size might affect the cache.
+        .. warning: decreasing the maximal size affects the cache.
         """
         if maxsize is not None and maxsize < 0:
             raise ValueError("cache max size should be None or higher than 0")
