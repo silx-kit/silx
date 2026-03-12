@@ -43,3 +43,6 @@ class SignalSelector(qt.QWidget):
 
     def getSignalIndex(self) -> int:
         return self._combobox.currentIndex()
+
+    def getCurrentSignalName(self) -> str:
+        return self._combobox.currentText()
