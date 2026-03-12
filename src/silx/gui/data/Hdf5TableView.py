@@ -597,7 +597,6 @@ class _CopyableQLineEdit(qt.QWidget):
     def __init__(self, parent):
         super().__init__(parent=parent)
         self._qLineEdit = qt.QLineEdit(parent)
-        self._qLineEdit.setFrame(False)
 
         self.setLayout(qt.QHBoxLayout())
         self.layout().addWidget(self._qLineEdit)
@@ -651,6 +650,7 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
             widget = super().createEditor(parent, option, index)
 
         if isinstance(widget, (qt.QLineEdit, _CopyableQLineEdit)):
+            widget.setAutoFillBackground(True)
             widget.setReadOnly(True)
             widget.deselect()
             widget.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
