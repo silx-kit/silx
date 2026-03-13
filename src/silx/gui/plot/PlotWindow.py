@@ -488,7 +488,7 @@ class PlotWindow(PlotWidget):
         )
         self.xAxisScaleAction = toolbar.insertWidget(
             self.colorbarAction, self.xAxisScaleButton
-        )        
+        )
         self.yAxisScaleAction = toolbar.insertWidget(
             self.colorbarAction, self.yAxisScaleButton
         )
