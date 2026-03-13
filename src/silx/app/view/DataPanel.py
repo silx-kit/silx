@@ -106,6 +106,8 @@ class _HeaderFrame(qt.QFrame):
             qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred
         )
 
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
         # connect signal / slot
         self._button.clicked.connect(self.copyToClipBoard)
 
