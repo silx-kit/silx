@@ -426,7 +426,7 @@ class XAxis(Axis):
             self._getBackend().setXAxisScale(scale="linear")
         else:
             raise ValueError("Scale %s unsupported" % scale)
-        
+
     @docstring(Axis)
     def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()

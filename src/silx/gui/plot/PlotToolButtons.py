@@ -60,12 +60,13 @@ ICON_LINEAR = "ph.line-segment-bold"
 ICON_LOG = "mdi.math-log"
 ICON_ASINH = "mdi6.math-sin"
 ICONS_OPTIONS = {
-    "color" : "green",
-    "options" : [
-        {"offset" : (-0.25,0.0), "scale_factor" : 0.7},
-        {"offset" : (0.25,0.0), "scale_factor" : 0.7},        
-    ]
+    "color": "green",
+    "options": [
+        {"offset": (-0.25, 0.0), "scale_factor": 0.7},
+        {"offset": (0.25, 0.0), "scale_factor": 0.7},
+    ],
 }
+
 
 class AspectToolButton(PlotToolButton):
     """Tool button to switch keep aspect ratio of a plot"""
@@ -236,6 +237,7 @@ class YAxisOriginToolButton(_AxisOriginToolButton):
         )
         self.setAxisInverted(True)
 
+
 class YAxisScaleToolButton(PlotToolButton):
     """Tool button to choose the Y axis scale in the plot."""
 
@@ -246,15 +248,21 @@ class YAxisScaleToolButton(PlotToolButton):
         if self.STATE is None:
             self.STATE = {}
             # linear
-            self.STATE["linear", "icon"] = qtawesome.icon(ICON_YSCALE, ICON_LINEAR, **ICONS_OPTIONS)
+            self.STATE["linear", "icon"] = qtawesome.icon(
+                ICON_YSCALE, ICON_LINEAR, **ICONS_OPTIONS
+            )
             self.STATE["linear", "state"] = "Y-axis scale is linear"
             self.STATE["linear", "action"] = "Linear Y-axis"
             # logarithmic
-            self.STATE["log", "icon"] = qtawesome.icon(ICON_YSCALE, ICON_LOG, **ICONS_OPTIONS)
+            self.STATE["log", "icon"] = qtawesome.icon(
+                ICON_YSCALE, ICON_LOG, **ICONS_OPTIONS
+            )
             self.STATE["log", "state"] = "Y-axis scale is logarithmic"
             self.STATE["log", "action"] = "Logarithmic Y-axis"
             # arcsinh
-            self.STATE["arcsinh", "icon"] = qtawesome.icon(ICON_YSCALE, ICON_ASINH, **ICONS_OPTIONS)
+            self.STATE["arcsinh", "icon"] = qtawesome.icon(
+                ICON_YSCALE, ICON_ASINH, **ICONS_OPTIONS
+            )
             self.STATE["arcsinh", "state"] = "Y-axis scale is arcsinh"
             self.STATE["arcsinh", "action"] = "Arcsinh Y-axis"
 
@@ -283,7 +291,7 @@ class YAxisScaleToolButton(PlotToolButton):
         icon = self.STATE[state, "icon"]
         text = self.STATE[state, "action"]
         return qt.QAction(icon, text, self)
-    
+
     def _connectPlot(self, plot):
         yAxis = plot.getYAxis()
         yAxis.sigScaleChanged.connect(self._yAxisScaleChanged)
@@ -291,7 +299,7 @@ class YAxisScaleToolButton(PlotToolButton):
 
     def _disconnectPlot(self, plot):
         plot.getYAxis().sigScaleChanged.disconnect(self._yAxisScaleChanged)
-                
+
     def setYAxisScaleLinear(self):
         """Set Y-scale to Linear"""
         self.plot().getYAxis().setScale(scale="linear")
@@ -306,7 +314,10 @@ class YAxisScaleToolButton(PlotToolButton):
 
     def _yAxisScaleChanged(self, scale_state):
         """Handle Plot set y scale"""
-        icon, toolTip = self.STATE[scale_state, "icon"], self.STATE[scale_state, "state"]
+        icon, toolTip = (
+            self.STATE[scale_state, "icon"],
+            self.STATE[scale_state, "state"],
+        )
         self.setIcon(icon)
         self.setToolTip(toolTip)
 
@@ -321,15 +332,21 @@ class XAxisScaleToolButton(PlotToolButton):
         if self.STATE is None:
             self.STATE = {}
             # linear
-            self.STATE["linear", "icon"] = qtawesome.icon(ICON_XSCALE, ICON_LINEAR, **ICONS_OPTIONS)
+            self.STATE["linear", "icon"] = qtawesome.icon(
+                ICON_XSCALE, ICON_LINEAR, **ICONS_OPTIONS
+            )
             self.STATE["linear", "state"] = "X-axis scale is linear"
             self.STATE["linear", "action"] = "Linear X-axis"
             # logarithmic
-            self.STATE["log", "icon"] = qtawesome.icon(ICON_XSCALE, ICON_LOG, **ICONS_OPTIONS)
+            self.STATE["log", "icon"] = qtawesome.icon(
+                ICON_XSCALE, ICON_LOG, **ICONS_OPTIONS
+            )
             self.STATE["log", "state"] = "X-axis scale is logarithmic"
             self.STATE["log", "action"] = "Logarithmic X-axis"
             # arcsinh
-            self.STATE["arcsinh", "icon"] = qtawesome.icon(ICON_XSCALE, ICON_ASINH, **ICONS_OPTIONS)
+            self.STATE["arcsinh", "icon"] = qtawesome.icon(
+                ICON_XSCALE, ICON_ASINH, **ICONS_OPTIONS
+            )
             self.STATE["arcsinh", "state"] = "X-axis scale is arcsinh"
             self.STATE["arcsinh", "action"] = "Arcsinh X-axis"
 
