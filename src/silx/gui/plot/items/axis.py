@@ -227,7 +227,7 @@ class Axis(qt.QObject):
     def setScale(self, scale):
         """Set the scale to be used by this axis.
 
-        :param str scale: Name of the scale ("log", or "linear")
+        :param str scale: Name of the scale ("log", "linear", "arcsinh")
         """
         assert scale in self._SCALES
         if self._scale == scale:
@@ -235,37 +235,17 @@ class Axis(qt.QObject):
 
         # For the backward compatibility signal
         emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
-
         self._scale = scale
-
-        vmin, vmax = self.getLimits()
+        self._internalSetScale()
+        self.sigScaleChanged.emit(self._scale)
+        if emitLog:
+            self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
         # TODO hackish way of forcing update of curves and images
         plot = self._getPlot()
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
-        if scale == self.LOGARITHMIC:
-            self._internalSetLogarithmic(True)
-            if vmin <= 0:
-                dataRange = self._getDataRange()
-                if dataRange is None:
-                    self.setLimits(1.0, 100.0)
-                else:
-                    if vmax > 0 and dataRange[0] < vmax:
-                        self.setLimits(dataRange[0], vmax)
-                    else:
-                        self.setLimits(*dataRange)
-        elif scale == self.ARCSINH:
-            self._internalSetArcsinh(True)
-        elif scale == self.LINEAR:
-            self._internalSetLogarithmic(False)
-        else:
-            raise ValueError("Scale %s unsupported" % scale)
-
-        self.sigScaleChanged.emit(self._scale)
-        if emitLog:
-            self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
     def _isLogarithmic(self):
         """Return True if this axis scale is logarithmic, False if linear.
@@ -418,8 +398,26 @@ class XAxis(Axis):
     def _internalSetLimits(self, xmin, xmax):
         self._getBackend().setGraphXLimits(xmin, xmax)
 
-    def _internalSetLogarithmic(self, flag):
-        self._getBackend().setXAxisLogarithmic(flag)
+    def _internalSetScale(self):
+        scale = self._scale
+        vmin, vmax = self.getLimits()
+        if scale == self.LOGARITHMIC:
+            self._getBackend().setXAxisLogarithmic(True)
+            if vmin <= 0:
+                dataRange = self._getDataRange()
+                if dataRange is None:
+                    self.setLimits(1.0, 100.0)
+                else:
+                    if vmax > 0 and dataRange[0] < vmax:
+                        self.setLimits(dataRange[0], vmax)
+                    else:
+                        self.setLimits(*dataRange)
+        elif scale == self.ARCSINH:
+            self._getBackend().setXAxisArcsinh(True)
+        elif scale == self.LINEAR:
+            self._getBackend().setXAxisLogarithmic(False)
+        else:
+            raise ValueError("Scale %s unsupported" % scale)
 
     def _setLimitsConstraints(self, minPos=None, maxPos=None):
         constrains = self._getPlot()._getViewConstraints()
@@ -452,11 +450,28 @@ class YAxis(Axis):
     def _internalSetLimits(self, ymin, ymax):
         self._getBackend().setGraphYLimits(ymin, ymax, axis="left")
 
-    def _internalSetLogarithmic(self, flag):
-        self._getBackend().setYAxisLogarithmic(flag)
-
-    def _internalSetArcsinh(self, flag):
-        self._getBackend().setYAxisArcsinh(flag)
+    def _internalSetScale(self):
+        scale = self._scale
+        vmin, vmax = self.getLimits()
+        print(f"{vmin=}, {vmax=}")
+        if scale == self.LOGARITHMIC:
+            self._getBackend().setYAxisLogarithmic(True)
+            if vmin <= 0:
+                dataRange = self._getDataRange()
+                print(f"vmin is negative {vmin=}, {vmax=}, {dataRange=}")
+                if dataRange is None:
+                    self.setLimits(1.0, 100.0)
+                else:
+                    if vmax > 0 and dataRange[0] < vmax:
+                        self.setLimits(dataRange[0], vmax)
+                    else:
+                        self.setLimits(*dataRange)
+        elif scale == self.ARCSINH:
+            self._getBackend().setYAxisArcsinh(True)
+        elif scale == self.LINEAR:
+            self._getBackend().setYAxisLogarithmic(False)
+        else:
+            raise ValueError("Scale %s unsupported" % scale)
 
     def setInverted(self, flag=True):
         """Set the axis orientation.
