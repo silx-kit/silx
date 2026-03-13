@@ -29,11 +29,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__author__ = "Jerome Kieffer"
+__author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
-__copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2025"
+__copyright__ = "2012-2026 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "13/03/2026"
 __status__ = "stable"
 
 import os
@@ -874,7 +874,7 @@ def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
         assert kernel in (
             k.function_name for k in program.all_kernels()
         ), "the kernel exists"
-        kernel = program.__getattr__(kernel_name)
+        kernel = pyopencl.Kernel(program, kernel_name)
 
     device = program.devices[0]
     query_wg = getattr(pyopencl.kernel_work_group_info, what)
