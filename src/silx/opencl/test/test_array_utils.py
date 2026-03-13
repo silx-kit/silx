@@ -150,6 +150,6 @@ class TestCpy2d(unittest.TestCase):
         )
         wg = None
         ndrange = self.transfer_shape[::-1]
-        self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
+        cl.Kernel(self.program, "cpy2d")(self.queue, ndrange, wg, *kernel_args)
         res = self.d_array2.get()
         self.compare(res, self.array2)
