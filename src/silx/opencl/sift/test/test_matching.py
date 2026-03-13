@@ -32,7 +32,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "13/03/2026"
 
 import os
 import unittest
@@ -159,7 +159,7 @@ class TestMatching(unittest.TestCase):
         counter.fill(0)
 
         t0 = time.time()
-        k1 = self.program.matching(
+        k1 = self.kernels.matching(
             self.queue,
             shape,
             wg,

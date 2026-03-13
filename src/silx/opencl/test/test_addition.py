@@ -32,7 +32,7 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "30/11/2020"
+__date__ = "13/03/2026"
 
 import logging
 import numpy
@@ -99,7 +99,7 @@ class TestAddition(unittest.TestCase):
             d_array_result = pyopencl.array.empty_like(self.d_array_img)
             wg = 1 << i
             try:
-                evt = self.program.addition(
+                evt = self.kernels.addition(
                     self.queue,
                     (self.shape,),
                     (wg,),
@@ -110,7 +110,7 @@ class TestAddition(unittest.TestCase):
                 )
                 evt.wait()
             except Exception as error:
-                max_valid_wg = self.program.addition.get_work_group_info(
+                max_valid_wg = self.kernels.addition.get_work_group_info(
                     pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0]
                 )
                 msg = f"Error {error} on WG={wg}: {max_valid_wg}"

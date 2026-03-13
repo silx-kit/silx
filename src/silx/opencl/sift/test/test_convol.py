@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "13/03/2026"
 
 import os
 import time
@@ -143,7 +143,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(
+            k1 = self.kernels.horizontal_convolution(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -188,7 +188,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.vertical_convolution(
+            k1 = self.kernels.vertical_convolution(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -230,7 +230,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(
+            k1 = self.kernels.horizontal_convolution(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -241,7 +241,7 @@ class TestConvol(unittest.TestCase):
                 self.IMAGE_W,
                 self.IMAGE_H,
             )
-            k2 = self.program.vertical_convolution(
+            k2 = self.kernels.vertical_convolution(
                 self.queue,
                 self.shape,
                 self.wg,

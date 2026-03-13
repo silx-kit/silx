@@ -33,7 +33,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "13/03/2026"
 
 import os
 import time
@@ -132,7 +132,7 @@ class TestAlgebra(unittest.TestCase):
         )
         t0 = time.time()
         try:
-            k1 = self.program.combine(
+            k1 = self.kernels.combine(
                 self.queue,
                 (int(width), int(height)),
                 None,
@@ -192,7 +192,7 @@ class TestAlgebra(unittest.TestCase):
         startkeypoints = numpy.int32(0)
         t0 = time.time()
         try:
-            k1 = self.program.compact(
+            k1 = self.kernels.compact(
                 self.queue,
                 shape,
                 wg,

@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "13/03/2026"
 
 import os
 import time
@@ -210,7 +210,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.uint8)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.u8_to_float(
+        k1 = self.kernels.u8_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -239,7 +239,7 @@ class TestPreproc(unittest.TestCase):
             pyopencl.LocalMemory(8 * self.red_size),
         )
         #        print self.buffers_max.get(), self.buffers_min.get(), self.input.min(), self.input.max()
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -298,7 +298,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.uint16)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.u16_to_float(
+        k1 = self.kernels.u16_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -325,7 +325,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -383,7 +383,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.uint32)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.u32_to_float(
+        k1 = self.kernels.u32_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -410,7 +410,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -468,7 +468,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.uint64)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.u64_to_float(
+        k1 = self.kernels.u64_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -495,7 +495,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -553,7 +553,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.int32)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.s32_to_float(
+        k1 = self.kernels.s32_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -580,7 +580,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -638,7 +638,7 @@ class TestPreproc(unittest.TestCase):
         lint = self.input.astype(numpy.int64)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.s64_to_float(
+        k1 = self.kernels.s64_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -665,7 +665,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -727,7 +727,7 @@ class TestPreproc(unittest.TestCase):
         lint[:, :, 2] = self.input.astype(numpy.uint8)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
-        k1 = self.program.rgb_to_float(
+        k1 = self.kernels.rgb_to_float(
             self.queue,
             self.shape,
             self.wg,
@@ -754,7 +754,7 @@ class TestPreproc(unittest.TestCase):
             self.buffers_min.data,
             pyopencl.LocalMemory(8 * self.red_size),
         )
-        k4 = self.program.normalizes(
+        k4 = self.kernels.normalizes(
             self.queue,
             self.shape,
             self.wg,
@@ -808,7 +808,7 @@ class TestPreproc(unittest.TestCase):
         out_gpu = pyopencl.array.empty(
             self.queue, out_shape, dtype=numpy.float32, order="C"
         )
-        k1 = self.program.shrink(
+        k1 = self.kernels.shrink(
             self.queue,
             calc_size((out_shape[1], out_shape[0]), self.wg),
             self.wg,
@@ -851,7 +851,7 @@ class TestPreproc(unittest.TestCase):
         out_gpu = pyopencl.array.empty(
             self.queue, out_shape, dtype=numpy.float32, order="C"
         )
-        k1 = self.program.bin(
+        k1 = self.kernels.bin(
             self.queue,
             calc_size((out_shape[1], out_shape[0]), self.wg),
             self.wg,

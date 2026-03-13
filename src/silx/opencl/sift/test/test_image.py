@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "13/03/2026"
 
 import time
 import logging
@@ -135,7 +135,7 @@ class TestImage(unittest.TestCase):
         self.shape = calc_size((self.width, self.height), self.wg)
 
         t0 = time.time()
-        k1 = self.program.compute_gradient_orientation(
+        k1 = self.kernels.compute_gradient_orientation(
             self.queue,
             self.shape,
             self.wg,
@@ -208,7 +208,7 @@ class TestImage(unittest.TestCase):
         )  # it's a 3D vector !!
 
         t0 = time.time()
-        k1 = self.program.local_maxmin(
+        k1 = self.kernels.local_maxmin(
             self.queue,
             self.shape,
             self.wg,
@@ -323,7 +323,7 @@ class TestImage(unittest.TestCase):
             1.6
         )  # warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
-        k1 = self.program.interp_keypoint(
+        k1 = self.kernels.interp_keypoint(
             self.queue,
             shape,
             (maxwg,),
