@@ -1339,14 +1339,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
             self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
-    def setXAxisLogarithmic(self, flag):
-        xscale = "log" if flag else "linear"
-        self.setXAxisScale(scale=xscale)
-
-    def setYAxisLogarithmic(self, flag):
-        yscale = "log" if flag else "linear"
-        self.setYAxisScale(scale=yscale)
-
     def setYAxisInverted(self, flag: bool):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
