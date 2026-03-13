@@ -94,12 +94,13 @@ class TestAddition(unittest.TestCase):
         """
         tests the addition  kernel
         """
+        addition = self.program.addition
         maxi = int(round(numpy.log2(self.shape)))
         for i in range(maxi):
             d_array_result = pyopencl.array.empty_like(self.d_array_img)
             wg = 1 << i
             try:
-                evt = self.kernels.addition(
+                evt = addition(
                     self.queue,
                     (self.shape,),
                     (wg,),
@@ -110,7 +111,7 @@ class TestAddition(unittest.TestCase):
                 )
                 evt.wait()
             except Exception as error:
-                max_valid_wg = self.kernels.addition.get_work_group_info(
+                max_valid_wg = addition.get_work_group_info(
                     pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0]
                 )
                 msg = f"Error {error} on WG={wg}: {max_valid_wg}"
