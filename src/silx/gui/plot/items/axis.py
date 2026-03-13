@@ -67,7 +67,10 @@ class Axis(qt.QObject):
     LOGARITHMIC = "log"
     """Constant defining a logarithmic scale"""
 
-    _SCALES = {LINEAR, LOGARITHMIC}
+    ARCSINH = "arcsinh"
+    """Constant defining an arcsinh scale"""
+
+    _SCALES = {LINEAR, LOGARITHMIC, ARCSINH}
 
     sigInvertedChanged = qt.Signal(bool)
     """Signal emitted when axis orientation has changed"""
@@ -245,27 +248,6 @@ class Axis(qt.QObject):
         if emitLog:
             self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
-    def _internalSetScale(self):
-        scale = self._scale
-        vmin, vmax = self.getLimits()
-        if scale == self.LOGARITHMIC:
-            self._getBackend().setXAxisLogarithmic(True)
-            if vmin <= 0:
-                dataRange = self._getDataRange()
-                if dataRange is None:
-                    self.setLimits(1.0, 100.0)
-                else:
-                    if vmax > 0 and dataRange[0] < vmax:
-                        self.setLimits(dataRange[0], vmax)
-                    else:
-                        self.setLimits(*dataRange)
-        elif scale == self.ARCSINH:
-            self._getBackend().setXAxisArcsinh(True)
-        elif scale == self.LINEAR:
-            self._getBackend().setXAxisLogarithmic(False)
-        else:
-            raise ValueError("Scale %s unsupported" % scale)
-
     def _isLogarithmic(self) -> bool:
         """Return True if this axis scale is logarithmic, False if linear."""
         return self._scale == self.LOGARITHMIC
@@ -424,6 +406,27 @@ class XAxis(Axis):
         updated = constrains.update(minXRange=minRange, maxXRange=maxRange)
         return updated
 
+    def _internalSetScale(self):
+        scale = self._scale
+        vmin, vmax = self.getLimits()
+        if scale == self.LOGARITHMIC:
+            self._getBackend().setXAxisScale(scale="log")
+            if vmin <= 0:
+                dataRange = self._getDataRange()
+                if dataRange is None:
+                    self.setLimits(1.0, 100.0)
+                else:
+                    if vmax > 0 and dataRange[0] < vmax:
+                        self.setLimits(dataRange[0], vmax)
+                    else:
+                        self.setLimits(*dataRange)
+        elif scale == self.ARCSINH:
+            self._getBackend().setXAxisScale(scale="asinh")
+        elif scale == self.LINEAR:
+            self._getBackend().setXAxisScale(scale="linear")
+        else:
+            raise ValueError("Scale %s unsupported" % scale)
+        
     @docstring(Axis)
     def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
@@ -463,6 +466,27 @@ class YAxis(Axis):
 
     def _internalSetLimits(self, ymin, ymax):
         self._getBackend().setGraphYLimits(ymin, ymax, axis="left")
+
+    def _internalSetScale(self):
+        scale = self._scale
+        vmin, vmax = self.getLimits()
+        if scale == self.LOGARITHMIC:
+            self._getBackend().setYAxisScale(scale="log")
+            if vmin <= 0:
+                dataRange = self._getDataRange()
+                if dataRange is None:
+                    self.setLimits(1.0, 100.0)
+                else:
+                    if vmax > 0 and dataRange[0] < vmax:
+                        self.setLimits(dataRange[0], vmax)
+                    else:
+                        self.setLimits(*dataRange)
+        elif scale == self.ARCSINH:
+            self._getBackend().setYAxisScale(scale="asinh")
+        elif scale == self.LINEAR:
+            self._getBackend().setYAxisScale(scale="linear")
+        else:
+            raise ValueError("Scale %s unsupported" % scale)
 
     def setInverted(self, flag: bool = True):
         """Set the axis orientation.
