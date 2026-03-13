@@ -33,7 +33,7 @@ classifiers = ["Development Status :: 5 - Production/Stable",
 dependencies = [
    'numpy',
    'packaging',
-   'h5py',
+   'h5py < 3.16',
    'fabio',
    'pydantic >= 2',
 ]
@@ -54,15 +54,19 @@ opencl = [
 full = [
     'silx[opencl]',
     'qtconsole',             # For silx.gui.console
-    'matplotlib',            # For silx.gui.plot
+    'matplotlib >= 3.6',     # For silx.gui.plot
     'PyOpenGL',              # For silx.gui.plot3d
     'python-dateutil',       # For silx.gui.plot
     'scipy',                 # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
     'pooch',                 # For scipy.datasets.ascent
     'Pillow',                # For silx.opencl.image.test
     'pint',                  # For silx.io.dictdump
-    'PySide6 >= 6.4',        # PyQt6, PyQt5  # For silx.gui
+    'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
     'hdf5plugin',            # For HDF5 compression filters handling
+    'qtawesome',             # For icons
+]
+h5pyd = [
+    'h5pyd >= 0.20.0'
 ]
 doc =[
     'silx[full]',
@@ -75,11 +79,13 @@ doc =[
     'pandoc',                    # For documentation Qt snapshot updates
 ]
 test = [
-    'silx[full]',
+    'silx[full,h5pyd]',
+    'bitshuffle',
     'pytest',                    # For testing
     'pytest-xvfb',               # For GUI testing
     'pytest-cov',                # For coverage
     'pytest-mock',
+    'pytest-httpserver',         # For mocking HSDS
 ]
 dev = [
     'silx[full,doc,test]',
@@ -116,8 +122,8 @@ skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
 
 
 [tool.black]
-required-version = "25"
-target-version = ["py310", "py311", "py312", "py313"]
+required-version = "26"
+target-version = ["py310", "py311", "py312", "py313", "py314"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

@@ -55,11 +55,10 @@ from ._band_roi import BandROI  # noqa
 from ._roi_base import InteractionModeMixIn  # noqa
 from ._roi_base import RoiInteractionMode  # noqa
 
-
 logger = logging.getLogger(__name__)
 
 
-class PointROI(RegionOfInterest, items.SymbolMixIn):
+class PointROI(RegionOfInterest, items.SymbolSingleSizeMixIn):
     """A ROI identifying a point in a 2D plot."""
 
     ICON = "add-shape-point"
@@ -73,12 +72,12 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     _DEFAULT_SYMBOL = "+"
     """Default symbol of the PointROI
 
-    It overwrite the `SymbolMixIn` class attribte.
+    It overwrites the `SymbolSingleSizeMixIn` class attribute.
     """
 
     def __init__(self, parent=None):
         RegionOfInterest.__init__(self, parent=parent)
-        items.SymbolMixIn.__init__(self)
+        items.SymbolSingleSizeMixIn.__init__(self)
         self._marker = items.Marker()
         self._marker.sigItemChanged.connect(self._pointPositionChanged)
         self._marker.setSymbol(self._DEFAULT_SYMBOL)

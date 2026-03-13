@@ -41,7 +41,6 @@ from ...plot._utils import ticklayout
 
 from . import event, primitives, core, transform
 
-
 _logger = logging.getLogger(__name__)
 
 

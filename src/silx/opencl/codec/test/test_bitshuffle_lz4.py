@@ -47,7 +47,6 @@ except ImportError:
 from ...common import ocl, pyopencl
 from ...codec.bitshuffle_lz4 import BitshuffleLz4
 
-
 TESTCASES = (  # dtype, shape
     ("uint64", (103, 503)),
     ("int64", (101, 509)),

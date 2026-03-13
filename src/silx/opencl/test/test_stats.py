@@ -27,6 +27,7 @@
 """
 Simple test of an addition
 """
+
 __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

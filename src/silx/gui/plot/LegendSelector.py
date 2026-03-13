@@ -41,7 +41,6 @@ from ..widgets.LegendIconWidget import LegendIconWidget
 from . import items
 from ...utils.deprecation import deprecated
 
-
 _logger = logging.getLogger(__name__)
 
 

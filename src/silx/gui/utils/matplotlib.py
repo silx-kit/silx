@@ -29,8 +29,8 @@ It MUST be imported prior to any other import of matplotlib.
 It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
 to the used backend.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -45,8 +45,8 @@ from .. import qt
 
 # This must be performed before any import from matplotlib
 if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
-    matplotlib.use("Qt5Agg", force=False)
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
+    matplotlib.use("QtAgg", force=False)
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg  # noqa
 
 else:
     raise ImportError("Unsupported Qt binding: %s" % qt.BINDING)
@@ -56,9 +56,6 @@ from matplotlib.font_manager import FontProperties
 from matplotlib.mathtext import MathTextParser
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 from matplotlib import figure, font_manager
-from packaging.version import Version
-
-_MATPLOTLIB_VERSION = Version(matplotlib.__version__)
 
 
 class DefaultTickFormatter(_ScalarFormatter):
@@ -68,12 +65,6 @@ class DefaultTickFormatter(_ScalarFormatter):
         super().__init__(useOffset=True, useMathText=True)
         self.set_scientific(True)
         self.create_dummy_axis()
-
-    if _MATPLOTLIB_VERSION < Version("3.1.0"):
-
-        def format_ticks(self, values):
-            self.set_locs(values)
-            return [self(value, i) for i, value in enumerate(values)]
 
 
 _FONT_STYLES = {
@@ -87,11 +78,11 @@ def qFontToFontProperties(font: qt.QFont):
     """Convert a QFont to a matplotlib FontProperties"""
     weightFactor = 10 if qt.BINDING == "PyQt5" else 1
     families = [font.family(), font.defaultFamily()]
-    if _MATPLOTLIB_VERSION >= Version("3.6.0"):
-        # Prevent 'Font family not found' warnings
-        availableNames = font_manager.get_font_names()
-        families = [f for f in families if f in availableNames]
-        families.append(font_manager.fontManager.defaultFamily["ttf"])
+
+    # Prevent 'Font family not found' warnings
+    availableNames = font_manager.get_font_names()
+    families = [f for f in families if f in availableNames]
+    families.append(font_manager.fontManager.defaultFamily["ttf"])
 
     if "Sans" in font.family():
         families.insert(0, "sans-serif")

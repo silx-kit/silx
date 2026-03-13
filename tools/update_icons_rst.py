@@ -32,7 +32,6 @@ __date__ = "27/07/2018"
 import os
 import glob
 
-
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 ICONS_RST_DIR = os.path.join(PROJECT_ROOT, "doc", "source", "modules", "gui")
@@ -65,9 +64,7 @@ Available icons
 
    * - Icon
      - Name
-""" % os.path.basename(
-    __file__
-)
+""" % os.path.basename(__file__)
 
 
 def main():

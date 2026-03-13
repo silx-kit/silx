@@ -48,7 +48,6 @@ from ....utils.deprecation import deprecated
 from ... import colors
 from silx._utils import NP_OPTIONAL_COPY
 
-
 _logger = logging.getLogger(__name__)
 
 

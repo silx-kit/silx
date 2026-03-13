@@ -37,7 +37,6 @@ import pytest
 from silx.utils.testutils import ParametricTestCase
 from silx.math import colormap
 
-
 _logger = logging.getLogger(__name__)
 
 

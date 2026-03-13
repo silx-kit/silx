@@ -31,6 +31,7 @@ other than a more conservative calculation of uncertainties on fitted parameters
 
 This module is a refactored version of PyMca Gefit.py module.
 """
+
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
 __date__ = "15/05/2017"

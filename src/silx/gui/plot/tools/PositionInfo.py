@@ -42,7 +42,6 @@ from ... import qt
 from .. import items
 from ...widgets.ElidedLabel import ElidedLabel
 
-
 _logger = logging.getLogger(__name__)
 
 

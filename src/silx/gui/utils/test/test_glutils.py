@@ -33,7 +33,6 @@ import pytest
 
 from silx.gui.utils.glutils import isOpenGLAvailable
 
-
 _logger = logging.getLogger(__name__)
 
 

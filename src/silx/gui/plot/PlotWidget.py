@@ -27,7 +27,6 @@ The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 
 from __future__ import annotations
 
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -48,7 +47,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-
 
 try:
     # Import matplotlib now to init matplotlib our way
@@ -74,7 +72,6 @@ from ...gui.plot._utils.dtime_ticklayout import timestamp
 from ...utils.deprecation import deprecated_warning
 
 from .backends.BackendBase import BackendBase
-
 
 _logger = logging.getLogger(__name__)
 if _matplotlib is None:

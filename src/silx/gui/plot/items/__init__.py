@@ -39,6 +39,7 @@ from .core import (  # noqa: F401
     ColormapMixIn,
     LineGapColorMixIn,
     SymbolMixIn,
+    SymbolSingleSizeMixIn,
     ColorMixIn,
     YAxisMixIn,
     FillMixIn,

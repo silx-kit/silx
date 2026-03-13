@@ -47,6 +47,7 @@ Bits (big endian order)     Meaning
 Thus 2.1.0a3 is hexversion 0x020100a3.
 
 """
+
 from collections import namedtuple
 
 __authors__ = ["Jérôme Kieffer"]

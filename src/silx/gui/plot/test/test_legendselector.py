@@ -34,7 +34,6 @@ from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import LegendSelector
 
-
 _logger = logging.getLogger(__name__)
 
 

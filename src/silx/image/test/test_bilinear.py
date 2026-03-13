@@ -31,7 +31,6 @@ import logging
 
 from ..bilinear import BilinearImage
 
-
 logger = logging.getLogger(__name__)
 
 

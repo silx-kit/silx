@@ -36,8 +36,8 @@ import functools
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui import qt
 from silx.gui.utils import blockSignals
+from silx.utils.deprecation import deprecated
 import silx.utils.weakref
-
 
 _logger = logging.getLogger(__name__)
 
@@ -91,6 +91,9 @@ class _Axis(qt.QWidget):
     def slider(self) -> HorizontalSliderWithBrowser:
         """Returns the slider used to display axes location."""
         return self.__slider
+
+    def label(self) -> qt.QLabel:
+        return self.__label
 
     def axisNumber(self) -> int:
         """Returns the axis number."""
@@ -273,11 +276,8 @@ class NumpyAxesSelector(qt.QWidget):
                     axis.setAxisName("")
         self.__updateSelectedData()
 
+    @deprecated(reason="Not used", since_version="3.0.0")
     def setCustomAxis(self, axesNames: Sequence[str]):
-        """Set the available list of named axis which can be set to a value.
-
-        :param axesNames: List of customable axis names
-        """
         self.__customAxisNames = set(axesNames)
         for axis in self.__axis:
             axis.setCustomAxis(self.__customAxisNames)
@@ -351,6 +351,10 @@ class NumpyAxesSelector(qt.QWidget):
         for a in self.__axis:
             a.slider().lineEdit().setFixedWidth(lineEditWidth)
             a.slider().limitWidget().setFixedWidth(limitWidth)
+
+        labelWidth = max([a.label().minimumSizeHint().width() for a in self.__axis])
+        for a in self.__axis:
+            a.label().setFixedWidth(labelWidth)
 
     def __axisValueChanged(self, axis, value):
         name = axis.axisName()
@@ -595,3 +599,11 @@ class NumpyAxesSelector(qt.QWidget):
         self.__namedAxesVisibility = visible
         for axis in self.__axis:
             axis.setNamedAxisSelectorVisibility(visible)
+
+    def getIndicesOfNamedAxes(self) -> dict[str, int]:
+        result: dict[str, int] = {}
+        for i, axis in enumerate(self.__axis):
+            name = axis.axisName()
+            if name:
+                result[name] = i
+        return result

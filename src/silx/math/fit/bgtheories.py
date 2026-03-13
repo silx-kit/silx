@@ -65,6 +65,7 @@ file is::
         'theory_name_2': …,
     }
 """
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "16/01/2017"

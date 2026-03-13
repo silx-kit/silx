@@ -33,7 +33,6 @@ import sys
 import logging
 from silx.gui import qt
 
-
 _logger = logging.getLogger(__name__)
 
 

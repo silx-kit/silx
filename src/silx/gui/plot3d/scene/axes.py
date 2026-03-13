@@ -35,7 +35,6 @@ from ...plot._utils import ticklayout
 
 from . import core, primitives, text, transform
 
-
 _logger = logging.getLogger(__name__)
 
 

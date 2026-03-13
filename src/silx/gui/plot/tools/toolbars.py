@@ -139,6 +139,8 @@ class ImageToolBar(qt.QToolBar):
         self._xAxisInvertedButton = PlotToolButtons.XAxisOriginToolButton(
             parent=self, plot=plot
         )
+        self.addWidget(self._xAxisInvertedButton)
+
         self._yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
             parent=self, plot=plot
         )

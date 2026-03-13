@@ -37,7 +37,6 @@ from silx.gui import qt
 
 import h5py
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -291,7 +290,7 @@ class TextFormatter(qt.QObject):
             if dtype is None:
                 dtype = data.dtype
             if data.shape == ():
-                # it is a scaler
+                # it is a scalar
                 return self.toString(data[()], dtype)
             else:
                 text = [self.toString(d, dtype) for d in data]

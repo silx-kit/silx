@@ -98,12 +98,14 @@ imageData.getColormap().setName("magma")  # Use magma colormap
 x = numpy.random.random(10**3)
 y = numpy.random.random(len(x))
 values = numpy.exp(-11.0 * ((x - 0.5) ** 2 + (y - 0.5) ** 2))
+sizes = 5 + y * 10
 
 # Add 2D scatter data with 6 different visualisations
 for row, heightMap in enumerate((False, True)):
     for col, mode in enumerate(("points", "lines", "solid")):
         # Add a new scatter
         item = sceneWidget.add2DScatter(x, y, values)
+        item.setSymbolSize(sizes if row == 0 else 5)
 
         # Set 2D scatter item tranform
         item.setTranslation(SIZE + col * SIZE, row * SIZE, 0.0)
@@ -114,7 +116,6 @@ for row, heightMap in enumerate((False, True)):
         item.setVisualization(mode)
         item.getColormap().setName("viridis")
         item.setLineWidth(2.0)
-
 
 # Group  ###
 
@@ -143,6 +144,7 @@ x = numpy.random.random(10**3)
 y = numpy.random.random(len(x))
 z = numpy.random.random(len(x))
 values = numpy.random.random(len(x))
+sizes = 5 + numpy.random.random(len(x)) * 15
 
 # Create a 3D scatter item and set its data
 scatter3d = items.Scatter3D()
@@ -154,7 +156,7 @@ scatter3d.setScale(SIZE, SIZE, SIZE)
 # Set scatter3d properties
 scatter3d.getColormap().setName("magma")  # Use 'magma' colormap
 scatter3d.setSymbol("d")  # Use diamond markers
-scatter3d.setSymbolSize(11)  # Set the size of the markers
+scatter3d.setSymbolSize(sizes)  # Set the size of the markers
 
 # Add scatter3d to the group (and thus to the scene)
 group.addItem(scatter3d)

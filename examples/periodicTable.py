@@ -25,6 +25,7 @@
 """This script is a simple example of how to use the periodic table widgets,
 select elements and connect signals.
 """
+
 import sys
 from silx.gui import qt
 from silx.gui.widgets import PeriodicTable

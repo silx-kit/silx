@@ -46,7 +46,6 @@ from ..items.roi import RegionOfInterest
 
 from ...colors import rgba
 
-
 logger = logging.getLogger(__name__)
 
 

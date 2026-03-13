@@ -276,6 +276,7 @@ class ProxyRow(BaseRow):
         An optional callable converting data provided to the model to
         data for fset.
     :param editorHint: Data to provide as UserRole for editor selection/setup
+    :param children: Iterable of BaseRow to start with (not signaled)
     """
 
     def __init__(
@@ -287,8 +288,9 @@ class ProxyRow(BaseRow):
         toModelData=None,
         fromModelData=None,
         editorHint=None,
+        children=(),
     ):
-        super().__init__()
+        super().__init__(children)
         self.__name = name
         self.__editorHint = editorHint
 

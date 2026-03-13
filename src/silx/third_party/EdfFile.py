@@ -98,7 +98,6 @@ import os.path
 from fabio import TiffIO
 from silx.utils.deprecation import deprecated_warning
 
-
 try:
     import gzip
 
@@ -424,7 +423,7 @@ class EdfFile:
                 bytesread = len(line)
                 while "}" not in line:
                     if "=" in line:
-                        (key, val) = line.split("=")
+                        key, val = line.split("=")
                         header_keys.append(key.strip())
                         header[key.strip()] = val.strip(" ;\n")
                     line = infile.readline()

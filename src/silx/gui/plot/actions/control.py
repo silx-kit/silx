@@ -49,15 +49,13 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "27/11/2020"
 
-from . import PlotAction
-import logging
+from silx.gui import icons, qt
 from silx.gui.plot import items
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
-from silx.gui import qt
-from silx.gui import icons
 from silx.utils.deprecation import deprecated
 
-_logger = logging.getLogger(__name__)
+from .._utils.axis_orientation_states import Y_AXIS_STATE
+from . import PlotAction
 
 
 class ResetZoomAction(PlotAction):
@@ -537,18 +535,12 @@ class YAxisInvertedAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        # Uses two images for checked/unchecked states
-        self._states = {
-            False: (icons.getQIcon("plot-ydown"), "Orient Y axis downward"),
-            True: (icons.getQIcon("plot-yup"), "Orient Y axis upward"),
-        }
-
-        icon, tooltip = self._states[plot.getYAxis().isInverted()]
+        state = Y_AXIS_STATE[plot.getYAxis().isInverted()]
         super().__init__(
             plot,
-            icon=icon,
+            icon=icons.getQIcon(state["icon"]),
             text="Invert Y Axis",
-            tooltip=tooltip,
+            tooltip=state["action"],
             triggered=self._actionTriggered,
             checkable=False,
             parent=parent,
@@ -557,9 +549,9 @@ class YAxisInvertedAction(PlotAction):
 
     def _yAxisInvertedChanged(self, inverted):
         """Handle Plot set y axis inverted signal"""
-        icon, tooltip = self._states[inverted]
-        self.setIcon(icon)
-        self.setToolTip(tooltip)
+        new_state = Y_AXIS_STATE[inverted]
+        self.setIcon(icons.getQIcon(new_state["icon"]))
+        self.setToolTip(new_state["action"])
 
     def _actionTriggered(self, checked=False):
         # This will trigger _yAxisInvertedChanged

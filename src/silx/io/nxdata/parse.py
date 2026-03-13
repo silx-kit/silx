@@ -492,17 +492,19 @@ class NXdata:
 
         allowed_interpretations = [
             None,
-            "scaler",  # TODO: Is this part of the spec?
             "scalar",
             "spectrum",
             "image",
-            "rgba-image",  # "hsla-image", "cmyk-image"
+            "rgb-image",
+            "rgba-image",
             "vertex",
         ]
 
         interpretation = get_attr_as_unicode(self.signal, "interpretation")
         if interpretation is None:
             interpretation = get_attr_as_unicode(self.group, "interpretation")
+        if interpretation == "scaler":  # deprecated alias of scalar
+            interpretation = "scalar"
 
         if interpretation not in allowed_interpretations:
             nxdata_logger.warning(
@@ -636,7 +638,7 @@ class NXdata:
             if self.is_scatter and ndims == 1:
                 # case of a 1D signal with arbitrary number of axes
                 return list(axes_dataset_names)
-            if self.interpretation != "rgba-image":
+            if self.interpretation not in ("rgb-image", "rgba-image"):
                 # @axes may only define 1 or 2 axes if @interpretation=spectrum/image.
                 # Use the existing names for the last few dims, and prepend with Nones.
                 assert len(axes_dataset_names) == INTERPDIM[self.interpretation]
@@ -836,7 +838,7 @@ class NXdata:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if self.signal_is_0d or self.interpretation not in [None, "spectrum"]:
+        if self.signal_is_0d or self.interpretation not in [None, "scalar", "spectrum"]:
             return False
         # the axis, if any, must be of the same length as the last dimension
         # of the signal, or of length 2 (a + b *x scale)
@@ -845,7 +847,7 @@ class NXdata:
             2,
         ]:
             return False
-        if self.interpretation is None:
+        if self.interpretation in (None, "scalar"):
             # We no longer test whether x values are monotonic
             # (in the past, in that case, we used to consider it a scatter)
             return self.signal_is_1d
@@ -855,19 +857,23 @@ class NXdata:
     @property
     def is_image(self) -> bool:
         """True if the signal is 2D, or 3D with last dimension of length 3 or 4
-        and interpretation *rgba-image*, or >2D with interpretation *image*.
+        and interpretation *[rgb|rgba]-image*, or >2D with interpretation *image*.
         The axes (if any) length must also be consistent with the signal shape.
         """
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if self.interpretation in ["scalar", "spectrum", "scaler"]:
+        if self.interpretation == "spectrum":
             return False
         if self.signal_is_0d or self.signal_is_1d:
             return False
-        if not self.signal_is_2d and self.interpretation not in ["image", "rgba-image"]:
+        if not self.signal_is_2d and self.interpretation not in [
+            "image",
+            "rgb-image",
+            "rgba-image",
+        ]:
             return False
-        if self.signal_is_3d and self.interpretation == "rgba-image":
+        if self.signal_is_3d and self.interpretation in ("rgb-image", "rgba-image"):
             if self.signal.shape[-1] not in [3, 4]:
                 return False
             img_axes = self.axes[0:2]
@@ -884,7 +890,7 @@ class NXdata:
     @property
     def is_stack(self) -> bool:
         """True in the signal is at least 3D and interpretation is not
-        "scalar", "spectrum", "image" or "rgba-image".
+        "scalar", "spectrum", "image", "rgb-image" or "rgba-image".
         The axes length must also be consistent with the last 3 dimensions
         of the signal.
         """
@@ -892,10 +898,9 @@ class NXdata:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
         if self.signal_ndim < 3 or self.interpretation in [
-            "scalar",
-            "scaler",
             "spectrum",
             "image",
+            "rgb-image",
             "rgba-image",
         ]:
             return False
@@ -918,8 +923,8 @@ class NXdata:
 
         if self.signal_ndim != 3:
             return False
-        if self.interpretation not in [None, "scalar", "scaler"]:
-            # 'scaler' and 'scalar' for a three dimensional array indicate a scalar field in 3D
+        if self.interpretation not in [None, "scalar"]:
+            # 'scalar' for a three dimensional array indicate a scalar field in 3D
             return False
         volume_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):

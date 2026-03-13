@@ -26,6 +26,7 @@
 """This module defines widgets used to build a fit configuration dialog.
 The resulting dialog widget outputs a dictionary of configuration parameters.
 """
+
 from silx.gui import qt
 
 __authors__ = ["P. Knobel"]

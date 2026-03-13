@@ -22,6 +22,7 @@
 #
 # ###########################################################################*/
 """This module provides the :func:`isOpenGLAvailable` utility function."""
+
 from __future__ import annotations
 
 

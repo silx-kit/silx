@@ -28,10 +28,10 @@ items to the page to be printed.
 
 The user can interactively move and resize the items.
 """
+
 import sys
 import logging
 from silx.gui import qt, printer
-
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"

@@ -32,6 +32,11 @@ import contextlib
 import logging
 import string
 import numpy
+from collections.abc import Sequence
+from typing import Literal, TYPE_CHECKING
+
+from numpy.typing import ArrayLike
+
 
 from ... import _glutils
 from ..._glutils import gl
@@ -39,19 +44,25 @@ from ..._glutils import gl
 from . import event
 from . import utils
 
+if TYPE_CHECKING:
+    from .viewport import RenderContext, Viewport
+
 
 _logger = logging.getLogger(__name__)
+
+
+Vec3 = tuple[float, float, float]
 
 
 class ProgramFunction:
     """Class providing a function to add to a GLProgram shaders."""
 
-    def setupProgram(self, context, program):
+    def setupProgram(self, context: "RenderContext", program: _glutils.Program) -> None:
         """Sets-up uniforms of a program using this shader function.
 
-        :param RenderContext context: The current rendering context
-        :param GLProgram program: The program to set-up.
-                                  It MUST be in use and using this function.
+        :param context: The current rendering context
+        :param program: The program to set-up.
+                        It MUST be in use and using this function.
         """
         pass
 
@@ -92,39 +103,34 @@ class Fog(event.Notifier, ProgramFunction):
         self._isOn = True
 
     @property
-    def isOn(self):
-        """True to enable fog, False to disable (bool)"""
+    def isOn(self) -> bool:
         return self._isOn
 
     @isOn.setter
-    def isOn(self, isOn):
+    def isOn(self, isOn: bool) -> None:
         isOn = bool(isOn)
         if self._isOn != isOn:
             self._isOn = bool(isOn)
             self.notify()
 
     @property
-    def fragDecl(self):
+    def fragDecl(self) -> str:
         return self._fragDecl if self.isOn else self._fragDeclNoop
 
     @property
-    def fragCall(self):
+    def fragCall(self) -> str:
         return "fog"
 
     @staticmethod
-    def _zExtentCamera(viewport):
-        """Return (far, near) planes Z in camera coordinates.
-
-        :param Viewport viewport:
-        :return: (far, near) position in camera coords (from 0 to -inf)
-        """
+    def _zExtentCamera(viewport: "Viewport") -> numpy.ndarray:
+        """Return (far, near) planes Z in camera coordinates (from 0 to -inf)"""
         # Provide scene z extent in camera coords
         bounds = viewport.camera.extrinsic.transformBounds(
             viewport.scene.bounds(transformed=True, dataBounds=True)
         )
         return bounds[:, 2]
 
-    def setupProgram(self, context, program):
+    def setupProgram(self, context: "RenderContext", program: _glutils.Program) -> None:
         if not self.isOn:
             return
 
@@ -150,10 +156,8 @@ class ClippingPlane(ProgramFunction):
 
     Convention: Clipping is performed in camera/eye space.
 
-    :param point: Local coordinates of a point on the plane.
-    :type point: numpy.ndarray-like of 3 float32
-    :param normal: Local coordinates of the plane normal.
-    :type normal: numpy.ndarray-like of 3 float32
+    :param point: Local 3D coordinates of a point on the plane.
+    :param normal: Local 3D coordinates of the plane normal.
     """
 
     _fragDecl = """
@@ -186,30 +190,34 @@ class ClippingPlane(ProgramFunction):
     void clipping(vec4 position) {}
     """
 
-    def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 0.0)):
+    def __init__(
+        self,
+        point: Vec3 = (0.0, 0.0, 0.0),
+        normal: Vec3 = (0.0, 0.0, 0.0),
+    ):
         self._plane = utils.Plane(point, normal)
 
     @property
-    def plane(self):
+    def plane(self) -> utils.Plane:
         """Plane parameters in camera space."""
         return self._plane
 
     # GL2
 
     @property
-    def fragDecl(self):
+    def fragDecl(self) -> str:
         return self._fragDecl if self.plane.isPlane else self._fragDeclNoop
 
     @property
-    def fragCall(self):
+    def fragCall(self) -> str:
         return "clipping"
 
-    def setupProgram(self, context, program):
+    def setupProgram(self, context: "RenderContext", program: _glutils.Program) -> None:
         """Sets-up uniforms of a program using this shader function.
 
-        :param RenderContext context: The current rendering context
-        :param GLProgram program: The program to set-up.
-                                  It MUST be in use and using this function.
+        :param context: The current rendering context
+        :param program: The program to set-up.
+                        It MUST be in use and using this function.
         """
         if self.plane.isPlane:
             gl.glUniform4f(program.uniforms["planeEq"], *self.plane.parameters)
@@ -218,16 +226,12 @@ class ClippingPlane(ProgramFunction):
 class DirectionalLight(event.Notifier, ProgramFunction):
     """Description of a directional Phong light.
 
-    :param direction: The direction of the light or None to disable light
-    :type direction: ndarray of 3 floats or None
+    :param direction: The 3D direction of the light or None to disable light
     :param ambient: RGB ambient light
-    :type ambient: ndarray of 3 floats in [0, 1], default: (1., 1., 1.)
     :param diffuse: RGB diffuse light parameter
-    :type diffuse: ndarray of 3 floats in [0, 1], default: (0., 0., 0.)
     :param specular: RGB specular light parameter
-    :type specular: ndarray of 3 floats in [0, 1], default: (1., 1., 1.)
-    :param int shininess: The shininess of the material for specular term,
-                          default: 0 which disables specular component.
+    :param float shininess: The shininess of the material for specular term,
+                            default: No specular component.
     """
 
     fragmentShaderFunction = """
@@ -284,11 +288,11 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
     def __init__(
         self,
-        direction=None,
-        ambient=(1.0, 1.0, 1.0),
-        diffuse=(0.0, 0.0, 0.0),
-        specular=(1.0, 1.0, 1.0),
-        shininess=0,
+        direction: Vec3 | None = None,
+        ambient: Vec3 = (1.0, 1.0, 1.0),
+        diffuse: Vec3 = (0.0, 0.0, 0.0),
+        specular: Vec3 = (1.0, 1.0, 1.0),
+        shininess: float = 0.0,
     ):
         super().__init__()
         self._direction = None
@@ -305,13 +309,15 @@ class DirectionalLight(event.Notifier, ProgramFunction):
     shininess = event.notifyProperty("_shininess")
 
     @property
-    def isOn(self):
-        """True if light is on, False otherwise."""
+    def isOn(self) -> bool:
         return self._isOn and self._direction is not None
 
     @isOn.setter
-    def isOn(self, isOn):
-        self._isOn = bool(isOn)
+    def isOn(self, isOn: bool) -> None:
+        isOn = bool(isOn)
+        if self._isOn != isOn:
+            self._isOn = isOn
+            self.notify()
 
     @contextlib.contextmanager
     def turnOff(self):
@@ -326,12 +332,12 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         self._isOn = wason
 
     @property
-    def direction(self):
+    def direction(self) -> numpy.ndarray | None:
         """The direction of the light, or None if light is not on."""
         return self._direction
 
     @direction.setter
-    def direction(self, direction):
+    def direction(self, direction: Vec3 | None) -> None:
         if direction is None:
             self._direction = None
         else:
@@ -345,7 +351,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
     # GL2
 
     @property
-    def fragmentDef(self):
+    def fragmentDef(self) -> str:
         """Definition to add to fragment shader"""
         if self.isOn:
             return self.fragmentShaderFunction
@@ -353,25 +359,32 @@ class DirectionalLight(event.Notifier, ProgramFunction):
             return self.fragmentShaderFunctionNoop
 
     @property
-    def fragmentCall(self):
+    def fragmentCall(self) -> str:
         """Function name to call in fragment shader"""
         return "lighting"
 
-    def setupProgram(self, context, program):
+    def setupProgram(
+        self,
+        context: "RenderContext",
+        program: _glutils.Program,
+        frame: Literal["camera", "object"] = "object",
+    ) -> None:
         """Sets-up uniforms of a program using this shader function.
 
-        :param RenderContext context: The current rendering context
-        :param GLProgram program: The program to set-up.
-                                  It MUST be in use and using this function.
+        :param context: The current rendering context
+        :param program: The program to set-up.
+                        It MUST be in use and using this function.
+        :param frame: The frame of reference in which to apply the lighting
         """
-        if self.isOn and self._direction is not None:
+        if not self.isOn or self._direction is None:
+            return
+
+        if frame == "object":
             # Transform light direction from camera space to object coords
             lightdir = context.objectToCamera.transformDir(
                 self._direction, direct=False
             )
             lightdir /= numpy.linalg.norm(lightdir)
-
-            gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
 
             # Convert view position to object coords
             viewpos = context.objectToCamera.transformPoint(
@@ -379,17 +392,23 @@ class DirectionalLight(event.Notifier, ProgramFunction):
                 direct=False,
                 perspectiveDivide=True,
             )[:3]
-            gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+        elif frame == "camera":
+            lightdir = self._direction
+            viewpos = numpy.array((0.0, 0.0, 0.0), dtype=numpy.float32)
+        else:
+            raise ValueError(f"Unsupported frame of reference: {frame}")
 
-            gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
-            gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
-            gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
-            gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
+        gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
+        gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
+
+        gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
+        gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
+        gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
+        gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
 
 
 class Colormap(event.Notifier, ProgramFunction):
-    _declTemplate = string.Template(
-        """
+    _declTemplate = string.Template("""
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
     uniform float cmap_parameter;
@@ -438,8 +457,7 @@ class Colormap(event.Notifier, ProgramFunction):
         }
         return color;
     }
-    """
-    )
+    """)
 
     _discardCode = """
         if (value == 0.) {
@@ -455,15 +473,20 @@ class Colormap(event.Notifier, ProgramFunction):
     _COLORMAP_TEXTURE_UNIT = 1
     """Texture unit to use for storing the colormap"""
 
-    def __init__(self, colormap=None, norm="linear", gamma=0.0, range_=(1.0, 10.0)):
+    def __init__(
+        self,
+        colormap: ArrayLike | None = None,
+        norm: str = "linear",
+        gamma: float = 0.0,
+        range_: tuple[float, float] = (1.0, 10.0),
+    ):
         """Shader function to apply a colormap to a value.
 
         :param colormap: RGB(A) color look-up table (default: gray)
-        :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
-        :param str norm: Normalization to apply: see :attr:`NORMS`.
-        :param float gamma: Gamma normalization parameter
-        :param range_: Range of value to map to the colormap.
-        :type range_: 2-tuple of float (begin, end).
+        :param colormap: Array-like of uint8 of dimension Nx3 or Nx4
+        :param norm: Normalization to apply: see :attr:`NORMS`.
+        :param gamma: Gamma normalization parameter
+        :param range_: Range (begin, end) of value to map to the colormap.
         """
         super().__init__()
 
@@ -490,19 +513,19 @@ class Colormap(event.Notifier, ProgramFunction):
         self.range_ = range_
 
     @property
-    def decl(self):
+    def decl(self) -> str:
         """Source code of the function declaration"""
         return self._declTemplate.substitute(
             discard="" if self.displayValuesBelowMin else self._discardCode
         )
 
     @property
-    def colormap(self):
+    def colormap(self) -> numpy.ndarray:
         """Color look-up table to use."""
         return numpy.array(self._colormap, copy=True)
 
     @colormap.setter
-    def colormap(self, colormap):
+    def colormap(self, colormap: ArrayLike) -> None:
         colormap = numpy.array(colormap, copy=True)
         assert colormap.ndim == 2
         assert colormap.shape[1] in (3, 4)
@@ -532,12 +555,12 @@ class Colormap(event.Notifier, ProgramFunction):
         self.notify()
 
     @property
-    def nancolor(self):
+    def nancolor(self) -> numpy.ndarray:
         """RGBA color to use for Not-A-Number values as 4 float in [0., 1.]"""
         return self._nancolor
 
     @nancolor.setter
-    def nancolor(self, color):
+    def nancolor(self, color: Sequence[float]) -> None:
         color = numpy.clip(numpy.array(color, dtype=numpy.float32), 0.0, 1.0)
         assert color.ndim == 1
         assert len(color) == 4
@@ -546,7 +569,7 @@ class Colormap(event.Notifier, ProgramFunction):
             self.notify()
 
     @property
-    def norm(self):
+    def norm(self) -> str:
         """Normalization to use for colormap mapping.
 
         One of 'linear' (the default), 'log' for log10 mapping or 'sqrt'.
@@ -555,7 +578,7 @@ class Colormap(event.Notifier, ProgramFunction):
         return self._norm
 
     @norm.setter
-    def norm(self, norm):
+    def norm(self, norm: str) -> None:
         if norm != self._norm:
             assert norm in self.NORMS
             self._norm = norm
@@ -564,22 +587,21 @@ class Colormap(event.Notifier, ProgramFunction):
             self.notify()
 
     @property
-    def gamma(self):
-        """Gamma correction normalization parameter (float >= 0.)"""
+    def gamma(self) -> float:
+        """Gamma correction normalization parameter (>= 0.)"""
         return self._gamma
 
     @gamma.setter
-    def gamma(self, gamma):
+    def gamma(self, gamma: float) -> None:
         if gamma != self._gamma:
             assert gamma >= 0.0
             self._gamma = gamma
             self.notify()
 
     @property
-    def range_(self):
-        """Range of values to map to the colormap.
+    def range_(self) -> tuple[float, float]:
+        """Range (begin, end) of values to map to the colormap.
 
-        2-tuple of floats: (begin, end).
         The begin value is mapped to the origin of the colormap and the
         end value is mapped to the other end of the colormap.
         The colormap is reversed if begin > end.
@@ -587,7 +609,7 @@ class Colormap(event.Notifier, ProgramFunction):
         return self._range
 
     @range_.setter
-    def range_(self, range_):
+    def range_(self, range_: tuple[float, float]) -> None:
         assert len(range_) == 2
         range_ = float(range_[0]), float(range_[1])
 
@@ -604,23 +626,22 @@ class Colormap(event.Notifier, ProgramFunction):
             self.notify()
 
     @property
-    def displayValuesBelowMin(self):
-        """True to display values below colormap min, False to discard them."""
+    def displayValuesBelowMin(self) -> bool:
         return self._displayValuesBelowMin
 
     @displayValuesBelowMin.setter
-    def displayValuesBelowMin(self, displayValuesBelowMin):
+    def displayValuesBelowMin(self, displayValuesBelowMin: bool) -> None:
         displayValuesBelowMin = bool(displayValuesBelowMin)
         if self._displayValuesBelowMin != displayValuesBelowMin:
             self._displayValuesBelowMin = displayValuesBelowMin
             self.notify()
 
-    def setupProgram(self, context, program):
+    def setupProgram(self, context: "RenderContext", program: _glutils.Program) -> None:
         """Sets-up uniforms of a program using this shader function.
 
-        :param RenderContext context: The current rendering context
-        :param GLProgram program: The program to set-up.
-                                  It MUST be in use and using this function.
+        :param context: The current rendering context
+        :param program: The program to set-up.
+                        It MUST be in use and using this function.
         """
         self.prepareGL2(context)  # TODO see how to handle
 
@@ -655,7 +676,7 @@ class Colormap(event.Notifier, ProgramFunction):
         )
         gl.glUniform4f(program.uniforms["nancolor"], *self._nancolor)
 
-    def prepareGL2(self, context):
+    def prepareGL2(self, context: "RenderContext") -> None:
         if self._textureToDiscard is not None:
             self._textureToDiscard.discard()
             self._textureToDiscard = None

@@ -41,18 +41,15 @@ __date__ = "27/06/2017"
 
 import functools
 import logging
-from typing import TypedDict
 
-from .. import icons
-from .. import qt
 from ... import config
 from ...utils.deprecation import deprecated_warning
-from .tools.PlotToolButton import PlotToolButton
-
-from .items import SymbolMixIn, Scatter
+from .. import icons, qt
+from ._utils.axis_orientation_states import X_AXIS_STATE, Y_AXIS_STATE, AxisState
+from .items import Scatter, SymbolMixIn
 from .items.axis import XAxis, YAxis, YRightAxis
 from .PlotWidget import PlotWidget
-
+from .tools.PlotToolButton import PlotToolButton
 
 _logger = logging.getLogger(__name__)
 
@@ -127,12 +124,6 @@ class AspectToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
 
-class _AxisState(TypedDict):
-    icon: qt.QIcon
-    state: str
-    action: str
-
-
 class _AxisOriginToolButton(PlotToolButton):
     """Tool button to switch the axis orientation of a plot."""
 
@@ -158,12 +149,12 @@ class _AxisOriginToolButton(PlotToolButton):
     def _getAxis(self, plot: PlotWidget):
         raise NotImplementedError()
 
-    def _getState(self, inverted: bool) -> _AxisState:
+    def _getState(self, inverted: bool) -> AxisState:
         raise NotImplementedError()
 
     def _createAction(self, inverted: bool) -> qt.QAction:
         state = self._getState(inverted)
-        return qt.QAction(state["icon"], state["action"], self)
+        return qt.QAction(icons.getQIcon(state["icon"]), state["action"], self)
 
     def _connectPlot(self, plot: PlotWidget):
         axis = self._getAxis(plot)
@@ -195,7 +186,7 @@ class _AxisOriginToolButton(PlotToolButton):
 
     def _axisInvertedChanged(self, inverted: bool):
         state = self._getState(inverted)
-        self.setIcon(state["icon"])
+        self.setIcon(icons.getQIcon(state["icon"]))
         self.setToolTip(state["state"])
 
 
@@ -203,38 +194,16 @@ class XAxisOriginToolButton(_AxisOriginToolButton):
     def _getAxis(self, plot: PlotWidget) -> XAxis:
         return plot.getXAxis()
 
-    def _getState(self, inverted: bool) -> _AxisState:
-        if inverted:
-            return {
-                "icon": icons.getQIcon("plot-xleft"),
-                "state": "X-axis goes from right to left",
-                "action": "Orient X-axis from right to left",
-            }
-        else:
-            return {
-                "icon": icons.getQIcon("plot-xright"),
-                "state": "X-axis goes from left to right",
-                "action": "Orient X-axis from left to right",
-            }
+    def _getState(self, inverted: bool) -> AxisState:
+        return X_AXIS_STATE[inverted]
 
 
 class YAxisOriginToolButton(_AxisOriginToolButton):
     def _getAxis(self, plot: PlotWidget) -> YAxis | YRightAxis:
         return plot.getYAxis()
 
-    def _getState(self, inverted: bool) -> _AxisState:
-        if inverted:
-            return {
-                "icon": icons.getQIcon("plot-ydown"),
-                "state": "Y-axis is oriented downward",
-                "action": "Orient Y-axis downward",
-            }
-        else:
-            return {
-                "icon": icons.getQIcon("plot-yup"),
-                "state": "Y-axis is oriented upward",
-                "action": "Orient Y-axis upward",
-            }
+    def _getState(self, inverted: bool) -> AxisState:
+        return Y_AXIS_STATE[inverted]
 
     def setYAxisUpward(self):
         deprecated_warning(
@@ -469,7 +438,7 @@ class _SymbolToolButtonBase(PlotToolButton):
             return
 
         for item in plot.getItems():
-            if isinstance(item, SymbolMixIn):
+            if isinstance(item, SymbolMixIn) and item.isSingleSymbolSize():
                 item.setSymbolSize(value)
 
     def _markerChanged(self, marker):

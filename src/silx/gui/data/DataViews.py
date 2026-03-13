@@ -24,20 +24,27 @@
 """This module defines a views used by :class:`silx.gui.data.DataViewer`."""
 
 import logging
-import numbers
+from typing import Any
 import numpy
-import os
 
+from silx.gui.data.NXdataWidgets import ArrayImagePlot
+from silx.gui.plot3d import items
+from silx.gui.plot3d.SceneWindow import SceneWindow
 import silx.io
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
-from silx.gui.hdf5 import H5Node
 from silx.io.nxdata import get_attr_as_unicode
-from silx.gui.colors import Colormap
-from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.io.nxdata.parse import NXdata
 from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
+from ._DataInfo import DataInfo
+from ._DataView import DataView
+
+# DataViewHooks is part of the public API of this module
+from ._DataView import DataViewHooks  # noqa: F401
+
+from ._utils import isRgba, normalizeComplex as _normalizeComplex
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -52,7 +59,7 @@ PLOT1D_MODE = 10
 RECORD_PLOT_MODE = 15
 IMAGE_MODE = 20
 PLOT2D_MODE = 21
-COMPLEX_IMAGE_MODE = 22
+COMPLEX_PLOT2D_MODE = 22
 PLOT3D_MODE = 30
 RAW_MODE = 40
 RAW_ARRAY_MODE = 41
@@ -70,445 +77,8 @@ NXDATA_IMAGE_MODE = 75
 NXDATA_STACK_MODE = 76
 NXDATA_VOLUME_MODE = 77
 NXDATA_VOLUME_AS_STACK_MODE = 78
-
-
-def _normalizeData(data):
-    """Returns a normalized data.
-
-    If the data embed a numpy data or a dataset it is returned.
-    Else returns the input data."""
-    if isinstance(data, H5Node):
-        if data.is_broken:
-            return None
-        return data.h5py_object
-    return data
-
-
-def _normalizeComplex(data):
-    """Returns a normalized complex data.
-
-    If the data is a numpy data with complex, returns the
-    absolute value.
-    Else returns the input data."""
-    if hasattr(data, "dtype"):
-        isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
-    else:
-        isComplex = isinstance(data, numbers.Complex)
-    if isComplex:
-        data = numpy.absolute(data)
-    return data
-
-
-class DataInfo:
-    """Store extracted information from a data"""
-
-    def __init__(self, data):
-        self.__priorities = {}
-        data = self.normalizeData(data)
-        self.isArray = False
-        self.interpretation = None
-        self.isNumeric = False
-        self.isVoid = False
-        self.isComplex = False
-        self.isBoolean = False
-        self.isRecord = False
-        self.hasNXdata = False
-        self.isInvalidNXdata = False
-        self.countNumericColumns = 0
-        self.shape = tuple()
-        self.dim = 0
-        self.size = 0
-
-        if data is None:
-            return
-
-        if silx.io.is_group(data):
-            nxd = nxdata.get_default(data)
-            nx_class = get_attr_as_unicode(data, "NX_class")
-            if nxd is not None:
-                self.hasNXdata = True
-                # can we plot it?
-                is_scalar = nxd.signal_is_0d or nxd.interpretation in [
-                    "scalar",
-                    "scaler",
-                ]
-                if not (
-                    is_scalar
-                    or nxd.is_curve
-                    or nxd.is_x_y_value_scatter
-                    or nxd.is_image
-                    or nxd.is_stack
-                ):
-                    # invalid: cannot be plotted by any widget
-                    self.isInvalidNXdata = True
-            elif nx_class == "NXdata":
-                # group claiming to be NXdata could not be parsed
-                self.isInvalidNXdata = True
-            elif nx_class == "NXroot" or silx.io.is_file(data):
-                # root claiming to have a default entry
-                if "default" in data.attrs:
-                    def_entry = data.attrs["default"]
-                    if def_entry in data and "default" in data[def_entry].attrs:
-                        # and entry claims to have default NXdata
-                        self.isInvalidNXdata = True
-            elif "default" in data.attrs:
-                # group claiming to have a default NXdata could not be parsed
-                self.isInvalidNXdata = True
-
-        if isinstance(data, numpy.ndarray):
-            self.isArray = True
-        elif silx.io.is_dataset(data) and data.shape != tuple():
-            self.isArray = True
-        else:
-            self.isArray = False
-
-        if silx.io.is_dataset(data):
-            if "interpretation" in data.attrs:
-                self.interpretation = get_attr_as_unicode(data, "interpretation")
-            else:
-                self.interpretation = None
-        elif self.hasNXdata:
-            self.interpretation = nxd.interpretation
-        else:
-            self.interpretation = None
-
-        if hasattr(data, "dtype"):
-            if numpy.issubdtype(data.dtype, numpy.void):
-                # That's a real opaque type, else it is a structured type
-                self.isVoid = data.dtype.fields is None
-            self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-            self.isRecord = data.dtype.fields is not None
-            self.isComplex = numpy.issubdtype(data.dtype, numpy.complexfloating)
-            self.isBoolean = numpy.issubdtype(data.dtype, numpy.bool_)
-        elif self.hasNXdata:
-            self.isNumeric = numpy.issubdtype(nxd.signal.dtype, numpy.number)
-            self.isComplex = numpy.issubdtype(nxd.signal.dtype, numpy.complexfloating)
-            self.isBoolean = numpy.issubdtype(nxd.signal.dtype, numpy.bool_)
-        else:
-            self.isNumeric = isinstance(data, numbers.Number)
-            self.isComplex = isinstance(data, numbers.Complex)
-            self.isBoolean = isinstance(data, bool)
-            self.isRecord = False
-
-        if hasattr(data, "shape"):
-            self.shape = data.shape
-        elif self.hasNXdata:
-            self.shape = nxd.signal.shape
-        else:
-            self.shape = tuple()
-        if self.shape is not None:
-            self.dim = len(self.shape)
-
-        if hasattr(data, "shape") and data.shape is None:
-            # This test is expected to avoid to fall done on the h5py issue
-            # https://github.com/h5py/h5py/issues/1044
-            self.size = 0
-        elif hasattr(data, "size"):
-            self.size = int(data.size)
-        else:
-            self.size = 1
-
-        if hasattr(data, "dtype"):
-            if data.dtype.fields is not None:
-                for field in data.dtype.fields:
-                    if numpy.issubdtype(data.dtype[field], numpy.number):
-                        self.countNumericColumns += 1
-
-    def normalizeData(self, data):
-        """Returns a normalized data if the embed a numpy or a dataset.
-        Else returns the data."""
-        return _normalizeData(data)
-
-    def cachePriority(self, view, priority):
-        self.__priorities[view] = priority
-
-    def getPriority(self, view):
-        return self.__priorities[view]
-
-
-class DataViewHooks:
-    """A set of hooks defined to custom the behaviour of the data views."""
-
-    def getColormap(self, view):
-        """Returns a colormap for this view."""
-        return None
-
-    def getColormapDialog(self, view):
-        """Returns a color dialog for this view."""
-        return None
-
-    def viewWidgetCreated(self, view, plot):
-        """Called when the widget of the view was created"""
-        return
-
-
-class DataView:
-    """Holder for the data view."""
-
-    UNSUPPORTED = -1
-    """Priority returned when the requested data can't be displayed by the
-    view."""
-
-    TITLE_PATTERN = "{datapath}{slicing} {permuted}"
-    """Pattern used to format the title of the plot.
-
-    Supported fields: `{directory}`, `{filename}`, `{datapath}`, `{slicing}`, `{permuted}`.
-    """
-
-    def __init__(self, parent, modeId=None, icon=None, label=None):
-        """Constructor
-
-        :param qt.QWidget parent: Parent of the hold widget
-        """
-        self.__parent = parent
-        self.__widget = None
-        self.__modeId = modeId
-        if label is None:
-            label = self.__class__.__name__
-        self.__label = label
-        if icon is None:
-            icon = qt.QIcon()
-        self.__icon = icon
-        self.__hooks = None
-
-    def getHooks(self):
-        """Returns the data viewer hooks used by this view.
-
-        :rtype: DataViewHooks
-        """
-        return self.__hooks
-
-    def setHooks(self, hooks):
-        """Set the data view hooks to use with this view.
-
-        :param DataViewHooks hooks: The data view hooks to use
-        """
-        self.__hooks = hooks
-
-    def defaultColormap(self):
-        """Returns a default colormap.
-
-        :rtype: Colormap
-        """
-        colormap = None
-        if self.__hooks is not None:
-            colormap = self.__hooks.getColormap(self)
-        if colormap is None:
-            colormap = Colormap(name="viridis")
-        return colormap
-
-    def defaultColorDialog(self):
-        """Returns a default color dialog.
-
-        :rtype: ColormapDialog
-        """
-        dialog = None
-        if self.__hooks is not None:
-            dialog = self.__hooks.getColormapDialog(self)
-        if dialog is None:
-            dialog = ColormapDialog()
-            dialog.setModal(False)
-        return dialog
-
-    def icon(self):
-        """Returns the default icon"""
-        return self.__icon
-
-    def label(self):
-        """Returns the default label"""
-        return self.__label
-
-    def modeId(self):
-        """Returns the mode id"""
-        return self.__modeId
-
-    def normalizeData(self, data):
-        """Returns a normalized data if the embed a numpy or a dataset.
-        Else returns the data."""
-        return _normalizeData(data)
-
-    def customAxisNames(self):
-        """Returns names of axes which can be custom by the user and provided
-        to the view."""
-        return []
-
-    def setCustomAxisValue(self, name, value):
-        """
-        Set the value of a custom axis
-
-        :param str name: Name of the custom axis
-        :param int value: Value of the custom axis
-        """
-        pass
-
-    def isWidgetInitialized(self):
-        """Returns true if the widget is already initialized."""
-        return self.__widget is not None
-
-    def select(self):
-        """Called when the view is selected to display the data."""
-        return
-
-    def getWidget(self):
-        """Returns the widget hold in the view and displaying the data.
-
-        :returns: qt.QWidget
-        """
-        if self.__widget is None:
-            self.__widget = self.createWidget(self.__parent)
-            hooks = self.getHooks()
-            if hooks is not None:
-                hooks.viewWidgetCreated(self, self.__widget)
-        return self.__widget
-
-    def createWidget(self, parent):
-        """Create the the widget displaying the data
-
-        :param qt.QWidget parent: Parent of the widget
-        :returns: qt.QWidget
-        """
-        raise NotImplementedError()
-
-    def clear(self):
-        """Clear the data from the view"""
-        return None
-
-    def setData(self, data):
-        """Set the data displayed by the view
-
-        :param data: Data to display
-        :type data: numpy.ndarray or h5py.Dataset
-        """
-        return None
-
-    def __formatSlices(self, indices):
-        """Format an iterable of slice objects
-
-        :param indices: The slices to format
-        :type indices: Union[None,List[Union[slice,int]]]
-        :rtype: str
-        """
-        if indices is None:
-            return ""
-
-        def formatSlice(slice_):
-            start, stop, step = slice_.start, slice_.stop, slice_.step
-            string = ("" if start is None else str(start)) + ":"
-            if stop is not None:
-                string += str(stop)
-            if step not in (None, 1):
-                string += ":" + step
-            return string
-
-        return (
-            "["
-            + ", ".join(
-                formatSlice(index) if isinstance(index, slice) else str(index)
-                for index in indices
-            )
-            + "]"
-        )
-
-    def titleForSelection(self, selection):
-        """Build title from given selection information.
-
-        :param NamedTuple selection: Data selected
-        :rtype: str
-        """
-        if selection is None or selection.filename is None:
-            return None
-        else:
-            directory, filename = os.path.split(selection.filename)
-            try:
-                slicing = self.__formatSlices(selection.slice)
-            except Exception:
-                _logger.debug("Error while formatting slices", exc_info=True)
-                slicing = "[sliced]"
-
-            permuted = "(permuted)" if selection.permutation is not None else ""
-
-            try:
-                title = self.TITLE_PATTERN.format(
-                    directory=directory,
-                    filename=filename,
-                    datapath=selection.datapath,
-                    slicing=slicing,
-                    permuted=permuted,
-                )
-            except Exception:
-                _logger.debug("Error while formatting title", exc_info=True)
-                title = selection.datapath + slicing
-
-            return title
-
-    def setDataSelection(self, selection):
-        """Set the data selection displayed by the view
-
-        If called, it have to be called directly after `setData`.
-
-        :param selection: Data selected
-        :type selection: NamedTuple
-        """
-        pass
-
-    def axesNames(self, data, info):
-        """Returns names of the expected axes of the view, according to the
-        input data. A none value will disable the default axes selectior.
-
-        :param data: Data to display
-        :type data: numpy.ndarray or h5py.Dataset
-        :param DataInfo info: Pre-computed information on the data
-        :rtype: list[str] or None
-        """
-        return []
-
-    def getReachableViews(self):
-        """Returns the views that can be returned by `getMatchingViews`.
-
-        :param object data: Any object to be displayed
-        :param DataInfo info: Information cached about this data
-        :rtype: List[DataView]
-        """
-        return [self]
-
-    def getMatchingViews(self, data, info):
-        """Returns the views according to data and info from the data.
-
-        :param object data: Any object to be displayed
-        :param DataInfo info: Information cached about this data
-        :rtype: List[DataView]
-        """
-        priority = self.getCachedDataPriority(data, info)
-        if priority == DataView.UNSUPPORTED:
-            return []
-        return [self]
-
-    def getCachedDataPriority(self, data, info):
-        try:
-            priority = info.getPriority(self)
-        except KeyError:
-            priority = self.getDataPriority(data, info)
-            info.cachePriority(self, priority)
-        return priority
-
-    def getDataPriority(self, data, info):
-        """
-        Returns the priority of using this view according to a data.
-
-        - `UNSUPPORTED` means this view can't display this data
-        - `1` means this view can display the data
-        - `100` means this view should be used for this data
-        - `1000` max value used by the views provided by silx
-        - ...
-
-        :param object data: The data to check
-        :param DataInfo info: Pre-computed information on the data
-        :rtype: int
-        """
-        return DataView.UNSUPPORTED
-
-    def __lt__(self, other):
-        return str(self) < str(other)
+NXDATA_3D_SCATTER = 79
+NXDATA_RGBA_IMAGE_MODE = 80
 
 
 class _CompositeDataView(DataView):
@@ -629,16 +199,6 @@ class SelectOneDataView(_CompositeDataView):
             return None
         else:
             return views[0][1]
-
-    def customAxisNames(self):
-        if self.__currentView is None:
-            return
-        return self.__currentView.customAxisNames()
-
-    def setCustomAxisValue(self, name, value):
-        if self.__currentView is None:
-            return
-        self.__currentView.setCustomAxisValue(name, value)
 
     def __updateDisplayedView(self):
         widget = self.getWidget()
@@ -793,12 +353,6 @@ class SelectManyDataView(_CompositeDataView):
             if v.getCachedDataPriority(data, info) != DataView.UNSUPPORTED
         ]
         return views
-
-    def customAxisNames(self):
-        raise RuntimeError("Abstract view")
-
-    def setCustomAxisValue(self, name, value):
-        raise RuntimeError("Abstract view")
 
     def select(self):
         raise RuntimeError("Abstract view")
@@ -1125,6 +679,8 @@ class _Plot2dView(DataView):
             return DataView.UNSUPPORTED
         if data is None or not info.isArray or not (info.isNumeric or info.isBoolean):
             return DataView.UNSUPPORTED
+        if info.isComplex:
+            return DataView.UNSUPPORTED
         if info.dim < 2:
             return DataView.UNSUPPORTED
         if info.interpretation == "image":
@@ -1193,8 +749,8 @@ class _ComplexImageView(DataView):
     def __init__(self, parent):
         super().__init__(
             parent=parent,
-            modeId=COMPLEX_IMAGE_MODE,
-            label="Complex Image",
+            modeId=COMPLEX_PLOT2D_MODE,
+            label="Image",
             icon=icons.getQIcon("view-2d"),
         )
 
@@ -1287,8 +843,6 @@ class _ArrayView(DataView):
             return DataView.UNSUPPORTED
         if info.dim < 2:
             return DataView.UNSUPPORTED
-        if info.interpretation in ["scalar", "scaler"]:
-            return 1000
         return 500
 
 
@@ -1370,8 +924,6 @@ class _RecordView(DataView):
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
         if info.dim == 1:
-            if info.interpretation in ["scalar", "scaler"]:
-                return 1000
             if info.shape[0] == 1:
                 return 510
             return 500
@@ -1464,23 +1016,6 @@ class _RawView(CompositeDataView):
         self.addView(_RecordView(parent))
 
 
-class _ImageView(CompositeDataView):
-    """View displaying data as 2D image
-
-    It choose between Plot2D and ComplexImageView widgets
-    """
-
-    def __init__(self, parent):
-        super().__init__(
-            parent=parent,
-            modeId=IMAGE_MODE,
-            label="Image",
-            icon=icons.getQIcon("view-2d"),
-        )
-        self.addView(_ComplexImageView(parent))
-        self.addView(_Plot2dView(parent))
-
-
 class _InvalidNXdataView(DataView):
     """DataView showing a simple label with an error message
     to inform that a group with @NX_class=NXdata cannot be
@@ -1570,8 +1105,7 @@ class _NXdataBaseDataView(DataView):
 
 
 class _NXdataScalarView(_NXdataBaseDataView):
-    """DataView using a table view for displaying NXdata scalars:
-    0-D signal or n-D signal with *@interpretation=scalar*"""
+    """DataView using a table view for displaying NXdata 0-D signal"""
 
     def __init__(self, parent):
         _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_SCALAR_MODE)
@@ -1580,7 +1114,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
 
         widget = ArrayTableWidget(parent)
-        # widget.displayAxesSelector(False)
+        widget.displayAxesSelector(False)
         return widget
 
     def axesNames(self, data, info):
@@ -1601,7 +1135,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
 
         if info.hasNXdata and not info.isInvalidNXdata:
             nxd = nxdata.get_default(data, validate=False)
-            if nxd.signal_is_0d or nxd.interpretation in ["scalar", "scaler"]:
+            if nxd.signal_is_0d:
                 return 100
         return DataView.UNSUPPORTED
 
@@ -1759,31 +1293,17 @@ class _NXdataImageView(_NXdataBaseDataView):
         nxd = nxdata.get_default(data, validate=False)
         if nxd is None:
             return
-        isRgba = nxd.interpretation == "rgba-image"
-
         self._updateColormap(nxd)
 
-        # last two axes are Y & X
-        img_slicing = slice(-2, None) if not isRgba else slice(-3, -1)
-        y_axis, x_axis = nxd.axes[img_slicing]
-        y_label, x_label = nxd.axes_names[img_slicing]
-        y_scale, x_scale = nxd.plot_style.axes_scale_types[img_slicing]
-        x_units = get_attr_as_unicode(x_axis, "units") if x_axis else None
-        y_units = get_attr_as_unicode(y_axis, "units") if y_axis else None
-
-        self.getWidget().setImageData(
+        widget: ArrayImagePlot = self.getWidget()
+        widget.setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
-            x_axis=x_axis,
-            y_axis=y_axis,
+            axes=nxd.axes,
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             axes_names=nxd.axes_names,
-            xlabel=x_label,
-            ylabel=y_label,
+            axes_scales=nxd.plot_style.axes_scale_types,
             title=nxd.title,
-            isRgba=isRgba,
-            xscale=x_scale,
-            yscale=y_scale,
-            keep_ratio=(x_units == y_units),
+            isRgba=False,
         )
 
     def getDataPriority(self, data, info: DataInfo):
@@ -1794,10 +1314,64 @@ class _NXdataImageView(_NXdataBaseDataView):
             if default is None:
                 return DataView.UNSUPPORTED
 
-            if default.is_image or default.is_stack:
+            if (default.is_image or default.is_stack) and not isRgba(default):
                 return 100
 
         return DataView.UNSUPPORTED
+
+
+class _NXDataRgbaImageView(_NXdataBaseDataView):
+    """DataView using a Plot2D for displaying NXdata RGB(A) images"""
+
+    def __init__(self, parent):
+        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_RGBA_IMAGE_MODE)
+
+    def createWidget(self, parent):
+        from silx.gui.data.NXdataWidgets import ArrayImagePlot
+
+        widget = ArrayImagePlot(parent)
+        return widget
+
+    def axesNames(self, data, info):
+        # disabled (used by default axis selector widget in Hdf5Viewer)
+        return None
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return
+
+        self._updateColormap(nxd)
+
+        widget: ArrayImagePlot = self.getWidget()
+        widget.setImageData(
+            [nxd.signal] + nxd.auxiliary_signals,
+            axes=nxd.axes,
+            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            axes_names=nxd.axes_names,
+            axes_scales=nxd.plot_style.axes_scale_types,
+            title=nxd.title,
+            isRgba=True,
+        )
+
+    def getDataPriority(self, data, info: DataInfo):
+        data = self.normalizeData(data)
+
+        if not info.hasNXdata or info.isInvalidNXdata:
+            return DataView.UNSUPPORTED
+
+        nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return DataView.UNSUPPORTED
+
+        if (nxd.is_image or nxd.is_stack) and isRgba(nxd):
+            return 100
+        else:
+            return DataView.UNSUPPORTED
 
 
 class _NXdataComplexImageView(_NXdataBaseDataView):
@@ -2041,6 +1615,45 @@ class _NXdataComplexVolumeAsStackView(_NXdataBaseDataView):
         return DataView.UNSUPPORTED
 
 
+class _NxDataScatter3D(_NXdataBaseDataView):
+    """Display a scatter plot with three axes."""
+
+    def __init__(self, parent):
+        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_3D_SCATTER)
+        self._scatterItem = items.Scatter3D()
+
+    def createWidget(self, parent):
+        sceneWindow = SceneWindow()
+        sceneWidget = sceneWindow.getSceneWidget()
+        sceneWidget.addItem(self._scatterItem)
+
+        return sceneWindow
+
+    def setData(self, data: Any):
+        nxd = nxdata.get_default(self.normalizeData(data), validate=False)
+        if not isinstance(nxd, NXdata):
+            return
+
+        self._scatterItem.setData(
+            nxd.axes[0], nxd.axes[1], nxd.axes[2], nxd.signal, copy=False
+        )
+
+    def getDataPriority(self, data: Any, info: DataInfo) -> int:
+        data = self.normalizeData(data)
+
+        if not info.hasNXdata or info.isInvalidNXdata:
+            return DataView.UNSUPPORTED
+
+        nxd = nxdata.get_default(data, validate=False)
+        if not isinstance(nxd, NXdata):
+            return DataView.UNSUPPORTED
+
+        if nxd.is_scatter and len(nxd.axes) == 3:
+            return 200
+
+        return DataView.UNSUPPORTED
+
+
 class _NXdataView(CompositeDataView):
     """Composite view displaying NXdata groups using the most adequate
     widget depending on the dimensionality."""
@@ -2059,6 +1672,8 @@ class _NXdataView(CompositeDataView):
         self.addView(_NXdataXYVScatterView(parent))
         self.addView(_NXdataComplexImageView(parent))
         self.addView(_NXdataImageView(parent))
+        self.addView(_NXDataRgbaImageView(parent))
+        self.addView(_NxDataScatter3D(parent))
 
         # The 3D view can be displayed using 2 ways
         nx3dViews = SelectManyDataView(parent)

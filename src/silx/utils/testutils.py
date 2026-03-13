@@ -40,7 +40,6 @@ import logging
 import sys
 import unittest
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -36,7 +36,6 @@ from silx.gui.plot import ComplexImageView
 
 from .utils import PlotWidgetTestCase
 
-
 logger = logging.getLogger(__name__)
 
 

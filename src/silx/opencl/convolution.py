@@ -212,13 +212,10 @@ class Convolution(OpenclProcessing):
         }
         mp = self._c_modes_mapping
         if self.mode.lower() not in mp:
-            raise ValueError(
-                """
+            raise ValueError("""
                 Mode %s is not available for textures. Available modes are:
                 %s
-                """
-                % (self.mode, str(mp.keys()))
-            )
+                """ % (self.mode, str(mp.keys())))
         # TODO
         if not (self.use_textures) and self.mode.lower() == "constant":
             raise NotImplementedError(

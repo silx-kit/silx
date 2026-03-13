@@ -35,6 +35,7 @@ import os.path
 import logging
 import h5py
 import numpy
+import qtawesome
 
 from silx.gui import qt
 import silx.io
@@ -45,14 +46,20 @@ from silx.gui.widgets import HierarchicalTableView
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
 from ..hdf5._utils import htmlFromDict
 
-
 _logger = logging.getLogger(__name__)
 
 
 class _CellData:
     """Store a table item"""
 
-    def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
+    def __init__(
+        self,
+        value=None,
+        isHeader=False,
+        span=None,
+        tooltip=None,
+        isCopyable: bool = False,
+    ):
         """
         Constructor
 
@@ -64,6 +71,7 @@ class _CellData:
         self.__isHeader = isHeader
         self.__span = span
         self.__tooltip = tooltip
+        self.__isCopyable = isCopyable
 
     def isHeader(self):
         """Returns true if the property is a sub-header title.
@@ -71,6 +79,10 @@ class _CellData:
         :rtype: bool
         """
         return self.__isHeader
+
+    def isCopyable(self) -> bool:
+        """Returns true if the content of this cell can be copied to clipboard by the user (by clicking on a dedicated button)."""
+        return self.__isCopyable
 
     def value(self):
         """Returns the value of the item."""
@@ -157,7 +169,9 @@ class _TableData:
         item = _CellData(value=headerLabel, isHeader=True, span=(1, self.__colCount))
         self.__data.append([item])
 
-    def addHeaderValueRow(self, headerLabel, value, tooltip=None):
+    def addHeaderValueRow(
+        self, headerLabel, value, tooltip=None, isCopyable: bool = False
+    ):
         """Append the table with a row using the first column as an header and
         other cells as a single cell for the value.
 
@@ -165,7 +179,12 @@ class _TableData:
         :param object value: value to store.
         """
         header = _CellData(value=headerLabel, isHeader=True)
-        value = _CellData(value=value, span=(1, self.__colCount), tooltip=tooltip)
+        value = _CellData(
+            value=value,
+            span=(1, self.__colCount),
+            tooltip=tooltip,
+            isCopyable=isCopyable,
+        )
         self.__data.append([header, value])
 
     def addRow(self, *args):
@@ -271,6 +290,15 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return cell.span()
         elif role == self.IsHeaderRole:
             return cell.isHeader()
+        elif role == self.IsCopyableRole:
+            value = cell.isCopyable()
+            if callable(value):
+                try:
+                    value = value(self.__obj)
+                except Exception:
+                    cell.invalidateToolTip()
+                    raise
+            return value
         elif role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
             value = cell.value()
             if callable(value):
@@ -389,18 +417,24 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
-            self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
             self.__data.addHeaderValueRow(
-                "Local", lambda x: x.local_filename + SEPARATOR + x.local_name
+                "Name", lambda x: x.local_name, isCopyable=True
+            )
+            self.__data.addHeaderValueRow(
+                "Local",
+                lambda x: x.local_filename + SEPARATOR + x.local_name,
+                isCopyable=True,
             )
         else:
             # it's a real H5py object
             self.__data.addHeaderValueRow(
-                "Basename", lambda x: os.path.basename(x.name)
+                "Basename", lambda x: os.path.basename(x.name), isCopyable=True
             )
-            self.__data.addHeaderValueRow("Name", lambda x: x.name)
+            self.__data.addHeaderValueRow("Name", lambda x: x.name, isCopyable=True)
             if obj.file is not None:
-                self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
+                self.__data.addHeaderValueRow(
+                    "File", lambda x: x.file.filename, isCopyable=True
+                )
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
@@ -413,7 +447,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     def link(x):
                         return x.path
 
-                self.__data.addHeaderValueRow("Link", link)
+                self.__data.addHeaderValueRow("Link", link, isCopyable=True)
                 showPhysicalLocation = False
 
         # External data (nothing to do with external links)
@@ -432,7 +466,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     # Guess it is a virtual node
                     return "No physical location"
 
-            self.__data.addHeaderValueRow("Physical", _physical_location)
+            self.__data.addHeaderValueRow(
+                "Physical", _physical_location, isCopyable=True
+            )
 
         if external_dataset_info is not None:
             self.__data.addHeaderRow(headerLabel="External sources")
@@ -553,18 +589,73 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         self.reset()
 
 
+class _CopyableQLineEdit(qt.QWidget):
+    """A widget composed of a QLineEdit with a button to copy the QLineEdit text to the clipboard"""
+
+    textChanged = qt.Signal(str)
+
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        self._qLineEdit = qt.QLineEdit(parent)
+
+        self.setLayout(qt.QHBoxLayout())
+        self.layout().addWidget(self._qLineEdit)
+        self._button = qt.QPushButton(icon=qtawesome.icon("mdi6.content-copy"))
+        self._button.setFlat(True)
+        self.layout().addWidget(self._button)
+
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setSpacing(0)
+
+        # connect signal / slot
+        self._button.clicked.connect(self.copyToClipBoard)
+        self._qLineEdit.textChanged.connect(self.textChanged)
+
+    def copyToClipBoard(self) -> None:
+        """Copy data to the clipboard"""
+        qt.QApplication.clipboard().setText(self._qLineEdit.text())
+
+    # expose API
+    def setText(self, txt):
+        self._qLineEdit.setText(txt)
+        self._button.setVisible(txt != "")
+
+    def getText(self) -> str:
+        return self._qLineEdit.text()
+
+    def setReadOnly(self, value, /):
+        self._qLineEdit.setReadOnly(value)
+
+    def deselect(self):
+        self._qLineEdit.deselect()
+
+    text = qt.Property(
+        str,
+        fget=getText,
+        fset=setText,
+        user=True,
+        notify=textChanged,
+    )
+
+
 class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
     """Item delegate the :class:`Hdf5TableView` with read-only text editor"""
 
     def createEditor(self, parent, option, index):
         """See :meth:`QStyledItemDelegate.createEditor`"""
-        editor = super().createEditor(parent, option, index)
-        if isinstance(editor, qt.QLineEdit):
-            editor.setReadOnly(True)
-            editor.deselect()
-            editor.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
-            self.installEventFilter(editor)
-        return editor
+        isCopyable = index.data(Hdf5TableModel.IsCopyableRole)
+        if isCopyable:
+            widget = _CopyableQLineEdit(parent)
+        else:
+            widget = super().createEditor(parent, option, index)
+
+        if isinstance(widget, (qt.QLineEdit, _CopyableQLineEdit)):
+            widget.setAutoFillBackground(True)
+            widget.setReadOnly(True)
+            widget.deselect()
+            widget.textChanged.connect(self.__textChanged, qt.Qt.QueuedConnection)
+            self.installEventFilter(widget)
+        return widget
 
     def __textChanged(self, text):
         sender = self.sender()
@@ -574,7 +665,7 @@ class Hdf5TableItemDelegate(HierarchicalTableView.HierarchicalItemDelegate):
     def eventFilter(self, watched, event):
         eventType = event.type()
         if isinstance(
-            watched, qt.QLineEdit
+            watched, (qt.QLineEdit, _CopyableQLineEdit)
         ):  # fixes issue #4252 as it is only expect QLineEdit (but somehow one manage to have QSpinBox here)
             if eventType == qt.QEvent.FocusIn:
                 watched.selectAll()

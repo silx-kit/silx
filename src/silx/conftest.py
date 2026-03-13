@@ -5,7 +5,6 @@ from io import BytesIO
 
 import h5py
 
-
 logger = logging.getLogger(__name__)
 
 

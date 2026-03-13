@@ -38,7 +38,6 @@ from . import qt
 import silx.resources
 from silx.utils import weakref as silxweakref
 
-
 _logger = logging.getLogger(__name__)
 """Module logger"""
 

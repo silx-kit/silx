@@ -40,7 +40,6 @@ import shutil
 import tempfile
 from ..resources import ExternalResources
 
-
 utilstest = ExternalResources(
     project="silx",
     url_base="http://www.silx.org/pub/silx/",

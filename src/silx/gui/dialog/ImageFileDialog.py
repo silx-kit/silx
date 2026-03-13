@@ -36,7 +36,6 @@ from silx.gui.plot.PlotWidget import PlotWidget
 from .AbstractDataFileDialog import AbstractDataFileDialog
 import silx.io
 
-
 _logger = logging.getLogger(__name__)
 
 

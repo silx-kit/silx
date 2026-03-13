@@ -35,7 +35,6 @@ from typing import Any, Union
 import urllib.parse
 from pathlib import Path
 
-
 _logger = logging.getLogger(__name__)
 
 SliceLike = Union[slice, int, type(Ellipsis)]

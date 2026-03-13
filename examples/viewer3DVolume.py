@@ -47,7 +47,6 @@ from silx.gui.plot3d import SFViewParamTree
 
 import h5py
 
-
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
 

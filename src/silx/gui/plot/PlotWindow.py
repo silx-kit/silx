@@ -61,7 +61,6 @@ except ImportError:
 
 from .. import qt
 
-
 _logger = logging.getLogger(__name__)
 
 
