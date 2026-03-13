@@ -33,10 +33,12 @@ __date__ = "12/04/2019"
 from collections import abc
 import logging
 import weakref
+import qtawesome
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
+from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
@@ -256,14 +258,12 @@ class PlotWindow(PlotWidget):
         self._updateColorBarBackground()
 
         if control:  # Create control button only if requested
-            self.controlButton = qt.QToolButton()
-            self.controlButton.setText("Options")
-            self.controlButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
-            self.controlButton.setAutoRaise(True)
-            self.controlButton.setPopupMode(qt.QToolButton.InstantPopup)
+            self._optionAction = qt.QAction()
+            # should be presented on the right of the toolbar and with the burger menu
+            self._optionAction.setIcon(qtawesome.icon("ei.lines"))
             menu = qt.QMenu(self)
             menu.aboutToShow.connect(self._customControlButtonMenu)
-            self.controlButton.setMenu(menu)
+            self._optionAction.setMenu(menu)
 
         self._positionWidget = None
         if position:  # Add PositionInfo widget to the bottom of the plot
@@ -299,6 +299,10 @@ class PlotWindow(PlotWidget):
         self._outputToolBar.getPrintAction().setVisible(print_)
         self.addToolBar(self._outputToolBar)
 
+        if hasattr(self, "controlButton"):
+            self._toolbar.addAction(self._optionAction)
+            # raise NotImplementedError
+
         # Activate shortcuts in PlotWindow widget:
         for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
             for action in toolbar.actions():
@@ -316,12 +320,9 @@ class PlotWindow(PlotWidget):
         centralWidget = qt.QWidget(self)
         centralWidget.setLayout(gridLayout)
 
-        if hasattr(self, "controlButton") or self._positionWidget is not None:
+        if self._positionWidget is not None:
             hbox = qt.QHBoxLayout()
             hbox.setContentsMargins(0, 0, 0, 0)
-
-            if hasattr(self, "controlButton"):
-                hbox.addWidget(self.controlButton)
 
             if self._positionWidget is not None:
                 hbox.addWidget(self._positionWidget)
@@ -371,6 +372,11 @@ class PlotWindow(PlotWidget):
         palette.setColor(qt.QPalette.WindowText, foreground)
         palette.setColor(qt.QPalette.Text, foreground)
         self._colorbar.setPalette(palette)
+
+    @property
+    @deprecated(reason="Replaced by a protected Action", since_version="3.0.0")
+    def controlButton(self):
+        return self._optionAction
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.
@@ -483,7 +489,7 @@ class PlotWindow(PlotWidget):
 
     def _customControlButtonMenu(self):
         """Display Options button sub-menu."""
-        controlMenu = self.controlButton.menu()
+        controlMenu = self._optionAction.menu()
         controlMenu.clear()
         controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
         controlMenu.addAction(self.getRoiAction())
