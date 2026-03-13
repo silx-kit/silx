@@ -191,6 +191,7 @@ class YAxisOriginToolButton(PlotToolButton):
         self.setIcon(icon)
         self.setToolTip(toolTip)
 
+
 class YAxisScaleToolButton(PlotToolButton):
     """Tool button to choose the Y axis scale in the plot."""
 
@@ -238,7 +239,7 @@ class YAxisScaleToolButton(PlotToolButton):
         icon = self.STATE[state, "icon"]
         text = self.STATE[state, "action"]
         return qt.QAction(icon, text, self)
-    
+
     def _connectPlot(self, plot):
         yAxis = plot.getYAxis()
         yAxis.sigScaleChanged.connect(self._yAxisScaleChanged)
@@ -246,7 +247,7 @@ class YAxisScaleToolButton(PlotToolButton):
 
     def _disconnectPlot(self, plot):
         plot.getYAxis().sigScaleChanged.disconnect(self._yAxisScaleChanged)
-                
+
     def setYAxisScaleLinear(self):
         """Set Y-scale to Linear"""
         self.plot().getYAxis().setScale(scale="linear")
@@ -261,7 +262,10 @@ class YAxisScaleToolButton(PlotToolButton):
 
     def _yAxisScaleChanged(self, scale_state):
         """Handle Plot set y scale"""
-        icon, toolTip = self.STATE[scale_state, "icon"], self.STATE[scale_state, "state"]
+        icon, toolTip = (
+            self.STATE[scale_state, "icon"],
+            self.STATE[scale_state, "state"],
+        )
         self.setIcon(icon)
         self.setToolTip(toolTip)
 

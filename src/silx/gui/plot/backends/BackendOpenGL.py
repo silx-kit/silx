@@ -1598,7 +1598,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setYAxisArcsinh(self, flag):
         raise NotImplementedError("Plot OpenGL backend does not support arcsinh Y axis")
-        
+
     def setYAxisInverted(self, flag):
         if flag != self._plotFrame.isYAxisInverted:
             self._plotFrame.isYAxisInverted = flag

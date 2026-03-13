@@ -236,16 +236,15 @@ class Axis(qt.QObject):
         # For the backward compatibility signal
         emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
         self._scale = scale
+        plot = self._getPlot()
+        for item in plot.getItems():
+            item._updated()
+        # TODO hackish way of forcing update of curves and images
+        plot._invalidateDataRange()
         self._internalSetScale()
         self.sigScaleChanged.emit(self._scale)
         if emitLog:
             self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
-
-        # TODO hackish way of forcing update of curves and images
-        plot = self._getPlot()
-        for item in plot.getItems():
-            item._updated()
-        plot._invalidateDataRange()
 
     def _isLogarithmic(self):
         """Return True if this axis scale is logarithmic, False if linear.

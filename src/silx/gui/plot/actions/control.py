@@ -282,7 +282,7 @@ class YAxisLogarithmicAction(PlotAction):
         scale = self.axis.LOGARITHMIC if checked else self.axis.LINEAR
         self.axis.setScale(scale)
 
-    
+
 class YAxisArcsinhAction(PlotAction):
     """QAction controlling Y axis arcsinh scale on a :class:`.PlotWidget`.
 
