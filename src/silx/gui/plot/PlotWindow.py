@@ -107,6 +107,7 @@ class PlotWindow(PlotWidget):
         resetzoom=True,
         autoScale=True,
         logScale=True,
+        chooseScale=False,
         grid=True,
         curveStyle=True,
         colormap=True,
@@ -188,6 +189,11 @@ class PlotWindow(PlotWidget):
         )
         self.yAxisArcsinhAction.setVisible(logScale)
         self.addAction(self.yAxisArcsinhAction)
+
+        self.yAxisScaleButton = PlotToolButtons.YAxisScaleToolButton(
+            parent=self, plot=self
+        )
+        self.yAxisScaleButton.setVisible(chooseScale)
 
         self.gridAction = self.group.addAction(
             actions.control.GridAction(self, gridMode="both", parent=self)
@@ -461,6 +467,7 @@ class PlotWindow(PlotWidget):
         index = objects.index(self.colormapAction)
         objects.insert(index + 1, self.keepDataAspectRatioButton)
         objects.insert(index + 2, self.yAxisInvertedButton)
+        objects.insert(index + 3, self.yAxisScaleButton)
 
         for obj in objects:
             if isinstance(obj, qt.QAction):
@@ -472,6 +479,8 @@ class PlotWindow(PlotWidget):
                     self.keepDataAspectRatioAction = toolbar.addWidget(obj)
                 elif obj is self.yAxisInvertedButton:
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
+                elif obj is self.yAxisScaleButton:
+                    self.yAxisScaleAction = toolbar.addWidget(obj)
                 else:
                     raise RuntimeError("unknow action to be defined")
         return toolbar
@@ -886,7 +895,8 @@ class Plot1D(PlotWindow):
             backend=backend,
             resetzoom=True,
             autoScale=True,
-            logScale=True,
+            logScale=False,
+            chooseScale=True,
             grid=True,
             curveStyle=True,
             colormap=False,
