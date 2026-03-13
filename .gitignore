@@ -18,6 +18,7 @@ src/silx/third_party/_local/scipy_spatial/qhull.c
 # Hidden files
 .*
 !.gitignore
+!.github
 !.flake8
 !.flake8_nb
 

@@ -4,6 +4,10 @@ Development process
 This project follows the standard open-source project github workflow,
 which is described in other projects like `scikit-image <https://scikit-image.org/docs/stable/development/contribute.html>`_.
 
+.. important::
+    
+    If you use generative AI in any point of the process, be sure to read and comply with our `AI policy <./ai_policy.rst>`_.
+
 1. Create your `GitHub <https://github.com/>`_ account and upload your SSH keys.
 
 2. `Fork the silx project <https://github.com/silx-kit/silx/fork>`_.
