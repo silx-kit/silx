@@ -494,12 +494,20 @@ class BackendBase:
 
         :param bool flag: If True, the bottom axis will use a log scale
         """
-        pass
+        self.setAxisScale(axis="x", scale="log" if flag is True else "linear")
 
     def setYAxisLogarithmic(self, flag):
         """Set the Y axis scale between linear and log.
 
         :param bool flag: If True, the left axis will use a log scale
+        """
+        self.setAxisScale(axis="y", scale="log" if flag is True else "linear")
+
+    def setAxisScale(self, axis, scale):
+        """Set the scale of X/Y axis between (linear / log / asinh)
+
+        : param str axis: x or y
+        : param str scale: linear, log or asinh
         """
         pass
 

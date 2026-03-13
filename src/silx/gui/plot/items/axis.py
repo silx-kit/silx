@@ -401,7 +401,7 @@ class XAxis(Axis):
         scale = self._scale
         vmin, vmax = self.getLimits()
         if scale == self.LOGARITHMIC:
-            self._getBackend().setXAxisLogarithmic(True)
+            self._getBackend().setAxisScale(axis="x", scale="log")
             if vmin <= 0:
                 dataRange = self._getDataRange()
                 if dataRange is None:
@@ -412,9 +412,9 @@ class XAxis(Axis):
                     else:
                         self.setLimits(*dataRange)
         elif scale == self.ARCSINH:
-            self._getBackend().setXAxisArcsinh(True)
+            self._getBackend().setAxisScale(axis="x", scale="asinh")
         elif scale == self.LINEAR:
-            self._getBackend().setXAxisLogarithmic(False)
+            self._getBackend().setAxisScale(axis="x", scale="linear")
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
@@ -453,7 +453,7 @@ class YAxis(Axis):
         scale = self._scale
         vmin, vmax = self.getLimits()
         if scale == self.LOGARITHMIC:
-            self._getBackend().setYAxisLogarithmic(True)
+            self._getBackend().setAxisScale(axis="y", scale="log")
             if vmin <= 0:
                 dataRange = self._getDataRange()
                 if dataRange is None:
@@ -464,9 +464,9 @@ class YAxis(Axis):
                     else:
                         self.setLimits(*dataRange)
         elif scale == self.ARCSINH:
-            self._getBackend().setYAxisArcsinh(True)
+            self._getBackend().setAxisScale(axis="y", scale="asinh")
         elif scale == self.LINEAR:
-            self._getBackend().setYAxisLogarithmic(False)
+            self._getBackend().setAxisScale(axis="y", scale="linear")
         else:
             raise ValueError("Scale %s unsupported" % scale)
 

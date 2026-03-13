@@ -1581,23 +1581,24 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setXAxisTimeSeries(self, isTimeSeries):
         self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
-    def setXAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.xAxis.isLog:
-            if flag and self._keepDataAspectRatio:
+    def setAxisScale(self, axis, scale):
+        if scale in ("arcsinh", "asinh"):
+            raise NotImplementedError(
+                f"Plot OpenGL backend does not support {scale} Y axis"
+            )
+
+        flag_log = True if scale == "log" else False
+        if axis == "x":
+            if flag_log != self._plotFrame.xAxis.isLog:
+                if flag_log and self._keepDataAspectRatio:
+                    _logger.warning("KeepDataAspectRatio is ignored with log axes")
+                self._plotFrame.xAxis.isLog = flag_log
+        elif axis == "y":
+            if flag_log and self._keepDataAspectRatio:
                 _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
-            self._plotFrame.xAxis.isLog = flag
-
-    def setYAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.yAxis.isLog or flag != self._plotFrame.y2Axis.isLog:
-            if flag and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with log axes")
-
-            self._plotFrame.yAxis.isLog = flag
-            self._plotFrame.y2Axis.isLog = flag
-
-    def setYAxisArcsinh(self, flag):
-        raise NotImplementedError("Plot OpenGL backend does not support arcsinh Y axis")
+            self._plotFrame.yAxis.isLog = flag_log
+            self._plotFrame.y2Axis.isLog = flag_log
 
     def setYAxisInverted(self, flag):
         if flag != self._plotFrame.isYAxisInverted:

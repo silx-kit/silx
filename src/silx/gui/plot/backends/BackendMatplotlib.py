@@ -1280,57 +1280,40 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._isXAxisTimeSeries = isTimeSeries
         self.__initXAxisFormatterAndLocator()
 
-    def setXAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.1.0 when one tries to set an axis
-        # to log scale with both limits <= 0
-        # In this case a draw with positive limits is needed first
-        if flag and self._matplotlibVersion >= Version("2.1.0"):
-            xlim = self.ax.get_xlim()
-            if xlim[0] <= 0 and xlim[1] <= 0:
-                self.ax.set_xlim(1, 10)
-                self.draw()
-
-        xscale = "log" if flag else "linear"
-        self.ax2.set_xscale(xscale)
-        self.ax.set_xscale(xscale)
-        self.__initXAxisFormatterAndLocator()
-
-    def setYAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.0 issue with negative bounds
-        # before switching to log scale
-        if flag and self._matplotlibVersion >= Version("2.0.0"):
-            redraw = False
-            for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
-                ylim = axis.get_ylim()
-                if ylim[0] <= 0 or ylim[1] <= 0:
-                    dataRange = self._plot.getDataRange()[dataRangeIndex]
-                    if dataRange is None:
-                        dataRange = 1, 100  # Fallback
-                    axis.set_ybound(*dataRange)
-                    redraw = True
-            if redraw:
-                self.draw()
-
-        if flag:
-            self.ax2.set_yscale("log")
-            self.ax.set_yscale("log")
-            return
-
-        self.ax2.set_yscale("linear")
-        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
-        self.ax.set_yscale("linear")
-        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
-
-    def setYAxisArcsinh(self, flag):
-        if flag:
-            self.ax2.set_yscale("asinh")
-            self.ax.set_yscale("asinh")
-            return
-
-        self.ax2.set_yscale("linear")
-        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
-        self.ax.set_yscale("linear")
-        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
+    def setAxisScale(self, axis, scale):
+        if scale == "log":
+            if axis == "x" and self._matplotlibVersion >= Version("2.1.0"):
+                # Workaround for matplotlib 2.1.0 when one tries to set an axis
+                # to log scale with both limits <= 0
+                # In this case a draw with positive limits is needed first
+                xlim = self.ax.get_xlim()
+                if xlim[0] <= 0 and xlim[1] <= 0:
+                    self.ax.set_xlim(1, 10)
+                    self.draw()
+            elif axis == "y" and self._matplotlibVersion >= Version("2.0.0"):
+                # Workaround for matplotlib 2.0 issue with negative bounds
+                # before switching to log scale
+                redraw = False
+                for axis_, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
+                    ylim = axis_.get_ylim()
+                    if ylim[0] <= 0 or ylim[1] <= 0:
+                        dataRange = self._plot.getDataRange()[dataRangeIndex]
+                        if dataRange is None:
+                            dataRange = 1, 100  # Fallback
+                        axis_.set_ybound(*dataRange)
+                        redraw = True
+                if redraw:
+                    self.draw()
+        if axis == "x":
+            self.ax2.set_xscale(scale)
+            self.ax.set_xscale(scale)
+            self.__initXAxisFormatterAndLocator()
+        elif axis == "y":
+            self.ax2.set_yscale(scale)
+            self.ax.set_yscale(scale)
+            if scale == "linear":
+                self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
+                self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
