@@ -1341,11 +1341,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setXAxisLogarithmic(self, flag):
         xscale = "log" if flag else "linear"
-        self.setAxisScale(axis="x", scale=xscale)
+        self.setXAxisScale(scale=xscale)
 
     def setYAxisLogarithmic(self, flag):
         yscale = "log" if flag else "linear"
-        self.setAxisScale(axis="y", scale=yscale)
+        self.setYAxisScale(scale=yscale)
 
     def setYAxisInverted(self, flag: bool):
         if self.ax.yaxis_inverted() != bool(flag):
