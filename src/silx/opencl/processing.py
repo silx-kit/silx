@@ -536,6 +536,13 @@ class OpenclProcessing:
             option_list.append(self.apple_gpu_option)
         return " ".join(i for i in option_list if i)
 
+    @staticmethod
+    def array_zeros(ary):
+        """Initialize an array of type 'dtype' and shape 'shape' to zeros"""
+        d_array = pyopencl.array.empty_like(ary)
+        d_array.fill(0)
+        return d_array
+
 
 # This should be implemented by concrete class
 #     def __copy__(self):
