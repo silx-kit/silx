@@ -24,8 +24,7 @@ which is described in other projects like `scikit-image <https://scikit-image.or
 
 7. Create a local branch to start working on your issue: ``git branch my_feature``.
 
-8. Code, enjoy but ensure that the new code is tested and does not break
-   the current test suite.
+8. Code, enjoy and ensure to `write tests <./write_tests.rst>`_ for the new code and that it does not break the current test suite.
 
 9. Push your local branch to your GitHub account: ``git push origin my_feature``.
 

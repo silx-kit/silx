@@ -6,4 +6,5 @@ How to contribute
 
    development
    icons
+   write_tests
    release
