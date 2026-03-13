@@ -135,7 +135,7 @@ class TestImage(unittest.TestCase):
         self.shape = calc_size((self.width, self.height), self.wg)
 
         t0 = time.time()
-        k1 = self.kernels.compute_gradient_orientation(
+        k1 = pyopencl.Kernel(self.program, "compute_gradient_orientation")(
             self.queue,
             self.shape,
             self.wg,
@@ -208,7 +208,7 @@ class TestImage(unittest.TestCase):
         )  # it's a 3D vector !!
 
         t0 = time.time()
-        k1 = self.kernels.local_maxmin(
+        k1 = pyopencl.Kernel(self.program, "local_maxmin")(
             self.queue,
             self.shape,
             self.wg,
@@ -323,7 +323,7 @@ class TestImage(unittest.TestCase):
             1.6
         )  # warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
-        k1 = self.kernels.interp_keypoint(
+        k1 = pyopencl.Kernel(self.program, "interp_keypoint")(
             self.queue,
             shape,
             (maxwg,),

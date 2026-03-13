@@ -159,7 +159,7 @@ class TestMatching(unittest.TestCase):
         counter.fill(0)
 
         t0 = time.time()
-        k1 = self.kernels.matching(
+        k1 = pyopencl.Kernel(self.program, "matching")(
             self.queue,
             shape,
             wg,

@@ -143,7 +143,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.kernels.horizontal_convolution(
+            k1 = pyopencl.Kernel(self.program, "horizontal_convolution")(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -188,7 +188,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.kernels.vertical_convolution(
+            k1 = pyopencl.Kernel(self.program, "vertical_convolution")(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -230,7 +230,7 @@ class TestConvol(unittest.TestCase):
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.kernels.horizontal_convolution(
+            k1 = pyopencl.Kernel(self.program, "horizontal_convolution")(
                 self.queue,
                 self.shape,
                 self.wg,
@@ -241,7 +241,7 @@ class TestConvol(unittest.TestCase):
                 self.IMAGE_W,
                 self.IMAGE_H,
             )
-            k2 = self.kernels.vertical_convolution(
+            k2 = pyopencl.Kernel(self.program, "vertical_convolution")(
                 self.queue,
                 self.shape,
                 self.wg,

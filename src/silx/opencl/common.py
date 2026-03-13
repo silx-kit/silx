@@ -362,8 +362,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
         return max_valid_wg
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
+    addition = program.addition
     if fast:
-        max_valid_wg = program.addition.get_work_group_info(
+        max_valid_wg = addition.get_work_group_info(
             pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device
         )
     else:
@@ -372,7 +373,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
             d_res = pyopencl.array.empty_like(d_data)
             wg = 1 << i
             try:
-                evt = program.addition(
+                evt = addition(
                     queue,
                     (shape,),
                     (wg,),

@@ -132,7 +132,7 @@ class TestAlgebra(unittest.TestCase):
         )
         t0 = time.time()
         try:
-            k1 = self.kernels.combine(
+            k1 = pyopencl.Kernel(self.program, "combine")(
                 self.queue,
                 (int(width), int(height)),
                 None,
@@ -192,7 +192,7 @@ class TestAlgebra(unittest.TestCase):
         startkeypoints = numpy.int32(0)
         t0 = time.time()
         try:
-            k1 = self.kernels.compact(
+            k1 = pyopencl.Kernel(self.program, "compact")(
                 self.queue,
                 shape,
                 wg,
