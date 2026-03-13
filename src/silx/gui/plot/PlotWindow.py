@@ -107,7 +107,8 @@ class PlotWindow(PlotWidget):
         backend=None,
         resetzoom=True,
         autoScale=True,
-        logScale=True,
+        logScale=False,
+        chooseScale=True,
         grid=True,
         curveStyle=True,
         colormap=True,
@@ -183,6 +184,15 @@ class PlotWindow(PlotWidget):
         )
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
+
+        self.xAxisScaleButton = PlotToolButtons.XAxisScaleToolButton(
+            parent=self, plot=self
+        )
+        self.xAxisScaleButton.setVisible(chooseScale)
+        self.yAxisScaleButton = PlotToolButtons.YAxisScaleToolButton(
+            parent=self, plot=self
+        )
+        self.yAxisScaleButton.setVisible(chooseScale)
 
         self.gridAction = self.group.addAction(
             actions.control.GridAction(self, gridMode="both", parent=self)
@@ -476,7 +486,12 @@ class PlotWindow(PlotWidget):
         self.yAxisInvertedAction = toolbar.insertWidget(
             self.colorbarAction, self.yAxisInvertedButton
         )
-
+        self.xAxisScaleAction = toolbar.insertWidget(
+            self.colorbarAction, self.xAxisScaleButton
+        )        
+        self.yAxisScaleAction = toolbar.insertWidget(
+            self.colorbarAction, self.yAxisScaleButton
+        )
         return toolbar
 
     def toolBar(self):
@@ -884,7 +899,8 @@ class Plot1D(PlotWindow):
             backend=backend,
             resetzoom=True,
             autoScale=True,
-            logScale=True,
+            logScale=False,
+            chooseScale=True,
             grid=True,
             curveStyle=True,
             colormap=False,
