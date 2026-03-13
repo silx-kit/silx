@@ -36,10 +36,9 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 _logger = logging.getLogger(__name__)
 
 
-class _HeaderQLineEdit(qt.QLineEdit):
+class _HeaderQLabel(qt.QLabel):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setReadOnly(True)
 
     def sizeHint(self):
         return qt.QSize(10, 30)
@@ -92,8 +91,7 @@ class _HeaderFrame(qt.QFrame):
     def __init__(self, parent):
         super().__init__(parent=parent)
         self.setFrameShape(qt.QFrame.StyledPanel)
-        self._qLineEdit = _HeaderQLineEdit(parent)
-        self._qLineEdit.setFrame(False)
+        self._qLineEdit = _HeaderQLabel(parent)
 
         self.setLayout(qt.QHBoxLayout())
         self.layout().addWidget(self._qLineEdit)
@@ -106,7 +104,7 @@ class _HeaderFrame(qt.QFrame):
             qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred
         )
 
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setContentsMargins(3, 0, 3, 0)
 
         # connect signal / slot
         self._button.clicked.connect(self.copyToClipBoard)
