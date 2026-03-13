@@ -452,12 +452,10 @@ class YAxis(Axis):
     def _internalSetScale(self):
         scale = self._scale
         vmin, vmax = self.getLimits()
-        print(f"{vmin=}, {vmax=}")
         if scale == self.LOGARITHMIC:
             self._getBackend().setYAxisLogarithmic(True)
             if vmin <= 0:
                 dataRange = self._getDataRange()
-                print(f"vmin is negative {vmin=}, {vmax=}, {dataRange=}")
                 if dataRange is None:
                     self.setLimits(1.0, 100.0)
                 else:
