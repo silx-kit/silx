@@ -195,6 +195,11 @@ class PlotWindow(PlotWidget):
         )
         self.yAxisScaleButton.setVisible(chooseScale)
 
+        self.xAxisScaleButton = PlotToolButtons.XAxisScaleToolButton(
+            parent=self, plot=self
+        )
+        self.xAxisScaleButton.setVisible(chooseScale)
+
         self.gridAction = self.group.addAction(
             actions.control.GridAction(self, gridMode="both", parent=self)
         )
@@ -467,7 +472,8 @@ class PlotWindow(PlotWidget):
         index = objects.index(self.colormapAction)
         objects.insert(index + 1, self.keepDataAspectRatioButton)
         objects.insert(index + 2, self.yAxisInvertedButton)
-        objects.insert(index + 3, self.yAxisScaleButton)
+        objects.insert(index + 3, self.xAxisScaleButton)
+        objects.insert(index + 4, self.yAxisScaleButton)
 
         for obj in objects:
             if isinstance(obj, qt.QAction):
@@ -479,6 +485,8 @@ class PlotWindow(PlotWidget):
                     self.keepDataAspectRatioAction = toolbar.addWidget(obj)
                 elif obj is self.yAxisInvertedButton:
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
+                elif obj is self.xAxisScaleButton:
+                    self.xAxisScaleAction = toolbar.addWidget(obj)
                 elif obj is self.yAxisScaleButton:
                     self.yAxisScaleAction = toolbar.addWidget(obj)
                 else:
