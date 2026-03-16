@@ -299,14 +299,20 @@ class PlotWindow(PlotWidget):
         self._outputToolBar.getPrintAction().setVisible(print_)
         self.addToolBar(self._outputToolBar)
 
-        if hasattr(self, "controlButton"):
-            self._toolbar.addAction(self._optionAction)
-            # raise NotImplementedError
-
         # Activate shortcuts in PlotWindow widget:
         for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
             for action in toolbar.actions():
                 self.addAction(action)
+
+        if hasattr(self, "controlButton"):
+            self._plotOptionToolBar = qt.QToolBar()
+            spacer = qt.QWidget()
+            spacer.setSizePolicy(
+                qt.QSizePolicy.Policy.Expanding, qt.QSizePolicy.Policy.Preferred
+            )
+            self._plotOptionToolBar.addWidget(spacer)
+            self._plotOptionToolBar.addAction(self._optionAction)
+            self.addToolBar(self._plotOptionToolBar)
 
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
