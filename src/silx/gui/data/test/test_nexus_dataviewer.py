@@ -53,9 +53,11 @@ def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
 
     with h5py.File(tmp_path / "scatter.h5", "w") as h5file:
         h5file.attrs["signal"] = "intensity"
+        h5file.attrs["auxiliary_signals"] = ["sizes"]
         h5file.attrs["axes"] = ("x", "y", "z")
         h5file.attrs["NX_class"] = "NXdata"
         h5file.create_dataset("intensity", data=numpy.random.random((len(x))))
+        h5file.create_dataset("sizes", data=numpy.arange(len(x)))
         h5file.create_dataset("x", data=x)
         h5file.create_dataset("y", data=x)
         h5file.create_dataset("z", data=x)
@@ -76,3 +78,4 @@ def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
         plotItem = plotItems[0]
         assert isinstance(plotItem, Scatter3D)
         numpy.testing.assert_equal(plotItem.getXData(), x)
+        assert len(plotItem.getSymbolSize()) == len(x)
