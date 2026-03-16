@@ -171,6 +171,7 @@ class SymbolMixIn(_SymbolMixIn):
     def __init__(self):
         super().__init__()
         self.__primitive = None
+        self.__sizeScaleFactor = 1.0
 
     def _setPrimitive(self, primitive: primitives.Points):
         """Set the scene primitive on which to set the symbol and size"""
@@ -193,12 +194,21 @@ class SymbolMixIn(_SymbolMixIn):
         super().setSymbolSize(size, copy)
         self._syncPointsPrimitive()
 
+    def getSymbolSizeScaleFactor(self) -> float:
+        return self.__sizeScaleFactor
+
+    def setSymbolSizeScaleFactor(self, sizeScaleFactor: float):
+        self.__sizeScaleFactor = sizeScaleFactor
+        self._syncPointsPrimitive()
+
     def _syncPointsPrimitive(self):
         """Synchronize scene object's symbol and size"""
         if self.__primitive is not None:
             symbol, size = self._getSceneSymbol()
             self.__primitive.marker = symbol
-            self.__primitive.setAttribute("size", size, copy=False)
+            self.__primitive.setAttribute(
+                "size", self.__sizeScaleFactor * size, copy=False
+            )
 
     def _getPickingDistances(self) -> float | numpy.ndarray:
         """Returns distances below which to consider a point as picked
@@ -208,7 +218,7 @@ class SymbolMixIn(_SymbolMixIn):
         _, size = self._getSceneSymbol()
         return numpy.maximum(size / 2, 3.0)
 
-    def _getSceneSymbol(self) -> tuple[str, float | ArrayLike]:
+    def _getSceneSymbol(self) -> tuple[str, float | numpy.ndarray]:
         """Returns a symbol name and size suitable for scene primitives.
 
         :return: (symbol, size)
