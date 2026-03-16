@@ -11,9 +11,9 @@ Some historical tests are still using  ``unittest`` but **please use** ``pytest`
 Test location
 -------------
 
-Tests should written in a separate file with a name starting with ``test_``. The name should also mention the tested module. 
+Tests should be written in a separate file with a name starting with ``test_``. The name should also mention the tested module. 
 
-This file should be placed a ``test`` subfolder placed in the folder containing the tested code.
+This file should be placed in a ``test`` subfolder placed in the folder containing the tested code.
 
 .. admonition:: Example
 

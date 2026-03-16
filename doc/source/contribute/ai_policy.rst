@@ -1,7 +1,7 @@
 Policy on generative AI
 =======================
 
-silx follows the `NumPy AI Policy <https://numpy.org/devdocs//dev/ai_policy.html>`_. 
+silx follows the `NumPy AI Policy <https://numpy.org/devdocs/dev/ai_policy.html>`_. 
 
 In short:
 
