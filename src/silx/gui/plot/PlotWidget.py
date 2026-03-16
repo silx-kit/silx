@@ -2317,10 +2317,10 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getActiveItem(kind="image", just_legend=just_legend)
 
-    def setActiveImage(self, legend: str) -> str | None:
+    def setActiveImage(self, legend: str | items.ImageBase) -> str | None:
         """Make the image associated to legend the active image.
 
-        :param str legend: The legend associated to the image
+        :param legend: The legend associated to the image
                            or None to have no active image.
         """
         return self._setActiveItem(kind="image", item=legend)

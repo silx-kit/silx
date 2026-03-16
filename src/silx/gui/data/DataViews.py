@@ -38,8 +38,10 @@ from silx.io.nxdata import get_attr_as_unicode
 from silx.io.nxdata.parse import NXdata
 from silx.gui.plot.items.image import ImageDataAggregated
 from silx.gui.plot.actions.image import AggregationModeAction
+from silx.math.combo import min_max
 from ._DataInfo import DataInfo
 from ._DataView import DataView
+from ._RgbaImagePlot import RgbaImagePlot
 
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
@@ -1303,7 +1305,6 @@ class _NXdataImageView(_NXdataBaseDataView):
             axes_names=nxd.axes_names,
             axes_scales=nxd.plot_style.axes_scale_types,
             title=nxd.title,
-            isRgba=False,
         )
 
     def getDataPriority(self, data, info: DataInfo):
@@ -1327,10 +1328,7 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_RGBA_IMAGE_MODE)
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayImagePlot
-
-        widget = ArrayImagePlot(parent)
-        return widget
+        return RgbaImagePlot(parent)
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
@@ -1345,17 +1343,13 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         if nxd is None:
             return
 
-        self._updateColormap(nxd)
-
-        widget: ArrayImagePlot = self.getWidget()
+        widget: RgbaImagePlot = self.getWidget()
         widget.setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             axes=nxd.axes,
-            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
-            axes_names=nxd.axes_names,
-            axes_scales=nxd.plot_style.axes_scale_types,
+            signalsNames=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            axesNames=nxd.axes_names,
             title=nxd.title,
-            isRgba=True,
         )
 
     def getDataPriority(self, data, info: DataInfo):
@@ -1637,6 +1631,15 @@ class _NxDataScatter3D(_NXdataBaseDataView):
         self._scatterItem.setData(
             nxd.axes[0], nxd.axes[1], nxd.axes[2], nxd.signal, copy=False
         )
+
+        if len(nxd.auxiliary_signals) >= 1:
+            sig_min, sig_max = min_max(nxd.auxiliary_signals[0])
+
+            # Scale between 1 and 5
+            sizes = 1 + 4 * (nxd.auxiliary_signals[0][()] - sig_min) / (
+                sig_max - sig_min
+            )
+            self._scatterItem.setSymbolSize(sizes)
 
     def getDataPriority(self, data: Any, info: DataInfo) -> int:
         data = self.normalizeData(data)
