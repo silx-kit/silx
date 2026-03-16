@@ -38,7 +38,6 @@ import qtawesome
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
-from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
