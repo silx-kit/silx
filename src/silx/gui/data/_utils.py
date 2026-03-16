@@ -52,6 +52,16 @@ def isRgba(nxd: NXdata) -> bool:
     )
 
 
+def isScatter(nxd: NXdata, naxes: int) -> bool:
+    if nxd.signal.ndim != 1:
+        return False
+
+    # Check that all axes match the signal number of values
+    if any(axis is None or axis.shape != nxd.signal.shape for axis in nxd.axes):
+        return False
+    return len(nxd.axes) == naxes
+
+
 def _getAxisCalib(x_axis: ImageAxis, axis_length: int) -> AbstractCalibration:
     if x_axis is None:
         # no calibration
