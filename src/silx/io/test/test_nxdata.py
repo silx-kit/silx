@@ -24,7 +24,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2020"
+__date__ = "02/12/2025"
 
 
 import h5py
