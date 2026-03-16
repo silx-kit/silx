@@ -258,12 +258,13 @@ class PlotWindow(PlotWidget):
         self._updateColorBarBackground()
 
         if control:  # Create control button only if requested
-            self._optionAction = qt.QAction()
+            self._plotOptionButton = qt.QPushButton()
+            self._plotOptionButton.setFlat(True)
             # should be presented on the right of the toolbar and with the burger menu
-            self._optionAction.setIcon(qtawesome.icon("ei.lines"))
-            menu = qt.QMenu(self)
-            menu.aboutToShow.connect(self._customControlButtonMenu)
-            self._optionAction.setMenu(menu)
+            self._plotOptionButton.setIcon(qtawesome.icon("ei.lines"))
+            self._plotOptionButton.clicked.connect(self._showPlotActionMenu)
+            self._plotOptionsMenu = qt.QMenu(self)
+            self._plotOptionsMenu.aboutToShow.connect(self._customControlButtonMenu)
 
         self._positionWidget = None
         if position:  # Add PositionInfo widget to the bottom of the plot
@@ -311,8 +312,15 @@ class PlotWindow(PlotWidget):
                 qt.QSizePolicy.Policy.Expanding, qt.QSizePolicy.Policy.Preferred
             )
             self._plotOptionToolBar.addWidget(spacer)
-            self._plotOptionToolBar.addAction(self._optionAction)
+            self._plotOptionToolBar.addWidget(self._plotOptionButton)
             self.addToolBar(self._plotOptionToolBar)
+
+    def _showPlotActionMenu(self):
+        self._plotOptionsMenu.exec(
+            self._plotOptionButton.mapToGlobal(
+                self._plotOptionButton.rect().bottomLeft()
+            )
+        )
 
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
@@ -382,7 +390,7 @@ class PlotWindow(PlotWidget):
     @property
     @deprecated(reason="Replaced by a protected Action", since_version="3.0.0")
     def controlButton(self):
-        return self._optionAction
+        return self._plotOptionButton
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.
@@ -495,17 +503,16 @@ class PlotWindow(PlotWidget):
 
     def _customControlButtonMenu(self):
         """Display Options button sub-menu."""
-        controlMenu = self._optionAction.menu()
-        controlMenu.clear()
-        controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
-        controlMenu.addAction(self.getRoiAction())
-        controlMenu.addAction(self.getStatsAction())
-        controlMenu.addAction(self.getMaskAction())
-        controlMenu.addAction(self.getConsoleAction())
+        self._plotOptionsMenu.clear()
+        self._plotOptionsMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
+        self._plotOptionsMenu.addAction(self.getRoiAction())
+        self._plotOptionsMenu.addAction(self.getStatsAction())
+        self._plotOptionsMenu.addAction(self.getMaskAction())
+        self._plotOptionsMenu.addAction(self.getConsoleAction())
 
-        controlMenu.addSeparator()
-        controlMenu.addAction(self.getCrosshairAction())
-        controlMenu.addAction(self.getPanWithArrowKeysAction())
+        self._plotOptionsMenu.addSeparator()
+        self._plotOptionsMenu.addAction(self.getCrosshairAction())
+        self._plotOptionsMenu.addAction(self.getPanWithArrowKeysAction())
 
     def addTabbedDockWidget(self, dock_widget):
         """Add a dock widget as a new tab if there are already dock widgets
