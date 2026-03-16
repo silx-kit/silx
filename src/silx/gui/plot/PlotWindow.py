@@ -305,7 +305,7 @@ class PlotWindow(PlotWidget):
             for action in toolbar.actions():
                 self.addAction(action)
 
-        if hasattr(self, "controlButton"):
+        if control:
             self._plotOptionToolBar = qt.QToolBar()
             spacer = qt.QWidget()
             spacer.setSizePolicy(
@@ -386,11 +386,6 @@ class PlotWindow(PlotWidget):
         palette.setColor(qt.QPalette.WindowText, foreground)
         palette.setColor(qt.QPalette.Text, foreground)
         self._colorbar.setPalette(palette)
-
-    @property
-    @deprecated(reason="Replaced by a protected Action", since_version="3.0.0")
-    def controlButton(self):
-        return self._plotOptionButton
 
     def getInteractiveModeToolBar(self):
         """Returns QToolBar controlling interactive mode.
