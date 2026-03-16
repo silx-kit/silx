@@ -33,7 +33,6 @@ import logging
 from . import gl
 from .Texture import Texture
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -138,8 +137,7 @@ class FramebufferTexture:
             return self._name
         else:
             raise RuntimeError(
-                "No OpenGL framebuffer resource, \
-                               discard has already been called"
+                "No OpenGL framebuffer resource, discard has already been called"
             )
 
     def bind(self):

@@ -39,7 +39,6 @@ from silx.gui import qt
 from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
 from silx.gui.plot3d.SFViewParamTree import TreeView
 
-
 _logger = logging.getLogger(__name__)
 
 

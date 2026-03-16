@@ -36,7 +36,6 @@ from functools import wraps
 from contextlib import contextmanager
 from queue import Empty
 
-
 RETRY_PERIOD = 0.01
 
 

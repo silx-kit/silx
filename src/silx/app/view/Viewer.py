@@ -505,6 +505,9 @@ class Viewer(qt.QMainWindow):
         settings.setValue("size", self.size())
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
+        if qt.BINDING != "PyQt5":
+            colorScheme = self._colorSchemeActionGroup.checkedAction().data()
+            settings.setValue("color-scheme", colorScheme)
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
@@ -532,6 +535,7 @@ class Viewer(qt.QMainWindow):
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
         isFullScreen = parseutils.to_bool(isFullScreen, False)
+        colorScheme = settings.value("color-scheme", "default")
         settings.endGroup()
 
         settings.beginGroup("mainlayout")
@@ -565,6 +569,11 @@ class Viewer(qt.QMainWindow):
             self.resize(size)
         if isFullScreen:
             self.showFullScreen()
+
+        if qt.BINDING != "PyQt5":
+            for action in self._colorSchemeActionGroup.actions():
+                if action.data() == colorScheme:
+                    action.setChecked(True)
 
     def createActions(self):
         action = qt.QAction("E&xit", self)
@@ -653,6 +662,32 @@ class Viewer(qt.QMainWindow):
         self._plotImageOrientationMenu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # color scheme
+        self._colorSchemeActionGroup = qt.QActionGroup(self)
+        self._colorSchemeActionGroup.setExclusive(True)
+
+        action = qt.QAction("Dark", self._colorSchemeActionGroup)
+        action.setData("dark")  # saved as settings
+        action.setCheckable(True)
+        action.toggled.connect(self.__darkColorSchemeActionToggled)
+
+        action = qt.QAction("Light", self._colorSchemeActionGroup)
+        action.setData("light")  # saved as settings
+        action.setCheckable(True)
+        action.toggled.connect(self.__lightColorSchemeActionToggled)
+
+        action = qt.QAction("Automatic", self._colorSchemeActionGroup)
+        action.setData("default")  # saved as settings
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.toggled.connect(self.__defaultColorSchemeActionToggled)
+
+        self._colorSchemeMenu = qt.QMenu("Color Scheme", self)
+        if qt.BINDING == "PyQt5":
+            self._colorSchemeMenu.setEnabled(False)
+        for action in self._colorSchemeActionGroup.actions():
+            self._colorSchemeMenu.addAction(action)
+
         # mpl layout
 
         action = qt.QAction("Use MPL tight layout", self)
@@ -689,6 +724,22 @@ class Viewer(qt.QMainWindow):
     def __togglePlotSelectionWindow(self):
         isVisible = self._displayCustomPlotSelectionWindow.isChecked()
         self._customPlotSelectionWindow.setVisible(isVisible)
+
+    def __darkColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().setColorScheme(
+                qt.Qt.ColorScheme.Dark
+            )
+
+    def __lightColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().setColorScheme(
+                qt.Qt.ColorScheme.Light
+            )
+
+    def __defaultColorSchemeActionToggled(self, checked: bool = True):
+        if checked:
+            qt.QApplication.instance().styleHints().unsetColorScheme()
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
@@ -783,6 +834,7 @@ class Viewer(qt.QMainWindow):
         optionMenu = self.menuBar().addMenu("&Options")
         optionMenu.addMenu(self._plotImageOrientationMenu)
         optionMenu.addMenu(self._plotBackendMenu)
+        optionMenu.addMenu(self._colorSchemeMenu)
         optionMenu.addAction(self._useMplTightLayout)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
@@ -984,6 +1036,9 @@ class Viewer(qt.QMainWindow):
         model = self.__customNxdata.model()
         model.createFromNxdata(h5nxdata)
 
+    def _copyNameToClipboard(self, obj):
+        qt.Application.clipboard().setText(obj.name)
+
     def customContextMenu(self, event):
         """Called to populate the context menu
 
@@ -1045,6 +1100,12 @@ class Viewer(qt.QMainWindow):
                     "Synchronize %s" % obj.local_filename, event.source()
                 )
                 action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
+                menu.addAction(action)
+
+            if silx.io.is_group(h5) or silx.io.is_dataset(h5):
+                menu.addSeparator()
+                action = qt.QAction("Copy path", event.source())
+                action.triggered.connect(lambda: self._copyNameToClipboard(h5))
                 menu.addAction(action)
 
     def __errorButtonClicked(self):

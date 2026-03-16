@@ -56,7 +56,6 @@ from . import items
 from .items._roi_base import _RegionOfInterestBase
 from silx.utils.deprecation import deprecated
 
-
 _logger = logging.getLogger(__name__)
 
 

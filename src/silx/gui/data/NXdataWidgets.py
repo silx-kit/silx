@@ -22,24 +22,31 @@
 #
 # ###########################################################################*/
 """This module defines widgets used by _NXdataView."""
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/11/2018"
 
 import logging
+from typing import Literal
+
+import h5py
 import numpy
 
 from silx.gui import qt
+from silx.gui.colors import Colormap
+from silx.gui.data._RgbaImagePlot import BaseImagePlot
+from silx.gui.data._SignalSelector import SignalSelector
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView, items
+from silx.gui.plot import Plot1D, ScatterView, StackView, items
+from silx.gui.plot.actions.image import AggregationModeAction
 from silx.gui.plot.ComplexImageView import ComplexImageView
 from silx.gui.plot.items.image_aggregated import ImageDataAggregated
-from silx.gui.plot.actions.image import AggregationModeAction
-from silx.gui.colors import Colormap
-from silx.gui.data._SignalSelector import SignalSelector
+from silx.io.commonh5 import Dataset
+from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
 
-from silx.math.calibration import ArrayCalibration, NoCalibration, LinearCalibration
-
+from ._utils import getAxesCalib, setImageCoords
+from ..utils import blockSignals
 
 _logger = logging.getLogger(__name__)
 
@@ -362,18 +369,16 @@ class XYVScatterPlot(qt.QWidget):
         self._plot.getPlotWidget().clear()
 
 
-class ArrayImagePlot(qt.QWidget):
+class ArrayImagePlot(BaseImagePlot):
     """
     Widget for plotting an image from a multi-dimensional signal array
     and two 1D axes array.
 
-    The signal array can have an arbitrary number of dimensions, the only
-    limitation being that the last two dimensions must have the same length as
-    the axes arrays.
-
     Sliders are provided to select indices on the first (n - 2) dimensions of
     the signal array, and the plot is updated to show the image corresponding
     to the selection.
+
+    The dimensions can be changed when the signal array has more than 2 dimensions.
 
     If one or both of the axes does not have regularly spaced values, the
     the image is plotted as a coloured scatter plot.
@@ -385,15 +390,8 @@ class ArrayImagePlot(qt.QWidget):
         :param parent: Parent QWidget
         """
         super().__init__(parent)
+        self._axesScales = None
 
-        self.__signals = None
-        self.__signals_names = None
-        self.__x_axis = None
-        self.__x_axis_name = None
-        self.__y_axis = None
-        self.__y_axis_name = None
-
-        self._plot = Plot2D(self)
         self._plot.setDefaultColormap(
             Colormap(
                 name="viridis", vmin=None, vmax=None, normalization=Colormap.LINEAR
@@ -401,24 +399,6 @@ class ArrayImagePlot(qt.QWidget):
         )
         self._plot.getIntensityHistogramAction().setVisible(True)
         self._plot.setKeepDataAspectRatio(True)
-        maskToolWidget = self._plot.getMaskToolsDockWidget().widget()
-        maskToolWidget.setItemMaskUpdated(True)
-
-        # not closable
-        self._axesSelector = NumpyAxesSelector(self)
-        self._axesSelector.setNamedAxesSelectorVisibility(False)
-        self._axesSelector.selectionChanged.connect(self._updateImage)
-
-        self._signalSelector = SignalSelector(parent=self)
-        self._signalSelector.selectionChanged.connect(self._signalChanges)
-        self._signalSelector.setToolTip("Select signal")
-
-        layout = qt.QVBoxLayout()
-        layout.addWidget(self._plot)
-        layout.addWidget(self._axesSelector)
-        layout.addWidget(self._signalSelector)
-
-        self.setLayout(layout)
 
         self.__aggregationModeAction = AggregationModeAction(parent=self)
         self.getPlot().toolBar().addAction(self.__aggregationModeAction)
@@ -441,136 +421,61 @@ class ArrayImagePlot(qt.QWidget):
                 self.getAggregationModeAction().getAggregationMode()
             )
 
-    def _signalChanges(self, value):
-        self._updateImage()
-
-    def getPlot(self):
-        """Returns the plot used for the display
-
-        :rtype: Plot2D
-        """
-        return self._plot
-
     def setImageData(
         self,
-        signals,
-        x_axis=None,
-        y_axis=None,
-        signals_names=None,
-        axes_names=None,
-        xlabel=None,
-        ylabel=None,
-        title=None,
-        isRgba=False,
-        xscale=None,
-        yscale=None,
-        keep_ratio: bool = True,
+        signals: list[h5py.Dataset | Dataset],
+        axes: list[h5py.Dataset | Dataset] | None = None,
+        signals_names: list[str] | None = None,
+        axes_names: list[str] | None = None,
+        axes_scales: list[Literal["linear", "log"] | None] | None = None,
+        title: str | None = None,
     ):
         """
+        Sets signals, axes and axes metadata that will be used to set the displayed image.
 
-        :param signals: list of n-D datasets, whose last 2 dimensions are used as the
-            image's values, or list of 3D datasets interpreted as RGBA image.
-        :param x_axis: 1-D dataset used as the image's x coordinates. If
-            provided, its lengths must be equal to the length of the last
-            dimension of ``signal``.
-        :param y_axis: 1-D dataset used as the image's y. If provided,
-            its lengths must be equal to the length of the 2nd to last
-            dimension of ``signal``.
+        :param signals: list of n-D datasets or list of 3D datasets interpreted as RGBA image.
+        :param axes: list of 1D datasets to be used as axes
         :param signals_names: Names for each image, used as subtitle and legend.
-        :param xlabel: Label for X axis
-        :param ylabel: Label for Y axis
+        :param axes_names: Names for each axis, used as graph label.
+        :param axes_scales: Scale of axes in (None, 'linear', 'log')
         :param title: Graph title
         :param isRgba: True if data is a 3D RGBA image
-        :param str xscale: Scale of X axis in (None, 'linear', 'log')
-        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
-        :param keep_ratio: Toggle plot keep aspect ratio
         """
-        self._axesSelector.selectionChanged.disconnect(self._updateImage)
-        self._signalSelector.selectionChanged.disconnect(self._signalChanges)
+        if len(signals) == 0:
+            raise ValueError("Cannot set image data from empty signals")
+        self._signals = signals
+        self._axes = axes
+        self._axesNames = axes_names
+        self._axesScales = axes_scales
+        self._title = title
 
-        self.__signals = signals
-        self.__signals_names = signals_names
-        self.__axis_names = axes_names
-        self.__x_axis = x_axis
-        self.__x_axis_name = xlabel
-        self.__y_axis = y_axis
-        self.__y_axis_name = ylabel
-        self.__title = title
-
-        self._axesSelector.clear()
-        if not isRgba:
+        with blockSignals(self._axesSelector, self._signalSelector):
+            self._axesSelector.clear()
             self._axesSelector.setAxisNames(["Y", "X"])
-            img_ndim = 2
-        else:
-            self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
-            img_ndim = 3
-        self._axesSelector.setData(signals[0])
+            self._axesSelector.setNamedAxesSelectorVisibility(True)
 
-        if len(signals[0].shape) <= img_ndim:
-            self._axesSelector.hide()
-        else:
-            self._axesSelector.show()
+            # Labels need to be set before the data
+            if self._axesNames:
+                self._axesSelector.setLabels(self._axesNames)
+            self._axesSelector.setData(signals[0])
 
-        if self.__axis_names:
-            self._axesSelector.setLabels(self.__axis_names)
+            if len(signals[0].shape) <= 2:
+                self._axesSelector.hide()
+            else:
+                self._axesSelector.show()
 
-        self._signalSelector.setSignalNames(signals_names)
-        if len(signals) > 1:
-            self._signalSelector.show()
-        else:
-            self._signalSelector.hide()
-        self._signalSelector.setSignalIndex(0)
+            self._signalSelector.setSignalNames(signals_names)
+            if len(signals) > 1:
+                self._signalSelector.show()
+            else:
+                self._signalSelector.hide()
+            self._signalSelector.setSignalIndex(0)
 
-        self._axis_scales = xscale, yscale
-
-        self._axesSelector.selectionChanged.connect(self._updateImage)
-        self._signalSelector.selectionChanged.connect(self._signalChanges)
-
-        self._updateImage()
-        self._plot.setKeepDataAspectRatio(keep_ratio)
+        self._updateImageAxes()
         self._plot.resetZoom()
 
-    def _updateImage(self):
-        axes_selection = self._axesSelector.selection()
-        signal_index = self._signalSelector.getSignalIndex()
-
-        legend = self.__signals_names[signal_index]
-
-        images = [img[axes_selection] for img in self.__signals]
-        image = images[signal_index]
-
-        x_axis = self.__x_axis
-        y_axis = self.__y_axis
-
-        if x_axis is None and y_axis is None:
-            xcalib = NoCalibration()
-            ycalib = NoCalibration()
-        else:
-            if x_axis is None:
-                # no calibration
-                x_axis = numpy.arange(image.shape[1])
-            elif numpy.isscalar(x_axis) or len(x_axis) == 1:
-                # constant axis
-                x_axis = x_axis * numpy.ones((image.shape[1],))
-            elif len(x_axis) == 2:
-                # linear calibration
-                x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
-
-            if y_axis is None:
-                y_axis = numpy.arange(image.shape[0])
-            elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((image.shape[0],))
-            elif len(y_axis) == 2:
-                y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
-
-            try:
-                xcalib = ArrayCalibration(x_axis)
-            except ValueError:
-                xcalib = NoCalibration()
-            try:
-                ycalib = ArrayCalibration(y_axis)
-            except ValueError:
-                ycalib = NoCalibration()
+    def _addItemToPlot(self, xAxis, yAxis):
+        """Updates the image axes. Called when the user selects a different axis than the displayed one."""
 
         self._plot.remove(
             kind=(
@@ -578,71 +483,43 @@ class ArrayImagePlot(qt.QWidget):
                 "image",
             )
         )
-
-        if xcalib.is_affine() and ycalib.is_affine():
-            # regular image
-            xorigin, xscale = xcalib(0), xcalib.get_slope()
-            yorigin, yscale = ycalib(0), ycalib.get_slope()
-            origin = (xorigin, yorigin)
-            scale = (xscale, yscale)
-
-            self._plot.getXAxis().setScale("linear")
-            self._plot.getYAxis().setScale("linear")
-
-            if image.ndim == 2:
-                imageItem = ImageDataAggregated()
-                imageItem.setColormap(self._plot.getDefaultColormap())
-                imageItem.setAggregationMode(
-                    self.getAggregationModeAction().getAggregationMode()
-                )
-            elif image.ndim == 3:
-                imageItem = items.ImageRgba()
-            else:
-                raise ValueError(f"image dims should be 2 or 3. Got {image.ndim}")
-            imageItem.setName(legend)
+        image = self._getImageToDisplay()
+        xCalib, yCalib = getAxesCalib(image, xAxis, yAxis)
+        if xCalib.is_affine() and yCalib.is_affine():
+            if image.ndim != 2:
+                raise ValueError(f"image dims should be 2. Got {image.ndim}")
+            imageItem = ImageDataAggregated()
+            imageItem.setColormap(self._plot.getDefaultColormap())
+            imageItem.setAggregationMode(
+                self.getAggregationModeAction().getAggregationMode()
+            )
+            setImageCoords(imageItem, xCalib, yCalib)
+            imageItem.setName(self._signalSelector.getCurrentSignalName())
             imageItem.setData(image)
-            imageItem.setOrigin(origin)
-            imageItem.setScale(scale)
 
             self._plot.addItem(imageItem)
             self._plot.setActiveImage(imageItem)
+            self._plot.getXAxis().setScale("linear")
+            self._plot.getYAxis().setScale("linear")
         else:
-            xaxisscale, yaxisscale = self._axis_scales
+            if self._axesScales:
+                xAxisIndex, yAxisIndex = self._getXYIndices()
+                xAxisScale = self._axesScales[xAxisIndex]
+                yAxisScale = self._axesScales[yAxisIndex]
+            else:
+                xAxisScale = None
+                yAxisScale = None
 
-            if xaxisscale is not None:
-                self._plot.getXAxis().setScale(
-                    "log" if xaxisscale == "log" else "linear"
-                )
-            if yaxisscale is not None:
-                self._plot.getYAxis().setScale(
-                    "log" if yaxisscale == "log" else "linear"
-                )
+            self._plot.setXAxisLogarithmic(xAxisScale == "log")
+            self._plot.setYAxisLogarithmic(yAxisScale == "log")
 
-            scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
-            # fixme: i don't think this can handle "irregular" RGBA images
+            xScatter, yScatter = numpy.meshgrid(xAxis, yAxis)
             self._plot.addScatter(
-                numpy.ravel(scatterx),
-                numpy.ravel(scattery),
+                numpy.ravel(xScatter),
+                numpy.ravel(yScatter),
                 numpy.ravel(image),
-                legend=legend,
+                legend=self._signalSelector.getCurrentSignalName(),
             )
-
-        if self.__title:
-            title = self.__title
-            if len(self.__signals_names) > 1:
-                # Append dataset name only when there is many datasets
-                title += "\n" + self.__signals_names[signal_index]
-        else:
-            title = self.__signals_names[signal_index]
-        self._plot.setGraphTitle(title)
-        self._plot.getXAxis().setLabel(self.__x_axis_name)
-        self._plot.getYAxis().setLabel(self.__y_axis_name)
-
-    def clear(self):
-        old = self._axesSelector.blockSignals(True)
-        self._axesSelector.clear()
-        self._axesSelector.blockSignals(old)
-        self._plot.clear()
 
 
 class ArrayComplexImagePlot(qt.QWidget):
@@ -788,36 +665,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         x_axis = self.__x_axis
         y_axis = self.__y_axis
 
-        if x_axis is None and y_axis is None:
-            xcalib = NoCalibration()
-            ycalib = NoCalibration()
-        else:
-            if x_axis is None:
-                # no calibration
-                x_axis = numpy.arange(image.shape[1])
-            elif numpy.isscalar(x_axis) or len(x_axis) == 1:
-                # constant axis
-                x_axis = x_axis * numpy.ones((image.shape[1],))
-            elif len(x_axis) == 2:
-                # linear calibration
-                x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
-
-            if y_axis is None:
-                y_axis = numpy.arange(image.shape[0])
-            elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((image.shape[0],))
-            elif len(y_axis) == 2:
-                y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
-
-            try:
-                xcalib = ArrayCalibration(x_axis)
-            except ValueError:
-                xcalib = NoCalibration()
-            try:
-                ycalib = ArrayCalibration(y_axis)
-            except ValueError:
-                ycalib = NoCalibration()
-
+        xcalib, ycalib = getAxesCalib(image.shape[0:2], x_axis, y_axis)
         self._plot.setData(image)
         if xcalib.is_affine():
             xorigin, xscale = xcalib(0), xcalib.get_slope()

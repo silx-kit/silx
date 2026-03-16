@@ -44,7 +44,7 @@ class Test_functions(unittest.TestCase):
         self.x = numpy.arange(11)
 
         # height, center, sigma1, sigma2
-        (h, c, s1, s2) = (7.0, 5.0, 3.0, 2.1)
+        h, c, s1, s2 = (7.0, 5.0, 3.0, 2.1)
         self.g_params = {
             "height": h,
             "center": c,

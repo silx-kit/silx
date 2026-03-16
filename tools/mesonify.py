@@ -5,7 +5,6 @@ Adds all Python files by default.
 Does NOT update missing files. Manual edition is needed.
 """
 
-
 import os
 
 

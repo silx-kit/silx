@@ -55,7 +55,6 @@ from ..colors import cursorColorForColormap, rgba
 from .. import qt
 from ..utils import LockReentrant
 
-
 _logger = logging.getLogger(__name__)
 
 _HDF5_EXT_STR = " ".join(["*" + ext for ext in NEXUS_HDF5_EXT])

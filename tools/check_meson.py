@@ -2,13 +2,13 @@
 """
 Script to check if all source files are actually registered in meson
 """
+
 from functools import cache
 from pathlib import Path
 import os
 import subprocess
 import sys
 import zipfile
-
 
 EXCLUDED_FILES = {
     "src/silx/io/specfile/src/sfwrite.c",

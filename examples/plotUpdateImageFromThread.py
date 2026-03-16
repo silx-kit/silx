@@ -50,7 +50,6 @@ from silx.gui import qt
 from silx.gui.utils import concurrent
 from silx.gui.plot import Plot2D
 
-
 Nx = 150
 Ny = 50
 

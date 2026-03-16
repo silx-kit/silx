@@ -22,8 +22,8 @@
 #
 # ###########################################################################*/
 """This module provides the base class for items of the :class:`Plot`."""
-from __future__ import annotations
 
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -38,6 +38,7 @@ from typing import Union
 import weakref
 
 import numpy
+from numpy.typing import ArrayLike
 
 from ....utils.proxy import docstring
 from ....utils.enum import Enum as _Enum
@@ -50,7 +51,6 @@ from ._pick import PickingResult
 
 from silx import config
 from silx._utils import NP_OPTIONAL_COPY
-
 
 _logger = logging.getLogger(__name__)
 
@@ -831,25 +831,53 @@ class SymbolMixIn(ItemMixInBase):
             self._symbol = symbol
             self._updated(ItemChangedType.SYMBOL)
 
-    def getSymbolSize(self):
-        """Return the point marker size in points.
+    def getSymbolSize(self, copy: bool = True) -> float | numpy.ndarray:
+        """Return the marker size in points."""
+        if isinstance(self._symbol_size, numpy.ndarray):
+            return numpy.array(self._symbol_size, copy=copy or NP_OPTIONAL_COPY)
+        else:
+            return self._symbol_size
 
-        :rtype: float
-        """
-        return self._symbol_size
-
-    def setSymbolSize(self, size):
-        """Set the point marker size in points.
+    def setSymbolSize(self, size: float | ArrayLike | None, copy: bool = True):
+        """Set the marker size in points.
 
         See :meth:`getSymbolSize`.
-
-        :param str symbol: Marker type
         """
         if size is None:
             size = self._DEFAULT_SYMBOL_SIZE
-        if size != self._symbol_size:
-            self._symbol_size = size
-            self._updated(ItemChangedType.SYMBOL_SIZE)
+
+        if isinstance(size, numbers.Number):
+            if (
+                not isinstance(self._symbol_size, numpy.ndarray)
+                and size == self._symbol_size
+            ):
+                return
+            self._symbol_size = float(size)
+        else:
+            self._symbol_size = numpy.array(size, copy=copy or NP_OPTIONAL_COPY)
+
+        self._updated(ItemChangedType.SYMBOL_SIZE)
+
+    def isSingleSymbolSize(self) -> bool:
+        """Returns True if there is a unique symbol size, False if it is an array"""
+        return not isinstance(self._symbol_size, numpy.ndarray)
+
+
+class SymbolSingleSizeMixIn(SymbolMixIn):
+    """Mix-in class for items with symbol with a unique size"""
+
+    def getSymbolSize(self, copy: bool = True) -> float:
+        """Return the marker size in points."""
+        return self._symbol_size
+
+    def setSymbolSize(self, size: float | None, copy: bool = True):
+        """Set the marker size in points.
+
+        See :meth:`getSymbolSize`.
+        """
+        if size is None or isinstance(size, numbers.Number):
+            return super().setSymbolSize(size, copy)
+        raise TypeError(f"Unsupported size type: {size}")
 
 
 LineStyleType = Union[
@@ -1441,7 +1469,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.getVisualizationParameter(parameter)
 
 
-class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
+class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
 
     # note: _filterData must be overloaded if you overload
@@ -1453,7 +1481,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
     def __init__(self):
         DataItem.__init__(self)
-        SymbolMixIn.__init__(self)
+        SymbolSingleSizeMixIn.__init__(self)
         AlphaMixIn.__init__(self)
         self._x = ()
         self._y = ()

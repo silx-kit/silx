@@ -40,7 +40,6 @@ from silx.gui.plot.Interaction import (
 
 from . import transform
 
-
 _logger = logging.getLogger(__name__)
 
 

@@ -32,7 +32,6 @@ import numpy
 
 from . import transform
 
-
 # CameraExtrinsic #############################################################
 
 

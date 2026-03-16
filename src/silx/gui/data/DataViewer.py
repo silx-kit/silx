@@ -32,14 +32,15 @@ from silx.gui import qt
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import (
     NXDATA_STACK_MODE,
+    PLOT2D_MODE,
     STACK_MODE,
     IMAGE_MODE,
-    _normalizeData,
 )
 from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
 
+from ._utils import normalizeData as _normalizeData
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
@@ -110,7 +111,6 @@ class DataViewer(qt.QFrame):
         self.__numpySelection = NumpyAxesSelector(self)
         self.__numpySelection.selectedAxisChanged.connect(self.__numpyAxisChanged)
         self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
-        self.__numpySelection.customAxisChanged.connect(self.__numpyCustomAxisChanged)
 
         self.setLayout(qt.QVBoxLayout(self))
         self.layout().addWidget(self.__stack, 1)
@@ -166,7 +166,8 @@ class DataViewer(qt.QFrame):
             DataViews._Hdf5View,
             DataViews._NXdataView,
             DataViews._Plot1dView,
-            DataViews._ImageView,
+            DataViews._Plot2dView,
+            DataViews._ComplexImageView,
             DataViews._Plot3dView,
             DataViews._RawView,
             DataViews._Plot2dRecordView,
@@ -214,11 +215,6 @@ class DataViewer(qt.QFrame):
         if view is not None:
             view.clear()
 
-    def __numpyCustomAxisChanged(self, name, value):
-        view = self.__currentView
-        if view is not None:
-            view.setCustomAxisValue(name, value)
-
     def __updateNumpySelectionAxis(self):
         """
         Update the numpy-selector according to the needed axis names
@@ -239,9 +235,6 @@ class DataViewer(qt.QFrame):
             ):
                 self.__useAxisSelection = True
                 self.__numpySelection.setAxisNames(axisNames)
-                self.__numpySelection.setCustomAxis(
-                    self.__currentView.customAxisNames()
-                )
                 data = self.normalizeData(self.__data)
                 self.__numpySelection.setData(data)
 
@@ -358,7 +351,16 @@ class DataViewer(qt.QFrame):
             deprecated_warning(
                 "Argument",
                 "DataViews.STACK_MODE",
-                replacement="DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
+                since_version="3.0.0",
+            )
+            return None
+
+        if modeId == IMAGE_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
                 since_version="3.0.0",
             )
             return None
@@ -377,10 +379,11 @@ class DataViewer(qt.QFrame):
 
             - `DataViews.EMPTY_MODE`: display nothing
             - `DataViews.PLOT1D_MODE`: display the data as a curve
-            - `DataViews.IMAGE_MODE`: display the data as an image
+            - `DataViews.PLOT2D_MODE`: display real data as an image
+            - `DataViews.COMPLEX_PLOT2D_MODE`: display complex data as an image
             - `DataViews.PLOT3D_MODE`: display the data as an isosurface
             - `DataViews.RAW_MODE`: display the data as a table
-            - `DataViews.STACK_MODE`: deprecated. Use `DataViews.IMAGE_MODE` instead.
+            - `DataViews.STACK_MODE`: deprecated. Use `DataViews.PLOT2D_MODE` or `DataViews.COMPLEX_PLOT2D_MODE` instead.
             - `DataViews.HDF5_MODE`: display the data as a table of HDF5 info
             - `DataViews.NXDATA_MODE`: display the data as NXdata
         """
@@ -388,10 +391,19 @@ class DataViewer(qt.QFrame):
             deprecated_warning(
                 "Argument",
                 "DataViews.STACK_MODE",
-                replacement="DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
                 since_version="3.0.0",
             )
-            modeId = IMAGE_MODE
+            modeId = PLOT2D_MODE
+
+        if modeId == IMAGE_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
+                since_version="3.0.0",
+            )
+            modeId = PLOT2D_MODE
 
         try:
             view = self.getViewFromModeId(modeId)
@@ -612,9 +624,8 @@ class DataViewer(qt.QFrame):
 
             - `DataViews.EMPTY_MODE`
             - `DataViews.PLOT1D_MODE`
-            - `DataViews.IMAGE_MODE`
             - `DataViews.PLOT2D_MODE`
-            - `DataViews.COMPLEX_IMAGE_MODE`
+            - `DataViews.COMPLEX_PLOT2D_MODE`
             - `DataViews.PLOT3D_MODE`
             - `DataViews.RAW_MODE`
             - `DataViews.HDF5_MODE`
@@ -632,7 +643,16 @@ class DataViewer(qt.QFrame):
             deprecated_warning(
                 "Argument",
                 "DataViews.STACK_MODE",
-                replacement="DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
+                since_version="3.0.0",
+            )
+            return False
+
+        if modeId == IMAGE_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.IMAGE_MODE",
+                replacement="DataViews.PLOT2D_MODE for real images, DataViews.COMPLEX_PLOT2D_MODE for complex images",
                 since_version="3.0.0",
             )
             return False

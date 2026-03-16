@@ -23,7 +23,6 @@
 # ###########################################################################*/
 """Tests for ROIStatsWidget"""
 
-
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWindow

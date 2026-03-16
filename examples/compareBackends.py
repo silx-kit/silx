@@ -41,7 +41,6 @@ from silx.gui.plot import items
 from silx.gui.plot.items.marker import Marker
 from silx.gui.plot.utils.axis import SyncAxes
 
-
 _DESCRIPTIONS = {}
 
 

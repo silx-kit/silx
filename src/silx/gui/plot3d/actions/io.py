@@ -42,7 +42,6 @@ from .Plot3DAction import Plot3DAction
 from ..utils import mng
 from ...utils.image import convertQImageToArray
 
-
 _logger = logging.getLogger(__name__)
 
 

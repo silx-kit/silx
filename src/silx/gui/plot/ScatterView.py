@@ -50,7 +50,6 @@ from .. import qt, icons
 from ...utils.proxy import docstring
 from ...utils.weakref import WeakMethodProxy
 
-
 _logger = logging.getLogger(__name__)
 
 

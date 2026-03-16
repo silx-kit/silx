@@ -43,7 +43,6 @@ from silx.io.specfile import is_specfile
 from silx.io.fioh5 import is_fiofile
 from silx.io import fabioh5
 
-
 try:
     import hdf5plugin  # noqa
 except ImportError:

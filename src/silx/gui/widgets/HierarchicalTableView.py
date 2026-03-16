@@ -37,6 +37,7 @@ changes of this information.
 
 A default item delegate is used to redefine the paint of the cells.
 """
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "07/04/2017"
@@ -64,6 +65,9 @@ class HierarchicalTableModel(qt.QAbstractTableModel):
 
     UserRole = qt.Qt.UserRole + 2
     """First index of user defined roles"""
+
+    IsCopyableRole = qt.Qt.UserRole + 3
+    """Role returning True if the content of the cell can be copied to clipboard by the user"""
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the

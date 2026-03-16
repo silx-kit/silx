@@ -52,6 +52,7 @@ of this modules to ensure access across different distribution schemes:
              options={'py2app': {'packages': ['silx']}}
              )
 """
+
 from __future__ import annotations
 
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
@@ -70,10 +71,8 @@ from typing import NamedTuple
 import importlib
 import importlib.resources as importlib_resources
 
-
 # Expose ExternalResources for compatibility (since silx 0.11)
 from ..utils.ExternalResources import ExternalResources  # noqa
-
 
 logger = logging.getLogger(__name__)
 

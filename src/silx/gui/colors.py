@@ -46,22 +46,13 @@ from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
 from silx.utils.deprecation import deprecated_warning
 
-
 _logger = logging.getLogger(__name__)
 
 try:
     import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
-
-    try:
-        from matplotlib import colormaps as _matplotlib_colormaps
-    except ImportError:  # For matplotlib < 3.5
-        from matplotlib import cm as _matplotlib_cm
-        from matplotlib.pyplot import colormaps as _matplotlib_colormaps
-    else:
-        _matplotlib_cm = None
+    from matplotlib import colormaps as _matplotlib_colormaps
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
-    _matplotlib_cm = None
     _matplotlib_colormaps = None
 
 
@@ -235,10 +226,7 @@ def _registerColormapFromMatplotlib(
     cursor_color: str = "black",
     preferred: bool = False,
 ):
-    if _matplotlib_cm is not None:
-        colormap = _matplotlib_cm.get_cmap(name)
-    else:  # matplotlib >= 3.5
-        colormap = _matplotlib_colormaps[name]
+    colormap = _matplotlib_colormaps[name]
     lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
     colors = _colormap.array_to_rgba8888(lut)
     registerLUT(name, colors, cursor_color, preferred)
@@ -366,6 +354,15 @@ class Colormap(qt.QObject):
         self.__nanColor = numpy.array(self._DEFAULT_NAN_COLOR, dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
+
+        if autoscaleMode == self.PERCENTILE_1_99:
+            deprecated_warning(
+                type_="Argument",
+                name="autoscaleMode='percentile_1_99'",
+                replacement="autoscaleMode='percentile'",
+                since_version="3.0",
+            )
+            autoscaleMode = self.PERCENTILE
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
 
         if normalization is Colormap.LOGARITHM:
@@ -576,9 +573,9 @@ class Colormap(qt.QObject):
             raise NotEditableError("Colormap is not editable")
         if mode == self.PERCENTILE_1_99:
             deprecated_warning(
-                type_="Mode",
-                name="mode",
-                replacement="percentile",
+                type_="Argument",
+                name="mode='percentile_1_99'",
+                replacement="mode='percentile'",
                 since_version="3.0",
             )
             mode = self.PERCENTILE
@@ -1166,9 +1163,3 @@ def registerLUT(
         else:
             # The cache is not yet loaded, it's fine
             pass
-
-
-# Load some colormaps from matplotlib by default
-if _matplotlib_cm is not None:
-    _registerColormapFromMatplotlib("jet", cursor_color="pink", preferred=True)
-    _registerColormapFromMatplotlib("hsv", cursor_color="black", preferred=True)

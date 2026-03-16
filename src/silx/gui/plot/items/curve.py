@@ -22,6 +22,7 @@
 #
 # ###########################################################################*/
 """This module provides the :class:`Curve` item of the :class:`Plot`."""
+
 from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
@@ -50,7 +51,6 @@ from .core import (
     _Style,
 )
 from silx._utils import NP_OPTIONAL_COPY
-
 
 _logger = logging.getLogger(__name__)
 

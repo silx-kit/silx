@@ -53,7 +53,6 @@ from silx.io.nxdata import save_NXdata
 from . import PlotAction
 from ...utils.image import convertArrayToQImage
 
-
 _logger = logging.getLogger(__name__)
 
 _NEXUS_HDF5_EXT_STR = " ".join(["*" + ext for ext in NEXUS_HDF5_EXT])

@@ -28,6 +28,7 @@ __date__ = "02/07/2018"
 
 import os
 import logging
+from fabio import TiffIO
 import numpy
 import unittest
 import tempfile
@@ -422,18 +423,13 @@ class TestFabioH5(unittest.TestCase):
 
     def test_unicode_header(self):
         """Test that it does not fail"""
-        try:
-            header = {}
-            header["foo"] = b"abc"
-            data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
-            fabio_image = fabio.edfimage.edfimage(data=data, header=header)
-            header = {}
-            header["foo"] = "abc\u2764"
-            fabio_image.append_frame(data=data, header=header)
-        except Exception as e:
-            _logger.error(e.args[0])
-            _logger.debug("Backtrace", exc_info=True)
-            self.skipTest("fabio do not allow to create the resource")
+        header = {}
+        header["foo"] = b"abc"
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.edfimage(data=data, header=header)
+        header = {}
+        header["foo"] = "abc\u2764"
+        fabio_image.append_frame(data=data, header=header)
 
         h5_image = fabioh5.File(fabio_image=fabio_image)
         scan_header_path = "/scan_0/instrument/file/scan_header"
@@ -625,3 +621,17 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
         frameData = _TestableFrameData("foo", reader)
         self.assertEqual(frameData.dtype.kind, "i")
         self.assertEqual(frameData.shape, (10, 3, 2))
+
+
+def test_tiff_open_info(tmp_path):
+    data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+    filename = str(tmp_path / "test.tiff")
+    tiff = TiffIO.TiffIO(filename, mode="w")
+    tiff.writeImage(data, software="silx")
+
+    h5_image = fabioh5.File(file_name=filename)
+    image_data = h5_image["scan_0/measurement/image_0/data"]
+    numpy.testing.assert_equal(image_data[()], data)
+
+    info = h5_image["scan_0/measurement/image_0/info"]
+    assert info["others/software"][()] == "silx".encode()

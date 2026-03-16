@@ -59,6 +59,7 @@ Functions
 .. autofunction:: save_NXdata
 
 """
+
 from .parse import (  # noqa F401
     NXdata,
     get_default,

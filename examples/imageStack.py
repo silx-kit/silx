@@ -44,7 +44,6 @@ from silx.gui import qt
 from silx.gui.plot.ImageStack import ImageStack, UrlLoader
 import fabio
 
-
 logging.basicConfig()
 _logger = logging.getLogger("hdf5widget")
 """Module logger"""

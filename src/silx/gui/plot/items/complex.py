@@ -38,7 +38,6 @@ from ...colors import Colormap
 from .core import ColormapMixIn, ComplexMixIn, ItemChangedType
 from .image import ImageBase
 
-
 _logger = logging.getLogger(__name__)
 
 

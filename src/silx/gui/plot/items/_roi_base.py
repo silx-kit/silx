@@ -48,7 +48,6 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -103,8 +102,8 @@ class _RegionOfInterestBase(qt.QObject):
         """Check which positions are inside the ROI.
 
         :param position: array-like of positions, where each position is given as ``(x, y)``.
-        If multiple positions are provided, the shape should be ``(N, 2)``.
-        For a single position, the shape should be ``(2,)``.
+            If multiple positions are provided, the shape should be ``(N, 2)``.
+            For a single position, the shape should be ``(2,)``.
         :return: boolean or boolean array of shape ``(N,)``, True if the point is inside the ROI.
         """
         # Overwrite in subclass
@@ -645,7 +644,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             baseLinewidth = self._DEFAULT_LINEWIDTH
         if isinstance(self, core.SymbolMixIn):
             baseSymbol = self.getSymbol()
-            baseSymbolsize = self.getSymbolSize()
+            baseSymbolsize = self.getSymbolSize() if self.isSingleSymbolSize() else 1
         else:
             baseSymbol = "o"
             baseSymbolsize = 1

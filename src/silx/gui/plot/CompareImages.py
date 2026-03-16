@@ -50,7 +50,6 @@ from .tools.compare.toolbar import CompareImagesToolBar
 from .tools.compare.statusbar import CompareImagesStatusBar
 from .tools.compare.core import _CompareImageItem
 
-
 _logger = logging.getLogger(__name__)
 
 

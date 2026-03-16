@@ -28,10 +28,10 @@ tree.
    :members: addFile, addGroup, getSelectedDataUrl, setMode
 
 """
+
 from .GroupDialog import _Hdf5ItemSelectionDialog
 import silx.io
 from silx.io.url import DataUrl
-
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

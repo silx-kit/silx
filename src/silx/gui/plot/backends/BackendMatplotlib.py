@@ -34,8 +34,6 @@ import logging
 import datetime as dt
 import numpy
 
-from packaging.version import Version
-
 from ... import qt
 
 # First of all init matplotlib and set its backend
@@ -44,7 +42,6 @@ from ...utils.matplotlib import (
     FigureCanvasQTAgg,
     qFontToFontProperties,
 )
-import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
@@ -69,7 +66,6 @@ from .._utils.dtime_ticklayout import (
 from ...qt import inspect as qt_inspect
 from .... import config
 from silx.gui.colors import RGBAColorType
-
 
 _logger = logging.getLogger(__name__)
 
@@ -531,7 +527,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
-        self._matplotlibVersion = Version(matplotlib.__version__)
 
         self.fig = Figure(
             tight_layout=config._MPL_TIGHT_LAYOUT,
@@ -544,6 +539,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax = self.fig.add_axes([0.15, 0.15, 0.75, 0.75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
+
+        xOffsetText = self.ax.xaxis.get_offset_text()
+        xOffsetText.set_weight("heavy")
+        xOffsetText.set_fontsize(1.1 * xOffsetText.get_fontsize())
+
+        self.ax.yaxis.OFFSETTEXTPAD = 10
+        yOffsetText = self.ax.yaxis.get_offset_text()
+        yOffsetText.set_weight("heavy")
+        yOffsetText.set_fontsize(1.1 * yOffsetText.get_fontsize())
+        yOffsetText.set_ha("right")
+
+        self.ax2.yaxis.OFFSETTEXTPAD = 10
+        y2OffsetText = self.ax2.yaxis.get_offset_text()
+        y2OffsetText.set_weight("heavy")
+        y2OffsetText.set_fontsize(1.1 * y2OffsetText.get_fontsize())
+        y2OffsetText.set_ha("left")
+
         # Make sure background of Axes is displayed
         self.ax2.patch.set_visible(False)
         self.ax.patch.set_visible(True)
@@ -559,10 +571,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(False)
 
         # this works but the figure color is left
-        if self._matplotlibVersion < Version("2"):
-            self.ax.set_axis_bgcolor("none")
-        else:
-            self.ax.set_facecolor("none")
+        self.ax.set_facecolor("none")
         self.fig.sca(self.ax)
 
         self._background = None
@@ -683,7 +692,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 errorbarColor = color
 
-            # Nx1 error array deprecated in matplotlib >=3.1 (removed in 3.3)
+            # Convert error from Nx1 array to 1D array
             if (
                 isinstance(xerror, numpy.ndarray)
                 and xerror.ndim == 2
@@ -760,7 +769,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 markersize=symbolsize,
             )
 
-            if gapcolor is not None and self._matplotlibVersion >= Version("3.6.0"):
+            if gapcolor is not None:
                 for line2d in curveList:
                     line2d.set_gapcolor(gapcolor)
             artists += list(curveList)
@@ -1297,7 +1306,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
-        if flag and self._matplotlibVersion >= Version("2.1.0"):
+        if flag:
             xlim = self.ax.get_xbound()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self._setXLimits(1, 10)
@@ -1311,7 +1320,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
         # before switching to log scale
-        if flag and self._matplotlibVersion >= Version("2.0.0"):
+        if flag:
             redraw = False
             for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
@@ -1324,7 +1333,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if redraw:
                 self.draw()
 
-        if flag:
             self.ax2.set_yscale("log")
             self.ax.set_yscale("log")
             return
@@ -1422,10 +1430,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             0,
             0,
         )
-        if self._matplotlibVersion >= Version("3.6"):
-            self.fig.set_layout_engine("tight" if istight else None)
-        else:
-            self.fig.set_tight_layout(True if istight else None)
+        self.fig.set_layout_engine("tight" if istight else None)
 
         # Toggle display of axes and viewbox rect
         isFrameOn = position != (0.0, 0.0, 1.0, 1.0)
@@ -1450,10 +1455,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if self.ax.get_frame_on():
             self.fig.patch.set_facecolor(backgroundColor)
-            if self._matplotlibVersion < Version("2"):
-                self.ax.set_axis_bgcolor(dataBackgroundColor)
-            else:
-                self.ax.set_facecolor(dataBackgroundColor)
+            self.ax.set_facecolor(dataBackgroundColor)
         else:
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
@@ -1660,16 +1662,13 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
-        if self._matplotlibVersion >= Version("2.0.0"):
-            try:
-                FigureCanvasQTAgg.draw(self)
-            except ValueError as err:
-                _logger.debug(
-                    "ValueError caught while calling FigureCanvasQTAgg.draw: " "'%s'",
-                    err,
-                )
-        else:
+        try:
             FigureCanvasQTAgg.draw(self)
+        except ValueError as err:
+            _logger.debug(
+                "ValueError caught while calling FigureCanvasQTAgg.draw: " "'%s'",
+                err,
+            )
 
         if self._hasOverlays():
             # Save background
@@ -1717,14 +1716,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
             elif dirtyFlag:  # Need full redraw
                 self.draw()
-
-            # Workaround issue of rendering overlays with some matplotlib versions
-            if Version("1.5") <= self._matplotlibVersion < Version(
-                "2.1"
-            ) and not hasattr(self, "_firstReplot"):
-                self._firstReplot = False
-                if self._hasOverlays():
-                    qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor
 

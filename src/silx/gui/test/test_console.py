@@ -31,7 +31,6 @@ __date__ = "05/12/2016"
 import pytest
 from silx.gui import qt
 
-
 # dummy objects to test pushing variables to the interactive namespace
 _a = 1
 

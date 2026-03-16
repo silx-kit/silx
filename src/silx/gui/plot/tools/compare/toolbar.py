@@ -37,7 +37,6 @@ from .core import AlignmentMode
 from .core import VisualizationMode
 from .core import sift
 
-
 _logger = logging.getLogger(__name__)
 
 

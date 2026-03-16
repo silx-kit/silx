@@ -37,7 +37,6 @@ from silx.gui.dialog.ImageFileDialog import ImageFileDialog
 from silx.gui.dialog.DataFileDialog import DataFileDialog
 import silx.io
 
-
 logging.basicConfig()
 
 

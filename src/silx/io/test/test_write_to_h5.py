@@ -22,7 +22,6 @@
 # ############################################################################*/
 """Test silx.io.convert.write_to_h5"""
 
-
 import h5py
 import numpy
 from silx.io import spech5

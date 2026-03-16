@@ -32,7 +32,6 @@ import logging
 
 import PyQt6.sip
 
-
 _logger = logging.getLogger(__name__)
 
 

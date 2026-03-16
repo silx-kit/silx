@@ -27,7 +27,6 @@ The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 
 from __future__ import annotations
 
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -48,7 +47,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-
 
 try:
     # Import matplotlib now to init matplotlib our way
@@ -74,7 +72,6 @@ from ...gui.plot._utils.dtime_ticklayout import timestamp
 from ...utils.deprecation import deprecated_warning
 
 from .backends.BackendBase import BackendBase
-
 
 _logger = logging.getLogger(__name__)
 if _matplotlib is None:
@@ -2320,10 +2317,10 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getActiveItem(kind="image", just_legend=just_legend)
 
-    def setActiveImage(self, legend: str) -> str | None:
+    def setActiveImage(self, legend: str | items.ImageBase) -> str | None:
         """Make the image associated to legend the active image.
 
-        :param str legend: The legend associated to the image
+        :param legend: The legend associated to the image
                            or None to have no active image.
         """
         return self._setActiveItem(kind="image", item=legend)

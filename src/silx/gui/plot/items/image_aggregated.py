@@ -40,7 +40,6 @@ from .core import ItemChangedType
 from .image import ImageDataBase
 from ._pick import PickingResult
 
-
 _logger = logging.getLogger(__name__)
 
 

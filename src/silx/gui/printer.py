@@ -30,7 +30,6 @@ __date__ = "01/03/2018"
 
 from . import qt
 
-
 _printer = None
 """Shared QPrinter instance"""
 

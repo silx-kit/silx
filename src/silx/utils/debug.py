@@ -27,7 +27,6 @@ import inspect
 import types
 import logging
 
-
 debug_logger = logging.getLogger("silx.DEBUG")
 
 _indent = 0

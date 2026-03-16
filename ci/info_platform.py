@@ -44,9 +44,15 @@ else:
         print("The module pyOpenCL has been imported but get_platforms failed")
     else:
         for p in cl_platforms:
-            print("  %s" % p)
-            for d in p.get_devices():
-                print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
+            print(f"  {p}:")
+            try:
+                devices = p.get_devices()
+            except pyopencl.LogicError:
+                print("    ERROR: get_devices failed")
+            else:
+                for d in devices:
+                    print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
+
 try:
     from silx.opencl import ocl
 except Exception:
@@ -55,9 +61,14 @@ else:
     print("PyOpenCL platform as seen by silx:")
     if ocl:
         for p in ocl.platforms:
-            print("  %s:" % p)
-            for d in p.devices:
-                print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
+            print(f"  {p}:")
+            try:
+                devices = p.devices
+            except pyopencl.LogicError:
+                print("    ERROR: p.devices failed")
+            else:
+                for d in devices:
+                    print(f"    {d} max_workgroup_size is {d.max_work_group_size}")
 
 
 for binding_name in ("PyQt5", "PySide6", "PyQt6"):

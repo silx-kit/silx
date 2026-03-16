@@ -26,7 +26,6 @@
 This is meant for internal use.
 """
 
-
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __date__ = "09/10/2015"

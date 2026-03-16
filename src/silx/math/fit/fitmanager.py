@@ -39,6 +39,7 @@ This module deals with:
     - providing different background models
 
 """
+
 import logging
 import numpy
 from numpy.linalg import LinAlgError
@@ -49,7 +50,6 @@ from .filters import strip, smooth1d
 from .leastsq import leastsq
 from .fittheory import FitTheory
 from . import bgtheories
-
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"

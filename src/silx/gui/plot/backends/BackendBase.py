@@ -30,7 +30,6 @@ This API is a simplified version of PyMca PlotBackend API.
 
 from __future__ import annotations
 
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -40,7 +39,6 @@ import weakref
 from silx.gui.colors import RGBAColorType
 
 from ... import qt
-
 
 # Names for setCursor
 CURSOR_DEFAULT = "default"

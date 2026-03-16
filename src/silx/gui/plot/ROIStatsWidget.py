@@ -25,7 +25,6 @@
 Region of interest and an item
 """
 
-
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "22/07/2019"

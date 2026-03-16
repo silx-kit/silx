@@ -26,7 +26,6 @@
 from silx.gui import qt
 from silx.gui.fit.Parameters import Parameters
 
-
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "13/10/2016"

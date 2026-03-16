@@ -50,6 +50,7 @@ To get more control on the name of the archive and its content:
 
 WARNING: The content of this directory is not checked for outdated documents.
 """
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/09/2017"
@@ -65,7 +66,6 @@ import tempfile
 
 from docutils.parsers.rst import directives, Directive
 import docutils.nodes
-
 
 _logger = logging.getLogger(__name__)
 

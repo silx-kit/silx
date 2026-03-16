@@ -35,7 +35,6 @@ from .Hdf5TreeModel import Hdf5TreeModel
 import silx.io.utils
 from silx.gui import icons
 
-
 _logger = logging.getLogger(__name__)
 
 

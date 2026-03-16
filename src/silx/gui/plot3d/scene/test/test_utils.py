@@ -33,7 +33,6 @@ import numpy
 
 from silx.gui.plot3d.scene import utils
 
-
 # angleBetweenVectors #########################################################
 
 

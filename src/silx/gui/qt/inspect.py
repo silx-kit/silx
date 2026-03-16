@@ -35,7 +35,6 @@ __date__ = "08/10/2018"
 
 from . import _qt as qt
 
-
 if qt.BINDING == "PyQt5":
     try:
         from PyQt5.sip import isdeleted as _isdeleted  # noqa

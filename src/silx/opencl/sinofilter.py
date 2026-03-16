@@ -193,14 +193,11 @@ class SinoFilter(OpenclProcessing):
         :param normalize: Whether to normalize the filter with pi/num_angles.
         """
         if h_filt.size != self.sino_f_shape[-1]:
-            raise ValueError(
-                """
+            raise ValueError("""
                 Invalid filter size: expected %d, got %d.
                 Please check that the filter is the Fourier R2C transform of
                 some real 1D filter.
-                """
-                % (self.sino_f_shape[-1], h_filt.size)
-            )
+                """ % (self.sino_f_shape[-1], h_filt.size))
         if not (np.iscomplexobj(h_filt)):
             print("Warning: expected a complex Fourier filter")
         self.filter_f = h_filt

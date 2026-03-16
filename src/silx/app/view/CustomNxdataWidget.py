@@ -39,7 +39,6 @@ from silx.gui.data.TextFormatter import TextFormatter
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 from silx.gui import icons
 
-
 _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)

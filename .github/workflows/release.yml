@@ -129,7 +129,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: macos-13
+          - runner: macos-15-intel
             arch: x86_64
           - runner: macos-14
             arch: arm64
@@ -171,7 +171,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: macos-13
+          - runner: macos-15-intel
             arch: x86_64
           - runner: macos-14
             arch: arm64
@@ -199,15 +199,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             cibw_archs: "auto64"
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             cibw_archs: "aarch64"
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             cibw_archs: "ppc64le"
-          - os: windows-2022
+          - os: windows-latest
             cibw_archs: "auto64"
-          - os: macos-14
+          - os: windows-11-arm
+            cibw_archs: "auto64"
+          - os: macos-15-intel
             cibw_archs: "x86_64"
           - os: macos-14
             cibw_archs: "arm64"
@@ -218,7 +220,7 @@ jobs:
         if: runner.os == 'Linux'
         with:
           platforms: all
-      - uses: pypa/cibuildwheel@v3.0.0
+      - uses: pypa/cibuildwheel@v3.3.1
         env:
           # Configure silx tests
           WITH_QT_TEST: "False"
@@ -228,8 +230,8 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: WITH_QT_TEST WITH_GL_TEST SILX_OPENCL
 
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
-          CIBW_SKIP: "*-musllinux_*"
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+          CIBW_SKIP: cp310-win_arm64 *-musllinux_*
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_BUILD_FRONTEND: "build; args: -C setup-args=-Duse_openmp=disabled"
 
@@ -237,8 +239,12 @@ jobs:
           CIBW_BEFORE_TEST_LINUX: yum install -y mesa-libEGL mesa-libGL libxkbcommon-x11 libxkbcommon xcb-util-image xcb-util-keysyms libXrandr xcb-util-renderutil libXcursor libxcb
           CIBW_TEST_EXTRAS: "full,test"
           CIBW_TEST_COMMAND: pytest --verbosity=3 --pyargs silx
-          # Skip tests for emulated architectures
-          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x}"
+          # Skip tests for:
+          # - emulated architectures
+          # - ARM64 windows: Wheels missing for some dependencies
+          # - Windows python 3.14: PyOpencl wheel missing
+          # - Linux python 3.14: PySide6 wheel requires a too recent manylinux version
+          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-win_arm64 cp314-win_amd64 cp314-manylinux_x86_64"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -258,7 +264,7 @@ jobs:
         test_macos_app,
       ]
     name: Upload release to PyPI
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment:
       name: pypi
     permissions:
@@ -277,7 +283,7 @@ jobs:
   windows-installer-publish:
     needs: [build_windows_installer, test_windows_installer]
     name: Upload Windows installer
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment:
       name: assets
     permissions:
@@ -299,7 +305,7 @@ jobs:
   macos-app-publish:
     needs: [build_and_notarize_macos_app, test_macos_app]
     name: Upload macOS app
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     environment:
       name: assets
     permissions:
