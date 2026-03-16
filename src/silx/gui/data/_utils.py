@@ -47,7 +47,7 @@ def normalizeComplex(data):
 def isRgba(nxd: NXdata) -> bool:
     return (
         nxd.interpretation in ("rgb-image", "rgba-image")
-        and nxd.signal_ndim >= 3
+        and nxd.signal.ndim >= 3
         and nxd.signal.shape[-1] in (3, 4)
     )
 
