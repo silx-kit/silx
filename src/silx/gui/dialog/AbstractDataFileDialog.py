@@ -640,7 +640,9 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__browser.clear()
         self.__closeFile()
         self.__fileModel = None
-        self.__dataModel = None
+        if self.__dataModel is not None:
+            self.__dataModel.deleteLater()
+            self.__dataModel = None
 
     def hasPendingEvents(self):
         """Returns true if the dialog have asynchronous tasks working on the
