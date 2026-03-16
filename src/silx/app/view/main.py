@@ -142,6 +142,7 @@ def mainQt(options):
     import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])
+    app.setDesktopFileName("org.silx.SilxView")
     qt.QLocale.setDefault(qt.QLocale.c())
 
     def sigintHandler(*args):
