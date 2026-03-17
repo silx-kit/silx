@@ -165,7 +165,7 @@ def qapp(use_gui, xvfb, request):
             app.closeAllWindows()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def qapp_utils(qapp):
     """Helper containing method to deal with QApplication and widget"""
     from silx.gui.utils.testutils import TestCaseQt
