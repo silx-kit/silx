@@ -630,13 +630,7 @@ class FabioReader:
     def _convert_value(
         self, value: list | dict | str | bytes | None
     ) -> (
-        numpy.ndarray
-        | numpy.void
-        | numpy.floating
-        | numpy.integer
-        | numpy.bytes_
-        | numpy.str_
-        | None
+        numpy.ndarray | numpy.void | numpy.floating | numpy.integer | numpy.str_ | None
     ):
         """Convert an object into a numpy object (scalar or array).
 
@@ -674,7 +668,7 @@ class FabioReader:
 
     def _convert_scalar_value(
         self, value: str
-    ) -> numpy.bytes_ | numpy.integer | numpy.floating:
+    ) -> numpy.str_ | numpy.integer | numpy.floating:
         """Convert a string into a numpy int or float.
 
         If it is not possible it returns a numpy string.
@@ -685,42 +679,30 @@ class FabioReader:
             try:
                 return numpy.float64(value)
             except ValueError:
-                pass
+                return numpy.str_(value)
         else:
             dtype = numpy.min_scalar_type(int_value)
             if dtype.kind in "iu":  # dtype is object for too big int
                 return dtype.type(int_value)
-        return numpy.bytes_(value)
+            return numpy.str_(value)
 
-    def _convert_list(self, value: str) -> numpy.ndarray | numpy.bytes_ | numpy.str_:
+    def _convert_list(self, value: str) -> numpy.ndarray | numpy.str_:
         """Convert a string into a typed numpy array.
 
         If it is not possible it returns a numpy string.
         """
         try:
-            numpy_values = []
-            values = value.split(" ")
-            types = set()
-            for string_value in values:
-                v = self._convert_scalar_value(string_value)
-                numpy_values.append(v)
-                types.add(v.dtype.type)
-
-            result_type = numpy.result_type(*types)
-
-            if issubclass(result_type.type, (numpy.bytes_, bytes)):
-                # use the raw data to create the result
-                return numpy.bytes_(value)
-            elif issubclass(result_type.type, (numpy.str_, str)):
-                # use the raw data to create the result
-                return numpy.str_(value)
-            else:
-                if len(types) == 1:
-                    return numpy.array(numpy_values, dtype=result_type)
-                else:
-                    return numpy.array(values, dtype=result_type)
+            raw_values = value.split(" ")
         except ValueError:
-            return numpy.bytes_(value)
+            return numpy.str_(value)
+
+        converted_values = [self._convert_scalar_value(v) for v in raw_values]
+        result_type = numpy.result_type(*converted_values)
+
+        if issubclass(result_type.type, (numpy.str_, str)):
+            return numpy.str_(value)
+
+        return numpy.array(converted_values, dtype=result_type)
 
     def has_sample_information(self):
         """Returns true if there is information about the sample in the
