@@ -600,7 +600,9 @@ class _CopyableQLineEdit(qt.QWidget):
 
         self.setLayout(qt.QHBoxLayout())
         self.layout().addWidget(self._qLineEdit)
-        self._button = qt.QPushButton(icon=qtawesome.icon("mdi6.content-copy"))
+        self._button = qt.QPushButton(
+            icon=qtawesome.icon("mdi6.content-copy", active="mdi6.check")
+        )
         self._button.setFlat(True)
         self.layout().addWidget(self._button)
 
