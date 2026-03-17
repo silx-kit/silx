@@ -46,7 +46,7 @@ from ._RgbaImagePlot import RgbaImagePlot
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
 
-from ._utils import isRgba, normalizeComplex as _normalizeComplex
+from ._utils import isRgba, isScatter, normalizeComplex as _normalizeComplex
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -1094,9 +1094,6 @@ class _InvalidNXdataView(DataView):
 class _NXdataBaseDataView(DataView):
     """Base class for NXdata DataView"""
 
-    def __init__(self, *args, **kwargs):
-        DataView.__init__(self, *args, **kwargs)
-
     def _updateColormap(self, nxdata):
         """Update used colormap according to nxdata's SILX_style"""
         cmap_norm = nxdata.plot_style.signal_scale_type
@@ -1105,12 +1102,32 @@ class _NXdataBaseDataView(DataView):
                 "log" if cmap_norm == "log" else "linear"
             )
 
+    def getDataPriority(self, data: Any, info: DataInfo) -> int:
+        if not info.hasNXdata:
+            return DataView.UNSUPPORTED
+
+        data = self.normalizeData(data)
+        nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return DataView.UNSUPPORTED
+
+        return self._getNXDataPriority(nxd)
+
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        return DataView.UNSUPPORTED
+
 
 class _NXdataScalarView(_NXdataBaseDataView):
     """DataView using a table view for displaying NXdata 0-D signal"""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_SCALAR_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_SCALAR_MODE,
+            label="Raw",
+            icon=icons.getQIcon("view-raw"),
+        )
 
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
@@ -1132,14 +1149,8 @@ class _NXdataScalarView(_NXdataBaseDataView):
         signal = nxd.signal
         self.getWidget().setArrayData(signal, labels=True)
 
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-
-        if info.hasNXdata and not info.isInvalidNXdata:
-            nxd = nxdata.get_default(data, validate=False)
-            if nxd.signal_is_0d:
-                return 100
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        return 100 if nxd.signal.ndim == 0 else DataView.UNSUPPORTED
 
 
 class _NXdataCurveView(_NXdataBaseDataView):
@@ -1151,7 +1162,13 @@ class _NXdataCurveView(_NXdataBaseDataView):
     """
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_CURVE_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_CURVE_MODE,
+            label="Curve",
+            icon=icons.getQIcon("view-1d"),
+        )
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayCurvePlot
@@ -1187,12 +1204,11 @@ class _NXdataCurveView(_NXdataBaseDataView):
             yscale=nxd.plot_style.signal_scale_type,
         )
 
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_curve:
-                return 100
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        if nxd.signal.ndim >= 1:
+            return 200 if nxd.interpretation == "spectrum" else 110
+        else:
+            return DataView.UNSUPPORTED
 
 
 class _NXdataXYVScatterView(_NXdataBaseDataView):
@@ -1200,7 +1216,13 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
     a scatter of coloured points (1-D signal with 2 axes)"""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_XYVSCATTER_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_XYVSCATTER_MODE,
+            label="Scatter",
+            icon=icons.getQIcon("shape-circle-solid"),
+        )
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import XYVScatterPlot
@@ -1256,14 +1278,8 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
             yscale=nxd.plot_style.axes_scale_types[-1],
         )
 
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_x_y_value_scatter:
-                # It have to be a little more than a NX curve priority
-                return 110
-
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        return 200 if isScatter(nxd, naxes=2) else DataView.UNSUPPORTED
 
 
 class _NXdataImageView(_NXdataBaseDataView):
@@ -1271,7 +1287,13 @@ class _NXdataImageView(_NXdataBaseDataView):
     2-D signal or n-D signals with *@interpretation=image*."""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_IMAGE_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_IMAGE_MODE,
+            label="Image",
+            icon=icons.getQIcon("view-2d"),
+        )
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayImagePlot
@@ -1307,25 +1329,24 @@ class _NXdataImageView(_NXdataBaseDataView):
             title=nxd.title,
         )
 
-    def getDataPriority(self, data, info: DataInfo):
-        data = self.normalizeData(data)
-
-        if info.hasNXdata and not info.isInvalidNXdata:
-            default = nxdata.get_default(data, validate=False)
-            if default is None:
-                return DataView.UNSUPPORTED
-
-            if (default.is_image or default.is_stack) and not isRgba(default):
-                return 100
-
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        if nxd.signal.ndim >= 2 and not numpy.iscomplexobj(nxd.signal):
+            return 200 if nxd.interpretation == "image" else 120
+        else:
+            return DataView.UNSUPPORTED
 
 
 class _NXDataRgbaImageView(_NXdataBaseDataView):
     """DataView using a Plot2D for displaying NXdata RGB(A) images"""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_RGBA_IMAGE_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_RGBA_IMAGE_MODE,
+            label="RGB",
+            icon=icons.getQIcon("view-2d"),
+        )
 
     def createWidget(self, parent):
         return RgbaImagePlot(parent)
@@ -1352,20 +1373,8 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
             title=nxd.title,
         )
 
-    def getDataPriority(self, data, info: DataInfo):
-        data = self.normalizeData(data)
-
-        if not info.hasNXdata or info.isInvalidNXdata:
-            return DataView.UNSUPPORTED
-
-        nxd = nxdata.get_default(data, validate=False)
-        if nxd is None:
-            return DataView.UNSUPPORTED
-
-        if (nxd.is_image or nxd.is_stack) and isRgba(nxd):
-            return 100
-        else:
-            return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        return 200 if isRgba(nxd) else DataView.UNSUPPORTED
 
 
 class _NXdataComplexImageView(_NXdataBaseDataView):
@@ -1373,7 +1382,13 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
     2-D signal or n-D signals with *@interpretation=image*."""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_IMAGE_MODE)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_IMAGE_MODE,
+            label="Image",
+            icon=icons.getQIcon("view-2d"),
+        )
 
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
@@ -1415,15 +1430,11 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
 
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-
-        if info.hasNXdata and not info.isInvalidNXdata:
-            nxd = nxdata.get_default(data, validate=False)
-            if nxd.is_image and numpy.iscomplexobj(nxd.signal):
-                return 100
-
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        if nxd.signal.ndim >= 2 and numpy.iscomplexobj(nxd.signal):
+            return 200 if nxd.interpretation == "image" else 120
+        else:
+            return DataView.UNSUPPORTED
 
 
 class _NXdataVolumeView(_NXdataBaseDataView):
@@ -1431,9 +1442,9 @@ class _NXdataVolumeView(_NXdataBaseDataView):
         _NXdataBaseDataView.__init__(
             self,
             parent,
-            label="NXdata (3D)",
-            icon=icons.getQIcon("view-nexus"),
             modeId=NXDATA_VOLUME_MODE,
+            label="3D",
+            icon=icons.getQIcon("view-3d"),
         )
         try:
             import silx.gui.plot3d  # noqa
@@ -1481,139 +1492,24 @@ class _NXdataVolumeView(_NXdataBaseDataView):
             title=title,
         )
 
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_volume:
-                return 150
-
-        return DataView.UNSUPPORTED
-
-
-class _NXdataVolumeAsStackView(_NXdataBaseDataView):
-    def __init__(self, parent):
-        _NXdataBaseDataView.__init__(
-            self,
-            parent,
-            label="NXdata (2D)",
-            icon=icons.getQIcon("view-nexus"),
-            modeId=NXDATA_VOLUME_AS_STACK_MODE,
-        )
-
-    def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayStackPlot
-
-        widget = ArrayStackPlot(parent)
-        widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlotWidget().getColormapAction().setColormapDialog(
-            self.defaultColorDialog()
-        )
-        return widget
-
-    def axesNames(self, data, info):
-        # disabled (used by default axis selector widget in Hdf5Viewer)
-        return None
-
-    def clear(self):
-        self.getWidget().clear()
-
-    def setData(self, data):
-        data = self.normalizeData(data)
-        nxd = nxdata.get_default(data, validate=False)
-        signal_name = nxd.signal_name
-        z_axis, y_axis, x_axis = nxd.axes[-3:]
-        z_label, y_label, x_label = nxd.axes_names[-3:]
-        title = nxd.title or signal_name
-
-        self._updateColormap(nxd)
-
-        widget = self.getWidget()
-        widget.setStackData(
-            nxd.signal,
-            x_axis=x_axis,
-            y_axis=y_axis,
-            z_axis=z_axis,
-            signal_name=signal_name,
-            xlabel=x_label,
-            ylabel=y_label,
-            zlabel=z_label,
-            title=title,
-        )
-        # Override the colormap, while setStack overwrite it
-        widget.getStackView().setColormap(self.defaultColormap())
-
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if info.isComplex:
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        if nxd.signal.ndim >= 3:
+            return 90  # Below other view to avoid default selection
+        else:
             return DataView.UNSUPPORTED
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_volume:
-                return 200
-
-        return DataView.UNSUPPORTED
-
-
-class _NXdataComplexVolumeAsStackView(_NXdataBaseDataView):
-    def __init__(self, parent):
-        _NXdataBaseDataView.__init__(
-            self,
-            parent,
-            label="NXdata (2D)",
-            icon=icons.getQIcon("view-nexus"),
-            modeId=NXDATA_VOLUME_AS_STACK_MODE,
-        )
-        self._is_complex_data = False
-
-    def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
-
-        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
-        widget.getPlot().getColormapAction().setColormapDialog(
-            self.defaultColorDialog()
-        )
-        return widget
-
-    def axesNames(self, data, info):
-        # disabled (used by default axis selector widget in Hdf5Viewer)
-        return None
-
-    def clear(self):
-        self.getWidget().clear()
-
-    def setData(self, data):
-        data = self.normalizeData(data)
-        nxd = nxdata.get_default(data, validate=False)
-        z_axis, y_axis, x_axis = nxd.axes[-3:]
-        z_label, y_label, x_label = nxd.axes_names[-3:]
-
-        self._updateColormap(nxd)
-
-        self.getWidget().setImageData(
-            [nxd.signal] + nxd.auxiliary_signals,
-            x_axis=x_axis,
-            y_axis=y_axis,
-            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
-            xlabel=x_label,
-            ylabel=y_label,
-            title=nxd.title,
-        )
-
-    def getDataPriority(self, data, info):
-        data = self.normalizeData(data)
-        if not info.isComplex:
-            return DataView.UNSUPPORTED
-        if info.hasNXdata and not info.isInvalidNXdata:
-            if nxdata.get_default(data, validate=False).is_volume:
-                return 200
-
-        return DataView.UNSUPPORTED
 
 
 class _NxDataScatter3D(_NXdataBaseDataView):
     """Display a scatter plot with three axes."""
 
     def __init__(self, parent):
-        _NXdataBaseDataView.__init__(self, parent, modeId=NXDATA_3D_SCATTER)
+        _NXdataBaseDataView.__init__(
+            self,
+            parent,
+            modeId=NXDATA_3D_SCATTER,
+            label="Scatter 3D",
+            icon=icons.getQIcon("shape-circle-solid"),
+        )
         self._scatterItem = items.Scatter3D()
 
     def createWidget(self, parent):
@@ -1641,20 +1537,8 @@ class _NxDataScatter3D(_NXdataBaseDataView):
             )
             self._scatterItem.setSymbolSize(sizes)
 
-    def getDataPriority(self, data: Any, info: DataInfo) -> int:
-        data = self.normalizeData(data)
-
-        if not info.hasNXdata or info.isInvalidNXdata:
-            return DataView.UNSUPPORTED
-
-        nxd = nxdata.get_default(data, validate=False)
-        if not isinstance(nxd, NXdata):
-            return DataView.UNSUPPORTED
-
-        if nxd.is_scatter and len(nxd.axes) == 3:
-            return 200
-
-        return DataView.UNSUPPORTED
+    def _getNXDataPriority(self, nxd: NXdata) -> int:
+        return 200 if isScatter(nxd, naxes=3) else DataView.UNSUPPORTED
 
 
 class _NXdataView(CompositeDataView):
@@ -1670,21 +1554,18 @@ class _NXdataView(CompositeDataView):
         )
 
         self.addView(_InvalidNXdataView(parent))
-        self.addView(_NXdataScalarView(parent))
-        self.addView(_NXdataCurveView(parent))
-        self.addView(_NXdataXYVScatterView(parent))
-        self.addView(_NXdataComplexImageView(parent))
-        self.addView(_NXdataImageView(parent))
-        self.addView(_NXDataRgbaImageView(parent))
-        self.addView(_NxDataScatter3D(parent))
 
-        # The 3D view can be displayed using 2 ways
-        nx3dViews = SelectManyDataView(parent)
-        nx3dViews.addView(_NXdataVolumeAsStackView(parent))
-        nx3dViews.addView(_NXdataComplexVolumeAsStackView(parent))
+        view = SelectManyDataView(parent)
+        self.addView(view)
+        view.addView(_NXdataScalarView(parent))
+        view.addView(_NXdataCurveView(parent))
+        view.addView(_NXdataXYVScatterView(parent))
+        view.addView(_NXdataComplexImageView(parent))
+        view.addView(_NXdataImageView(parent))
+        view.addView(_NXDataRgbaImageView(parent))
+        view.addView(_NxDataScatter3D(parent))
         try:
-            nx3dViews.addView(_NXdataVolumeView(parent))
+            view.addView(_NXdataVolumeView(parent))
         except Exception:
             _logger.warning("NXdataVolumeView is not available")
             _logger.debug("Backtrace", exc_info=True)
-        self.addView(nx3dViews)

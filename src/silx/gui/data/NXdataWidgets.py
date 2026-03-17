@@ -47,6 +47,7 @@ from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibra
 
 from ._utils import getAxesCalib, setImageCoords
 from ..utils import blockSignals
+from ...utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -700,6 +701,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setData(None)
 
 
+@deprecated(since_version="3.0.0")
 class ArrayStackPlot(qt.QWidget):
     """
     Widget for plotting a n-D array (n >= 3) as a stack of images.

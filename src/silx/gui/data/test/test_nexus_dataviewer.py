@@ -16,11 +16,14 @@ def test_image_no_interpretation(qWidgetFactory, tmp_path):
 
         widget.setData(h5file["/"])
 
-        currentCompositeView = widget.currentAvailableViews()[0]
-        assert isinstance(currentCompositeView, DataViews._NXdataView)
-        currentView = currentCompositeView.getCurrentView()
-        assert isinstance(currentView, DataViews._NXdataImageView)
-        plot = currentView.getWidget().getPlot()
+        viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
+        assert viewClasses == (
+            DataViews._NXdataImageView,
+            DataViews._NXdataCurveView,
+            DataViews._Hdf5View,
+        )
+        imageView = widget.currentAvailableViews()[0]
+        plot = imageView.getWidget().getPlot()
         isinstance(plot.getImage("signal"), ImageDataAggregated)
 
 
@@ -38,11 +41,16 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
 
         qapp.processEvents()
 
-        currentCompositeView = widget.currentAvailableViews()[0]
-        assert isinstance(currentCompositeView, DataViews._NXdataView)
-        currentView = currentCompositeView.getCurrentView()
-        assert isinstance(currentView, DataViews._NXDataRgbaImageView)
-        plot = currentView.getWidget().getPlot()
+        viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
+        assert viewClasses == (
+            DataViews._NXDataRgbaImageView,
+            DataViews._NXdataImageView,
+            DataViews._NXdataCurveView,
+            DataViews._NXdataVolumeView,
+            DataViews._Hdf5View,
+        )
+        rgbImageView = widget.currentAvailableViews()[0]
+        plot = rgbImageView.getWidget().getPlot()
         assert isinstance(plot.getImage("rgb"), ImageRgba)
 
 
@@ -66,12 +74,15 @@ def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
 
         qapp.processEvents()
 
-        currentCompositeView = widget.currentAvailableViews()[0]
-        assert isinstance(currentCompositeView, DataViews._NXdataView)
-        currentView = currentCompositeView.getCurrentView()
-        assert isinstance(currentView, DataViews._NxDataScatter3D)
+        viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
+        assert viewClasses == (
+            DataViews._NxDataScatter3D,
+            DataViews._NXdataCurveView,
+            DataViews._Hdf5View,
+        )
 
-        sceneWindow = currentView.getWidget()
+        scatterView = widget.currentAvailableViews()[0]
+        sceneWindow = scatterView.getWidget()
         plotItems = sceneWindow.getSceneWidget().getItems()
         assert len(plotItems) == 1
 

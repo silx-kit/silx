@@ -32,6 +32,7 @@ from silx.gui import qt
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import (
     NXDATA_STACK_MODE,
+    NXDATA_VOLUME_AS_STACK_MODE,
     PLOT2D_MODE,
     STACK_MODE,
     IMAGE_MODE,
@@ -662,6 +663,14 @@ class DataViewer(qt.QFrame):
                 "Argument",
                 "DataViews.NXDATA_STACK_MODE",
                 replacement="DataViews.NXDATA_IMAGE_MODE",
+                since_version="3.0.0",
+            )
+            return False
+
+        if modeId == NXDATA_VOLUME_AS_STACK_MODE:
+            deprecated_warning(
+                "Argument",
+                "DataViews.NXDATA_VOLUME_AS_STACK_MODE",
                 since_version="3.0.0",
             )
             return False
