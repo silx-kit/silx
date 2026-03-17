@@ -81,16 +81,6 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:matplotlib._mathtext",
     "ignore::DeprecationWarning:pyparsing.util",
 )
-try:
-    import pyopencl
-except Exception:
-    pass
-else:
-    pyopen_version = tuple(int(i) for i in pyopencl.__version__.split(".")[:2])
-    if pyopen_version >= (2025, 2):
-        _FILTERWARNINGS = _FILTERWARNINGS + (
-            "ignore::pyopencl.RepeatedKernelRetrieval",
-        )
 
 
 def pytest_collection_modifyitems(items):
