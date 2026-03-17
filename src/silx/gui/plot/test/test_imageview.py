@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for PlotWindow"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -29,161 +28,153 @@ __date__ = "24/04/2018"
 
 
 import numpy
+import pytest
 
-from silx.gui.plot import items
-
-from silx.gui.plot.ImageView import ImageView
-from silx.gui.colors import Colormap
-from .utils import PlotWidgetTestCase
+from ...colors import Colormap
+from .. import items
+from ..ImageView import ImageView
 
 
-class TestImageView(PlotWidgetTestCase):
-    """Tests of ImageView widget."""
+@pytest.fixture
+def imageView(qWidgetFactory):
+    yield qWidgetFactory(ImageView)
 
-    def _createPlot(self):
-        return ImageView()
 
-    def testSetImage(self):
-        """Test setImage"""
-        image = numpy.arange(100).reshape(10, 10)
+def testSetImage(imageView, qapp_utils):
+    image = numpy.arange(100).reshape(10, 10)
 
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 10)
+    assert imageView.getYAxis().getLimits() == (0, 10)
 
-        # With resetzoom=False
-        self.plot.setImage(image[::2, ::2], resetzoom=False)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+    # With resetzoom=False
+    imageView.setImage(image[::2, ::2], resetzoom=False)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 10)
+    assert imageView.getYAxis().getLimits() == (0, 10)
 
-        self.plot.setImage(image, origin=(10, 20), scale=(2, 4), resetzoom=False)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+    imageView.setImage(image, origin=(10, 20), scale=(2, 4), resetzoom=False)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 10)
+    assert imageView.getYAxis().getLimits() == (0, 10)
 
-        # With resetzoom=True
-        self.plot.setImage(image, origin=(1, 2), scale=(1, 0.5), resetzoom=True)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (1, 11))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (2, 7))
+    # With resetzoom=True
+    imageView.setImage(image, origin=(1, 2), scale=(1, 0.5), resetzoom=True)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (1, 11)
+    assert imageView.getYAxis().getLimits() == (2, 7)
 
-        self.plot.setImage(image[::2, ::2], resetzoom=True)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 5))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 5))
+    imageView.setImage(image[::2, ::2], resetzoom=True)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 5)
+    assert imageView.getYAxis().getLimits() == (0, 5)
 
-    def testColormap(self):
-        """Test get|setColormap"""
-        image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image)
 
-        # Colormap as dict
-        self.plot.setColormap(
-            {
-                "name": "viridis",
-                "normalization": "log",
-                "autoscale": False,
-                "vmin": 0,
-                "vmax": 1,
-            }
-        )
-        colormap = self.plot.getColormap()
-        self.assertEqual(colormap.getName(), "viridis")
-        self.assertEqual(colormap.getNormalization(), "log")
-        self.assertEqual(colormap.getVMin(), 0)
-        self.assertEqual(colormap.getVMax(), 1)
+def testColormap(imageView):
+    image = numpy.arange(100).reshape(10, 10)
+    imageView.setImage(image)
 
-        # Colormap as keyword arguments
-        self.plot.setColormap(
-            colormap="magma", normalization="linear", autoscale=True, vmin=1, vmax=2
-        )
-        self.assertEqual(colormap.getName(), "magma")
-        self.assertEqual(colormap.getNormalization(), "linear")
-        self.assertEqual(colormap.getVMin(), None)
-        self.assertEqual(colormap.getVMax(), None)
+    # Colormap as dict
+    imageView.setColormap(
+        {
+            "name": "viridis",
+            "normalization": "log",
+            "autoscale": False,
+            "vmin": 0,
+            "vmax": 1,
+        }
+    )
+    colormap = imageView.getColormap()
+    assert colormap.getName() == "viridis"
+    assert colormap.getNormalization() == "log"
+    assert colormap.getVMin() == 0
+    assert colormap.getVMax() == 1
 
-        # Update colormap with keyword argument
-        self.plot.setColormap(normalization="log")
-        self.assertEqual(colormap.getNormalization(), "log")
+    # Colormap as keyword arguments
+    imageView.setColormap(
+        colormap="magma", normalization="linear", autoscale=True, vmin=1, vmax=2
+    )
+    assert colormap.getName() == "magma"
+    assert colormap.getNormalization() == "linear"
+    assert colormap.getVMin() is None
+    assert colormap.getVMax() is None
 
-        # Colormap as Colormap object
-        cmap = Colormap()
-        self.plot.setColormap(cmap)
-        self.assertIs(self.plot.getColormap(), cmap)
+    # Update colormap with keyword argument
+    imageView.setColormap(normalization="log")
+    assert colormap.getNormalization() == "log"
 
-    def testSetProfileWindowBehavior(self):
-        """Test change of profile window display behavior"""
-        self.assertIs(
-            self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.POPUP,
-        )
+    # Colormap as Colormap object
+    cmap = Colormap()
+    imageView.setColormap(cmap)
+    assert imageView.getColormap() is cmap
 
-        self.plot.setProfileWindowBehavior("embedded")
-        self.assertIs(
-            self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.EMBEDDED,
-        )
 
-        image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image)
+def testSetProfileWindowBehavior(imageView):
+    """Test change of profile window display behavior"""
+    assert imageView.getProfileWindowBehavior() is ImageView.ProfileWindowBehavior.POPUP
 
-        self.plot.setProfileWindowBehavior(ImageView.ProfileWindowBehavior.POPUP)
-        self.assertIs(
-            self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.POPUP,
-        )
+    imageView.setProfileWindowBehavior("embedded")
+    assert (
+        imageView.getProfileWindowBehavior() is ImageView.ProfileWindowBehavior.EMBEDDED
+    )
 
-    def testRGBImage(self):
-        """Test setImage"""
-        image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+    image = numpy.arange(100).reshape(10, 10)
+    imageView.setImage(image)
 
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+    imageView.setProfileWindowBehavior(ImageView.ProfileWindowBehavior.POPUP)
+    assert imageView.getProfileWindowBehavior() is ImageView.ProfileWindowBehavior.POPUP
 
-    def testRGBAImage(self):
-        """Test setImage"""
-        image = numpy.arange(100 * 4, dtype=numpy.uint8).reshape(10, 10, 4)
 
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
-        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+def testRGBImage(imageView, qapp_utils):
+    image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
 
-    def testImageAggregationMode(self):
-        """Test setImage"""
-        image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(
-            items.ImageDataAggregated.Aggregation.MAX
-        )
-        self.qWait(100)
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 10)
+    assert imageView.getYAxis().getLimits() == (0, 10)
 
-    def testImageAggregationModeBackToNormalMode(self):
-        """Test setImage"""
-        image = numpy.arange(100).reshape(10, 10)
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(
-            items.ImageDataAggregated.Aggregation.MAX
-        )
-        self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(
-            items.ImageDataAggregated.Aggregation.NONE
-        )
-        self.qWait(100)
 
-    def testRGBAInAggregationMode(self):
-        """Test setImage"""
-        image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+def testRGBAImage(imageView, qapp_utils):
+    image = numpy.arange(100 * 4, dtype=numpy.uint8).reshape(10, 10, 4)
 
-        self.plot.setImage(image, resetzoom=True)
-        self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(
-            items.ImageDataAggregated.Aggregation.MAX
-        )
-        self.qWait(100)
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    assert imageView.getXAxis().getLimits() == (0, 10)
+    assert imageView.getYAxis().getLimits() == (0, 10)
+
+
+def testImageAggregationMode(imageView, qapp_utils):
+    image = numpy.arange(100).reshape(10, 10)
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    imageView.getAggregationModeAction().setAggregationMode(
+        items.ImageDataAggregated.Aggregation.MAX
+    )
+    qapp_utils.qWait(100)
+
+
+def testImageAggregationModeBackToNormalMode(imageView, qapp_utils):
+    image = numpy.arange(100).reshape(10, 10)
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    imageView.getAggregationModeAction().setAggregationMode(
+        items.ImageDataAggregated.Aggregation.MAX
+    )
+    qapp_utils.qWait(100)
+    imageView.getAggregationModeAction().setAggregationMode(
+        items.ImageDataAggregated.Aggregation.NONE
+    )
+    qapp_utils.qWait(100)
+
+
+def testRGBAInAggregationMode(imageView, qapp_utils):
+    """Test setImage"""
+    image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+
+    imageView.setImage(image, resetzoom=True)
+    qapp_utils.qWait(100)
+    imageView.getAggregationModeAction().setAggregationMode(
+        items.ImageDataAggregated.Aggregation.MAX
+    )
+    qapp_utils.qWait(100)
