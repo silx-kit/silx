@@ -41,7 +41,6 @@ import numpy
 
 from . import commonh5
 from silx import version as silx_version
-import silx.utils.number
 import h5py
 
 _logger = logging.getLogger(__name__)
@@ -681,11 +680,17 @@ class FabioReader:
         If it is not possible it returns a numpy string.
         """
         try:
-            numpy_type = silx.utils.number.min_numerical_convertible_type(value)
-            converted = numpy_type(value)
+            int_value = int(value)
         except ValueError:
-            converted = numpy.bytes_(value)
-        return converted
+            try:
+                return numpy.float64(value)
+            except ValueError:
+                pass
+        else:
+            dtype = numpy.min_scalar_type(int_value)
+            if dtype.kind in "iu":  # dtype is object for too big int
+                return dtype.type(int_value)
+        return numpy.bytes_(value)
 
     def _convert_list(self, value: str) -> numpy.ndarray | numpy.bytes_ | numpy.str_:
         """Convert a string into a typed numpy array.

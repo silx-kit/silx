@@ -213,9 +213,7 @@ class TestFabioH5(unittest.TestCase):
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
 
     def test_float_64(self):
         float_list = [
@@ -242,9 +240,7 @@ class TestFabioH5(unittest.TestCase):
         data = h5_image["/scan_0/instrument/detector_0/others/time_of_day"]
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
-        # At least a float64
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
+        self.assertEqual(data.dtype.name, "float64")
 
     def test_mixed_float_size__scalar(self):
         # We expect to have a precision of 32 bits
@@ -260,9 +256,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
@@ -280,9 +274,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
@@ -300,9 +292,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
