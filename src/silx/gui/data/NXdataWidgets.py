@@ -485,7 +485,7 @@ class ArrayImagePlot(BaseImagePlot):
             )
         )
         image = self._getImageToDisplay()
-        xCalib, yCalib = getAxesCalib(image, xAxis, yAxis)
+        xCalib, yCalib = getAxesCalib(image.shape[:2], xAxis, yAxis)
         if xCalib.is_affine() and yCalib.is_affine():
             if image.ndim != 2:
                 raise ValueError(f"image dims should be 2. Got {image.ndim}")
