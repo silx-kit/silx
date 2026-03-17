@@ -170,8 +170,8 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_string(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.bytes_("hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.bytes_)
+        self.assertEqual(dataset[()], "hi!")
+        self.assertEqual(dataset.dtype.type, numpy.str_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_list_integer(self):
@@ -195,8 +195,8 @@ class TestFabioH5(unittest.TestCase):
             "/scan_0/instrument/detector_0/others/string_looks_like_list"
         ]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.bytes_("2000 hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.bytes_)
+        self.assertEqual(dataset[()], "2000 hi!")
+        self.assertEqual(dataset.dtype.type, numpy.str_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_float_32(self):
@@ -624,4 +624,17 @@ def test_tiff_open_info(tmp_path):
     numpy.testing.assert_equal(image_data[()], data)
 
     info = h5_image["scan_0/measurement/image_0/info"]
-    assert info["others/software"][()] == "silx".encode()
+    assert info["others/software"][()] == "silx"
+
+
+def test_tiff_unicode_info(tmp_path):
+    data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+    filename = str(tmp_path / "test.tiff")
+    tiff = TiffIO.TiffIO(filename, mode="w")
+    tiff.writeImage(data, info={"dimensions": "2 \xd7 2"})
+
+    h5_image = fabioh5.File(file_name=filename)
+    info = h5_image["scan_0/measurement/image_0/info/others/info"][0, 0]
+
+    assert info["key"] == "dimensions"
+    assert info["value"] == numpy.str_("2 \xd7 2")

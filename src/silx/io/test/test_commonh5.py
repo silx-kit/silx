@@ -26,7 +26,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "21/09/2017"
 
-import logging
 import numpy
 import unittest
 import tempfile
@@ -40,8 +39,6 @@ try:
     from .. import commonh5
 except ImportError:
     commonh5 = None
-
-_logger = logging.getLogger(__name__)
 
 
 class _TestCommonFeatures(unittest.TestCase):
@@ -268,11 +265,8 @@ class TestSpecificCommonH5(unittest.TestCase):
 
     def test_create_unicode_dataset(self):
         f = commonh5.File(name="Foo", mode="w")
-        try:
-            f.create_dataset("foo", data=numpy.array("aaaa"))
-            self.fail()
-        except TypeError:
-            pass
+        f.create_dataset("foo", data=numpy.array("aaaa"))
+        self.assertEqual(f["foo"][()], "aaaa")
 
     def test_setitem_dataset(self):
         self.h5 = commonh5.File(name="Foo", mode="w")
