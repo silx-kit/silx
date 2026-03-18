@@ -60,7 +60,6 @@ class _HeaderFrame(qt.QFrame):
         self._button.clicked.connect(self.copyToClipBoard)
 
     def copyToClipBoard(self) -> None:
-        """Copy data to the clipboard"""
         qt.QApplication.clipboard().setText(self._qLineEdit.text())
 
     def sizeHint(self):
