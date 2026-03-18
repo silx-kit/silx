@@ -43,18 +43,22 @@ class _HeaderFrame(qt.QFrame):
         self.setFrameShape(qt.QFrame.StyledPanel)
         self._qLineEdit = qt.QLabel(parent)
 
-        self.setLayout(qt.QHBoxLayout())
-        self.layout().addWidget(self._qLineEdit)
-        self._button = qt.QPushButton(icon=qtawesome.icon("mdi6.content-copy"))
+        layout = qt.QHBoxLayout()
+        layout.addWidget(self._qLineEdit)
+        self._button = qt.QPushButton(
+            icon=qtawesome.icon("mdi6.content-copy", active="mdi6.check")
+        )
         self._button.setFlat(True)
 
-        self.layout().addWidget(self._button)
+        layout.addWidget(self._button)
+        self.setLayout(layout)
 
         self._qLineEdit.setSizePolicy(
             qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred
         )
 
-        self.layout().setContentsMargins(3, 0, 3, 0)
+        layout.setContentsMargins(3, 0, 3, 0)
+        self.setLayout(layout)
 
         # connect signal / slot
         self._button.clicked.connect(self.copyToClipBoard)
