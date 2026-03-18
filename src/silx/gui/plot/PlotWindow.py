@@ -48,6 +48,7 @@ from .actions import control as actions_control
 from .actions import histogram as actions_histogram
 from . import PlotToolButtons
 from . import tools
+from .tools._PlotOptionButton import PlotOptionButton
 from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
@@ -257,13 +258,8 @@ class PlotWindow(PlotWidget):
         self._updateColorBarBackground()
 
         if control:  # Create control button only if requested
-            self._plotOptionButton = qt.QPushButton()
-            self._plotOptionButton.setFlat(True)
-            # should be presented on the right of the toolbar and with the burger menu
-            self._plotOptionButton.setIcon(qtawesome.icon("ei.lines"))
-            self._plotOptionButton.clicked.connect(self._showPlotActionMenu)
-            self._plotOptionsMenu = qt.QMenu(self)
-            self._plotOptionsMenu.aboutToShow.connect(self._customControlButtonMenu)
+            self._plotOptionButton = PlotOptionButton(self)
+            self._plotOptionButton.setPlot(self)
 
         self._positionWidget = None
         if position:  # Add PositionInfo widget to the bottom of the plot
@@ -313,13 +309,6 @@ class PlotWindow(PlotWidget):
             self._plotOptionToolBar.addWidget(spacer)
             self._plotOptionToolBar.addWidget(self._plotOptionButton)
             self.addToolBar(self._plotOptionToolBar)
-
-    def _showPlotActionMenu(self):
-        self._plotOptionsMenu.exec(
-            self._plotOptionButton.mapToGlobal(
-                self._plotOptionButton.rect().bottomLeft()
-            )
-        )
 
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
@@ -494,19 +483,6 @@ class PlotWindow(PlotWidget):
         for action in self.group.actions():
             menu.addAction(action)
         return menu
-
-    def _customControlButtonMenu(self):
-        """Display Options button sub-menu."""
-        self._plotOptionsMenu.clear()
-        self._plotOptionsMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
-        self._plotOptionsMenu.addAction(self.getRoiAction())
-        self._plotOptionsMenu.addAction(self.getStatsAction())
-        self._plotOptionsMenu.addAction(self.getMaskAction())
-        self._plotOptionsMenu.addAction(self.getConsoleAction())
-
-        self._plotOptionsMenu.addSeparator()
-        self._plotOptionsMenu.addAction(self.getCrosshairAction())
-        self._plotOptionsMenu.addAction(self.getPanWithArrowKeysAction())
 
     def addTabbedDockWidget(self, dock_widget):
         """Add a dock widget as a new tab if there are already dock widgets
