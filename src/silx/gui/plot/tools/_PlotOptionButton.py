@@ -9,13 +9,15 @@ if TYPE_CHECKING:
 
 
 class PlotOptionButton(qt.QPushButton):
+    """Button presented as a 'burger' menu to present user contextual actions such as 'Legend' or 'Region Of Interest'."""
 
     def __init__(self, parent: PlotWindow | None = None):
         super().__init__(parent)
+        self._plot = None
+
         self.setFlat(True)
         # should be presented on the right of the toolbar and with the burger menu
         self.setIcon(qtawesome.icon("fa6s.bars"))
-        self._plot = None
 
         self._menu = qt.QMenu(self)
 
