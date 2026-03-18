@@ -28,6 +28,7 @@ __date__ = "12/10/2018"
 
 import logging
 import os.path
+import qtawesome
 
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
@@ -35,10 +36,35 @@ from silx.gui.data.DataViewerFrame import DataViewerFrame
 _logger = logging.getLogger(__name__)
 
 
-class _HeaderLabel(qt.QLabel):
-    def __init__(self, parent=None):
-        qt.QLabel.__init__(self, parent=parent)
+class _HeaderFrame(qt.QFrame):
+
+    def __init__(self, parent):
+        super().__init__(parent=parent)
         self.setFrameShape(qt.QFrame.StyledPanel)
+        self._qLineEdit = qt.QLabel(parent)
+
+        layout = qt.QHBoxLayout()
+        layout.addWidget(self._qLineEdit)
+        self._button = qt.QPushButton(
+            icon=qtawesome.icon("mdi6.content-copy", active="mdi6.check")
+        )
+        self._button.setFlat(True)
+
+        layout.addWidget(self._button)
+        self.setLayout(layout)
+
+        self._qLineEdit.setSizePolicy(
+            qt.QSizePolicy.Expanding, qt.QSizePolicy.Preferred
+        )
+
+        layout.setContentsMargins(3, 0, 3, 0)
+        self.setLayout(layout)
+
+        # connect signal / slot
+        self._button.clicked.connect(self.copyToClipBoard)
+
+    def copyToClipBoard(self) -> None:
+        qt.QApplication.clipboard().setText(self._qLineEdit.text())
 
     def sizeHint(self):
         return qt.QSize(10, 30)
@@ -61,29 +87,11 @@ class _HeaderLabel(qt.QLabel):
         tooltip += template % ("Data path", path)
         tooltip = "<ul>%s</ul>" % tooltip
         tooltip = "<html>%s</html>" % tooltip
-        self.setToolTip(tooltip)
+        self._qLineEdit.setToolTip(tooltip)
 
-    def paintEvent(self, event):
-        painter = qt.QPainter(self)
-
-        opt = qt.QStyleOptionHeader()
-        opt.orientation = qt.Qt.Horizontal
-        opt.text = self.text()
-        opt.textAlignment = self.alignment()
-        opt.direction = self.layoutDirection()
-        opt.fontMetrics = self.fontMetrics()
-        opt.palette = self.palette()
-        opt.state = qt.QStyle.State_Active
-        opt.position = qt.QStyleOptionHeader.Beginning
-        style = self.style()
-
-        # Background
-        margin = -1
-        opt.rect = self.rect().adjusted(margin, margin, -margin, -margin)
-        style.drawControl(qt.QStyle.CE_HeaderSection, opt, painter, None)
-
-        # Frame border and text
-        super().paintEvent(event)
+    # expose API
+    def setText(self, text):
+        self._qLineEdit.setText(text)
 
 
 class DataPanel(qt.QWidget):
@@ -92,7 +100,7 @@ class DataPanel(qt.QWidget):
 
         self.__customNxdataItem = None
 
-        self.__dataTitle = _HeaderLabel(self)
+        self.__dataTitle = _HeaderFrame(self)
         self.__dataTitle.setVisible(False)
 
         self.__dataViewer = DataViewerFrame(self)
