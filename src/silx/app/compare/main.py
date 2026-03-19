@@ -84,6 +84,9 @@ def mainQt(options):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     app = qt.QApplication([])
+    if qt.BINDING != "PyQt5":
+        app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
+
     window = CompareImagesWindow(backend=backend, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 
