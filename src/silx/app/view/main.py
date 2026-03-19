@@ -142,6 +142,8 @@ def mainQt(options):
     import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])
+    if qt.BINDING != "PyQt5":
+        app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
     qt.QLocale.setDefault(qt.QLocale.c())
 
     def sigintHandler(*args):
