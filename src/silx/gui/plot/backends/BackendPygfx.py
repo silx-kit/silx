@@ -2544,9 +2544,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def postRedisplay(self):
         self.request_draw(self._draw)
+        # Also schedule a Qt paint event so processEvents() triggers the draw.
+        # request_draw uses rendercanvas's scheduler which may delay the draw,
+        # but Qt tests rely on processEvents() flushing pending updates.
+        qt.QWidget.update(self)
 
     def replot(self):
         self.request_draw(self._draw)
+        qt.QWidget.update(self)
 
     def saveGraph(self, fileName, fileFormat, dpi):
         if dpi is not None:
