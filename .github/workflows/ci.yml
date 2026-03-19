@@ -60,6 +60,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
       - uses: ./.github/actions/setup-system
+      - name: Setup Vulkan (SwiftShader)
+        if: runner.os == 'Linux'
+        uses: NcStudios/VulkanCI@v1.0
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
@@ -83,6 +86,5 @@ jobs:
         env:
           QT_API: ${{ matrix.QT_API }}
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
-          VK_ICD_FILENAMES: ${{ runner.os == 'Linux' && '/usr/share/vulkan/icd.d/lvp_icd.x86_64.json' || '' }}
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
