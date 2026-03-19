@@ -4,10 +4,10 @@ Writing NXdata
 
 This tutorial explains how to write a *NXdata* group into a HDF5 file.
 
-A basic knowledge of the HDF5 file format, including understanding
+A basic knowledge of the HDF5 file format, including understanding
 the concepts of *group*, *dataset* and *attribute*,
 is a prerequisite for this tutorial. You should also be able to read
-a python script using the *h5py* library to write HDF5 data.
+a Python script using the *h5py* library to write HDF5 data.
 You can find some information on these topics at the beginning of the
 :doc:`io` tutorial.
 
@@ -157,197 +157,156 @@ a *frame number*.
    This attribute is documented in the official NeXus `description <https://manual.nexusformat.org/nxdl_desc.html>`_
 
 
-Writing NXdata with h5py
-------------------------
+Examples of NXdata with h5py
+----------------------------
 
-The following examples explain how to write NXdata directly using
-the *h5py* library.
-
-.. note::
-
-   All following examples should be preceded by:
-
-   .. code-block:: python
-
-       import h5py
-       import numpy
-       import sys
-
-       # this is needed for writing arrays of utf-8 strings with h5py
-      text_dtype = h5py.special_dtype(vlen=str)
-
-       filename = "./myfile.h5"
-       h5f = h5py.File(filename, "w")
-       entry = h5f.create_group("my_entry")
-       entry.attrs["NX_class"] = "NXentry"
-
-A simple curve
-++++++++++++++
+A curve
++++++++
 
 The simplest NXdata example would be a 1D signal to be plotted as a curve.
 
-
 .. code-block:: python
 
-    nxdata = entry.create_group("my_curve")
-    nxdata.attrs["NX_class"] = "NXdata"
-    nxdata.attrs["signal"] = numpy.array("y", dtype=text_dtype)
-    ds = nxdata.create_dataset("y",
-                               data=numpy.array([0.1, 0.2, 0.15, 0.44]))
-    ds.attrs["long_name"] = numpy.array("ordinate", dtype=text_dtype)
+    import h5py
+    import numpy
 
-To add an axis:
+    with h5py.File("myfile.h5", "w") as h5file:
+        # It is mandatory to have at least one NXentry
+        # https://manual.nexusformat.org/classes/base_classes/NXentry.html#nxentry
+        entry = h5file.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
 
-.. code-block:: python
+        nxdata = entry.create_group("my_curve")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "y"
+        ds = nxdata.create_dataset("y", data=numpy.array([0.1, 0.2, 0.15, 0.44]))
 
-    nxdata.attrs["axes"] = numpy.array(["x"],
-                                       dtype=text_dtype)
-    ds = nxdata.create_dataset("x",
-                               data=numpy.array([101.1, 101.2, 101.3, 101.4]))
-    ds.attrs["long_name"] = numpy.array("abscissa", dtype=text_dtype)
+        # Add units (optional)
+        ds.attrs["units"] = "mm"
+
+        # Add an axis (optional)
+        nxdata.attrs["axes"] = ["x"]
+        ds = nxdata.create_dataset("x", data=numpy.array([101.1, 101.2, 101.3, 101.4]))
+        ds.attrs["units"] = "deg"
+
+        # Add additional curves with auxiliary signals (optional)
+        nxdata.create_dataset("y2", data=numpy.array([0.2, 0.4, 0.3, 0.88]))
+        nxdata.create_dataset("y3", data=numpy.array([1, 0.7, 0.4, 0.1]))
+        nxdata.attrs["auxiliary_signals"] = ["y2", "y3"]
 
 
-A scatter plot
-++++++++++++++
+This will give the following plot in ``silx view``:
+
+.. image:: img/nxcurve.png
+
+
+A 2D scatter plot
++++++++++++++++++
 
 A scatter plot is the only case for which we can have more axes than
 there are signal dimensions. The signal is 1D, and there can be any
 number of axes with the same number of values as the signal.
 
-But the most common case is a 2D scatter plot, with a signal and
-two axes.
+Silx supports 2D and 3D scatters.
 
+To generate a 2D scatter plot:
 
 .. code-block:: python
 
-    nxdata = entry.create_group("my_scatter")
-    nxdata.attrs["NX_class"] = "NXdata"
-    nxdata.attrs["signal"] = numpy.array("values",
-                                         dtype=text_dtype)
-    nxdata.attrs["axes"] = numpy.array(["x", "y"],
-                                       dtype=text_dtype)
-    nxdata.create_dataset("values",
-                          data=numpy.array([0.1, 0.2, 0.15, 0.44]))
-    nxdata.create_dataset("x",
-                          data=numpy.array([101.1, 101.2, 101.3, 101.4]))
-    nxdata.create_dataset("y",
-                          data=numpy.array([2, 4, 6, 8]))
+    import h5py
+    import numpy
+
+    with h5py.File("myfile.h5", "w") as h5file:
+        entry = h5file.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+
+        nxdata = entry.create_group("my_scatter")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "values"
+        nxdata.attrs["axes"] = ["x", "y"]
+        nxdata.create_dataset("values", data=numpy.array([0.1, 0.2, 0.15, 0.44]))
+        nxdata.create_dataset("x", data=numpy.array([101.1, 101.2, 101.3, 101.4]))
+        nxdata.create_dataset("y", data=numpy.array([2, 4, 6, 8]))
+
+Again, in ``silx view``:
+
+.. image:: img/nxscatter.png
+
+A 3D scatter plot
++++++++++++++++++
+
+A 3D scatter plot can be generated likewise
+
+.. code-block:: python
+
+    import h5py
+    import numpy
+
+    with h5py.File("myfile.h5", "w") as h5file:
+        entry = h5file.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+
+        nxdata = entry.create_group("my_3D_scatter")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "values"
+        nxdata.attrs["axes"] = ["x", "y", "z"]
+        nxdata.create_dataset("values", data=numpy.array([0.1, 0.2, 0.15, 0.44]))
+        nxdata.create_dataset("x", data=numpy.array([101.1, 101.2, 101.3, 101.4]))
+        nxdata.create_dataset("y", data=numpy.array([2, 4, 6, 8]))
+        nxdata.create_dataset("z", data=numpy.array([-10, -8, -6, -4]))
+
+.. image:: img/nxscatter3d.png
+
+.. note:: 
+
+    When producing the 3D scatter plot, ``silx view`` will scale the markers according to the first auxiliary signal.
+
+    .. code-block:: python
+
+        nxdata.create_dataset("sizes", data=numpy.array([2, 4, 4, 2]))
+        nxdata.attrs["auxiliary_signals"] = ["sizes"]
+
+    If there is no auxiliary signal, all markers will have the same size.
 
 A stack of images
 +++++++++++++++++
 
-The following examples illustrates how to use the `@interpretation`
-attribute to define only two axes for a 3D signal. The first
-dimension of the signal is considered a frame index and is not scaled.
+In case of a stack, the first axis corresponds to stack indices and may not be represented by a dataset.
 
-
-.. code-block:: python
-
-    nxdata = entry.create_group("images")
-    nxdata.attrs["NX_class"] = "NXdata"
-    nxdata.attrs["signal"] = numpy.array("frames",
-                                         dtype=text_dtype)
-    nxdata.attrs["axes"] = numpy.array(["y", "x"],
-                                       dtype=text_dtype)
-    # 2 frames of size 3 rows x 4 columns
-    signal = nxdata.create_dataset(
-        "frames",
-        data=numpy.array([[[1., 1.1, 1.2, 1.3],
-                           [1.4, 1.5, 1.6, 1.7],
-                           [1.8, 1.9, 2.0, 2.1]],
-                          [[8., 8.1, 8.2, 8.3],
-                           [8.4, 8.5, 8.6, 8.7],
-                           [8.8, 8.9, 9.0, 9.1]]]))
-    signal.attrs["interpretation"] = "image"
-    nxdata.create_dataset("x",
-                          data=numpy.array([0.1, 0.2, 0.3, 0.4]))
-    nxdata.create_dataset("y",
-                          data=numpy.array([2, 4, 6]))
-
-
-Writing NXdata with silx
-------------------------
-
-*silx* provides a convenience function to write NXdata groups:
-:func:`silx.io.nxdata.save_NXdata`
-
-The following examples show how to reproduce the previous examples
-using this function.
-
-
-A simple curve
-++++++++++++++
-
-To get exactly the same output as previously, you can specify all attributes
-like this:
+In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
 
 .. code-block:: python
 
+    import h5py
     import numpy
-    from silx.io.nxdata import save_NXdata
 
-    save_NXdata(filename="./myfile.h5",
-                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
-                signal_name="y",
-                signal_long_name="ordinate",
-                axes=[numpy.array([101.1, 101.2, 101.3, 101.4])],
-                axes_names=["x"],
-                axes_long_names=["abscissa"],
-                nxentry_name="my_entry",
-                nxdata_name="my_curve")
+    with h5py.File("myfile.h5", "w") as h5file:
+        entry = h5file.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
 
-Most of these parameters are optional, only *filename* and *signal*
-are mandatory parameters. Omitted parameters have default values.
+        nxdata = entry.create_group("image")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "frames"
+        nxdata.attrs["axes"] = [".", "y", "x"]
+        # 2 frames of size 3 rows x 4 columns
+        signal = nxdata.create_dataset(
+            "frames",
+            data=numpy.array(
+                [
+                    [[1.0, 1.1, 1.2, 1.3], [1.4, 1.5, 1.6, 1.7], [1.8, 1.9, 2.0, 2.1]],
+                    [[8.0, 8.1, 8.2, 8.3], [8.4, 8.5, 8.6, 8.7], [8.8, 8.9, 9.0, 9.1]],
+                ]
+            ),
+        )
+        x = nxdata.create_dataset("x", data=numpy.array([0.1, 0.2, 0.3, 0.4]))
+        x.attrs["units"] = "mm"
+        y = nxdata.create_dataset("y", data=numpy.array([2, 4, 6]))
+        y.attrs["units"] = "s"
 
-If you do not care about the names of the entry, NXdata and of all the
-datasets, you can simply write:
+.. image:: img/nximage.png
 
-.. code-block:: python
+.. note:: 
 
-    import numpy
-    from silx.io.nxdata import save_NXdata
-
-    save_NXdata(filename="./myfile.h5",
-                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
-                axes=[numpy.array([101.1, 101.2, 101.3, 101.4])])
-
-A scatter plot
-++++++++++++++
-
-.. code-block:: python
-
-    import numpy
-    from silx.io.nxdata import save_NXdata
-
-    save_NXdata(filename="./myfile.h5",
-                signal=numpy.array([0.1, 0.2, 0.15, 0.44]),
-                signal_name="values",
-                axes=[numpy.array([2, 4, 6, 8]),
-                      numpy.array([101.1, 101.2, 101.3, 101.4])],
-                axes_names=["x", "y"],
-                nxentry_name="my_entry",
-                nxdata_name="my_scatter")
-
-
-A stack of images
-+++++++++++++++++
-
-.. code-block:: python
-
-    import numpy
-    from silx.io.nxdata import save_NXdata
-
-    save_NXdata(filename="./myfile.h5",
-                signal=numpy.array([[[1., 1.1, 1.2, 1.3],
-                           [1.4, 1.5, 1.6, 1.7],
-                           [1.8, 1.9, 2.0, 2.1]],
-                          [[8., 8.1, 8.2, 8.3],
-                           [8.4, 8.5, 8.6, 8.7],
-                           [8.8, 8.9, 9.0, 9.1]]]),
-                signal_name="frames",
-                interpretation="image",
-                axes=[numpy.array([2, 4, 6]),
-                      numpy.array([0.1, 0.2, 0.3, 0.4])],
-                axes_names=["y", "x"],
-                nxentry_name="my_entry",
-                nxdata_name="images")
+    If the image axes have the same ``units`` or both have no ``units``, the image aspect ratio will kept.
+    
+    In the example above, the two axes ``x`` and ``y`` have different ``units`` so that the image aspect ratio is not conserved.
