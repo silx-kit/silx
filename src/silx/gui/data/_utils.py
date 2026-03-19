@@ -62,17 +62,17 @@ def isScatter(nxd: NXdata, naxes: int) -> bool:
     return len(nxd.axes) == naxes
 
 
-def _getAxisCalib(x_axis: ImageAxis, axis_length: int) -> AbstractCalibration:
-    if x_axis is None:
-        # no calibration
+def _getAxisCalib(axis: ImageAxis, axis_length: int) -> AbstractCalibration:
+    if axis is None:
         return ArrayCalibration(numpy.arange(axis_length))
-    if numpy.isscalar(x_axis) or len(x_axis) == 1:
+    if numpy.isscalar(axis) or len(axis) == 1:
         # constant axis
-        return ArrayCalibration(x_axis * numpy.ones((axis_length,)))
-    if len(x_axis) == 2:
+        return ArrayCalibration(axis * numpy.ones((axis_length,)))
+    if len(axis) == 2:
         # linear calibration
-        return LinearCalibration(slope=x_axis[0], y_intercept=x_axis[1])
-    raise ValueError("Expected a scalar or two values. Got {x_axis}.")
+        return LinearCalibration(slope=axis[0], y_intercept=axis[1])
+    # array
+    return ArrayCalibration(axis)
 
 
 def getAxesCalib(
