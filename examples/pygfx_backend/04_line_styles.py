@@ -33,7 +33,7 @@ def main():
 
     # Gap color example
     y = numpy.sin(x) + 10
-    curve = plot.addCurve(
+    plot.addCurve(
         x,
         y,
         legend="dashed+gapcolor",

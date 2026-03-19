@@ -6,7 +6,7 @@ wireframe, and points modes side by side.
 
 import numpy
 from silx.gui import qt
-from silx.gui.plot3d.SceneWindow import SceneWindow, items
+from silx.gui.plot3d.SceneWindow import SceneWindow
 
 
 def main():
