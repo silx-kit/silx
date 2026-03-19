@@ -224,10 +224,8 @@ class Axis(qt.QObject):
         """Return the name of the scale used by this axis."""
         return self._scale
 
-    def setScale(self, scale: AxisScaleType):
+    def setScale(self, scale: AxisScaleType = typing.Literal["linear", "log", "asinh"]):
         """Set the scale to be used by this axis.
-
-        :param scale: Name of the scale ("log", "linear", "arcsinh")
         """
         assert scale in self._SCALES
         if self._scale == scale:
