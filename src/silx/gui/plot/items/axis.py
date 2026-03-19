@@ -47,7 +47,7 @@ class TickMode(enum.Enum):
     TIME_SERIES = 1  # Ticks are datetime objects
 
 
-AxisScaleType = typing.Literal["linear", "log"]
+AxisScaleType = typing.Literal["linear", "log", "asinh"]
 
 
 class Axis(qt.QObject):
@@ -67,7 +67,7 @@ class Axis(qt.QObject):
     LOGARITHMIC = "log"
     """Constant defining a logarithmic scale"""
 
-    ARCSINH = "arcsinh"
+    ARCSINH = "asinh"
     """Constant defining an arcsinh scale"""
 
     _SCALES = {LINEAR, LOGARITHMIC, ARCSINH}
@@ -224,7 +224,7 @@ class Axis(qt.QObject):
         """Return the name of the scale used by this axis."""
         return self._scale
 
-    def setScale(self, scale: AxisScaleType = typing.Literal["linear", "log", "asinh"]):
+    def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
         """
         assert scale in self._SCALES
