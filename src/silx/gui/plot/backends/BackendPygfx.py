@@ -2542,11 +2542,23 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     def getWidgetHandle(self):
         return self
 
+    def paintEvent(self, event):
+        # Flush dirty items inside the paint event, where GPU operations are
+        # safe (same pattern as OpenGL's paintGL). This ensures _backendRenderer
+        # is up-to-date before pick() is called. Qt's update() coalesces
+        # multiple calls, naturally batching mutations.
+        plot = self._plotRef()
+        if plot is not None and plot._getDirtyPlot():
+            with plot._paintContext():
+                pass
+        super().paintEvent(event)
+
     def postRedisplay(self):
         self.request_draw(self._draw)
-        # Also schedule a Qt paint event so processEvents() triggers the draw.
-        # request_draw uses rendercanvas's scheduler which may delay the draw,
-        # but Qt tests rely on processEvents() flushing pending updates.
+        # Schedule a Qt paint event so processEvents() flushes dirty items.
+        # rendercanvas's request_draw() uses an async scheduler that may not
+        # fire during processEvents(). Qt's update() coalesces multiple calls,
+        # naturally batching mutations before the paint event fires.
         qt.QWidget.update(self)
 
     def replot(self):
