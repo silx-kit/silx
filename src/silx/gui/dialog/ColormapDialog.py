@@ -1332,7 +1332,8 @@ class ColormapDialog(qt.QDialog):
                     self._item = None
                     raise ValueError("Item %s is not supported" % item)
                 item.sigItemChanged.connect(self.__itemChanged)
-                self._item = weakref.ref(item, self._itemAboutToFinalize)
+                item.destroyed.connect(self._itemDestroyed)
+                self._item = weakref.ref(item)
         finally:
             self._syncScaleToButtonsEnabled()
             self._dataRange = None
@@ -1346,8 +1347,9 @@ class ColormapDialog(qt.QDialog):
         if self._item is not None:
             item = self._item()
             self._item = None
-            if item is not None:
+            if item is not None and qtinspect.isValid(item):
                 item.sigItemChanged.disconnect(self.__itemChanged)
+                item.destroyed.disconnect(self._itemDestroyed)
 
     def __itemChanged(self, event):
         if event == items.ItemChangedType.DATA:
@@ -1394,20 +1396,16 @@ class ColormapDialog(qt.QDialog):
             return colormapped
         return None
 
-    def _colormapAboutToFinalize(self, weakrefColormap):
-        """Callback when the data weakref is about to be finalized."""
-        if self._colormap is weakrefColormap and qtinspect.isValid(self):
-            self.setColormap(None)
+    def _colormapDestroyed(self):
+        self.setColormap(None)
 
     def _dataAboutToFinalize(self, weakrefData):
         """Callback when the data weakref is about to be finalized."""
         if self._data is weakrefData and qtinspect.isValid(self):
             self.setData(None)
 
-    def _itemAboutToFinalize(self, weakref):
-        """Callback when the data weakref is about to be finalized."""
-        if self._item is weakref and qtinspect.isValid(self):
-            self.setItem(None)
+    def _itemDestroyed(self):
+        self.setItem(None)
 
     def _getHistogram(self):
         """Returns the histogram defined by the dialog as metadata
@@ -1585,12 +1583,14 @@ class ColormapDialog(qt.QDialog):
         oldColormap = self.getColormap()
         if oldColormap is colormap:
             return
-        if oldColormap is not None:
+        if oldColormap is not None and qtinspect.isValid(oldColormap):
             oldColormap.sigChanged.disconnect(self._applyColormap)
+            oldColormap.destroyed.disconnect(self._colormapDestroyed)
 
         if colormap is not None:
             colormap.sigChanged.connect(self._applyColormap)
-            colormap = weakref.ref(colormap, self._colormapAboutToFinalize)
+            colormap.destroyed.connect(self._colormapDestroyed)
+            colormap = weakref.ref(colormap)
 
         self._colormap = colormap
         self.storeCurrentState()
