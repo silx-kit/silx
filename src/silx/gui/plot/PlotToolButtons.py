@@ -60,7 +60,6 @@ ICON_LINEAR = "ph.line-segment-bold"
 ICON_LOG = "mdi.math-log"
 ICON_ASINH = "mdi6.math-sin"
 ICONS_OPTIONS = {
-    "color": "green",
     "options": [
         {"offset": (-0.25, 0.0), "scale_factor": 0.7},
         {"offset": (0.25, 0.0), "scale_factor": 0.7},
