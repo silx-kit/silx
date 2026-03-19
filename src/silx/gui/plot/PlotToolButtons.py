@@ -360,7 +360,7 @@ class XAxisScaleToolButton(PlotToolButton):
         xlogAction.setIconVisibleInMenu(True)
 
         xasinhAction = self._createAction(XAxis.ARCSINH)
-        xasinhAction.triggered.connect(self.setXAxisScaleAsinh)
+        xasinhAction.triggered.connect(self._setXAxisScaleAsinh)
         xasinhAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
