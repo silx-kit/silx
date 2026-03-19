@@ -230,9 +230,7 @@ class _PygfxCurveItem:
             self._errorGroup = gfx.Group()
             errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
             if len(errSegments) > 0:
-                errGeom = gfx.Geometry(
-                    positions=numpy.array(errSegments, dtype=numpy.float32)
-                )
+                errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
                 errMat = gfx.LineSegmentMaterial(
                     thickness=1.0,
                     color=uniformColor,
@@ -251,35 +249,57 @@ class _PygfxCurveItem:
     @staticmethod
     def _buildErrorBarSegments(x, y, xerror, yerror):
         """Build line segments for error bars."""
-        segments = []
+        parts = []
 
         if yerror is not None:
-            yerror = numpy.asarray(yerror)
-            if yerror.ndim == 1:
+            yerror = numpy.asarray(yerror, dtype=numpy.float64)
+            if yerror.ndim == 2 and yerror.shape[1] == 1:
+                yerror = numpy.ravel(yerror)
+            if yerror.ndim == 0:
+                yErrMinus = numpy.full_like(y, yerror)
+                yErrPlus = yErrMinus
+            elif yerror.ndim == 1:
                 yErrMinus = yerror
                 yErrPlus = yerror
             else:
                 yErrMinus = yerror[0]
                 yErrPlus = yerror[1]
-            for i in range(len(x)):
-                # Vertical bar
-                segments.append([x[i], y[i] - yErrMinus[i], 0])
-                segments.append([x[i], y[i] + yErrPlus[i], 0])
+            n = len(x)
+            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
+            seg[0::2, 0] = x
+            seg[0::2, 1] = y - yErrMinus
+            seg[0::2, 2] = 0
+            seg[1::2, 0] = x
+            seg[1::2, 1] = y + yErrPlus
+            seg[1::2, 2] = 0
+            parts.append(seg)
 
         if xerror is not None:
-            xerror = numpy.asarray(xerror)
-            if xerror.ndim == 1:
+            xerror = numpy.asarray(xerror, dtype=numpy.float64)
+            if xerror.ndim == 2 and xerror.shape[1] == 1:
+                xerror = numpy.ravel(xerror)
+            if xerror.ndim == 0:
+                xErrMinus = numpy.full_like(x, xerror)
+                xErrPlus = xErrMinus
+            elif xerror.ndim == 1:
                 xErrMinus = xerror
                 xErrPlus = xerror
             else:
                 xErrMinus = xerror[0]
                 xErrPlus = xerror[1]
-            for i in range(len(x)):
-                # Horizontal bar
-                segments.append([x[i] - xErrMinus[i], y[i], 0])
-                segments.append([x[i] + xErrPlus[i], y[i], 0])
+            n = len(x)
+            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
+            seg[0::2, 0] = x - xErrMinus
+            seg[0::2, 1] = y
+            seg[0::2, 2] = 0
+            seg[1::2, 0] = x + xErrPlus
+            seg[1::2, 1] = y
+            seg[1::2, 2] = 0
+            parts.append(seg)
 
-        return segments
+        if parts:
+            return numpy.concatenate(parts)
+        return numpy.empty((0, 3), dtype=numpy.float64)
 
     @staticmethod
     def _buildFill(x, y, baseline, color, alpha):
