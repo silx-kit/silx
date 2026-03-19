@@ -699,6 +699,14 @@ def open(filename):  # pylint:disable=redefined-builtin
         h5_file = _open_local_file(url.file_path())
     elif url.scheme() in ("http", "https"):
         return _open_url_with_h5pyd(filename)
+    elif url.scheme() in ("bliss", "blissdata"):
+        try:
+            from .blissdatah5 import BlissDataH5
+        except ImportError:
+            raise IOError(
+                f"blissdata support is not available, cannot open: {filename}"
+            )
+        h5_file = BlissDataH5(url.file_path())
     else:
         raise OSError(f"Unsupported URL scheme {url.scheme}: {filename}")
 
