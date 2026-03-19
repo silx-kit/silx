@@ -225,8 +225,7 @@ class Axis(qt.QObject):
         return self._scale
 
     def setScale(self, scale: AxisScaleType):
-        """Set the scale to be used by this axis.
-        """
+        """Set the scale to be used by this axis."""
         assert scale in self._SCALES
         if self._scale == scale:
             return
@@ -568,8 +567,7 @@ class YRightAxis(Axis):
         return self.__mainAxis.getScale()
 
     def setScale(self, scale: AxisScaleType):
-        """Set the scale to be used by this axis.
-        """
+        """Set the scale to be used by this axis."""
         self.__mainAxis.setScale(scale)
 
     def _isLogarithmic(self) -> bool:
