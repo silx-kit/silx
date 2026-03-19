@@ -33,7 +33,6 @@ __date__ = "12/04/2019"
 from collections import abc
 import logging
 import weakref
-import qtawesome
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
