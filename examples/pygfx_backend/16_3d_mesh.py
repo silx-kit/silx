@@ -58,7 +58,7 @@ def make_sphere_mesh(radius=1.0, n_lat=20, n_lon=20):
 def main():
     app = qt.QApplication([])
 
-    window = SceneWindow()
+    window = SceneWindow(backend="pygfx")
     window.setWindowTitle("3D Mesh & Primitives")
 
     scene = window.getSceneWidget()

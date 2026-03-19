@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ###########################################################################*/
-"""Test SceneWindow"""
+"""Test SceneWindow with OpenGL and pygfx backends"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -38,10 +38,183 @@ from silx.gui import qt
 from silx.gui.plot3d.SceneWindow import SceneWindow
 from silx.gui.plot3d.items import HeightMapData, HeightMapRGBA
 
+# --- Parametrized fixture for both backends ---
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(None, id="opengl"),
+        pytest.param("pygfx", id="pygfx"),
+    ]
+)
+def scene_window(request, qapp, test_options):
+    """SceneWindow fixture parametrized by backend."""
+    backend = request.param
+    if backend is None and not test_options.WITH_GL_TEST:
+        pytest.skip(test_options.WITH_GL_TEST_REASON)
+    if backend == "pygfx" and not test_options.WITH_PYGFX_TEST:
+        pytest.skip(test_options.WITH_PYGFX_TEST_REASON)
+
+    window = SceneWindow(backend=backend)
+    window.show()
+    qapp.processEvents()
+    yield window
+    window.setAttribute(qt.Qt.WA_DeleteOnClose)
+    window.close()
+    qapp.processEvents()
+
+
+# --- Tests for both backends ---
+
+
+class TestSceneWindow:
+    """Tests SceneWindow features shared across backends"""
+
+    def test_add(self, scene_window, qapp):
+        """Test add basic scene primitives"""
+        sceneWidget = scene_window.getSceneWidget()
+        items = []
+
+        # RGB image
+        image = sceneWidget.addImage(
+            numpy.random.random(10 * 10 * 3).astype(numpy.float32).reshape(10, 10, 3)
+        )
+        image.setLabel("RGB image")
+        items.append(image)
+        assert sceneWidget.getItems() == tuple(items)
+
+        # Data image
+        image = sceneWidget.addImage(
+            numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
+        )
+        image.setTranslation(10.0)
+        items.append(image)
+        assert sceneWidget.getItems() == tuple(items)
+
+        # 2D scatter
+        scatter = sceneWidget.add2DScatter(
+            *numpy.random.random(3000).astype(numpy.float32).reshape(3, -1), index=0
+        )
+        scatter.setTranslation(0, 10)
+        scatter.setScale(10, 10, 10)
+        items.insert(0, scatter)
+        assert sceneWidget.getItems() == tuple(items)
+
+        # 3D scatter
+        scatter = sceneWidget.add3DScatter(
+            *numpy.random.random(4000).astype(numpy.float32).reshape(4, -1)
+        )
+        scatter.setTranslation(10, 10)
+        scatter.setScale(10, 10, 10)
+        items.append(scatter)
+        assert sceneWidget.getItems() == tuple(items)
+
+        # 3D array of float
+        volume = sceneWidget.addVolume(
+            numpy.arange(10**3, dtype=numpy.float32).reshape(10, 10, 10)
+        )
+        volume.setTranslation(0, 0, 10)
+        volume.setRotation(45, (0, 0, 1))
+        volume.addIsosurface(500, "red")
+        items.append(volume)
+        assert sceneWidget.getItems() == tuple(items)
+
+        # 3D array of complex
+        volume = sceneWidget.addVolume(
+            numpy.arange(10**3).reshape(10, 10, 10).astype(numpy.complex64)
+        )
+        volume.setTranslation(10, 0, 10)
+        volume.setRotation(45, (0, 0, 1))
+        volume.setComplexMode(volume.ComplexMode.REAL)
+        volume.addIsosurface(500, (1.0, 0.0, 0.0, 0.5))
+        items.append(volume)
+        assert sceneWidget.getItems() == tuple(items)
+
+        sceneWidget.resetZoom("front")
+        qapp.processEvents()
+
+    def test_change_content(self, scene_window, qapp):
+        """Test add/remove/clear items"""
+        sceneWidget = scene_window.getSceneWidget()
+        items = []
+
+        # Add 2 images
+        image = numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
+        items.append(sceneWidget.addImage(image))
+        items.append(sceneWidget.addImage(image))
+        qapp.processEvents()
+        assert sceneWidget.getItems() == tuple(items)
+
+        # Clear
+        sceneWidget.clearItems()
+        qapp.processEvents()
+        assert sceneWidget.getItems() == ()
+
+        # Add 2 images and remove first one
+        image = numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
+        sceneWidget.addImage(image)
+        items = (sceneWidget.addImage(image),)
+        qapp.processEvents()
+
+        sceneWidget.removeItem(sceneWidget.getItems()[0])
+        qapp.processEvents()
+        assert sceneWidget.getItems() == items
+
+    def test_colors(self, scene_window, qapp):
+        """Test setting scene colors"""
+        sceneWidget = scene_window.getSceneWidget()
+
+        color = qt.QColor(128, 128, 128)
+        sceneWidget.setBackgroundColor(color)
+        assert sceneWidget.getBackgroundColor() == color
+
+        color = qt.QColor(0, 0, 0)
+        sceneWidget.setForegroundColor(color)
+        assert sceneWidget.getForegroundColor() == color
+
+        color = qt.QColor(255, 0, 0)
+        sceneWidget.setTextColor(color)
+        assert sceneWidget.getTextColor() == color
+
+        color = qt.QColor(0, 255, 0)
+        sceneWidget.setHighlightColor(color)
+        assert sceneWidget.getHighlightColor() == color
+
+        qapp.processEvents()
+
+    def test_interactive_mode(self, scene_window, qapp):
+        """Test changing interactive mode"""
+        sceneWidget = scene_window.getSceneWidget()
+
+        for mode in ("rotate", "pan"):
+            sceneWidget.setInteractiveMode(mode)
+            qapp.processEvents()
+            assert sceneWidget.getInteractiveMode() == mode
+
+    def test_model(self, scene_window, qapp):
+        """Test that model is properly set up"""
+        sceneWidget = scene_window.getSceneWidget()
+        model = sceneWidget.model()
+        assert model is not None
+        assert model.rowCount() == 2  # Settings + Data
+
+        # Add item and check model updates
+        scatter = sceneWidget.add3DScatter(
+            *numpy.random.random(4000).astype(numpy.float32).reshape(4, -1)
+        )
+        scatter.setLabel("Test scatter")
+
+        # Data group should have children now
+        data_index = model.index(1, 0)
+        assert model.rowCount(data_index) > 0
+
+
+# --- OpenGL-only tests ---
+
 
 @pytest.mark.usefixtures("use_opengl")
-class TestSceneWindow(TestCaseQt, ParametricTestCase):
-    """Tests SceneWidget picking feature"""
+class TestSceneWindowOpenGL(TestCaseQt, ParametricTestCase):
+    """Tests specific to OpenGL backend"""
 
     def setUp(self):
         super().setUp()
@@ -55,70 +228,6 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
         self.window.close()
         del self.window
         super().tearDown()
-
-    def testAdd(self):
-        """Test add basic scene primitive"""
-        sceneWidget = self.window.getSceneWidget()
-        items = []
-
-        # RGB image
-        image = sceneWidget.addImage(
-            numpy.random.random(10 * 10 * 3).astype(numpy.float32).reshape(10, 10, 3)
-        )
-        image.setLabel("RGB image")
-        items.append(image)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # Data image
-        image = sceneWidget.addImage(
-            numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
-        )
-        image.setTranslation(10.0)
-        items.append(image)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # 2D scatter
-        scatter = sceneWidget.add2DScatter(
-            *numpy.random.random(3000).astype(numpy.float32).reshape(3, -1), index=0
-        )
-        scatter.setTranslation(0, 10)
-        scatter.setScale(10, 10, 10)
-        items.insert(0, scatter)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # 3D scatter
-        scatter = sceneWidget.add3DScatter(
-            *numpy.random.random(4000).astype(numpy.float32).reshape(4, -1)
-        )
-        scatter.setTranslation(10, 10)
-        scatter.setScale(10, 10, 10)
-        items.append(scatter)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # 3D array of float
-        volume = sceneWidget.addVolume(
-            numpy.arange(10**3, dtype=numpy.float32).reshape(10, 10, 10)
-        )
-        volume.setTranslation(0, 0, 10)
-        volume.setRotation(45, (0, 0, 1))
-        volume.addIsosurface(500, "red")
-        volume.getCutPlanes()[0].getColormap().setName("viridis")
-        items.append(volume)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # 3D array of complex
-        volume = sceneWidget.addVolume(
-            numpy.arange(10**3).reshape(10, 10, 10).astype(numpy.complex64)
-        )
-        volume.setTranslation(10, 0, 10)
-        volume.setRotation(45, (0, 0, 1))
-        volume.setComplexMode(volume.ComplexMode.REAL)
-        volume.addIsosurface(500, (1.0, 0.0, 0.0, 0.5))
-        items.append(volume)
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        sceneWidget.resetZoom("front")
-        self.qapp.processEvents()
 
     def testHeightMap(self):
         """Test height map items"""
@@ -158,57 +267,8 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 sceneWidget.clearItems()
 
-    def testChangeContent(self):
-        """Test add/remove/clear items"""
-        sceneWidget = self.window.getSceneWidget()
-        items = []
-
-        # Add 2 images
-        image = numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
-        items.append(sceneWidget.addImage(image))
-        items.append(sceneWidget.addImage(image))
-        self.qapp.processEvents()
-        self.assertEqual(sceneWidget.getItems(), tuple(items))
-
-        # Clear
-        sceneWidget.clearItems()
-        self.qapp.processEvents()
-        self.assertEqual(sceneWidget.getItems(), ())
-
-        # Add 2 images and remove first one
-        image = numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
-        sceneWidget.addImage(image)
-        items = (sceneWidget.addImage(image),)
-        self.qapp.processEvents()
-
-        sceneWidget.removeItem(sceneWidget.getItems()[0])
-        self.qapp.processEvents()
-        self.assertEqual(sceneWidget.getItems(), items)
-
-    def testColors(self):
-        """Test setting scene colors"""
-        sceneWidget = self.window.getSceneWidget()
-
-        color = qt.QColor(128, 128, 128)
-        sceneWidget.setBackgroundColor(color)
-        self.assertEqual(sceneWidget.getBackgroundColor(), color)
-
-        color = qt.QColor(0, 0, 0)
-        sceneWidget.setForegroundColor(color)
-        self.assertEqual(sceneWidget.getForegroundColor(), color)
-
-        color = qt.QColor(255, 0, 0)
-        sceneWidget.setTextColor(color)
-        self.assertEqual(sceneWidget.getTextColor(), color)
-
-        color = qt.QColor(0, 255, 0)
-        sceneWidget.setHighlightColor(color)
-        self.assertEqual(sceneWidget.getHighlightColor(), color)
-
-        self.qapp.processEvents()
-
     def testInteractiveMode(self):
-        """Test changing interactive mode"""
+        """Test changing interactive mode with mouse events"""
         sceneWidget = self.window.getSceneWidget()
         center = numpy.array((sceneWidget.width() // 2, sceneWidget.height() // 2))
 

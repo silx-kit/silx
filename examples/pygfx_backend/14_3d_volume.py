@@ -12,7 +12,7 @@ from silx.gui.plot3d.SceneWindow import SceneWindow, items
 def main():
     app = qt.QApplication([])
 
-    window = SceneWindow()
+    window = SceneWindow(backend="pygfx")
     window.setWindowTitle("3D Volume - Isosurfaces & Cut Plane")
 
     scene = window.getSceneWidget()
