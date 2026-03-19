@@ -4,6 +4,7 @@ from weakref import ref
 from typing import TYPE_CHECKING
 from silx.gui import qt
 import qtawesome
+
 if TYPE_CHECKING:
     from ..PlotWindow import PlotWindow
 
@@ -26,8 +27,11 @@ class PlotOptionButton(qt.QPushButton):
 
     def setPlot(self, plot: PlotWindow):
         from ..PlotWindow import PlotWindow  # Avoid cyclic import
+
         if not isinstance(plot, PlotWindow):
-            raise TypeError(f"plot should be an instanec of {PlotWindow}. Got {type(plot)}")
+            raise TypeError(
+                f"plot should be an instanec of {PlotWindow}. Got {type(plot)}"
+            )
         self._plot = ref(plot)
 
     def getPlot(self) -> PlotWindow | None:
@@ -38,7 +42,9 @@ class PlotOptionButton(qt.QPushButton):
     def _customControlButtonMenu(self):
         plot = self.getPlot()
         if plot is None:
-            raise RuntimeError("Plot not found. Either the plot is not set (make sure 'setPlot' is called) or the plot has been deleted.")
+            raise RuntimeError(
+                "Plot not found. Either the plot is not set (make sure 'setPlot' is called) or the plot has been deleted."
+            )
 
         self._menu.clear()
         self._menu.addAction(plot.getLegendsDockWidget().toggleViewAction())
@@ -52,8 +58,4 @@ class PlotOptionButton(qt.QPushButton):
         self._menu.addAction(plot.getPanWithArrowKeysAction())
 
     def _showPlotActionMenu(self):
-        self._menu.exec(
-            self.mapToGlobal(
-                self.rect().bottomLeft()
-            )
-        )
+        self._menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
