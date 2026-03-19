@@ -272,11 +272,11 @@ class YAxisScaleToolButton(PlotToolButton):
         ylinearaction.setIconVisibleInMenu(True)
 
         ylogAction = self._createAction("log")
-        ylogAction.triggered.connect(self.setYAxisScaleLog)
+        ylogAction.triggered.connect(self._setYAxisScaleLog)
         ylogAction.setIconVisibleInMenu(True)
 
         yasinhAction = self._createAction("asinh")
-        yasinhAction.triggered.connect(self.setYAxisScaleAsinh)
+        yasinhAction.triggered.connect(self._setYAxisScaleAsinh)
         yasinhAction.setIconVisibleInMenu(True)
 
         menu = qt.QMenu(self)
