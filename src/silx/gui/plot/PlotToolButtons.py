@@ -268,7 +268,7 @@ class YAxisScaleToolButton(PlotToolButton):
         super().__init__(parent=parent, plot=plot)
 
         ylinearaction = self._createAction("linear")
-        ylinearaction.triggered.connect(self.setYAxisScaleLinear)
+        ylinearaction.triggered.connect(self._setYAxisScaleLinear)
         ylinearaction.setIconVisibleInMenu(True)
 
         ylogAction = self._createAction("log")
@@ -299,15 +299,15 @@ class YAxisScaleToolButton(PlotToolButton):
     def _disconnectPlot(self, plot):
         plot.getYAxis().sigScaleChanged.disconnect(self._yAxisScaleChanged)
 
-    def setYAxisScaleLinear(self):
+    def _setYAxisScaleLinear(self):
         """Set Y-scale to Linear"""
         self.plot().getYAxis().setScale(scale=YAxis.LINEAR)
 
-    def setYAxisScaleLog(self):
+    def _setYAxisScaleLog(self):
         """Set Y-scale to Log"""
         self.plot().getYAxis().setScale(scale=YAxis.LOGARITHMIC)
 
-    def setYAxisScaleAsinh(self):
+    def _setYAxisScaleAsinh(self):
         """Set Y-scale to Arcsinh"""
         self.plot().getYAxis().setScale(scale=YAxis.ARCSINH)
 
@@ -352,11 +352,11 @@ class XAxisScaleToolButton(PlotToolButton):
         super().__init__(parent=parent, plot=plot)
 
         xlinearaction = self._createAction(XAxis.LINEAR)
-        xlinearaction.triggered.connect(self.setXAxisScaleLinear)
+        xlinearaction.triggered.connect(self._setXAxisScaleLinear)
         xlinearaction.setIconVisibleInMenu(True)
 
         xlogAction = self._createAction(XAxis.LOGARITHMIC)
-        xlogAction.triggered.connect(self.setXAxisScaleLog)
+        xlogAction.triggered.connect(self._setXAxisScaleLog)
         xlogAction.setIconVisibleInMenu(True)
 
         xasinhAction = self._createAction(XAxis.ARCSINH)
@@ -383,15 +383,15 @@ class XAxisScaleToolButton(PlotToolButton):
     def _disconnectPlot(self, plot):
         plot.getYAxis().sigScaleChanged.disconnect(self._xAxisScaleChanged)
 
-    def setXAxisScaleLinear(self):
+    def _setXAxisScaleLinear(self):
         """Set X-scale to Linear"""
         self.plot().getXAxis().setScale(scale=XAxis.LINEAR)
 
-    def setXAxisScaleLog(self):
+    def _setXAxisScaleLog(self):
         """Set X-scale to Log"""
         self.plot().getXAxis().setScale(scale=XAxis.LOGARITHMIC)
 
-    def setXAxisScaleAsinh(self):
+    def _setXAxisScaleAsinh(self):
         """Set X-scale to Arcsinh"""
         self.plot().getXAxis().setScale(scale=XAxis.ARCSINH)
 
