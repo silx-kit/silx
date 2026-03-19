@@ -535,6 +535,21 @@ class PlotWidget(qt.QMainWindow):
                     raise RuntimeError("OpenGL backend is not available")
 
             elif backend in ("pygfx", "wgpu"):
+                import os
+                import sys
+
+                if sys.platform.startswith("linux"):
+                    if not os.environ.get("DISPLAY", ""):
+                        raise RuntimeError(
+                            "pygfx backend is not available: "
+                            "DISPLAY environment variable not set"
+                        )
+                    if os.environ.get("XDG_SESSION_TYPE", "") == "wayland":
+                        raise RuntimeError(
+                            "pygfx backend is not available: "
+                            "Wayland sessions are not supported"
+                        )
+
                 try:
                     from .backends.BackendPygfx import BackendPygfx as backendClass
                 except ImportError:
