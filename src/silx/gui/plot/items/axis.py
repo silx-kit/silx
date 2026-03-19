@@ -418,10 +418,8 @@ class XAxis(Axis):
                         self.setLimits(dataRange[0], vmax)
                     else:
                         self.setLimits(*dataRange)
-        elif scale == self.ARCSINH:
-            self._getBackend().setXAxisScale(scale="asinh")
-        elif scale == self.LINEAR:
-            self._getBackend().setXAxisScale(scale="linear")
+        elif scale in (self.LINEAR, self.ARCSINH):
+            self._getBackend().setXAxisScale(scale=self._scale)
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
