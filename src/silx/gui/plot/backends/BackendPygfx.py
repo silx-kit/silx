@@ -1011,11 +1011,17 @@ class _PygfxImageItem:
         self._cmapName = None
         self._cmapTexture = None
         self._gpuColormapInfo = None  # Set when using GPU colormap path
+        self._origin = origin
+        self._scale = scale
+        self._dataShape = numpy.asarray(data).shape[:2]
 
         self._build(data, origin, scale, colormap, alpha)
 
     def _build(self, data, origin, scale, colormap, alpha):
         data = numpy.asarray(data)
+        self._origin = origin
+        self._scale = scale
+        self._dataShape = data.shape[:2]
 
         if data.ndim == 2:
             self._buildScalar(data, origin, scale, colormap, alpha)
@@ -1202,6 +1208,10 @@ class _PygfxTrianglesItem:
         x = numpy.asarray(x, dtype=numpy.float32)
         y = numpy.asarray(y, dtype=numpy.float32)
         triangles = numpy.asarray(triangles, dtype=numpy.int32)
+
+        self._x = x
+        self._y = y
+        self._triangles = triangles
 
         positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
         positions[:, 0] = x
@@ -1445,9 +1455,17 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     """Enable VSync (default True). Set to False before creating the plot
     to unlock frame rates beyond the monitor refresh rate."""
 
+    PRESENT_METHOD = "screen"
+    """Present method for rendering. "screen" uses direct GPU rendering
+    (~3x faster), "image" uses CPU readback (works with remote desktops).
+    Set before creating the plot."""
+
     def __init__(self, plot, parent=None):
         QRenderWidget.__init__(
-            self, parent=parent, present_method="screen", vsync=self.VSYNC
+            self,
+            parent=parent,
+            present_method=self.PRESENT_METHOD,
+            vsync=self.VSYNC,
         )
         BackendBase.BackendBase.__init__(self, plot, parent)
 
@@ -2040,9 +2058,22 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         dpr = self.getDevicePixelRatio()
         self._plotFrame.size = (int(w * dpr), int(h * dpr))
 
+        # Store current ranges
+        previousXRange = self.getGraphXLimits()
+        previousYRange = self.getGraphYLimits(axis="left")
+        previousYRightRange = self.getGraphYLimits(axis="right")
+
         # Re-apply current data ranges to the new size (same as OpenGL backend)
         (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self._plotFrame.dataRanges
         self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+
+        # If plot range has changed, then emit signal
+        if previousXRange != self.getGraphXLimits():
+            self._plot.getXAxis()._emitLimitsChanged()
+        if previousYRange != self.getGraphYLimits(axis="left"):
+            self._plot.getYAxis(axis="left")._emitLimitsChanged()
+        if previousYRightRange != self.getGraphYLimits(axis="right"):
+            self._plot.getYAxis(axis="right")._emitLimitsChanged()
 
     # Backend API: Log transform helpers #####################################
 
@@ -2388,7 +2419,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # Pick triangles
         if isinstance(item, _PygfxTrianglesItem):
-            return None  # TODO
+            return self._pickTriangles(item, dataPos)
 
         return None
 
@@ -2443,8 +2474,63 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def _pickImage(self, item, dataPos):
         """Pick an image item."""
-        # TODO: implement proper image picking
-        return None
+        ox, oy = item._origin
+        sx, sy = item._scale
+        h, w = item._dataShape
+
+        xMin = ox if sx >= 0 else ox + sx * w
+        xMax = ox + sx * w if sx >= 0 else ox
+        yMin = oy if sy >= 0 else oy + sy * h
+        yMax = oy + sy * h if sy >= 0 else oy
+
+        x, y = dataPos
+        if x < xMin or x > xMax or y < yMin or y > yMax:
+            return None
+
+        col = int((x - ox) / sx) if sx != 0 else 0
+        row = int((y - oy) / sy) if sy != 0 else 0
+
+        col = numpy.clip(col, 0, w - 1)
+        row = numpy.clip(row, 0, h - 1)
+
+        return (row,), (col,)
+
+    def _pickTriangles(self, item, dataPos):
+        """Pick a triangles item."""
+        x, y = dataPos
+        xPts = item._x
+        yPts = item._y
+        triangles = item._triangles
+
+        if len(xPts) == 0 or len(triangles) == 0:
+            return None
+
+        # Bounding box check
+        if x < xPts.min() or x > xPts.max() or y < yPts.min() or y > yPts.max():
+            return None
+
+        # Build triangle coordinates array (N, 3, 3) for intersection test
+        triCoords = numpy.zeros((len(triangles), 3, 3), dtype=numpy.float32)
+        triCoords[:, :, 0] = xPts[triangles]
+        triCoords[:, :, 1] = yPts[triangles]
+
+        # Create vertical segment through clicked point
+        segment = numpy.array(((x, y, -1.0), (x, y, 1.0)), dtype=numpy.float32)
+
+        from silx.gui._glutils.utils import segmentTrianglesIntersection
+
+        indices = segmentTrianglesIntersection(segment, triCoords)[0]
+        if len(indices) == 0:
+            return None
+
+        # Convert triangle indices to vertex indices
+        indices = numpy.unique(numpy.ravel(triangles[indices]))
+
+        # Sort from furthest to closest
+        dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
+        indices = indices[numpy.flip(numpy.argsort(dists), axis=0)]
+
+        return tuple(indices)
 
     # Backend API: Update curve ##############################################
 
