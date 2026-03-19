@@ -37,6 +37,7 @@ __date__ = "21/12/2018"
 from collections.abc import Callable
 import weakref
 from silx.gui.colors import RGBAColorType
+from typing import Literal
 
 from ... import qt
 
@@ -488,32 +489,10 @@ class BackendBase:
         """
         self.__xAxisTimeSeries = bool(isTimeSeries)
 
-    def setXAxisLogarithmic(self, flag):
-        """Set the X axis scale between linear and log.
-
-        :param bool flag: If True, the bottom axis will use a log scale
-        """
-        self.setXAxisScale(scale="log" if flag is True else "linear")
-
-    def setYAxisLogarithmic(self, flag):
-        """Set the Y axis scale between linear and log.
-
-        :param bool flag: If True, the left axis will use a log scale
-        """
-        self.setYAxisScale(scale="log" if flag is True else "linear")
-
-    def setXAxisScale(self, scale):
-        """Set the scale of X axis between (linear / log / asinh)
-
-        : param str scale: linear, log or asinh
-        """
+    def setXAxisScale(self, scale: Literal["linear", "log", "asinh"]):
         pass
 
-    def setYAxisScale(self, scale):
-        """Set the scale of Y axis between (linear / log / asinh)
-
-        : param str scale: linear, log or asinh
-        """
+    def setYAxisScale(self, scale: Literal["linear", "log", "asinh"]):
         pass
 
     def setXAxisInverted(self, flag: bool):
