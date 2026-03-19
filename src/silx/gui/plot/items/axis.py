@@ -465,9 +465,9 @@ class YAxis(Axis):
 
     def _internalSetScale(self):
         scale = self._scale
-        vmin, vmax = self.getLimits()
         if scale == self.LOGARITHMIC:
             self._getBackend().setYAxisScale(scale="log")
+            vmin, vmax = self.getLimits()
             if vmin <= 0:
                 dataRange = self._getDataRange()
                 if dataRange is None:
@@ -477,10 +477,8 @@ class YAxis(Axis):
                         self.setLimits(dataRange[0], vmax)
                     else:
                         self.setLimits(*dataRange)
-        elif scale == self.ARCSINH:
-            self._getBackend().setYAxisScale(scale="asinh")
-        elif scale == self.LINEAR:
-            self._getBackend().setYAxisScale(scale="linear")
+        elif scale in (self.LINEAR, self.ARCSINH):
+            self._getBackend().setYAxisScale(scale=self._scale)
         else:
             raise ValueError("Scale %s unsupported" % scale)
 
