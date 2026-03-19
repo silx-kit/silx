@@ -260,11 +260,11 @@ class YAxisScaleToolButton(PlotToolButton):
             self.STATE["log", "state"] = "Y-axis scale is logarithmic"
             self.STATE["log", "action"] = "Logarithmic Y-axis"
             # arcsinh
-            self.STATE["arcsinh", "icon"] = qtawesome.icon(
+            self.STATE["asinh", "icon"] = qtawesome.icon(
                 ICON_YSCALE, ICON_ASINH, **ICONS_OPTIONS
             )
-            self.STATE["arcsinh", "state"] = "Y-axis scale is arcsinh"
-            self.STATE["arcsinh", "action"] = "Arcsinh Y-axis"
+            self.STATE["asinh", "state"] = "Y-axis scale is arcsinh"
+            self.STATE["asinh", "action"] = "Arcsinh Y-axis"
 
         super().__init__(parent=parent, plot=plot)
 
@@ -276,7 +276,7 @@ class YAxisScaleToolButton(PlotToolButton):
         ylogAction.triggered.connect(self.setYAxisScaleLog)
         ylogAction.setIconVisibleInMenu(True)
 
-        yasinhAction = self._createAction("arcsinh")
+        yasinhAction = self._createAction("asinh")
         yasinhAction.triggered.connect(self.setYAxisScaleAsinh)
         yasinhAction.setIconVisibleInMenu(True)
 
@@ -302,15 +302,15 @@ class YAxisScaleToolButton(PlotToolButton):
 
     def setYAxisScaleLinear(self):
         """Set Y-scale to Linear"""
-        self.plot().getYAxis().setScale(scale="linear")
+        self.plot().getYAxis().setScale(scale=YAxis.LINEAR)
 
     def setYAxisScaleLog(self):
         """Set Y-scale to Log"""
-        self.plot().getYAxis().setScale(scale="log")
+        self.plot().getYAxis().setScale(scale=YAxis.LOGARITHMIC)
 
     def setYAxisScaleAsinh(self):
         """Set Y-scale to Arcsinh"""
-        self.plot().getYAxis().setScale(scale="arcsinh")
+        self.plot().getYAxis().setScale(scale=YAxis.ARCSINH)
 
     def _yAxisScaleChanged(self, scale_state):
         """Handle Plot set y scale"""
@@ -344,23 +344,23 @@ class XAxisScaleToolButton(PlotToolButton):
             self.STATE["log", "state"] = "X-axis scale is logarithmic"
             self.STATE["log", "action"] = "Logarithmic X-axis"
             # arcsinh
-            self.STATE["arcsinh", "icon"] = qtawesome.icon(
+            self.STATE["asinh", "icon"] = qtawesome.icon(
                 ICON_XSCALE, ICON_ASINH, **ICONS_OPTIONS
             )
-            self.STATE["arcsinh", "state"] = "X-axis scale is arcsinh"
-            self.STATE["arcsinh", "action"] = "Arcsinh X-axis"
+            self.STATE["asinh", "state"] = "X-axis scale is arcsinh"
+            self.STATE["asinh", "action"] = "Arcsinh X-axis"
 
         super().__init__(parent=parent, plot=plot)
 
-        xlinearaction = self._createAction("linear")
+        xlinearaction = self._createAction(XAxis.LINEAR)
         xlinearaction.triggered.connect(self.setXAxisScaleLinear)
         xlinearaction.setIconVisibleInMenu(True)
 
-        xlogAction = self._createAction("log")
+        xlogAction = self._createAction(XAxis.LOGARITHMIC)
         xlogAction.triggered.connect(self.setXAxisScaleLog)
         xlogAction.setIconVisibleInMenu(True)
 
-        xasinhAction = self._createAction("arcsinh")
+        xasinhAction = self._createAction(XAxis.ARCSINH)
         xasinhAction.triggered.connect(self.setXAxisScaleAsinh)
         xasinhAction.setIconVisibleInMenu(True)
 
@@ -386,15 +386,15 @@ class XAxisScaleToolButton(PlotToolButton):
 
     def setXAxisScaleLinear(self):
         """Set X-scale to Linear"""
-        self.plot().getXAxis().setScale(scale="linear")
+        self.plot().getXAxis().setScale(scale=XAxis.LINEAR)
 
     def setXAxisScaleLog(self):
         """Set X-scale to Log"""
-        self.plot().getXAxis().setScale(scale="log")
+        self.plot().getXAxis().setScale(scale=XAxis.LOGARITHMIC)
 
     def setXAxisScaleAsinh(self):
         """Set X-scale to Arcsinh"""
-        self.plot().getXAxis().setScale(scale="arcsinh")
+        self.plot().getXAxis().setScale(scale=XAxis.ARCSINH)
 
     def _xAxisScaleChanged(self, scale_state):
         """Handle Plot set y scale"""
