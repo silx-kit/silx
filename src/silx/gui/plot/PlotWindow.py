@@ -108,7 +108,7 @@ class PlotWindow(PlotWidget):
         resetzoom=True,
         autoScale=True,
         logScale=True,
-        chooseScale=True,
+        chooseScale=False,
         grid=True,
         curveStyle=True,
         colormap=True,
