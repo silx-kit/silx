@@ -569,8 +569,6 @@ class YRightAxis(Axis):
 
     def setScale(self, scale: AxisScaleType):
         """Set the scale to be used by this axis.
-
-        :param scale: Name of the scale ("log", "linear", "arcsinh")
         """
         self.__mainAxis.setScale(scale)
 
