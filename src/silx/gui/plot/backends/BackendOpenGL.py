@@ -1595,7 +1595,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.xAxis.isLog = is_log
 
     def setYAxisScale(self, scale):
-        if scale in ("arcsinh", "asinh"):
+        if scale == "asinh":
             raise NotImplementedError(
                 f"Plot OpenGL backend does not support {scale} Y axis"
             )
