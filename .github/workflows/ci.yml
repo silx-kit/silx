@@ -60,9 +60,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
       - uses: ./.github/actions/setup-system
-      - name: Setup Vulkan (SwiftShader)
-        if: runner.os == 'Linux'
-        uses: NcStudios/VulkanCI@v1.0
       - name: Install build dependencies
         run: |
           pip install --upgrade --pre build wheel 
