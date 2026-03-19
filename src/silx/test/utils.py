@@ -138,17 +138,6 @@ class _TestOptions:
             except ImportError:
                 self.WITH_PYGFX_TEST = False
                 self.WITH_PYGFX_TEST_REASON = "pygfx package not available"
-            else:
-                try:
-                    import pygfx as gfx
-
-                    # Test pygfx's actual device initialization path
-                    gfx.renderers.wgpu.get_shared().device
-                except Exception:
-                    self.WITH_PYGFX_TEST = False
-                    self.WITH_PYGFX_TEST_REASON = (
-                        "pygfx wgpu device not available (no GPU)"
-                    )
 
         if parsed_options is not None and parsed_options.high_mem:
             self.WITH_HIGH_MEM_TEST = True
