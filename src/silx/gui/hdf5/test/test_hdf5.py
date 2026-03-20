@@ -32,7 +32,6 @@ import time
 import os
 import tempfile
 import numpy
-from packaging.version import Version
 from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
@@ -44,8 +43,6 @@ import weakref
 
 import h5py
 import pytest
-
-h5py2_9 = Version(h5py.version.version) >= Version("2.9.0")
 
 
 @pytest.fixture(scope="class")
@@ -66,18 +63,34 @@ def create_NXentry(group, name):
     return node
 
 
+def waitForPendingOperations(qapp_utils: TestCaseQt, model):
+    for _ in range(20):
+        if not model.hasPendingOperations():
+            break
+        qapp_utils.qWait(200)
+    else:
+        raise RuntimeError("Still waiting for a pending operation")
+
+
+def testErrorInInsertFilenameAsync(tmp_path, caplog, qapp_utils):
+    filename = str(tmp_path / "corrupt.h5")
+    with open(filename, "wb") as h5file:
+        h5file.write("8736553".encode())
+
+    model = hdf5.Hdf5TreeModel()
+    assert model.rowCount(qt.QModelIndex()) == 0
+    model.insertFileAsync(filename)
+
+    assert qt.silxGlobalThreadPool().waitForDone(2000)  # Needed for PySide6
+    waitForPendingOperations(qapp_utils, model)
+    assert len(caplog.records) == 1
+    assert "can't be read as HDF5" in caplog.records[0].getMessage()
+
+
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
     def setUp(self):
         super().setUp()
-
-    def waitForPendingOperations(self, model):
-        for _ in range(20):
-            if not model.hasPendingOperations():
-                break
-            self.qWait(200)
-        else:
-            raise RuntimeError("Still waiting for a pending operation")
 
     @contextmanager
     def h5TempFile(self):
@@ -135,7 +148,7 @@ class TestHdf5TreeModel(TestCaseQt):
             self.assertIsInstance(
                 model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem
             )
-            self.waitForPendingOperations(model)
+            waitForPendingOperations(self, model)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
         finally:
@@ -167,7 +180,7 @@ class TestHdf5TreeModel(TestCaseQt):
         index = model.index(0, 0, qt.QModelIndex())
         node1 = model.nodeFromIndex(index)
         model.synchronizeH5pyObject(h5)
-        self.waitForPendingOperations(model)
+        waitForPendingOperations(self, model)
         # Now h5 was loaded from it's filename
         # Another ref is owned by the model
         h5.close()
@@ -257,7 +270,7 @@ class TestHdf5TreeModel(TestCaseQt):
         model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # after sync
-        self.waitForPendingOperations(model)
+        waitForPendingOperations(self, model)
         index = model.index(0, 0, qt.QModelIndex())
         self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
         # clean up
@@ -482,7 +495,7 @@ class TestHdf5TreeModelSignals(TestCaseQt):
 
     def testSynchonized(self):
         self.model.synchronizeH5pyObject(self.h5)
-        self.waitForPendingOperations(self.model)
+        waitForPendingOperations(self, self.model)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertEqual(
             self.listener.karguments(argumentName="signal")[0], "synchronized"
@@ -683,22 +696,21 @@ def useH5Model(request, tmpdir_factory):
     )
     h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
     h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
-    if h5py2_9:
-        layout = h5py.VirtualLayout((2, 2), dtype=int)
-        layout[0] = h5py.VirtualSource(
-            "base__external.h5", name="/ext/vds0", shape=(2,), dtype=int
-        )
-        layout[1] = h5py.VirtualSource(
-            "base__external.h5", name="/ext/vds1", shape=(2,), dtype=int
-        )
-        h5.create_group("/ext")
-        h5["/ext"].create_virtual_dataset("virtual", layout)
-        external = [
-            ("base__external.dat", 0, 2 * 8),
-            ("base__external.dat", 4 * 8, 2 * 8),
-        ]
-        h5["/ext"].create_dataset("raw", shape=(2, 2), dtype=int, external=external)
-        h5.close()
+    layout = h5py.VirtualLayout((2, 2), dtype=int)
+    layout[0] = h5py.VirtualSource(
+        "base__external.h5", name="/ext/vds0", shape=(2,), dtype=int
+    )
+    layout[1] = h5py.VirtualSource(
+        "base__external.h5", name="/ext/vds1", shape=(2,), dtype=int
+    )
+    h5.create_group("/ext")
+    h5["/ext"].create_virtual_dataset("virtual", layout)
+    external = [
+        ("base__external.dat", 0, 2 * 8),
+        ("base__external.dat", 4 * 8, 2 * 8),
+    ]
+    h5["/ext"].create_dataset("raw", shape=(2, 2), dtype=int, external=external)
+    h5.close()
 
     with h5py.File(filename, mode="r") as h5File:
         # Create model
@@ -825,14 +837,12 @@ class TestH5Item(_TestModelBase):
 
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
 
-    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalVirtual(self):
         path = ["base.h5", "ext", "virtual"]
         h5item = self.getH5ItemFromPath(self.model, path)
 
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Virtual")
 
-    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalRaw(self):
         path = ["base.h5", "ext", "raw"]
         h5item = self.getH5ItemFromPath(self.model, path)
@@ -1028,7 +1038,6 @@ class TestH5Node(_TestModelBase):
             h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset"
         )
 
-    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalVirtual(self):
         path = ["base.h5", "ext", "virtual"]
         h5node = self.getH5NodeFromPath(self.model, path)
@@ -1040,7 +1049,6 @@ class TestH5Node(_TestModelBase):
         self.assertEqual(h5node.local_basename, "virtual")
         self.assertEqual(h5node.local_name, "/ext/virtual")
 
-    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalRaw(self):
         path = ["base.h5", "ext", "raw"]
         h5node = self.getH5NodeFromPath(self.model, path)
