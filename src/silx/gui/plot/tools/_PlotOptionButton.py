@@ -14,7 +14,6 @@ class PlotOptionButton(PlotToolButton):
 
     def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
-        self._plot = None
 
         self.setIcon(qtawesome.icon("fa6s.bars"))
 
