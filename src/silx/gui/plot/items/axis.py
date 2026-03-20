@@ -235,10 +235,10 @@ class Axis(qt.QObject):
         self._scale = scale
 
         # TODO hackish way of forcing update of curves and images
-        plot = self._getPlot()
-        for item in plot.getItems():
-            item._updated()
-        plot._invalidateDataRange()
+        # plot = self._getPlot()
+        # for item in plot.getItems():
+        #     item._updated()
+        # plot._invalidateDataRange()
         self._internalSetScale()
 
         self.sigScaleChanged.emit(self._scale)
@@ -406,6 +406,12 @@ class XAxis(Axis):
     def _internalSetScale(self):
         scale = self._scale
         vmin, vmax = self.getLimits()
+        # TODO hackish way of forcing update of curves and images
+        plot = self._getPlot()
+        for item in plot.getItems():
+            item._updated()
+        plot._invalidateDataRange()
+
         if scale == self.LOGARITHMIC:
             self._getBackend().setXAxisScale(scale="log")
             if vmin <= 0:
@@ -464,9 +470,14 @@ class YAxis(Axis):
 
     def _internalSetScale(self):
         scale = self._scale
+        vmin, vmax = self.getLimits()
+        # TODO hackish way of forcing update of curves and images
+        plot = self._getPlot()
+        for item in plot.getItems():
+            item._updated()
+        plot._invalidateDataRange()
         if scale == self.LOGARITHMIC:
             self._getBackend().setYAxisScale(scale="log")
-            vmin, vmax = self.getLimits()
             if vmin <= 0:
                 dataRange = self._getDataRange()
                 if dataRange is None:
