@@ -37,6 +37,7 @@ import weakref
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
+from silx.utils.deprecation import deprecated
 
 from . import PlotWidget
 from . import actions
@@ -310,6 +311,11 @@ class PlotWindow(PlotWidget):
             self._plotOptionToolBar.addWidget(spacer)
             self._plotOptionToolBar.addWidget(self._plotOptionButton)
             self.addToolBar(self._plotOptionToolBar)
+
+    @property
+    @deprecated(since_version="3.0.0", replacement="getPlotOptionButton")
+    def controlButton(self):
+        return self.getPlotOptionButton()
 
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
