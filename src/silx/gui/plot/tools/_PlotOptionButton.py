@@ -44,7 +44,7 @@ class PlotOptionButton(PlotToolButton):
         self._menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
 
     def setPlot(self, plot: PlotWindow):
-        from ..PlotWindow import PlotWindow  # noqq: F811 avoid cyclic import
+        from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
 
         if not isinstance(plot, PlotWindow):
             raise TypeError(
