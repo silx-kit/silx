@@ -259,6 +259,8 @@ class PlotWindow(PlotWidget):
         if control:  # Create control button only if requested
             self._plotOptionButton = PlotOptionButton(self)
             self._plotOptionButton.setPlot(self)
+        else:
+            self._plotOptionButton = None
 
         self._positionWidget = None
         if position:  # Add PositionInfo widget to the bottom of the plot
@@ -416,6 +418,9 @@ class PlotWindow(PlotWidget):
         :return: True if success, False if failed
         """
         return bool(self.getMaskToolsDockWidget().setSelectionMask(mask))
+
+    def getPlotOptionButton(self):
+        return self._plotOptionButton
 
     def _toggleConsoleVisibility(self, isChecked=False):
         """Create IPythonDockWidget if needed,
