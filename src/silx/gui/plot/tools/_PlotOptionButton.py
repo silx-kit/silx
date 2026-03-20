@@ -5,14 +5,14 @@ from silx.gui import qt
 import qtawesome
 from .PlotToolButton import PlotToolButton
 
-
 if TYPE_CHECKING:
     from ..PlotWindow import PlotWindow
+
 
 class PlotOptionButton(PlotToolButton):
     """Button presented as a 'burger' menu to present user contextual actions such as 'Legend' or 'Region Of Interest'."""
 
-    def __init__(self, parent: PlotWindow | None = None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
         self._plot = None
 
