@@ -6,7 +6,7 @@ import qtawesome
 from .PlotToolButton import PlotToolButton
 
 if TYPE_CHECKING:
-    from ..PlotWindow import PlotWindow
+    from ..PlotWindow import PlotWindow  # noqa: F401
 
 
 class PlotOptionButton(PlotToolButton):
@@ -44,8 +44,8 @@ class PlotOptionButton(PlotToolButton):
     def _showPlotActionMenu(self):
         self._menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
 
-    def setPlot(self, plot):
-        from ..PlotWindow import PlotWindow  # avoid cyclic import
+    def setPlot(self, plot: PlotWindow):
+        from ..PlotWindow import PlotWindow  # noqq: F811 avoid cyclic import
 
         if not isinstance(plot, PlotWindow):
             raise TypeError(
