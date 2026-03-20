@@ -224,6 +224,162 @@ class YAxisOriginToolButton(_AxisOriginToolButton):
         self.setAxisInverted(True)
 
 
+class YAxisScaleToolButton(PlotToolButton):
+    """Tool button to choose the Y axis scale in the plot."""
+
+    STATE = None
+    """Lazy loaded states used to feed YAxisScaleToolButton"""
+
+    def __init__(self, parent=None, plot=None):
+        if self.STATE is None:
+            self.STATE = {}
+            # linear
+            self.STATE["linear", "icon"] = icons.getQIcon("yscale-linear")
+            self.STATE["linear", "state"] = "Y-axis scale is linear"
+            self.STATE["linear", "action"] = "Linear Y-axis"
+            # logarithmic
+            self.STATE["log", "icon"] = icons.getQIcon("yscale-log")
+            self.STATE["log", "state"] = "Y-axis scale is logarithmic"
+            self.STATE["log", "action"] = "Logarithmic Y-axis"
+            # arcsinh
+            self.STATE["asinh", "icon"] = icons.getQIcon("yscale-asinh")
+            self.STATE["asinh", "state"] = "Y-axis scale is arcsinh"
+            self.STATE["asinh", "action"] = "Arcsinh Y-axis"
+
+        super().__init__(parent=parent, plot=plot)
+
+        ylinearaction = self._createAction("linear")
+        ylinearaction.triggered.connect(self._setYAxisScaleLinear)
+        ylinearaction.setIconVisibleInMenu(True)
+
+        ylogAction = self._createAction("log")
+        ylogAction.triggered.connect(self._setYAxisScaleLog)
+        ylogAction.setIconVisibleInMenu(True)
+
+        yasinhAction = self._createAction("asinh")
+        yasinhAction.triggered.connect(self._setYAxisScaleAsinh)
+        yasinhAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(ylinearaction)
+        menu.addAction(ylogAction)
+        menu.addAction(yasinhAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _createAction(self, state):
+        icon = self.STATE[state, "icon"]
+        text = self.STATE[state, "action"]
+        return qt.QAction(icon, text, self)
+
+    def _connectPlot(self, plot):
+        yAxis = plot.getYAxis()
+        yAxis.sigScaleChanged.connect(self._yAxisScaleChanged)
+        self._yAxisScaleChanged(yAxis.getScale())
+
+    def _disconnectPlot(self, plot):
+        plot.getYAxis().sigScaleChanged.disconnect(self._yAxisScaleChanged)
+
+    def _setYAxisScaleLinear(self):
+        """Set Y-scale to Linear"""
+        self.plot().getYAxis().setScale(scale=YAxis.LINEAR)
+
+    def _setYAxisScaleLog(self):
+        """Set Y-scale to Log"""
+        self.plot().getYAxis().setScale(scale=YAxis.LOGARITHMIC)
+
+    def _setYAxisScaleAsinh(self):
+        """Set Y-scale to Arcsinh"""
+        self.plot().getYAxis().setScale(scale=YAxis.ARCSINH)
+
+    def _yAxisScaleChanged(self, scale_state):
+        """Handle Plot set y scale"""
+        icon, toolTip = (
+            self.STATE[scale_state, "icon"],
+            self.STATE[scale_state, "state"],
+        )
+        self.setIcon(icon)
+        self.setToolTip(toolTip)
+
+
+class XAxisScaleToolButton(PlotToolButton):
+    """Tool button to choose the X axis scale in the plot."""
+
+    STATE = None
+    """Lazy loaded states used to feed XAxisScaleToolButton"""
+
+    def __init__(self, parent=None, plot=None):
+        if self.STATE is None:
+            self.STATE = {}
+            # linear
+            self.STATE["linear", "icon"] = icons.getQIcon("xscale-linear")
+            self.STATE["linear", "state"] = "X-axis scale is linear"
+            self.STATE["linear", "action"] = "Linear X-axis"
+            # logarithmic
+            self.STATE["log", "icon"] = icons.getQIcon("xscale-log")
+            self.STATE["log", "state"] = "X-axis scale is logarithmic"
+            self.STATE["log", "action"] = "Logarithmic X-axis"
+            # arcsinh
+            self.STATE["asinh", "icon"] = icons.getQIcon("xscale-asinh")
+            self.STATE["asinh", "state"] = "X-axis scale is arcsinh"
+            self.STATE["asinh", "action"] = "Arcsinh X-axis"
+
+        super().__init__(parent=parent, plot=plot)
+
+        xlinearaction = self._createAction(XAxis.LINEAR)
+        xlinearaction.triggered.connect(self._setXAxisScaleLinear)
+        xlinearaction.setIconVisibleInMenu(True)
+
+        xlogAction = self._createAction(XAxis.LOGARITHMIC)
+        xlogAction.triggered.connect(self._setXAxisScaleLog)
+        xlogAction.setIconVisibleInMenu(True)
+
+        xasinhAction = self._createAction(XAxis.ARCSINH)
+        xasinhAction.triggered.connect(self._setXAxisScaleAsinh)
+        xasinhAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(xlinearaction)
+        menu.addAction(xlogAction)
+        menu.addAction(xasinhAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _createAction(self, state):
+        icon = self.STATE[state, "icon"]
+        text = self.STATE[state, "action"]
+        return qt.QAction(icon, text, self)
+
+    def _connectPlot(self, plot):
+        xAxis = plot.getXAxis()
+        xAxis.sigScaleChanged.connect(self._xAxisScaleChanged)
+        self._xAxisScaleChanged(xAxis.getScale())
+
+    def _disconnectPlot(self, plot):
+        plot.getYAxis().sigScaleChanged.disconnect(self._xAxisScaleChanged)
+
+    def _setXAxisScaleLinear(self):
+        """Set X-scale to Linear"""
+        self.plot().getXAxis().setScale(scale=XAxis.LINEAR)
+
+    def _setXAxisScaleLog(self):
+        """Set X-scale to Log"""
+        self.plot().getXAxis().setScale(scale=XAxis.LOGARITHMIC)
+
+    def _setXAxisScaleAsinh(self):
+        """Set X-scale to Arcsinh"""
+        self.plot().getXAxis().setScale(scale=XAxis.ARCSINH)
+
+    def _xAxisScaleChanged(self, scale_state):
+        """Handle Plot set y scale"""
+        icon, toolTip = (
+            self.STATE[scale_state, "icon"],
+            self.STATE[scale_state, "state"],
+        )
+        self.setIcon(icon)
+        self.setToolTip(toolTip)
+
+
 class ProfileOptionToolButton(PlotToolButton):
     """Button to define option on the profile"""
 
