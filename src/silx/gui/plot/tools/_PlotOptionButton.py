@@ -43,3 +43,12 @@ class PlotOptionButton(PlotToolButton):
 
     def _showPlotActionMenu(self):
         self._menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
+
+    def setPlot(self, plot):
+        from ..PlotWindow import PlotWindow  # avoid cyclic import
+
+        if not isinstance(plot, PlotWindow):
+            raise TypeError(
+                f"{plot!r} should be an instance of {PlotWindow}. Got {type(plot)}."
+            )
+        return super().setPlot(plot)
