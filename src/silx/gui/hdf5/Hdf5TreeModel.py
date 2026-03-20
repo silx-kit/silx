@@ -291,6 +291,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
 
+        if error:
+            _logger.error(error)
+            return
+
         if newItem is not None:
             rootIndex = qt.QModelIndex()
             if self.__ownFiles:
@@ -303,8 +307,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 self.sigH5pyObjectLoaded.emit(newItem.obj, filename)
             else:
                 self.sigH5pyObjectSynchronized.emit(oldItem.obj, newItem.obj)
-
-        # FIXME the error must be displayed
 
     def isFileDropEnabled(self):
         return self.__fileDropEnabled
@@ -736,7 +738,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def hasPendingOperations(self):
         return len(self.__runnerSet) > 0
 
-    def insertFileAsync(self, filename, row=-1, synchronizingNode=None):
+    def insertFileAsync(self, filename: str, row=-1, synchronizingNode=None):
         if not os.path.isfile(filename):
             raise OSError("Filename '%s' must be a file path" % filename)
 
