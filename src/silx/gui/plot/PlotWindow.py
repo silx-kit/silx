@@ -303,14 +303,14 @@ class PlotWindow(PlotWidget):
                 self.addAction(action)
 
         if control:
-            self._plotOptionToolBar = qt.QToolBar()
+            plotOptionToolBar = qt.QToolBar()
             spacer = qt.QWidget()
             spacer.setSizePolicy(
                 qt.QSizePolicy.Policy.Expanding, qt.QSizePolicy.Policy.Preferred
             )
-            self._plotOptionToolBar.addWidget(spacer)
-            self._plotOptionToolBar.addWidget(self._plotOptionButton)
-            self.addToolBar(self._plotOptionToolBar)
+            plotOptionToolBar.addWidget(spacer)
+            plotOptionToolBar.addWidget(self._plotOptionButton)
+            self.addToolBar(plotOptionToolBar)
 
     @property
     @deprecated(since_version="3.0.0", replacement="getPlotOptionButton")
