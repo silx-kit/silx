@@ -111,14 +111,12 @@ class ReconstructionAlgorithm(OpenclProcessing):
         # Arrays
         self.d_data = parray.empty(self.queue, sino_shape, dtype=np.float32)
         self.d_data.fill(0.0)
-        self.d_sino = parray.empty_like(self.d_data)
-        self.d_sino.fill(0.0)
+        self.d_sino = self.array_zeros(self.d_data)
         self.d_x = parray.empty(
             self.queue, self.backprojector.slice_shape, dtype=np.float32
         )
         self.d_x.fill(0.0)
-        self.d_x_old = parray.empty_like(self.d_x)
-        self.d_x_old.fill(0.0)
+        self.d_x_old = self.array_zeros(self.d_x)
 
         self.add_to_cl_mem(
             {
@@ -331,13 +329,10 @@ class TV(ReconstructionAlgorithm):
         )
         # Additional arrays
         self.linalg.gradient(self.d_x)
-        self.d_p = parray.empty_like(self.linalg.cl_mem["d_gradient"])
-        self.d_q = parray.empty_like(self.d_data)
+        self.d_p = self.array_zeros(self.linalg.cl_mem["d_gradient"])
+        self.d_q = self.array_zeros(self.d_data)
         self.d_g = self.linalg.d_image
-        self.d_tmp = parray.empty_like(self.d_x)
-        self.d_p.fill(0)
-        self.d_q.fill(0)
-        self.d_tmp.fill(0)
+        self.d_tmp = self.array_zeros(self.d_x)
         self.add_to_cl_mem(
             {
                 "d_p": self.d_p,
