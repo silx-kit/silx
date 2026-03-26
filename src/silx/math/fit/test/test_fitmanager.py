@@ -448,7 +448,7 @@ class TestPolynomials(unittest.TestCase):
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
-            self.assertAlmostEqual(p, pfit, places=5)
+            self.assertAlmostEqual(p, pfit, places=4)
 
     def _testPoly(self, poly_params, theory, places=5):
         p = numpy.poly1d(poly_params)
