@@ -363,15 +363,18 @@ class OpenGLWidget(qt.QWidget):
 
         physicalDPI = screen.physicalDotsPerInch()
         if physicalDPI < 55.0:
+            defaultDPI = 72.0
             _logErrorOnce(
-                f"Reported screen DPI too low: {int(physicalDPI)}, using default value instead"
+                f"Reported screen DPI too low: {int(physicalDPI)}, using {defaultDPI} instead"
             )
-            physicalDPI = 72.0
+            physicalDPI = defaultDPI
         elif physicalDPI > 1000.0:
+            defaultDPI = 96.0
             _logErrorOnce(
-                f"Reported screen DPI too high: {int(physicalDPI)}, using default value instead"
+                f"Reported screen DPI too high: {int(physicalDPI)}, using {defaultDPI} instead"
             )
-            physicalDPI = 96.0
+            physicalDPI = defaultDPI
+
         return physicalDPI * self.getDevicePixelRatio()
 
     def getOpenGLVersion(self):
