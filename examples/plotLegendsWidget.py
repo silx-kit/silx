@@ -1,3 +1,9 @@
+"""This example illustrates how to display legends of items in a `PlotWidget`.
+
+It uses a :class:`~silx.gui.plot.LegendsWidget.LegendWidget` attached to a
+:class:`~silx.gui.plot.PlotWidget`.
+"""
+
 import numpy
 
 from silx.gui import qt
