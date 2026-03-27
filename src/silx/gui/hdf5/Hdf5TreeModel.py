@@ -39,6 +39,7 @@ from . import _utils
 from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
 from ...io.url import DataUrl
+from ..._utils import nfs_cache_refresh as _nfs_cache_refresh
 
 import h5py
 
@@ -754,6 +755,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             self.insertNode(row, item)
         else:
             item = synchronizingNode
+
+            # Only refresh NFS cache for updates
+            _nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)

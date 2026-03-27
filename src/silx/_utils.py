@@ -21,7 +21,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+import os
 import numpy
 from packaging.version import Version
 
 NP_OPTIONAL_COPY = False if Version(numpy.version.version).major < 2 else None
+
+
+def nfs_cache_refresh(dirname: str) -> None:
+    """Perform ls -l dirname operation to refresh NFS cache"""
+    try:
+        with os.scandir(dirname) as it:
+            for entry in it:
+                # This forces a fresh stat call, similar to "ls -l"
+                _ = entry.stat()
+    except Exception:
+        pass
