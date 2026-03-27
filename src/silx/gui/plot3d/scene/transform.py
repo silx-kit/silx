@@ -28,25 +28,30 @@ __license__ = "MIT"
 __date__ = "25/07/2016"
 
 
+from collections.abc import Iterable, Sequence
 import itertools
+from typing import Literal
 import numpy
+from numpy.typing import ArrayLike
 
 from . import event
+from .utils import Vector3
+
+AxisName = Literal["x", "y", "z"]
 
 # Functions ###################################################################
 
 # Projections
 
 
-def mat4LookAtDir(position, direction, up):
+def mat4LookAtDir(position: Vector3, direction: Vector3, up: Vector3) -> numpy.ndarray:
     """Creates matrix to look in direction from position.
 
     :param position: Array-like 3 coordinates of the point of view position.
     :param direction: Array-like 3 coordinates of the sight direction vector.
     :param up: Array-like 3 coordinates of the upward direction
                in the image plane.
-    :returns: Corresponding matrix.
-    :rtype: numpy.ndarray of shape: (4, 4)
+    :returns: Corresponding 4x4 matrix.
     """
     assert len(position) == 3
     assert len(direction) == 3
@@ -72,7 +77,7 @@ def mat4LookAtDir(position, direction, up):
     return numpy.dot(matrix, mat4Translate(-position[0], -position[1], -position[2]))
 
 
-def mat4LookAt(position, center, up):
+def mat4LookAt(position: Vector3, center: Vector3, up: Vector3) -> numpy.ndarray:
     """Creates matrix to look at center from position.
 
     See gluLookAt.
@@ -81,8 +86,7 @@ def mat4LookAt(position, center, up):
     :param center: Array-like 3 coordinates of the center of the scene.
     :param up: Array-like 3 coordinates of the upward direction
                in the image plane.
-    :returns: Corresponding matrix.
-    :rtype: numpy.ndarray of shape: (4, 4)
+    :returns: Corresponding 4x4 matrix.
     """
     position = numpy.asarray(position, dtype=numpy.float32)
     center = numpy.asarray(center, dtype=numpy.float32)
@@ -90,7 +94,9 @@ def mat4LookAt(position, center, up):
     return mat4LookAtDir(position, direction, up)
 
 
-def mat4Frustum(left, right, bottom, top, near, far):
+def mat4Frustum(
+    left: float, right: float, bottom: float, top: float, near: float, far: float
+) -> numpy.ndarray:
     """Creates a frustum projection matrix.
 
     See glFrustum.
@@ -106,18 +112,19 @@ def mat4Frustum(left, right, bottom, top, near, far):
     )
 
 
-def mat4Perspective(fovy, width, height, near, far):
+def mat4Perspective(
+    fovy: float, width: float, height: float, near: float, far: float
+) -> numpy.ndarray:
     """Creates a perspective projection matrix.
 
     Similar to gluPerspective.
 
-    :param float fovy: Field of view angle in degrees in the y direction.
-    :param float width: Width of the viewport.
-    :param float height: Height of the viewport.
-    :param float near: Distance to the near plane (strictly positive).
-    :param float far: Distance to the far plane (strictly positive).
-    :return: Corresponding matrix.
-    :rtype: numpy.ndarray of shape: (4, 4)
+    :param fovy: Field of view angle in degrees in the y direction.
+    :param width: Width of the viewport.
+    :param height: Height of the viewport.
+    :param near: Distance to the near plane (strictly positive).
+    :param far: Distance to the far plane (strictly positive).
+    :return: Corresponding 4x4 matrix.
     """
     assert fovy != 0
     assert height != 0
@@ -137,7 +144,9 @@ def mat4Perspective(fovy, width, height, near, far):
     )
 
 
-def mat4Orthographic(left, right, bottom, top, near, far):
+def mat4Orthographic(
+    left: float, right: float, bottom: float, top: float, near: float, far: float
+) -> numpy.ndarray:
     """Creates an orthographic (i.e., parallel) projection matrix.
 
     See glOrtho.
@@ -156,7 +165,7 @@ def mat4Orthographic(left, right, bottom, top, near, far):
 # Affine
 
 
-def mat4Translate(tx, ty, tz):
+def mat4Translate(tx: float, ty: float, tz: float) -> numpy.ndarray:
     """4x4 translation matrix."""
     return numpy.array(
         (
@@ -169,7 +178,7 @@ def mat4Translate(tx, ty, tz):
     )
 
 
-def mat4Scale(sx, sy, sz):
+def mat4Scale(sx: float, sy: float, sz: float) -> numpy.ndarray:
     """4x4 scale matrix."""
     return numpy.array(
         (
@@ -182,13 +191,15 @@ def mat4Scale(sx, sy, sz):
     )
 
 
-def mat4RotateFromAngleAxis(angle, x=0.0, y=0.0, z=1.0):
+def mat4RotateFromAngleAxis(
+    angle: float, x: float = 0.0, y: float = 0.0, z: float = 1.0
+) -> numpy.ndarray:
     """4x4 rotation matrix from angle and axis.
 
-    :param float angle: The rotation angle in radians.
-    :param float x: The rotation vector x coordinate.
-    :param float y: The rotation vector y coordinate.
-    :param float z: The rotation vector z coordinate.
+    :param angle: The rotation angle in radians.
+    :param x: The rotation vector x coordinate.
+    :param y: The rotation vector y coordinate.
+    :param z: The rotation vector z coordinate.
     """
     ca = numpy.cos(angle)
     sa = numpy.sin(angle)
@@ -218,7 +229,7 @@ def mat4RotateFromAngleAxis(angle, x=0.0, y=0.0, z=1.0):
     )
 
 
-def mat4RotateFromQuaternion(quaternion):
+def mat4RotateFromQuaternion(quaternion: ArrayLike) -> numpy.ndarray:
     """4x4 rotation matrix from quaternion.
 
     :param quaternion: Array-like unit quaternion stored as (x, y, z, w)
@@ -253,16 +264,17 @@ def mat4RotateFromQuaternion(quaternion):
     )
 
 
-def mat4Shear(axis, sx=0.0, sy=0.0, sz=0.0):
+def mat4Shear(
+    axis: AxisName, sx: float = 0.0, sy: float = 0.0, sz: float = 0.0
+) -> numpy.ndarray:
     """4x4 shear matrix: Skew two axes relative to a third fixed one.
 
     shearFactor = tan(shearAngle)
 
-    :param str axis: The axis to keep constant and shear against.
-                     In 'x', 'y', 'z'.
-    :param float sx: The shear factor for the X axis relative to axis.
-    :param float sy: The shear factor for the Y axis relative to axis.
-    :param float sz: The shear factor for the Z axis relative to axis.
+    :param axis: The axis to keep constant and shear against.
+    :param sx: The shear factor for the X axis relative to axis.
+    :param sy: The shear factor for the Y axis relative to axis.
+    :param sz: The shear factor for the Z axis relative to axis.
     """
     assert axis in ("x", "y", "z")
 
@@ -280,11 +292,11 @@ def mat4Shear(axis, sx=0.0, sy=0.0, sz=0.0):
 
 
 class Transform(event.Notifier):
-    def __init__(self, static=False):
+    def __init__(self, static: bool = False):
         """Base class for (row-major) 4x4 matrix transforms.
 
-        :param bool static: False (default) to reset cache when changed,
-                            True for static matrices.
+        :param static: False (default) to reset cache when changed,
+                       True for static matrices.
         """
         super().__init__()
         self._matrix = None
@@ -292,10 +304,10 @@ class Transform(event.Notifier):
         if not static:
             self.addListener(self._changed)  # Listening self for changes
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__init__}({repr(self.getMatrix(copy=False))})"
 
-    def inverse(self):
+    def inverse(self) -> "Inverse":
         """Return the Transform of the inverse.
 
         The returned Transform is static, it is not updated when this
@@ -307,19 +319,19 @@ class Transform(event.Notifier):
 
     # Matrix
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         """Override to build matrix"""
         return numpy.identity(4, dtype=numpy.float32)
 
-    def _makeInverse(self):
+    def _makeInverse(self) -> numpy.ndarray:
         """Override to build inverse matrix."""
         return numpy.linalg.inv(self.getMatrix(copy=False))
 
-    def getMatrix(self, copy=True):
+    def getMatrix(self, copy: bool = True) -> numpy.ndarray:
         """The 4x4 matrix of this transform.
 
-        :param bool copy: True (the default) to get a copy of the matrix,
-                          False to get the internal matrix, do not modify!
+        :param copy: True (the default) to get a copy of the matrix,
+                     False to get the internal matrix, do not modify!
         :return: 4x4 matrix of this transform.
         """
         if self._matrix is None:
@@ -331,11 +343,11 @@ class Transform(event.Notifier):
 
     matrix = property(getMatrix, doc="The 4x4 matrix of this transform.")
 
-    def getInverseMatrix(self, copy=False):
+    def getInverseMatrix(self, copy: bool = False) -> numpy.ndarray:
         """The 4x4 matrix of the inverse of this transform.
 
-        :param bool copy: True (the default) to get a copy of the matrix,
-                          False to get the internal matrix, do not modify!
+        :param copy: True (the default) to get a copy of the matrix,
+                     False to get the internal matrix, do not modify!
         :return: 4x4 matrix of the inverse of this transform.
         """
         if self._inverse is None:
@@ -358,16 +370,17 @@ class Transform(event.Notifier):
 
     # Multiplication with vectors
 
-    def transformPoints(self, points, direct=True, perspectiveDivide=False):
+    def transformPoints(
+        self, points: ArrayLike, direct: bool = True, perspectiveDivide: bool = False
+    ) -> numpy.ndarray:
         """Apply the transform to an array of points.
 
         :param points: 2D array of N vectors of 3 or 4 coordinates
-        :param bool direct: Whether to apply the direct (True, the default)
-                            or inverse (False) transform.
-        :param bool perspectiveDivide: Whether to apply the perspective divide
-                                       (True) or not (False, the default).
-        :return: The transformed points.
-        :rtype: numpy.ndarray of same shape as points.
+        :param direct: Whether to apply the direct (True, the default)
+                       or inverse (False) transform.
+        :param perspectiveDivide: Whether to apply the perspective divide
+                                  (True) or not (False, the default).
+        :return: The transformed points as an array of the same shape as points.
         """
         if direct:
             matrix = self.getMatrix(copy=False)
@@ -396,7 +409,7 @@ class Transform(event.Notifier):
         return result[:, :3] if dimension == 3 else result
 
     @staticmethod
-    def _prepareVector(vector, w):
+    def _prepareVector(vector: ArrayLike, w: float) -> numpy.ndarray:
         """Add 4th coordinate (w) to vector if missing."""
         assert len(vector) in (3, 4)
         vector = numpy.asarray(vector, dtype=numpy.float32)
@@ -404,16 +417,17 @@ class Transform(event.Notifier):
             vector = numpy.append(vector, w)
         return vector
 
-    def transformPoint(self, point, direct=True, perspectiveDivide=False):
+    def transformPoint(
+        self, point: ArrayLike, direct: bool = True, perspectiveDivide: bool = False
+    ) -> numpy.ndarray:
         """Apply the transform to a point.
 
         :param point: Array-like vector of 3 or 4 coordinates.
-        :param bool direct: Whether to apply the direct (True, the default)
-                            or inverse (False) transform.
-        :param bool perspectiveDivide: Whether to apply the perspective divide
-                                       (True) or not (False, the default).
-        :return: The transformed point.
-        :rtype: numpy.ndarray of same length as point.
+        :param direct: Whether to apply the direct (True, the default)
+                       or inverse (False) transform.
+        :param perspectiveDivide: Whether to apply the perspective divide
+                                  (True) or not (False, the default).
+        :return: The transformed point as an array of same length as point.
         """
         if direct:
             matrix = self.getMatrix(copy=False)
@@ -429,14 +443,13 @@ class Transform(event.Notifier):
         else:
             return result
 
-    def transformDir(self, direction, direct=True):
+    def transformDir(self, direction: Vector3, direct: bool = True) -> numpy.ndarray:
         """Apply the transform to a direction.
 
         :param direction: Array-like vector of 3 coordinates.
-        :param bool direct: Whether to apply the direct (True, the default)
-                            or inverse (False) transform.
-        :return: The transformed direction.
-        :rtype: numpy.ndarray of length 3.
+        :param direct: Whether to apply the direct (True, the default)
+                       or inverse (False) transform.
+        :return: The transformed direction as an array of length 3.
         """
         if direct:
             matrix = self.getMatrix(copy=False)
@@ -444,14 +457,13 @@ class Transform(event.Notifier):
             matrix = self.getInverseMatrix(copy=False)
         return numpy.dot(matrix[:3, :3], direction[:3])
 
-    def transformNormal(self, normal, direct=True):
+    def transformNormal(self, normal: Vector3, direct: bool = True) -> numpy.ndarray:
         """Apply the transform to a normal: R = (M-1)t * V.
 
         :param normal: Array-like vector of 3 coordinates.
-        :param bool direct: Whether to apply the direct (True, the default)
-                            or inverse (False) transform.
-        :return: The transformed normal.
-        :rtype: numpy.ndarray of length 3.
+        :param direct: Whether to apply the direct (True, the default)
+                       or inverse (False) transform.
+        :return: The transformed normal as an array of length 3.
         """
         if direct:
             matrix = self.getInverseMatrix(copy=False).T
@@ -464,15 +476,14 @@ class Transform(event.Notifier):
     )
     """Unit cube corners used by :meth:`transformBounds`"""
 
-    def transformBounds(self, bounds, direct=True):
+    def transformBounds(self, bounds: ArrayLike, direct: bool = True) -> numpy.ndarray:
         """Apply the transform to an axes-aligned rectangular box.
 
-        :param bounds: Min and max coords of the box for each axes.
-        :type bounds: 2x3 numpy.ndarray
-        :param bool direct: Whether to apply the direct (True, the default)
-                            or inverse (False) transform.
+        :param bounds: Min and max coords of the box for each axes as a 2x3 array
+        :param direct: Whether to apply the direct (True, the default)
+                       or inverse (False) transform.
         :return: Axes-aligned rectangular box including the transformed box.
-        :rtype: 2x3 numpy.ndarray of float32
+                 as a 2x3 array of float32
         """
         corners = numpy.ones((8, 4), dtype=numpy.float32)
         corners[:, :3] = bounds[0] + self._CUBE_CORNERS * (bounds[1] - bounds[0])
@@ -500,10 +511,10 @@ class Inverse(Transform):
     Static: It never gets updated.
     """
 
-    def __init__(self, transform):
+    def __init__(self, transform: Transform):
         """Initializer.
 
-        :param Transform transform: The transform to invert.
+        :param transform: The transform to invert.
         """
 
         super().__init__(static=True)
@@ -514,25 +525,25 @@ class Inverse(Transform):
 class TransformList(Transform, event.HookList):
     """List of transforms."""
 
-    def __init__(self, iterable=()):
+    def __init__(self, iterable: Iterable[Transform] = ()):
         Transform.__init__(self)
         event.HookList.__init__(self, iterable)
 
-    def _listWillChangeHook(self, methodName, *args, **kwargs):
+    def _listWillChangeHook(self, methodName: str, *args, **kwargs):
         for item in self:
             item.removeListener(self._transformChanged)
 
-    def _listWasChangedHook(self, methodName, *args, **kwargs):
+    def _listWasChangedHook(self, methodName: str, *args, **kwargs):
         for item in self:
             item.addListener(self._transformChanged)
         self.notify()
 
-    def _transformChanged(self, source):
+    def _transformChanged(self, source: Transform):
         """Listen to transform changes of the list and its items."""
         if source is not self:  # Avoid infinite recursion
             self.notify()
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         matrix = numpy.identity(4, dtype=numpy.float32)
         for transform in self:
             matrix = numpy.dot(matrix, transform.getMatrix(copy=False))
@@ -547,7 +558,7 @@ class StaticTransformList(Transform):
     :param iterable: Iterable of Transform used for initialization
     """
 
-    def __init__(self, iterable=()):
+    def __init__(self, iterable: Iterable[Transform] = ()):
         super().__init__(static=True)
         matrix = numpy.identity(4, dtype=numpy.float32)
         for transform in iterable:
@@ -559,7 +570,7 @@ class StaticTransformList(Transform):
 
 
 class Matrix(Transform):
-    def __init__(self, matrix=None):
+    def __init__(self, matrix: ArrayLike | None = None):
         """4x4 Matrix.
 
         :param matrix: 4x4 array-like matrix or None for identity matrix.
@@ -567,7 +578,7 @@ class Matrix(Transform):
         super().__init__(static=True)
         self.setMatrix(matrix)
 
-    def setMatrix(self, matrix=None):
+    def setMatrix(self, matrix: ArrayLike | None = None) -> None:
         """Update the 4x4 Matrix.
 
         :param matrix: 4x4 array-like matrix or None for identity matrix.
@@ -591,51 +602,53 @@ class Matrix(Transform):
 class Translate(Transform):
     """4x4 translation matrix."""
 
-    def __init__(self, tx=0.0, ty=0.0, tz=0.0):
+    def __init__(self, tx: float = 0.0, ty: float = 0.0, tz: float = 0.0):
         super().__init__()
         self._tx, self._ty, self._tz = 0.0, 0.0, 0.0
         self.setTranslate(tx, ty, tz)
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         return mat4Translate(self.tx, self.ty, self.tz)
 
-    def _makeInverse(self):
+    def _makeInverse(self) -> numpy.ndarray:
         return mat4Translate(-self.tx, -self.ty, -self.tz)
 
     @property
-    def tx(self):
+    def tx(self) -> float:
         return self._tx
 
     @tx.setter
-    def tx(self, tx):
+    def tx(self, tx: float) -> None:
         self.setTranslate(tx=tx)
 
     @property
-    def ty(self):
+    def ty(self) -> float:
         return self._ty
 
     @ty.setter
-    def ty(self, ty):
+    def ty(self, ty: float) -> None:
         self.setTranslate(ty=ty)
 
     @property
-    def tz(self):
+    def tz(self) -> float:
         return self._tz
 
     @tz.setter
-    def tz(self, tz):
+    def tz(self, tz: float) -> None:
         self.setTranslate(tz=tz)
 
     @property
-    def translation(self):
+    def translation(self) -> numpy.ndarray:
         return numpy.array((self.tx, self.ty, self.tz), dtype=numpy.float32)
 
     @translation.setter
-    def translation(self, translations):
+    def translation(self, translations: Vector3) -> None:
         tx, ty, tz = translations
         self.setTranslate(tx, ty, tz)
 
-    def setTranslate(self, tx=None, ty=None, tz=None):
+    def setTranslate(
+        self, tx: float | None = None, ty: float | None = None, tz: float | None = None
+    ) -> None:
         if tx is not None:
             self._tx = tx
         if ty is not None:
@@ -648,51 +661,53 @@ class Translate(Transform):
 class Scale(Transform):
     """4x4 scale matrix."""
 
-    def __init__(self, sx=1.0, sy=1.0, sz=1.0):
+    def __init__(self, sx: float = 1.0, sy: float = 1.0, sz: float = 1.0):
         super().__init__()
         self._sx, self._sy, self._sz = 0.0, 0.0, 0.0
         self.setScale(sx, sy, sz)
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         return mat4Scale(self.sx, self.sy, self.sz)
 
-    def _makeInverse(self):
+    def _makeInverse(self) -> numpy.ndarray:
         return mat4Scale(1.0 / self.sx, 1.0 / self.sy, 1.0 / self.sz)
 
     @property
-    def sx(self):
+    def sx(self) -> float:
         return self._sx
 
     @sx.setter
-    def sx(self, sx):
+    def sx(self, sx: float) -> None:
         self.setScale(sx=sx)
 
     @property
-    def sy(self):
+    def sy(self) -> float:
         return self._sy
 
     @sy.setter
-    def sy(self, sy):
+    def sy(self, sy: float) -> None:
         self.setScale(sy=sy)
 
     @property
-    def sz(self):
+    def sz(self) -> float:
         return self._sz
 
     @sz.setter
-    def sz(self, sz):
+    def sz(self, sz: float) -> None:
         self.setScale(sz=sz)
 
     @property
-    def scale(self):
+    def scale(self) -> numpy.ndarray:
         return numpy.array((self._sx, self._sy, self._sz), dtype=numpy.float32)
 
     @scale.setter
-    def scale(self, scales):
+    def scale(self, scales: Vector3) -> None:
         sx, sy, sz = scales
         self.setScale(sx, sy, sz)
 
-    def setScale(self, sx=None, sy=None, sz=None):
+    def setScale(
+        self, sx: float | None = None, sy: float | None = None, sz: float | None = None
+    ) -> None:
         if sx is not None:
             assert sx != 0.0
             self._sx = sx
@@ -706,13 +721,15 @@ class Scale(Transform):
 
 
 class Rotate(Transform):
-    def __init__(self, angle=0.0, ax=0.0, ay=0.0, az=1.0):
+    def __init__(
+        self, angle: float = 0.0, ax: float = 0.0, ay: float = 0.0, az: float = 1.0
+    ):
         """4x4 rotation matrix.
 
-        :param float angle: The rotation angle in degrees.
-        :param float ax: The x coordinate of the rotation axis.
-        :param float ay: The y coordinate of the rotation axis.
-        :param float az: The z coordinate of the rotation axis.
+        :param angle: The rotation angle in degrees.
+        :param ax: The x coordinate of the rotation axis.
+        :param ay: The y coordinate of the rotation axis.
+        :param az: The z coordinate of the rotation axis.
         """
         super().__init__()
         self._angle = 0.0
@@ -720,28 +737,30 @@ class Rotate(Transform):
         self.setAngleAxis(angle, (ax, ay, az))
 
     @property
-    def angle(self):
+    def angle(self) -> float:
         """The rotation angle in degrees."""
         return self._angle
 
     @angle.setter
-    def angle(self, angle):
+    def angle(self, angle: float) -> None:
         self.setAngleAxis(angle=angle)
 
     @property
-    def axis(self):
+    def axis(self) -> numpy.ndarray:
         """The normalized rotation axis as a numpy.ndarray."""
         return self._axis.copy()
 
     @axis.setter
-    def axis(self, axis):
+    def axis(self, axis: Vector3) -> None:
         self.setAngleAxis(axis=axis)
 
-    def setAngleAxis(self, angle=None, axis=None):
+    def setAngleAxis(
+        self, angle: float | None = None, axis: Vector3 | None = None
+    ) -> None:
         """Update the angle and/or axis of the rotation.
 
-        :param float angle: The rotation angle in degrees.
-        :param axis: Array-like axis vector (3 coordinates).
+        :param angle: The rotation angle in degrees.
+        :param axis: Array-like axis vector.
         """
         if angle is not None:
             self._angle = angle
@@ -760,7 +779,7 @@ class Rotate(Transform):
             self.notify()
 
     @property
-    def quaternion(self):
+    def quaternion(self) -> numpy.ndarray:
         """Rotation unit quaternion as (x, y, z, w).
 
         Where: ||(x, y, z)|| = sin(angle/2),  w = cos(angle/2).
@@ -776,7 +795,7 @@ class Rotate(Transform):
             return quaternion
 
     @quaternion.setter
-    def quaternion(self, quaternion):
+    def quaternion(self, quaternion: ArrayLike):
         assert len(quaternion) == 4
 
         # Normalize quaternion
@@ -791,11 +810,11 @@ class Rotate(Transform):
         # Axis will be normalized in setAngleAxis
         self.setAngleAxis(numpy.degrees(angle), quaternion[0:3])
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         angle = numpy.radians(self.angle, dtype=numpy.float32)
         return mat4RotateFromAngleAxis(angle, *self.axis)
 
-    def _makeInverse(self):
+    def _makeInverse(self) -> numpy.ndarray:
         return numpy.array(
             self.getMatrix(copy=False).transpose(),
             copy=True,
@@ -805,13 +824,15 @@ class Rotate(Transform):
 
 
 class Shear(Transform):
-    def __init__(self, axis, sx=0.0, sy=0.0, sz=0.0):
+    def __init__(
+        self, axis: AxisName, sx: float = 0.0, sy: float = 0.0, sz: float = 0.0
+    ):
         """4x4 shear/skew matrix of 2 axes relative to the third one.
 
-        :param str axis: The axis to keep fixed, in 'x', 'y', 'z'
-        :param float sx: The shear factor for the x axis.
-        :param float sy: The shear factor for the y axis.
-        :param float sz: The shear factor for the z axis.
+        :param axis: The axis to keep fixed, in 'x', 'y', 'z'
+        :param sx: The shear factor for the x axis.
+        :param sy: The shear factor for the y axis.
+        :param sz: The shear factor for the z axis.
         """
         assert axis in ("x", "y", "z")
         super().__init__()
@@ -819,19 +840,19 @@ class Shear(Transform):
         self._factors = sx, sy, sz
 
     @property
-    def axis(self):
+    def axis(self) -> AxisName:
         """The axis against which other axes are skewed."""
         return self._axis
 
     @property
-    def factors(self):
+    def factors(self) -> float:
         """The shear factors: shearFactor = tan(shearAngle)"""
         return self._factors
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         return mat4Shear(self.axis, *self.factors)
 
-    def _makeInverse(self):
+    def _makeInverse(self) -> numpy.ndarray:
         sx, sy, sz = self.factors
         return mat4Shear(self.axis, -sx, -sy, -sz)
 
@@ -845,15 +866,20 @@ class _Projection(Transform):
     Handles near and far clipping plane values.
     Subclasses must implement :meth:`_makeMatrix`.
 
-    :param float near: Distance to the near plane.
-    :param float far: Distance to the far plane.
-    :param bool checkDepthExtent: Toggle checks near > 0 and far > near.
+    :param near: Distance to the near plane.
+    :param far: Distance to the far plane.
+    :param checkDepthExtent: Toggle checks near > 0 and far > near.
     :param size:
         Viewport's size used to compute the aspect ratio (width, height).
-    :type size: 2-tuple of float
     """
 
-    def __init__(self, near, far, checkDepthExtent=False, size=(1.0, 1.0)):
+    def __init__(
+        self,
+        near: float,
+        far: float,
+        checkDepthExtent: bool = False,
+        size: tuple[float, float] = (1.0, 1.0),
+    ):
         super().__init__()
         self._checkDepthExtent = checkDepthExtent
         self._depthExtent = 1, 10
@@ -861,11 +887,11 @@ class _Projection(Transform):
         self._size = 1.0, 1.0
         self.size = size  # set _size
 
-    def setDepthExtent(self, near=None, far=None):
+    def setDepthExtent(self, near: float | None = None, far: float | None = None):
         """Set the extent of the visible area along the viewing direction.
 
-        :param float near: The near clipping plane Z coord.
-        :param float far: The far clipping plane Z coord.
+        :param near: The near clipping plane Z coord.
+        :param far: The far clipping plane Z coord.
         """
         near = float(near) if near is not None else self._depthExtent[0]
         far = float(far) if far is not None else self._depthExtent[1]
@@ -878,32 +904,32 @@ class _Projection(Transform):
         self.notify()
 
     @property
-    def near(self):
+    def near(self) -> float:
         """Distance to the near plane."""
         return self._depthExtent[0]
 
     @near.setter
-    def near(self, near):
+    def near(self, near: float) -> None:
         if near != self.near:
             self.setDepthExtent(near=near)
 
     @property
-    def far(self):
+    def far(self) -> float:
         """Distance to the far plane."""
         return self._depthExtent[1]
 
     @far.setter
-    def far(self, far):
+    def far(self, far: float) -> None:
         if far != self.far:
             self.setDepthExtent(far=far)
 
     @property
-    def size(self):
-        """Viewport size as a 2-tuple of float (width, height)."""
+    def size(self) -> tuple[float, float]:
+        """Viewport size (width, height)."""
         return self._size
 
     @size.setter
-    def size(self, size):
+    def size(self, size: Sequence[float]) -> None:
         assert len(size) == 2
         self._size = tuple(size)
         self.notify()
@@ -919,29 +945,27 @@ class Orthographic(_Projection):
     which must always remain visible.
     Effective clipping planes are adjusted to keep the aspect ratio.
 
-    :param float left: Coord of the left clipping plane.
-    :param float right: Coord of the right clipping plane.
-    :param float bottom: Coord of the bottom clipping plane.
-    :param float top: Coord of the top clipping plane.
-    :param float near: Distance to the near plane.
-    :param float far: Distance to the far plane.
+    :param left: Coord of the left clipping plane.
+    :param right: Coord of the right clipping plane.
+    :param bottom: Coord of the bottom clipping plane.
+    :param top: Coord of the top clipping plane.
+    :param near: Distance to the near plane.
+    :param far: Distance to the far plane.
     :param size:
         Viewport's size used to compute the aspect ratio (width, height).
-    :type size: 2-tuple of float
-    :param bool keepaspect:
-        True (default) to keep aspect ratio, False otherwise.
+    :param keepaspect: True (default) to keep aspect ratio, False otherwise.
     """
 
     def __init__(
         self,
-        left=0.0,
-        right=1.0,
-        bottom=1.0,
-        top=0.0,
-        near=-1.0,
-        far=1.0,
-        size=(1.0, 1.0),
-        keepaspect=True,
+        left: float = 0.0,
+        right: float = 1.0,
+        bottom: float = 1.0,
+        top: float = 0.0,
+        near: float = -1.0,
+        far: float = 1.0,
+        size: tuple[float, float] = (1.0, 1.0),
+        keepaspect: bool = True,
     ):
         self._left, self._right = left, right
         self._bottom, self._top = bottom, top
@@ -949,12 +973,12 @@ class Orthographic(_Projection):
         super().__init__(near, far, checkDepthExtent=False, size=size)
         # _update called when setting size
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         return mat4Orthographic(
             self.left, self.right, self.bottom, self.top, self.near, self.far
         )
 
-    def _update(self, left, right, bottom, top):
+    def _update(self, left: float, right: float, bottom: float, top: float) -> None:
         if self.keepaspect:
             width, height = self.size
             aspect = width / height
@@ -975,16 +999,22 @@ class Orthographic(_Projection):
         self._left, self._right = left, right
         self._bottom, self._top = bottom, top
 
-    def setClipping(self, left=None, right=None, bottom=None, top=None):
+    def setClipping(
+        self,
+        left: float | None = None,
+        right: float | None = None,
+        bottom: float | None = None,
+        top: float | None = None,
+    ) -> None:
         """Set the clipping planes of the projection.
 
         Parameters are adjusted to keep aspect ratio.
         If a clipping plane coord is not provided, it uses its current value
 
-        :param float left: Coord of the left clipping plane.
-        :param float right: Coord of the right clipping plane.
-        :param float bottom: Coord of the bottom clipping plane.
-        :param float top: Coord of the top clipping plane.
+        :param left: Coord of the left clipping plane.
+        :param right: Coord of the right clipping plane.
+        :param bottom: Coord of the bottom clipping plane.
+        :param top: Coord of the top clipping plane.
         """
         left = float(left) if left is not None else self.left
         right = float(right) if right is not None else self.right
@@ -1005,12 +1035,12 @@ class Orthographic(_Projection):
     top = property(lambda self: self._top, doc="Coord of the top clipping plane.")
 
     @property
-    def size(self):
-        """Viewport size as a 2-tuple of float (width, height)"""
+    def size(self) -> tuple[float, float]:
+        """Viewport size (width, height)"""
         return self._size
 
     @size.setter
-    def size(self, size):
+    def size(self, size: Sequence[float]) -> None:
         assert len(size) == 2
         size = float(size[0]), float(size[1])
         if size != self._size:
@@ -1019,12 +1049,12 @@ class Orthographic(_Projection):
             self.notify()
 
     @property
-    def keepaspect(self):
+    def keepaspect(self) -> bool:
         """True to keep aspect ratio, False otherwise."""
         return self._keepaspect
 
     @keepaspect.setter
-    def keepaspect(self, aspect):
+    def keepaspect(self, aspect: bool) -> None:
         aspect = bool(aspect)
         if aspect != self._keepaspect:
             self._keepaspect = aspect
@@ -1038,17 +1068,21 @@ class Ortho2DWidget(_Projection):
     Provides same coordinates as widgets:
     origin: top left, X axis goes left, Y axis goes down.
 
-    :param float near: Z coordinate of the near clipping plane.
-    :param float far: Z coordinante of the far clipping plane.
+    :param near: Z coordinate of the near clipping plane.
+    :param far: Z coordinante of the far clipping plane.
     :param size:
         Viewport's size used to compute the aspect ratio (width, height).
-    :type size: 2-tuple of float
     """
 
-    def __init__(self, near=-1.0, far=1.0, size=(1.0, 1.0)):
+    def __init__(
+        self,
+        near: float = -1.0,
+        far: float = 1.0,
+        size: tuple[float, float] = (1.0, 1.0),
+    ):
         super().__init__(near, far, size)
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         width, height = self.size
         return mat4Orthographic(0.0, width, height, 0.0, self.near, self.far)
 
@@ -1056,30 +1090,35 @@ class Ortho2DWidget(_Projection):
 class Perspective(_Projection):
     """Perspective projection matrix defined by FOV and aspect ratio.
 
-    :param float fovy: Vertical field-of-view in degrees.
-    :param float near: The near clipping plane Z coord (stricly positive).
-    :param float far: The far clipping plane Z coord (> near).
+    :param fovy: Vertical field-of-view in degrees.
+    :param near: The near clipping plane Z coord (stricly positive).
+    :param far: The far clipping plane Z coord (> near).
     :param size:
         Viewport's size used to compute the aspect ratio (width, height).
-    :type size: 2-tuple of float
     """
 
-    def __init__(self, fovy=90.0, near=0.1, far=1.0, size=(1.0, 1.0)):
+    def __init__(
+        self,
+        fovy: float = 90.0,
+        near: float = 0.1,
+        far: float = 1.0,
+        size: tuple[float, float] = (1.0, 1.0),
+    ):
         super().__init__(near, far, checkDepthExtent=True)
         self._fovy = 90.0
         self.fovy = fovy  # Set _fovy
         self.size = size  # Set _ size
 
-    def _makeMatrix(self):
+    def _makeMatrix(self) -> numpy.ndarray:
         width, height = self.size
         return mat4Perspective(self.fovy, width, height, self.near, self.far)
 
     @property
-    def fovy(self):
+    def fovy(self) -> float:
         """Vertical field-of-view in degrees."""
         return self._fovy
 
     @fovy.setter
-    def fovy(self, fovy):
+    def fovy(self, fovy: float) -> None:
         self._fovy = float(fovy)
         self.notify()
