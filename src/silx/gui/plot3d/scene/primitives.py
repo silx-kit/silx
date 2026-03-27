@@ -627,7 +627,7 @@ class DashedLines(Lines):
 
         :param bool copy: True to get a copy, False otherwise
         :returns: Coordinates of lines
-        :rtype: numpy.ndarray of float32 of shape (N, 2, Ndim)
+        :rtype: numpy.ndarray of float32 of shape: (N, 2, Ndim)
         """
         return self.getAttribute("position", copy=copy)
 

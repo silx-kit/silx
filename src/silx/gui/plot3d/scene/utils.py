@@ -217,9 +217,9 @@ def trianglesNormal(positions):
     """Return normal for each triangle.
 
     :param positions: Serie of triangle's corners
-    :type positions: numpy.ndarray of shape (NbTriangles*3, 3)
+    :type positions: numpy.ndarray of shape: (NbTriangles*3, 3)
     :return: Normals corresponding to each position.
-    :rtype: numpy.ndarray of shape (NbTriangles, 3)
+    :rtype: numpy.ndarray of shape: (NbTriangles, 3)
     """
     assert positions.ndim == 2
     assert positions.shape[1] == 3
@@ -349,7 +349,7 @@ def angleBetweenVectors(refVector, vectors, norm=None):
                  or None.
     :returns: The angles in radians in [0, pi] if norm is None
               else in [0, 2pi].
-    :rtype: float or numpy.ndarray of shape (NbVectors,)
+    :rtype: float or numpy.ndarray of shape: (NbVectors,)
     """
     singlevector = len(vectors.shape) == 1
     if singlevector:  # Make it a 2D array for the computation

@@ -46,7 +46,7 @@ def mat4LookAtDir(position, direction, up):
     :param up: Array-like 3 coordinates of the upward direction
                in the image plane.
     :returns: Corresponding matrix.
-    :rtype: numpy.ndarray of shape (4, 4)
+    :rtype: numpy.ndarray of shape: (4, 4)
     """
     assert len(position) == 3
     assert len(direction) == 3
@@ -82,7 +82,7 @@ def mat4LookAt(position, center, up):
     :param up: Array-like 3 coordinates of the upward direction
                in the image plane.
     :returns: Corresponding matrix.
-    :rtype: numpy.ndarray of shape (4, 4)
+    :rtype: numpy.ndarray of shape: (4, 4)
     """
     position = numpy.asarray(position, dtype=numpy.float32)
     center = numpy.asarray(center, dtype=numpy.float32)
@@ -117,7 +117,7 @@ def mat4Perspective(fovy, width, height, near, far):
     :param float near: Distance to the near plane (strictly positive).
     :param float far: Distance to the far plane (strictly positive).
     :return: Corresponding matrix.
-    :rtype: numpy.ndarray of shape (4, 4)
+    :rtype: numpy.ndarray of shape: (4, 4)
     """
     assert fovy != 0
     assert height != 0
