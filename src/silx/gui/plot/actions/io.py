@@ -111,11 +111,11 @@ class SaveAction(PlotAction):
             ),
             (
                 "Curve as OMNIC CSV (*.csv)",
-                {"fmt": "%.7E", "delimiter": ",", "header": False},
+                {"fmt": "%.18e", "delimiter": ",", "header": False},
             ),
             (
                 "Curve as SpecFile (*.dat)",
-                {"fmt": "%.10g", "delimiter": "", "header": False},
+                {"fmt": "%.18e", "delimiter": "", "header": False},
             ),
         )
     )

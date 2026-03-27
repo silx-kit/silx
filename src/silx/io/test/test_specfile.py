@@ -76,7 +76,7 @@ sftext = """#F /tmp/sf.dat
 -1.23 5.89  8
 8.478100E+01  5 1.56
 3.14 2.73 -3.14
-1.2 2.3 3.4
+1.2 2.3 2.236894571212e-12
 
 #S 25  ascan  c3th 1.33245 1.52245  40 0.15
 #D Thu Feb 11 10:00:31 2016
@@ -269,7 +269,7 @@ class TestSpecFile(unittest.TestCase):
         # tests for data transposition between original file and .data attr
         self.assertAlmostEqual(self.scan1.data[2, 0], 8)
         self.assertEqual(self.scan1.data.shape, (3, 4))
-        self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
+        self.assertAlmostEqual(numpy.sum(self.scan1.data), 110.23100000000224)
 
     def test_data_column_by_name(self):
         self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1], 1.2)
@@ -368,6 +368,7 @@ class TestSFLocale(unittest.TestCase):
     def crunch_data(self):
         self.sf3 = SpecFile(self.fname)
         self.assertAlmostEqual(self.sf3[0].data_line(1)[2], 1.56)
+        self.assertAlmostEqual(self.sf3[0].data_line(3)[2], 2.236894571212e-12)
         self.sf3.close()
 
     @unittest.skipIf(not try_DE, "de_DE.utf8 locale not installed")
