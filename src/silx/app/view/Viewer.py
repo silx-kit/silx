@@ -43,6 +43,7 @@ from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
 from ..utils import parseutils
+from ..._utils import nfs_cache_refresh
 from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
 from .CustomPlotSelectionWindow import CustomPlotSelectionWindow
@@ -322,6 +323,9 @@ class Viewer(qt.QMainWindow):
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
+
+        nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
+
         model.insertFile(filename, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         self.__expandNodesFromPaths(self.__treeview, index, paths)
