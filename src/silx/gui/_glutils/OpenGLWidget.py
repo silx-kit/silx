@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "22/11/2019"
 
 
+import functools
 import logging
 import sys
 
@@ -40,6 +41,11 @@ from ..utils.glutils import isOpenGLAvailable
 from .._glutils import gl
 
 _logger = logging.getLogger(__name__)
+
+
+@functools.cache
+def _logErrorOnce(message: str) -> None:
+    _logger.error(message)
 
 
 if not hasattr(qt, "QOpenGLWidget") and not hasattr(qt, "QGLWidget"):
@@ -356,10 +362,14 @@ class OpenGLWidget(qt.QWidget):
             return 96.0 * self.getDevicePixelRatio()
 
         physicalDPI = screen.physicalDotsPerInch()
-        if physicalDPI > 1000.0:
-            _logger.error(
-                "Reported screen DPI too high: %f, using default value instead",
-                physicalDPI,
+        if physicalDPI < 55.0:
+            _logErrorOnce(
+                f"Reported screen DPI too low: {int(physicalDPI)}, using default value instead"
+            )
+            physicalDPI = 72.0
+        elif physicalDPI > 1000.0:
+            _logErrorOnce(
+                f"Reported screen DPI too high: {int(physicalDPI)}, using default value instead"
             )
             physicalDPI = 96.0
         return physicalDPI * self.getDevicePixelRatio()
