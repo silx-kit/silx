@@ -130,7 +130,8 @@ def is_h5py_exception(e):
         return False
     for frame in traceback.walk_tb(e.__traceback__):
         for namespace in (frame[0].f_locals, frame[0].f_globals):
-            if namespace.get("__package__", None) == "h5py":
+            package = namespace.get("__package__", None)
+            if isinstance(package, str) and package.startswith("h5py"):
                 return True
     return False
 
