@@ -13,6 +13,18 @@ class RgbaImagePlot(BaseImagePlot):
     and two 1D axes array.
     """
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Hide actions from the toolbar that are not relevant
+        plot = self.getPlot()
+        colormapAction = plot.getColormapAction()
+        if colormapAction:
+            colormapAction.setVisible(False)
+        colorbarAction = plot.getColorBarAction()
+        if colorbarAction:
+            colorbarAction.setVisible(False)
+        plot.getColorBarWidget().hide()
+
     def setImageData(
         self,
         signals: list[h5py.Dataset | Dataset],
