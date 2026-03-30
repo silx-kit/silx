@@ -31,6 +31,7 @@ __authors__ = ["W. de Nolf"]
 __license__ = "MIT"
 __date__ = "28/11/2023"
 
+from typing import Any
 
 import os
 import sys
@@ -38,6 +39,7 @@ import traceback
 import logging
 from collections.abc import Sequence
 import h5py
+import inspect
 
 from .._version import calc_hexversion
 from ..utils import retry as retry_mod
@@ -121,18 +123,25 @@ def _hdf5_file_locking(
     return locking
 
 
-def is_h5py_exception(e):
-    """
-    :param BaseException e:
-    :returns bool:
-    """
+def _is_h5py_module(module_name: Any):
+    if not isinstance(module_name, str):
+        return False
+
+    return module_name.split(".")[0].startswith("h5py")
+
+
+def is_h5py_exception(e: BaseException) -> bool:
     if not isinstance(e, Exception):
         return False
-    for frame in traceback.walk_tb(e.__traceback__):
-        for namespace in (frame[0].f_locals, frame[0].f_globals):
-            package = namespace.get("__package__", None)
-            if isinstance(package, str) and package.split(".")[0].startswith("h5py"):
-                return True
+    for frame, _ in traceback.walk_tb(e.__traceback__):
+        mod = inspect.getmodule(frame)
+        if mod and _is_h5py_module(mod.__name__):
+            return True
+        if _is_h5py_module(frame.f_locals.get("__package__", None)):
+            return True
+        if _is_h5py_module(frame.f_globals.get("__package__", None)):
+            return True
+
     return False
 
 
