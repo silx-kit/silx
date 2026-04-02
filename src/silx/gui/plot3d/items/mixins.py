@@ -206,7 +206,7 @@ class SymbolMixIn(_SymbolMixIn):
         Distances are in screen pixels
         """
         _, size = self._getSceneSymbol()
-        return numpy.maximum(size, 3.0)
+        return numpy.maximum(size / 2, 3.0)
 
     def _getSceneSymbol(self) -> tuple[str, float | ArrayLike]:
         """Returns a symbol name and size suitable for scene primitives.
