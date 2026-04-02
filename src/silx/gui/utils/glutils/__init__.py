@@ -76,14 +76,16 @@ def _runtimeOpenGLCheck(
     """
     major, minor = str(version[0]), str(version[1])
     env = os.environ.copy()
-    env["PYTHONPATH"] = os.pathsep.join([os.path.abspath(p) for p in sys.path])
+    env["PYTHONPATH"] = os.pathsep.join(
+        [os.path.abspath(p) if os.path.isdir(p) else p for p in sys.path]
+    )
 
     cmd = [sys.executable, "-s", "-S", __file__, major, minor]
     if shareOpenGLContexts:
         cmd.append("--shareOpenGLContexts")
 
     try:
-        output = subprocess.check_output(cmd, env=env, timeout=2)
+        output = subprocess.check_output(cmd, env=env, timeout=4)
     except subprocess.TimeoutExpired:
         error = "Qt OpenGL widget hang"
         if sys.platform.startswith("linux"):
