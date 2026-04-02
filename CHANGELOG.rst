@@ -1,6 +1,241 @@
 Release Notes
 =============
 
+3.0.0rc1: 2026/04/02
+--------------------
+
+This version of silx requires Python >=3.10 and uses PySide6 as its default Qt binding.
+
+
+* `silx view`:
+
+  * Added support for 3D scatter (PR #4507)
+  * Added copy buttons and context menu (PR #4503, #4522)
+  * Updated NXdata group visualisation (PR #4534, #4278)
+  * Updated: Use light color scheme (PR #4487, #4550)
+  * Removed Image Stack visualization for 3D+ datasets (PR #4408)
+  * Fixed display of RGB images stored in NXdata (PR #4433)
+  * Fixed display of hdf5 info on Windows (PR #4523)
+  * Fixed refresh HDF5 file content on NFS mounts (PR #4563)
+  * Fixed selected view button display on Windows (PR #4572)
+
+* `silx.gui`:
+
+  * Updated default Qt binding to `Pyside6` (PR #4170)
+  * `silx.gui.colors.Colormap`: Added support for user-defined percentile values for 'PERCENTILE' mode (PR #4379, #4470)
+
+  * `silx.gui.data`:
+
+    * Deprecated `DataViewerSelector.setFlat` (PR #4572)
+    * `DataViewer`: Splitted composite ImageView into Plot2dView and ComplexImageView (PR #4453)
+    * `DataViews`:
+
+      * Change: Make NXdata valid even if no widget can plot it in `DataInfo` (PR #4497)
+      * Changed: Use first auxiliary signal as scatter sizes for 3D scatter (PR #4538)
+      * Added specific view for RGB(A) images (PR #4517, #4537)
+      * Break it down in several modules (PR #4504)
+      * Changed display of NXdata stacks to use image view (PR #4412)
+      * Fixed test (PR #4510)
+
+    * `Hdf5TableView`:
+
+      * Added a 'copyable' button (PR #4518, #4540)
+      * Update to use 'ScrollPerPixel' mode scrolling (PR #4276)
+      * Fixed uncaught exception (PR #4286)
+
+    * `NXdataWidget`:
+
+      * Use axis names as slider labels (when present) (PR #4427)
+      * `ArrayImagePlot`: Added support of changing axes for NXdata stack of images (PR #3624)
+      * `ArrayImagePlot`: Fixed error when an image has axis (PR #4544)
+
+    * `NumpyAxesSelector`:
+
+      * Fixed label alignment by normalizing widths (PR #4476)
+      * Deprecated `customAxes` (PR #4462)
+
+    * `RgbaImagePlot`: Added new widget to plot NXdata RGBA images (PR #4525)
+    * Fixed issue with NXdata 2D signal and "rgb-image" interpretation (PR #4506)
+
+  * `silx.gui.dialog`:
+
+    * `ColormapDialog`:
+
+      * Removed miss-spelled method `getDsiplayMode` (PR #4288)
+      * Fixed exception when closing the application (PR #4549)
+
+    * `GroupDialog` & `DatasetDialog`: Added `setSelectedDataUrl` method (PR #4290)
+
+  * `silx.gui.hdf5.Hdf5TreeModel`: Improved logging when loading files async (PR #4552)
+  * `silx.gui.plot`:
+
+    * Added `LegendsWidget` displaying legends of a `PlotWidget` item (PR #4404, #4479)
+    * `CurvesROIDockWidget`:
+
+      * Deprecated proxy methods to `CurvesROIWidget` (PR #4281)
+      * Removed `sigROISignal` (PR #4280)
+
+    * `ImageView`:
+
+      * Removed `profile()` method (PR #4270)
+      * Deprecated `setImage()`'s `reset` argument (PR #4283)
+
+    * `ImageStack`: Improved memory usage (PR #4498)
+    * `MaskToolsWidget`: Fixed warnings (PR #4248, #4399)
+    * `PlotWidget`:
+
+      * Added support of inverted X axis (PR #4394)
+      * Added highlight of axes offset value (PR #4346)
+      * Changed tooltips for X and Y orientation actions (PR #4512)
+      * Improved item colormap cache (PR #4371)
+      * Improved support of screen with erroneous resolution (PR #4562)
+      * Fixed matplotlib backend issue with plot axes limits (PR #4256)
+      * Fixed axis with OpenGL backend (PR #4246)
+      * Fixed support of numpy 2.3 (PR #4330)
+      * Fixed colormap out-of-bound color with OpenGL backend (PR #4359)
+      * Fixed wrong tooltip description for elipse mask (PR #4272)
+
+    * `PlotWindow`: Moved the 'Options' menu to a toolbar (PR #4532)
+
+    * `silx.gui.plot.actions`:
+
+      * `PixelIntensitiesHistoAction`: Fixed histogram display to include max value (PR #4469)
+      * `SaveAction`:
+
+        * Fixed precision of saved values in .dat file (PR #4565)
+        * Updated order of supported image formats (PR #4416)
+
+    * `StatsWidget`:
+
+      * Improved display (PR #4445)
+      * Optimized ROI statistics (PR #4402)
+
+    * `silx.gui.plot.tools.toolbars`: Fixed `ImageToolBar` (PR #4443)
+    * `silx.gui.plot.tools.roi`: Fixed `RegionOfInterestManager` (PR #4301)
+    * Added X axis inversion action to `PlotWindow` and `ImageToolbar` (PR #4425)
+
+  * `silx.gui.plot3d`:
+
+    * Added `Plot3DWidget`'s `getLightMode` and `setLightMode` methods (PR #4492)
+    * Added support for array of symbol size to `Scatter2D` and `Scatter3D` (PR #4494)
+    * Fixed lighting of Spheres (PR #4491)
+    * Fixed scatter items picking (PR #4573)
+
+  * `silx.gui.utils`:
+
+    * `silx.gui.utils.matplotlib`: Fixed the used matplotlib backend with Qt6 (PR #4481)
+    * `silx.gui.utils.glutils`: Improved `isOpenGLAvailable` (PR #4576)
+
+  * `silx.gui.widgets`:
+
+    * Added `OverlayMixIn` widget class to ease overlaying content on a `PlotWidget` (PR #4354, #4355)
+    * Added `ButtonOverlay` and `LabelOverlay` (PR #4296)
+    * Added `CollapisbleWidget` with an inner layout that can collapsed/expanded by clicking on a button (PR #4357)
+    * Added `FilenameCompleter` that provides autocompletion for file paths (PR #4323)
+    * Added `IntEdit` widget (PR #4502)
+    * Removed `ElidedLabel`'s `getText` and `getToolTip` methods (PR #4268)
+
+* `silx.io`:
+
+  * `silx.io.dictdump`:
+
+    * Added support of external data and VDS in `dictdump` link target values (PR #4313, #4414)
+    * Fixed `dicttonx` (PR #4370, #4422, #4482)
+
+  * `silx.io.fabioh5.FabioReader`:
+
+    * Fixed scalar strings support (PR #4516)
+    * Fixed attribute error when reading TIFF files (PR #4515)
+
+  * `silx.io.h5py_utils`:
+
+    * Removed deprecated `File`'s `enable_file_locking` argument (PR #4275)
+    * Improved `is_h5py_exception` check to use inspect (PR #4566)
+    * Fixed support of `libhdf5` 1.14.x (PR #4242)
+    * Fixed h5py exception not recognized with h5py installed from debian (PR #4564)
+    * Fixed test with `h5py` 3.16 (PR #4500, #4530)
+
+  * `silx.io.nxdata.parse.NXdata`:
+
+    * Added units to dataset name for signal and axes when present (PR #4282)
+    * Added support for "rgb-image" NeXus interpretation (PR #4505)
+    * Changed: NeXus `@interpretation=scalar` is now ignored (PR #4508)
+    * Improved: Convert `scaler` interpretation to `scalar` (PR #4509)
+    * Deprecated attributes related to kind of plot and `signal_is_Nd` (PR #4535)
+    * Fixed test (PR #4448, #4458)
+
+  * `silx.io.url.DataUrl`: Added `invalid_reason` property that tells why a DataUrl is not valid (PR #4403)
+  * `silx.io.utils`: Fixed `h5pyd` compatibility (PR #4484)
+
+* `silx.math`:
+
+  * `silx.math.calibration.ArrayCalibration`: Improved `is_affine` implementation (PR #4466, #4478)
+  * `silx.math.combo`: Added `mean_std` function for single pass mean+standard deviation computation (PR #4390)
+  * `silx.math.fit.test.test_fitmanager`: Fixed test (PR #4557)
+  * `silx.math.histogramnd`: Fixed compilation warning (PR #4318)
+  * Improved cython code (PR #4400)
+
+* `silx.opencl`:
+
+  * `silx.opencl.processing`: Added `OpenclProcessing.arrayzeros` helper (PR #4526)
+  * Improved caching (PR #4387, #4449, #4527)
+  * Fixed context creation through PYOPENCL_CTX environment variable (PR #4245)
+
+* `silx.resources`: Fixed not existing resource file access (PR #4330)
+
+* `silx.test`:
+
+  * `silx.test.run_tests`: Updated usage of pytest (PR #4330, #4417, #4437)
+  * Changed `--low-mem` arg by `--no-high-mem` and skip high memory tests by default (PR #4319, #4332)
+  * Removed testdata folder (PR #4227)
+
+* `silx.utils`:
+
+  * `silx.utils.ExternalResources`:
+
+    * Removed `clean_up` method (PR #4513)
+    * Improved log messages (PR #4348)
+
+  * `silx.utils.number`: Deprecated module (PR #4519)
+  * `silx.utils.testutils`: Removed deprecated `TestLogging` and `test_logging` (PR #4273)
+
+* Dependencies:
+
+  * Updated required version:
+
+    * Python >= 3.10 (PR #4234)
+    * `matplotlib` >= 3.6  (PR #4477)
+    * `PyQt5` >= 5.14 (PR #4300, #4309)
+
+  * Added `bitshuffle` to the test dependencies (PR #4175)
+
+* Documentation:
+
+  * Updated "Writing NXdata" page (PR #4541)
+  * Updated "Contribution" section (PR #4326, #4426, #4435, #4533, #4553)
+  * Updated documentation (#4267, #4321, #4325, #4327, #4420, #4558, #4559, #4567)
+  * Added readthedocs configuration (PR #4294, #4297)
+
+* Code quality:
+
+  * Added black formatting (PR #4240, #4314, #4368, #4373, #4468)
+  * Added flake8 compliance (PR #4287, #4311, #4316, #4375, #4377, #4376, #4378, #4380, #4381, #4383, #4385, #4386, #4389, #4391, #4396, #4401, #4430)
+  * Added Python type hints (PR #4269, #4284, #4299, #4274, #4302, #4305, #4384, #4392, #4406, #4521)
+  * Updated tests to use `pytest` (PR #4454, #4551, #4543)
+  * Updated syntax to python 3.10 (PR #4259)
+
+* Build:
+
+  * Migrated build system to `meson-python` (PR #4277, #4320, #4329, #4331)
+  * Updated project configuration (PR #4322, #4407)
+  * Updated application generation to build a single executable (PR #4419)
+
+* CI:
+
+  * Added build and sign application budle for macOS (PR #4308, #4574)
+  * Updated continous integration configuration (PR #4260, #4298, #4349, #4455, #4460)
+  * Fixed: Ignore `pyparsing` deprecation warnings (PR #4431)
+
 2.2.2: 2025/04/07
 -----------------
 
