@@ -99,7 +99,6 @@ class DataViewerFrame(qt.QWidget):
         self.__dataViewer.setFrameShape(qt.QFrame.StyledPanel)
         self.__dataViewer.setFrameShadow(qt.QFrame.Sunken)
         self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
-        self.__dataViewerSelector.setFlat(True)
 
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
