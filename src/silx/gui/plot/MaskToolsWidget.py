@@ -329,6 +329,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         :return: None if failed, shape of mask as 2-tuple if successful.
                  The mask can be cropped or padded to fit active image,
                  the returned shape is that of the active image.
+
+        .. warning:: The selection mask is a dedicated item. Its is independent from the `item.item.setMaskData` / `item.item.getMaskData` mechanism.
+
         """
         if mask is None:
             self.resetSelectionMask()
