@@ -98,15 +98,27 @@ class _PanPlaneAction(InteractiveModeAction):
 
 
 class SceneWindow(qt.QMainWindow):
-    """OpenGL 3D scene widget with toolbars."""
+    """OpenGL 3D scene widget with toolbars.
 
-    def __init__(self, parent=None):
+    :param parent: Parent widget
+    :param str backend: 'opengl' (default) or 'pygfx'
+    """
+
+    def __init__(self, parent=None, backend=None):
         super().__init__(parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
 
-        self._sceneWidget = SceneWidget()
+        self._backend = backend
+
+        if backend == "pygfx":
+            from .SceneWidgetPygfx import SceneWidgetPygfx
+
+            self._sceneWidget = SceneWidgetPygfx()
+        else:
+            self._sceneWidget = SceneWidget()
+
         self.setCentralWidget(self._sceneWidget)
 
         # Add PositionInfoWidget to display picking info
@@ -139,7 +151,8 @@ class SceneWindow(qt.QMainWindow):
         self._paramTreeView.setModel(self._sceneWidget.model())
 
         selectionModel = self._paramTreeView.selectionModel()
-        self._sceneWidget.selection()._setSyncSelectionModel(selectionModel)
+        if selectionModel is not None:
+            self._sceneWidget.selection()._setSyncSelectionModel(selectionModel)
 
         paramDock = qt.QDockWidget()
         paramDock.setWindowTitle("Object parameters")

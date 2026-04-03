@@ -35,7 +35,7 @@ from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items.curve import CurveStyle
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testActiveCurveAndLabels(plotWidget):
     # Active curve handling off, no label change
     plotWidget.setActiveCurveHandling(False)
@@ -85,7 +85,7 @@ def testActiveCurveAndLabels(plotWidget):
     plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testPlotActiveCurveSelectionMode(plotWidget):
     xData = numpy.arange(1000)
     yData = -500 + 100 * numpy.sin(xData)
@@ -140,7 +140,7 @@ def testPlotActiveCurveSelectionMode(plotWidget):
     plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testActiveCurveStyle(plotWidget):
     """Test change of active curve style"""
     plotWidget.setActiveCurveHandling(True)
@@ -192,7 +192,7 @@ def testActiveCurveStyle(plotWidget):
     plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testActiveImageAndLabels(plotWidget):
     # Active image handling always on, no API for toggling it
     plotWidget.getXAxis().setLabel("XLabel")
@@ -232,7 +232,7 @@ def _checkSelection(selection, current=None, selected=()):
     assert selection.getSelectedItems() == selected
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testSelectionSyncWithActiveItems(plotWidget):
     """Test update of PlotWidgetSelection according to active items"""
     listener = SignalListener()
@@ -314,7 +314,7 @@ def testSelectionSyncWithActiveItems(plotWidget):
     _checkSelection(selection)
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testSelectionWithItems(plotWidget):
     """Test init of selection on a plot with items"""
     plotWidget.addImage(((0, 1), (2, 3)), legend="image")
@@ -331,7 +331,7 @@ def testSelectionWithItems(plotWidget):
     assert plotWidget.getActiveScatter() in selected
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testSelectionSetCurrentItem(plotWidget):
     """Test setCurrentItem"""
     # Add items to the plot

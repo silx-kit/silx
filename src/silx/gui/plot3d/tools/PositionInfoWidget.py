@@ -37,6 +37,13 @@ from .. import items
 from ..items import volume
 from ..SceneWidget import SceneWidget
 
+try:
+    from ..SceneWidgetPygfx import SceneWidgetPygfx
+
+    _SCENE_WIDGET_TYPES = (SceneWidget, SceneWidgetPygfx)
+except ImportError:
+    _SCENE_WIDGET_TYPES = (SceneWidget,)
+
 _logger = logging.getLogger(__name__)
 
 
@@ -129,7 +136,7 @@ class PositionInfoWidget(qt.QWidget):
         :param ~silx.gui.plot3d.SceneWidget.SceneWidget widget:
             3D scene for which to display information
         """
-        if widget is not None and not isinstance(widget, SceneWidget):
+        if widget is not None and not isinstance(widget, _SCENE_WIDGET_TYPES):
             raise ValueError("widget must be a SceneWidget or None")
 
         self._sceneWidgetRef = None if widget is None else weakref.ref(widget)
