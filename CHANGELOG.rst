@@ -30,7 +30,7 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
     * `DataViewer`: Splitted composite ImageView into Plot2dView and ComplexImageView (PR #4453)
     * `DataViews`:
 
-      * Change: Make NXdata valid even if no widget can plot it in `DataInfo` (PR #4497)
+      * Changed: Make NXdata valid even if no widget can plot it in `DataInfo` (PR #4497)
       * Changed: Use first auxiliary signal as scatter sizes for 3D scatter (PR #4538)
       * Added specific view for RGB(A) images (PR #4517, #4537)
       * Break it down in several modules (PR #4504)
@@ -93,7 +93,7 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
       * Fixed axis with OpenGL backend (PR #4246)
       * Fixed support of numpy 2.3 (PR #4330)
       * Fixed colormap out-of-bound color with OpenGL backend (PR #4359)
-      * Fixed wrong tooltip description for elipse mask (PR #4272)
+      * Fixed wrong tooltip description for ellipse mask (PR #4272)
 
     * `PlotWindow`: Moved the 'Options' menu to a toolbar (PR #4532)
 
@@ -123,14 +123,14 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
 
   * `silx.gui.utils`:
 
-    * `silx.gui.utils.matplotlib`: Fixed the used matplotlib backend with Qt6 (PR #4481)
+    * `silx.gui.utils.matplotlib`: Fixed the use of matplotlib backend with Qt6 (PR #4481)
     * `silx.gui.utils.glutils`: Improved `isOpenGLAvailable` (PR #4576)
 
   * `silx.gui.widgets`:
 
     * Added `OverlayMixIn` widget class to ease overlaying content on a `PlotWidget` (PR #4354, #4355)
     * Added `ButtonOverlay` and `LabelOverlay` (PR #4296)
-    * Added `CollapisbleWidget` with an inner layout that can collapsed/expanded by clicking on a button (PR #4357)
+    * Added `CollapsibleWidget` with an inner layout that can collapsed/expanded by clicking on a button (PR #4357)
     * Added `FilenameCompleter` that provides autocompletion for file paths (PR #4323)
     * Added `IntEdit` widget (PR #4502)
     * Removed `ElidedLabel`'s `getText` and `getToolTip` methods (PR #4268)
