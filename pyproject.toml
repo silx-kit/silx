@@ -51,7 +51,7 @@ opencl = [
     'pyopencl', # For silx.opencl
     'Mako',     # For pyopencl reduction
 ]
-full = [
+full_no_qt = [
     'silx[opencl]',
     'qtconsole',             # For silx.gui.console
     'matplotlib >= 3.6',     # For silx.gui.plot
@@ -61,9 +61,12 @@ full = [
     'pooch',                 # For scipy.datasets.ascent
     'Pillow',                # For silx.opencl.image.test
     'pint',                  # For silx.io.dictdump
-    'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
     'hdf5plugin',            # For HDF5 compression filters handling
     'qtawesome',             # For icons
+]
+full = [
+    'silx[full_no_qt]',
+    'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
 ]
 h5pyd = [
     'h5pyd >= 0.20.0'
