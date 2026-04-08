@@ -628,15 +628,13 @@ class PlotWidget(qt.QMainWindow):
         self._backend.setGraphXLabel(xaxis.getLabel())
         self._backend.setXAxisTimeZone(xTimeZone)
         self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
-        self._backend.setXAxisLogarithmic(xaxis.getScale() == items.Axis.LOGARITHMIC)
+        self._backend.setXAxisScale(xaxis.getScale())
         self._backend.setXAxisInverted(isXAxisInverted)
 
         for axis in ("left", "right"):
             self._backend.setGraphYLabel(self.getYAxis(axis).getLabel(), axis)
         self._backend.setYAxisInverted(isYAxisInverted)
-        self._backend.setYAxisLogarithmic(
-            self.getYAxis().getScale() == items.Axis.LOGARITHMIC
-        )
+        self._backend.setYAxisScale(self.getYAxis().getScale())
 
         # Finally restore aspect ratio and limits
         self._backend.setKeepDataAspectRatio(isKeepDataAspectRatio)
