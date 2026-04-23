@@ -313,6 +313,12 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
         self.onlimits = onlimits
         xData, yData = item.getData(copy=True)[0:2]
 
+        if xData.size == 0 or yData.size == 0:
+            self.values = None
+            self.min, self.max = None, None
+            self.axes = None
+            return
+
         # Determine mask
         if onlimits:
             # Mask defined by viewport
@@ -373,6 +379,12 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
 
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
+
+        if xData.size == 0 or yData.size == 0:
+            self.values = None
+            self.min, self.max = None, None
+            self.axes = None
+            return
 
         # Determine mask
         if onlimits:
@@ -437,6 +449,12 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
         valueData = item.getValueData(copy=True)
         xData = item.getXData(copy=True)
         yData = item.getYData(copy=True)
+
+        if valueData.size == 0:
+            self.values = None
+            self.min, self.max = None, None
+            self.axes = None
+            return
 
         # Determine mask
         if onlimits:
@@ -536,6 +554,12 @@ class _ImageContext(_StatsContext):
         self.origin = item.getOrigin()
         self.scale = item.getScale()
         self.data = item.getData(copy=True)
+
+        if self.data.size == 0:
+            self.values = None
+            self.min, self.max = None, None
+            self.axes = None
+            return
 
         xsize = self.data.shape[1]
         ysize = self.data.shape[0]
