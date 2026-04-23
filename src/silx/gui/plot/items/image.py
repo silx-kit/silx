@@ -230,6 +230,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     def setMaskData(self, mask: numpy.ndarray | None, copy: bool = True):
         """Set the image data
 
+        This mask is applied to data retrieved with :meth:`getValueData`
+        (used for display and tools associated with `PlotWidget`).
+
         :param mask: Mark for the data. It must have the same shape of the data.
         :param copy: True (Default) to make a copy,
                      False to use as is (do not modify!)
