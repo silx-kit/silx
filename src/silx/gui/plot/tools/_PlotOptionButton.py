@@ -18,9 +18,9 @@ class PlotOptionButton(PlotToolButton):
         self.setIcon(qtawesome.icon("fa6s.bars"))
 
         self._menu = qt.QMenu(self)
-
-        self.clicked.connect(self._showPlotActionMenu)
         self._menu.aboutToShow.connect(self._customControlButtonMenu)
+        self.setMenu(self._menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
 
     def _customControlButtonMenu(self):
         plot = self.plot()
@@ -39,9 +39,6 @@ class PlotOptionButton(PlotToolButton):
         self._menu.addSeparator()
         self._menu.addAction(plot.getCrosshairAction())
         self._menu.addAction(plot.getPanWithArrowKeysAction())
-
-    def _showPlotActionMenu(self):
-        self._menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
 
     def setPlot(self, plot: PlotWindow):
         from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
