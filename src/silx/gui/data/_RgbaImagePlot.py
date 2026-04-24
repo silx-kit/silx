@@ -81,6 +81,8 @@ class RgbaImagePlot(BaseImagePlot):
         self._plot.resetZoom()
 
     def _addItemToPlot(self, xAxis: ImageAxis, yAxis: ImageAxis):
+        self._plot.remove(kind="image")
+
         image = self._getImageToDisplay()
 
         if image.ndim != 3:
