@@ -274,7 +274,11 @@ class ImageMask(BaseMask):
 
 
 class MaskToolsWidget(BaseMaskToolsWidget):
-    """Widget with tools for drawing mask on an image in a PlotWidget."""
+    """Widget with tools for drawing mask on an image in a PlotWidget.
+
+    By default, the mask authored with this widget is not updating the mask of the "active" image item.
+    To enable this feature, use :meth:`setItemMaskUpdated`
+    """
 
     _maxLevelNumber = 255
 
