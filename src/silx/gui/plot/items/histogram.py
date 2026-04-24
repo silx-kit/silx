@@ -142,6 +142,7 @@ class Histogram(
         LineGapColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
 
+        self._alignement = "center"
         self._histogram = ()
         self._edges = ()
         self._setBaseline(Histogram._DEFAULT_BASELINE)
