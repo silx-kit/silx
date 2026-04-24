@@ -1,8 +1,8 @@
 Release Notes
 =============
 
-3.0.0rc1: 2026/04/02
---------------------
+3.0.0: 2026/04/24
+-----------------
 
 This version of silx requires Python >=3.10 and uses PySide6 as its default Qt binding.
 
@@ -32,15 +32,15 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
 
       * Changed: Make NXdata valid even if no widget can plot it in `DataInfo` (PR #4497)
       * Changed: Use first auxiliary signal as scatter sizes for 3D scatter (PR #4538)
-      * Added specific view for RGB(A) images (PR #4517, #4537)
-      * Break it down in several modules (PR #4504)
       * Changed display of NXdata stacks to use image view (PR #4412)
+      * Added specific view for RGB(A) images (PR #4517, #4525, #4537, #4584)
+      * Break it down in several modules (PR #4504)
       * Fixed test (PR #4510)
 
     * `Hdf5TableView`:
 
       * Added a 'copyable' button (PR #4518, #4540)
-      * Update to use 'ScrollPerPixel' mode scrolling (PR #4276)
+      * Updated to use `ScrollPerPixel` mode scrolling (PR #4276)
       * Fixed uncaught exception (PR #4286)
 
     * `NXdataWidget`:
@@ -54,7 +54,6 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
       * Fixed label alignment by normalizing widths (PR #4476)
       * Deprecated `customAxes` (PR #4462)
 
-    * `RgbaImagePlot`: Added new widget to plot NXdata RGBA images (PR #4525)
     * Fixed issue with NXdata 2D signal and "rgb-image" interpretation (PR #4506)
 
   * `silx.gui.dialog`:
@@ -95,7 +94,7 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
       * Fixed colormap out-of-bound color with OpenGL backend (PR #4359)
       * Fixed wrong tooltip description for ellipse mask (PR #4272)
 
-    * `PlotWindow`: Moved the 'Options' menu to a toolbar (PR #4532)
+    * `PlotWindow`: Moved the 'Options' menu to the toolbar (PR #4532, #4581)
 
     * `silx.gui.plot.actions`:
 
@@ -109,10 +108,12 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
 
       * Improved display (PR #4445)
       * Optimized ROI statistics (PR #4402)
+      * Fixed support of `PlotWidget` items containing no data (PR #4583)
 
     * `silx.gui.plot.tools.toolbars`: Fixed `ImageToolBar` (PR #4443)
     * `silx.gui.plot.tools.roi`: Fixed `RegionOfInterestManager` (PR #4301)
     * Added X axis inversion action to `PlotWindow` and `ImageToolbar` (PR #4425)
+    * Updated mask documentation (PR #4582)
 
   * `silx.gui.plot3d`:
 
@@ -207,6 +208,7 @@ This version of silx requires Python >=3.10 and uses PySide6 as its default Qt b
     * `matplotlib` >= 3.6  (PR #4477)
     * `PyQt5` >= 5.14 (PR #4300, #4309)
 
+  * Added `full_no_qt` extra requirements specifier (PR #4579)
   * Added `bitshuffle` to the test dependencies (PR #4175)
 
 * Documentation:
