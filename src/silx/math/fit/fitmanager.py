@@ -788,7 +788,11 @@ class FitManager:
                 self.xdata = self.xdata[bool_array]
                 self.ydata = self.ydata[bool_array]
                 if sigmay is None:
-                    self.sigmay = self.sigmay[bool_array] if self.fitconfig["WeightFlag"] else None
+                    self.sigmay = (
+                        self.sigmay[bool_array]
+                        if self.fitconfig["WeightFlag"]
+                        else None
+                    )
                 else:
                     self.sigmay0 = self.sigmay = self.sigmay[bool_array]
 
