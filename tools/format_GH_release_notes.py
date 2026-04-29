@@ -16,39 +16,35 @@ options = parser.parse_args()
 
 content = Path(options.file[0]).read_text().split("\n")
 
-pr_descriptions = sorted(
+pr_descriptions = tuple(
     GH_PR_REGEXP.sub(r"\1 (PR #\2)", line)
     for line in content
     if GH_PR_REGEXP.match(line)
 )
 
-current_topic = None
-current_descriptions = []
-
-for index in range(len(pr_descriptions)):
-    topic_and_description = tuple(
-        text.strip() for text in pr_descriptions[index].split(":", 1)
-    )
+changelog_entries = {}
+for pr_description in pr_descriptions:
+    topic_and_description = tuple(text.strip() for text in pr_description.split(":", 1))
     if len(topic_and_description) == 2:
-        new_topic, new_description = topic_and_description
+        topic, description = topic_and_description
     else:
-        new_topic = pr_descriptions[index]
-        new_description = ""
+        topic = pr_description
+        description = ""
 
-    if new_topic == current_topic:
-        current_descriptions.append(new_description)
+    if topic not in changelog_entries:
+        changelog_entries[topic] = []
+
+    if description:
+        changelog_entries[topic].append(description)
+
+for topic, descriptions in sorted(changelog_entries.items()):
+    if len(descriptions) == 0:
+        print(f"* {topic}")
+    elif len(descriptions) == 1:
+        print(f"* {topic}: {descriptions[0]}")
     else:
-        if current_topic is not None:
-            if len(current_descriptions) == 1:
-                if not current_descriptions[0]:
-                    print(f"* {current_topic}")
-                else:
-                    print(f"* {current_topic}: {current_descriptions[0]}")
-            else:
-                print(f"* {current_topic}:")
-                print("")
-                for description in current_descriptions:
-                    print(f"  * {description}")
-                print("")
-        current_topic = new_topic
-        current_descriptions = [new_description]
+        print(f"* {topic}:")
+        print("")
+        for description in descriptions:
+            print(f"  * {description}")
+        print("")
