@@ -78,12 +78,14 @@ class FitManager:
     :param weight_flag: If this parameter is ``True`` and ``sigmay``
         uncertainties are not specified, the square root of ``y`` is used
         as weights in the least-squares problem. If ``False``, the
-        uncertainties are set to 1.
+        uncertainties are set to 1. By default, it is set to ``True`` if
+        ``sigmay`` is provided and ``False`` otherwise.
     :type weight_flag: boolean
     """
 
-    def __init__(self, x=None, y=None, sigmay=None, weight_flag=False):
+    def __init__(self, x=None, y=None, sigmay=None, weight_flag=None):
         """ """
+        weight_flag = (sigmay is not None) if weight_flag is None else weight_flag
         self.fitconfig = {
             "WeightFlag": weight_flag,
             "fitbkg": "No Background",
