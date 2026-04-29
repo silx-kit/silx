@@ -43,6 +43,8 @@ _logger = logging.getLogger(__name__)
 
 
 Vector3 = Sequence[float]
+Vector4 = Sequence[float]
+Matrix4 = numpy.ndarray
 PrimitiveMode = Literal[
     "points", "lines", "line_strip", "loop", "triangles", "triangle_strip", "fan"
 ]
@@ -628,7 +630,7 @@ class Plane(event.Notifier):
         return numpy.append(self._normal, -numpy.dot(self._point, self._normal))
 
     @parameters.setter
-    def parameters(self, parameters: Sequence[float]) -> None:
+    def parameters(self, parameters: Vector4) -> None:
         assert len(parameters) == 4
         parameters = numpy.array(parameters, dtype=numpy.float32)
 

@@ -35,7 +35,9 @@ import numpy
 from numpy.typing import ArrayLike
 
 from . import event
+from .utils import Matrix4
 from .utils import Vector3
+from .utils import Vector4
 
 AxisName = Literal["x", "y", "z"]
 
@@ -44,7 +46,7 @@ AxisName = Literal["x", "y", "z"]
 # Projections
 
 
-def mat4LookAtDir(position: Vector3, direction: Vector3, up: Vector3) -> numpy.ndarray:
+def mat4LookAtDir(position: Vector3, direction: Vector3, up: Vector3) -> Matrix4:
     """Creates matrix to look in direction from position.
 
     :param position: Array-like 3 coordinates of the point of view position.
@@ -77,7 +79,7 @@ def mat4LookAtDir(position: Vector3, direction: Vector3, up: Vector3) -> numpy.n
     return numpy.dot(matrix, mat4Translate(-position[0], -position[1], -position[2]))
 
 
-def mat4LookAt(position: Vector3, center: Vector3, up: Vector3) -> numpy.ndarray:
+def mat4LookAt(position: Vector3, center: Vector3, up: Vector3) -> Matrix4:
     """Creates matrix to look at center from position.
 
     See gluLookAt.
@@ -96,7 +98,7 @@ def mat4LookAt(position: Vector3, center: Vector3, up: Vector3) -> numpy.ndarray
 
 def mat4Frustum(
     left: float, right: float, bottom: float, top: float, near: float, far: float
-) -> numpy.ndarray:
+) -> Matrix4:
     """Creates a frustum projection matrix.
 
     See glFrustum.
@@ -114,7 +116,7 @@ def mat4Frustum(
 
 def mat4Perspective(
     fovy: float, width: float, height: float, near: float, far: float
-) -> numpy.ndarray:
+) -> Matrix4:
     """Creates a perspective projection matrix.
 
     Similar to gluPerspective.
@@ -146,7 +148,7 @@ def mat4Perspective(
 
 def mat4Orthographic(
     left: float, right: float, bottom: float, top: float, near: float, far: float
-) -> numpy.ndarray:
+) -> Matrix4:
     """Creates an orthographic (i.e., parallel) projection matrix.
 
     See glOrtho.
@@ -165,7 +167,7 @@ def mat4Orthographic(
 # Affine
 
 
-def mat4Translate(tx: float, ty: float, tz: float) -> numpy.ndarray:
+def mat4Translate(tx: float, ty: float, tz: float) -> Matrix4:
     """4x4 translation matrix."""
     return numpy.array(
         (
@@ -178,7 +180,7 @@ def mat4Translate(tx: float, ty: float, tz: float) -> numpy.ndarray:
     )
 
 
-def mat4Scale(sx: float, sy: float, sz: float) -> numpy.ndarray:
+def mat4Scale(sx: float, sy: float, sz: float) -> Matrix4:
     """4x4 scale matrix."""
     return numpy.array(
         (
@@ -193,7 +195,7 @@ def mat4Scale(sx: float, sy: float, sz: float) -> numpy.ndarray:
 
 def mat4RotateFromAngleAxis(
     angle: float, x: float = 0.0, y: float = 0.0, z: float = 1.0
-) -> numpy.ndarray:
+) -> Matrix4:
     """4x4 rotation matrix from angle and axis.
 
     :param angle: The rotation angle in radians.
@@ -229,7 +231,7 @@ def mat4RotateFromAngleAxis(
     )
 
 
-def mat4RotateFromQuaternion(quaternion: ArrayLike) -> numpy.ndarray:
+def mat4RotateFromQuaternion(quaternion: Vector4) -> Matrix4:
     """4x4 rotation matrix from quaternion.
 
     :param quaternion: Array-like unit quaternion stored as (x, y, z, w)
@@ -266,7 +268,7 @@ def mat4RotateFromQuaternion(quaternion: ArrayLike) -> numpy.ndarray:
 
 def mat4Shear(
     axis: AxisName, sx: float = 0.0, sy: float = 0.0, sz: float = 0.0
-) -> numpy.ndarray:
+) -> Matrix4:
     """4x4 shear matrix: Skew two axes relative to a third fixed one.
 
     shearFactor = tan(shearAngle)
@@ -319,15 +321,15 @@ class Transform(event.Notifier):
 
     # Matrix
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         """Override to build matrix"""
         return numpy.identity(4, dtype=numpy.float32)
 
-    def _makeInverse(self) -> numpy.ndarray:
+    def _makeInverse(self) -> Matrix4:
         """Override to build inverse matrix."""
         return numpy.linalg.inv(self.getMatrix(copy=False))
 
-    def getMatrix(self, copy: bool = True) -> numpy.ndarray:
+    def getMatrix(self, copy: bool = True) -> Matrix4:
         """The 4x4 matrix of this transform.
 
         :param copy: True (the default) to get a copy of the matrix,
@@ -343,7 +345,7 @@ class Transform(event.Notifier):
 
     matrix = property(getMatrix, doc="The 4x4 matrix of this transform.")
 
-    def getInverseMatrix(self, copy: bool = False) -> numpy.ndarray:
+    def getInverseMatrix(self, copy: bool = False) -> Matrix4:
         """The 4x4 matrix of the inverse of this transform.
 
         :param copy: True (the default) to get a copy of the matrix,
@@ -543,7 +545,7 @@ class TransformList(Transform, event.HookList):
         if source is not self:  # Avoid infinite recursion
             self.notify()
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         matrix = numpy.identity(4, dtype=numpy.float32)
         for transform in self:
             matrix = numpy.dot(matrix, transform.getMatrix(copy=False))
@@ -607,10 +609,10 @@ class Translate(Transform):
         self._tx, self._ty, self._tz = 0.0, 0.0, 0.0
         self.setTranslate(tx, ty, tz)
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         return mat4Translate(self.tx, self.ty, self.tz)
 
-    def _makeInverse(self) -> numpy.ndarray:
+    def _makeInverse(self) -> Matrix4:
         return mat4Translate(-self.tx, -self.ty, -self.tz)
 
     @property
@@ -666,10 +668,10 @@ class Scale(Transform):
         self._sx, self._sy, self._sz = 0.0, 0.0, 0.0
         self.setScale(sx, sy, sz)
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         return mat4Scale(self.sx, self.sy, self.sz)
 
-    def _makeInverse(self) -> numpy.ndarray:
+    def _makeInverse(self) -> Matrix4:
         return mat4Scale(1.0 / self.sx, 1.0 / self.sy, 1.0 / self.sz)
 
     @property
@@ -795,7 +797,7 @@ class Rotate(Transform):
             return quaternion
 
     @quaternion.setter
-    def quaternion(self, quaternion: ArrayLike):
+    def quaternion(self, quaternion: Vector4):
         assert len(quaternion) == 4
 
         # Normalize quaternion
@@ -810,11 +812,11 @@ class Rotate(Transform):
         # Axis will be normalized in setAngleAxis
         self.setAngleAxis(numpy.degrees(angle), quaternion[0:3])
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         angle = numpy.radians(self.angle, dtype=numpy.float32)
         return mat4RotateFromAngleAxis(angle, *self.axis)
 
-    def _makeInverse(self) -> numpy.ndarray:
+    def _makeInverse(self) -> Matrix4:
         return numpy.array(
             self.getMatrix(copy=False).transpose(),
             copy=True,
@@ -849,10 +851,10 @@ class Shear(Transform):
         """The shear factors: shearFactor = tan(shearAngle)"""
         return self._factors
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         return mat4Shear(self.axis, *self.factors)
 
-    def _makeInverse(self) -> numpy.ndarray:
+    def _makeInverse(self) -> Matrix4:
         sx, sy, sz = self.factors
         return mat4Shear(self.axis, -sx, -sy, -sz)
 
@@ -973,7 +975,7 @@ class Orthographic(_Projection):
         super().__init__(near, far, checkDepthExtent=False, size=size)
         # _update called when setting size
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         return mat4Orthographic(
             self.left, self.right, self.bottom, self.top, self.near, self.far
         )
@@ -1082,7 +1084,7 @@ class Ortho2DWidget(_Projection):
     ):
         super().__init__(near, far, size)
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         width, height = self.size
         return mat4Orthographic(0.0, width, height, 0.0, self.near, self.far)
 
@@ -1109,7 +1111,7 @@ class Perspective(_Projection):
         self.fovy = fovy  # Set _fovy
         self.size = size  # Set _ size
 
-    def _makeMatrix(self) -> numpy.ndarray:
+    def _makeMatrix(self) -> Matrix4:
         width, height = self.size
         return mat4Perspective(self.fovy, width, height, self.near, self.far)
 
