@@ -1,6 +1,6 @@
 # /*#########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ from . import bgtheories
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "29/04/2026"
 
 _logger = logging.getLogger(__name__)
 
@@ -749,7 +749,8 @@ class FitManager:
         :type y: Sequence or numpy array or None
         :param sigmay: The uncertainties in the ``ydata`` array. These are
             used as weights in the least-squares problem.
-            If ``None``, the uncertainties are assumed to be 1.
+            If provided, enables weighted fit, unless (i.e. ``None``),
+            the uncertainties are assumed to be 1.
         :type sigmay: Sequence or numpy array or None
         :param xmin: Lower value of x values to use for fitting
         :param xmax: Upper value of x values to use for fitting
