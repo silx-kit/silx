@@ -749,8 +749,9 @@ class FitManager:
         :type y: Sequence or numpy array or None
         :param sigmay: The uncertainties in the ``ydata`` array. These are
             used as weights in the least-squares problem.
-            If provided, enables weighted fit, unless (i.e. ``None``),
-            the uncertainties are assumed to be 1.
+            If provided, enables weighted fit.
+            If not provided (i.e. ``None``): use the square root of ``y`` if ``weight_flag`` is ``True``
+            else uncertainties are assumed to be 1.
         :type sigmay: Sequence or numpy array or None
         :param xmin: Lower value of x values to use for fitting
         :param xmax: Upper value of x values to use for fitting
