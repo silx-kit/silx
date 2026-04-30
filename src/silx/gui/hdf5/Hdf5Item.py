@@ -47,7 +47,13 @@ _standardIconCache = {}
 
 def _getStandardIcon(icon):
     style = qt.QApplication.style()
-    key = style.objectName(), icon
+    devicePixelRatio = None
+    app = qt.QApplication.instance()
+    if app is not None:
+        screen = app.primaryScreen()
+        if screen is not None:
+            devicePixelRatio = screen.devicePixelRatio()
+    key = style.objectName(), devicePixelRatio, icon
     qicon = _standardIconCache.get(key)
     if qicon is None:
         qicon = style.standardIcon(icon)
