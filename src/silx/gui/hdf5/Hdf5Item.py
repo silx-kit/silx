@@ -42,6 +42,17 @@ _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 # FIXME: The formatter should be an attribute of the Hdf5Model
+_standardIconCache = {}
+
+
+def _getStandardIcon(icon):
+    style = qt.QApplication.style()
+    key = style.objectName(), icon
+    qicon = _standardIconCache.get(key)
+    if qicon is None:
+        qicon = style.standardIcon(icon)
+        _standardIconCache[key] = qicon
+    return qicon
 
 
 class DescriptionType(enum.Enum):
@@ -312,19 +323,18 @@ class Hdf5Item(Hdf5Node):
         """
         # Pre-fetch the object, in case it is broken
         obj = self.obj
-        style = qt.QApplication.style()
         if self.__isBroken:
-            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            icon = _getStandardIcon(qt.QStyle.SP_MessageBoxCritical)
             return icon
         class_ = self.h5Class
         if class_ == silx.io.utils.H5Type.FILE:
-            return style.standardIcon(qt.QStyle.SP_FileIcon)
+            return _getStandardIcon(qt.QStyle.SP_FileIcon)
         elif class_ == silx.io.utils.H5Type.GROUP:
-            return style.standardIcon(qt.QStyle.SP_DirIcon)
+            return _getStandardIcon(qt.QStyle.SP_DirIcon)
         elif class_ == silx.io.utils.H5Type.SOFT_LINK:
-            return style.standardIcon(qt.QStyle.SP_DirLinkIcon)
+            return _getStandardIcon(qt.QStyle.SP_DirLinkIcon)
         elif class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
-            return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
+            return _getStandardIcon(qt.QStyle.SP_FileLinkIcon)
         elif class_ == silx.io.utils.H5Type.DATASET:
             if obj.shape is None:
                 name = "item-none"
