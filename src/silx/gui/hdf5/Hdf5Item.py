@@ -45,19 +45,12 @@ _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 _standardIconCache = {}
 
 
-def _getStandardIcon(icon):
-    style = qt.QApplication.style()
-    devicePixelRatio = None
-    app = qt.QApplication.instance()
-    if app is not None:
-        screen = app.primaryScreen()
-        if screen is not None:
-            devicePixelRatio = screen.devicePixelRatio()
-    key = style.objectName(), devicePixelRatio, icon
-    qicon = _standardIconCache.get(key)
+def _getStandardIcon(icon_type):
+    qicon = _standardIconCache.get(icon_type)
     if qicon is None:
-        qicon = style.standardIcon(icon)
-        _standardIconCache[key] = qicon
+        style = qt.QApplication.style()
+        qicon = style.standardIcon(icon_type)
+        _standardIconCache[icon_type] = qicon
     return qicon
 
 
