@@ -142,6 +142,7 @@ def mainQt(options):
     import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])
+    app.setDesktopFileName("org.silx.SilxView")
     if qt.BINDING != "PyQt5":
         app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
     qt.QLocale.setDefault(qt.QLocale.c())
