@@ -39,6 +39,7 @@ from . import _utils
 from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
 from ...io.url import DataUrl
+from ..._utils import nfs_cache_refresh as _nfs_cache_refresh
 
 import h5py
 
@@ -291,6 +292,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
 
+        if error:
+            _logger.error(error)
+            return
+
         if newItem is not None:
             rootIndex = qt.QModelIndex()
             if self.__ownFiles:
@@ -303,8 +308,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 self.sigH5pyObjectLoaded.emit(newItem.obj, filename)
             else:
                 self.sigH5pyObjectSynchronized.emit(oldItem.obj, newItem.obj)
-
-        # FIXME the error must be displayed
 
     def isFileDropEnabled(self):
         return self.__fileDropEnabled
@@ -736,7 +739,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def hasPendingOperations(self):
         return len(self.__runnerSet) > 0
 
-    def insertFileAsync(self, filename, row=-1, synchronizingNode=None):
+    def insertFileAsync(self, filename: str, row=-1, synchronizingNode=None):
         if not os.path.isfile(filename):
             raise OSError("Filename '%s' must be a file path" % filename)
 
@@ -752,6 +755,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             self.insertNode(row, item)
         else:
             item = synchronizingNode
+
+            # Only refresh NFS cache for updates
+            _nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)

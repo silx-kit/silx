@@ -92,6 +92,9 @@ class _Axis(qt.QWidget):
         """Returns the slider used to display axes location."""
         return self.__slider
 
+    def label(self) -> qt.QLabel:
+        return self.__label
+
     def axisNumber(self) -> int:
         """Returns the axis number."""
         return self.__axisNumber
@@ -348,6 +351,10 @@ class NumpyAxesSelector(qt.QWidget):
         for a in self.__axis:
             a.slider().lineEdit().setFixedWidth(lineEditWidth)
             a.slider().limitWidget().setFixedWidth(limitWidth)
+
+        labelWidth = max([a.label().minimumSizeHint().width() for a in self.__axis])
+        for a in self.__axis:
+            a.label().setFixedWidth(labelWidth)
 
     def __axisValueChanged(self, axis, value):
         name = axis.axisName()

@@ -168,36 +168,7 @@ class Dataset(Node):
 
     def __init__(self, name, data, parent=None, attrs=None):
         Node.__init__(self, name, parent, attrs=attrs)
-        if data is not None:
-            self._check_data(data)
         self.__data = data
-
-    def _check_data(self, data):
-        """Check that the data provided by the dataset is valid.
-
-        It is valid when it can be stored in a HDF5 using h5py.
-
-        :param numpy.ndarray data: Data associated to the dataset
-        :raises TypeError: In the case the data is not valid.
-        """
-        if isinstance(data, (str, bytes)):
-            return
-
-        chartype = data.dtype.char
-        if chartype == "U":
-            pass
-        elif chartype == "O":
-            d = h5py.special_dtype(vlen=data.dtype)
-            if d is not None:
-                return
-            d = h5py.special_dtype(ref=data.dtype)
-            if d is not None:
-                return
-        else:
-            return
-
-        msg = "Type of the dataset '%s' is not supported. Found '%s'."
-        raise TypeError(msg % (self.name, data.dtype))
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
@@ -207,7 +178,6 @@ class Dataset(Node):
 
         :param numpy.ndarray data: Data associated to the dataset
         """
-        self._check_data(data)
         self.__data = data
 
     def _get_data(self):

@@ -88,6 +88,8 @@ class SaveAction(PlotAction):
 
     DEFAULT_ALL_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
 
+    _DEFAULT_FMT = "%.18e"
+
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
@@ -95,27 +97,27 @@ class SaveAction(PlotAction):
         (
             (
                 "Curve as Raw ASCII (*.txt)",
-                {"fmt": "%.18e", "delimiter": " ", "header": False},
+                {"fmt": _DEFAULT_FMT, "delimiter": " ", "header": False},
             ),
             (
                 'Curve as ";"-separated CSV (*.csv)',
-                {"fmt": "%.18e", "delimiter": ";", "header": True},
+                {"fmt": _DEFAULT_FMT, "delimiter": ";", "header": True},
             ),
             (
                 'Curve as ","-separated CSV (*.csv)',
-                {"fmt": "%.18e", "delimiter": ",", "header": True},
+                {"fmt": _DEFAULT_FMT, "delimiter": ",", "header": True},
             ),
             (
                 "Curve as tab-separated CSV (*.csv)",
-                {"fmt": "%.18e", "delimiter": "\t", "header": True},
+                {"fmt": _DEFAULT_FMT, "delimiter": "\t", "header": True},
             ),
             (
                 "Curve as OMNIC CSV (*.csv)",
-                {"fmt": "%.7E", "delimiter": ",", "header": False},
+                {"fmt": _DEFAULT_FMT, "delimiter": ",", "header": False},
             ),
             (
                 "Curve as SpecFile (*.dat)",
-                {"fmt": "%.10g", "delimiter": "", "header": False},
+                {"fmt": _DEFAULT_FMT, "delimiter": "", "header": False},
             ),
         )
     )

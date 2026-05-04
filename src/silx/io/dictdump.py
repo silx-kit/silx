@@ -762,7 +762,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
                         "@NX_class": "NXCollection",
                         "x": numpy.arange(0,1.1,.1)
                     }
-                }
+                },
                 "plot": {
                     "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
                                   0.9, 0.66, 0.39, 0.19, 0.08]),
@@ -771,10 +771,10 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
                     "@axes": "x",
                     "@NX_class": "NXdata",
                     "title": "Gauss Plot",
-                 },
-                 "@NX_class": "NXentry",
-                 "default":"plot",
-            }
+                },
+                "@NX_class": "NXentry",
+                "default":"plot",
+            },
             "@NX_class": "NXroot",
             "@default": "entry",
         }

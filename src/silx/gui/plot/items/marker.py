@@ -38,7 +38,7 @@ from .core import (
     DraggableMixIn,
     ColorMixIn,
     LineMixIn,
-    SymbolMixIn,
+    SymbolSingleSizeMixIn,
     ItemChangedType,
     YAxisMixIn,
 )
@@ -247,7 +247,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         return self.__isBeingDragged
 
 
-class Marker(MarkerBase, SymbolMixIn):
+class Marker(MarkerBase, SymbolSingleSizeMixIn):
     """Description of a marker"""
 
     _DEFAULT_SYMBOL = "+"
@@ -258,7 +258,7 @@ class Marker(MarkerBase, SymbolMixIn):
 
     def __init__(self):
         MarkerBase.__init__(self)
-        SymbolMixIn.__init__(self)
+        SymbolSingleSizeMixIn.__init__(self)
 
         self._x = 0.0
         self._y = 0.0

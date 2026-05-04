@@ -154,12 +154,12 @@ class LegendIconWidget(qt.QWidget):
         self.lineStyle = qt.Qt.NoPen
         self.__dashPattern = []
         self.lineWidth = 1.0
-        self.lineColor = qt.Qt.green
+        self.lineColor = None
 
         self.symbol = ""
         # Symbol attributes
         self.symbolStyle = qt.Qt.SolidPattern
-        self.symbolColor = qt.Qt.green
+        self.symbolColor = None
         self.symbolOutlineBrush = qt.QBrush(qt.Qt.white)
         self.symbolColormap = None
         """Name or array of colors"""
@@ -189,13 +189,13 @@ class LegendIconWidget(qt.QWidget):
         :param color: determines the symbol color
         :type style: qt.QColor
         """
-        self.symbolColor = qt.QColor(color)
+        self.symbolColor = None if color is None else qt.QColor(color)
         self.update()
 
     # Modify Line
 
     def setLineColor(self, color):
-        self.lineColor = qt.QColor(color)
+        self.lineColor = None if color is None else qt.QColor(color)
         self.update()
 
     def setLineWidth(self, width):
@@ -342,12 +342,6 @@ class LegendIconWidget(qt.QWidget):
         # Determine and scale offset
         offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
 
-        # Override color when disabled
-        if self.isEnabled():
-            overrideColor = None
-        else:
-            overrideColor = palette.color(qt.QPalette.Disabled, qt.QPalette.WindowText)
-
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
         #    float(rect.right())/scale,
@@ -381,9 +375,15 @@ class LegendIconWidget(qt.QWidget):
             linePath.moveTo(0.0, 0.5)
             linePath.lineTo(ratio, 0.5)
             # linePath.lineTo(2.5, 0.5)
-            lineBrush = qt.QBrush(
-                self.lineColor if overrideColor is None else overrideColor
-            )
+
+            if not self.isEnabled():
+                lineColor = palette.color(qt.QPalette.Disabled, qt.QPalette.WindowText)
+            elif self.lineColor is None:
+                lineColor = palette.color(qt.QPalette.Active, qt.QPalette.WindowText)
+            else:
+                lineColor = self.lineColor
+
+            lineBrush = qt.QBrush(lineColor)
             linePen = qt.QPen(
                 lineBrush,
                 (self.lineWidth / self.height()),
@@ -402,10 +402,19 @@ class LegendIconWidget(qt.QWidget):
                 # Copy before translate! Dict is a mutable type
                 symbolPath = qt.QPainterPath(_Symbols[self.symbol])
                 symbolPath.translate(symbolOffset)
-                symbolBrush = qt.QBrush(
-                    self.symbolColor if overrideColor is None else overrideColor,
-                    self.symbolStyle,
-                )
+
+                if not self.isEnabled():
+                    symbolColor = palette.color(
+                        qt.QPalette.Disabled, qt.QPalette.WindowText
+                    )
+                elif self.symbolColor is None:
+                    symbolColor = palette.color(
+                        qt.QPalette.Active, qt.QPalette.WindowText
+                    )
+                else:
+                    symbolColor = self.symbolColor
+
+                symbolBrush = qt.QBrush(symbolColor, self.symbolStyle)
                 symbolPen = qt.QPen(
                     self.symbolOutlineBrush,  # Brush
                     1.0 / self.height(),  # Width

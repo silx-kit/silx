@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "13/03/2026"
 
 import os
 import time
@@ -99,6 +99,7 @@ class TestGaussian(unittest.TestCase):
             cls.queue = pyopencl.CommandQueue(cls.ctx)
 
         cls.kernels = {"preprocess": 8, "gaussian": 512}
+        cls.programs = {}
 
         device = cls.ctx.devices[0]
         device_id = device.platform.get_devices().index(device)
@@ -116,12 +117,12 @@ class TestGaussian(unittest.TestCase):
             program = pyopencl.Program(cls.ctx, kernel_src).build(
                 "-D WORKGROUP=%s" % cls.kernels[kernel]
             )
-            cls.kernels[kernel] = program
+            cls.programs[kernel] = program
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        cls.ctx = cls.kernels = cls.queue = None
+        cls.ctx = cls.kernels = cls.programs = cls.queue = None
 
     @classmethod
     def gaussian_gpu_v1(cls, sigma, size=None):
@@ -136,7 +137,7 @@ class TestGaussian(unittest.TestCase):
             size = int(1 + 8 * sigma)
         g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
         t0 = time.time()
-        evt1 = cls.kernels["gaussian"].gaussian_nosync(
+        evt1 = pyopencl.Kernel(cls.programs["gaussian"], "gaussian_nosync")(
             cls.queue,
             (size,),
             (1,),
@@ -147,7 +148,7 @@ class TestGaussian(unittest.TestCase):
         sum_data = pyopencl.array.sum(
             g_gpu, dtype=numpy.dtype(numpy.float32), queue=cls.queue
         )
-        evt2 = cls.kernels["preprocess"].divide_cst(
+        evt2 = pyopencl.Kernel(cls.programs["preprocess"], "divide_cst")(
             cls.queue,
             (size,),
             (1,),
@@ -180,7 +181,7 @@ class TestGaussian(unittest.TestCase):
             size = int(1 + 8 * sigma)
         g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
         t0 = time.time()
-        evt = cls.kernels["gaussian"].gaussian(
+        evt = pyopencl.Kernel(cls.programs["gaussian"], "gaussian")(
             cls.queue,
             (64,),
             (64,),
@@ -228,7 +229,7 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 27
         ref = gaussian_cpu(sigma, size)
-        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        max_wg = kernel_workgroup_size(self.programs["gaussian"], "gaussian")
         if max_wg < size:
             logger.warning("Skipping test of WG=%s when maximum is %s", size, max_wg)
             return
@@ -243,7 +244,7 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 28
         ref = gaussian_cpu(sigma, size)
-        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        max_wg = kernel_workgroup_size(self.programs["gaussian"], "gaussian")
         if max_wg < size:
             logger.warning("Skipping test of WG=%s when maximum is %s", size, max_wg)
             return

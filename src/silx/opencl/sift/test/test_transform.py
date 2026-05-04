@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "13/03/2026"
 
 
 import os
@@ -190,7 +190,7 @@ class TestTransform(unittest.TestCase):
 
         # Call the kernel
         t0 = time.time()
-        k1 = self.program.transform(self.queue, shape, wg, *kargs)
+        k1 = self.kernels.transform(self.queue, shape, wg, *kargs)
         res = gpu_output.get()
 
         # Reference result

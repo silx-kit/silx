@@ -33,7 +33,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "13/03/2026"
 
 import os
 import unittest
@@ -51,6 +51,7 @@ except ImportError:
 from ... import ocl
 
 if ocl:
+    import pyopencl
     import pyopencl.array
 
 from ..utils import get_opencl_code
@@ -130,7 +131,7 @@ class TestReduction(unittest.TestCase):
         nmin = data.min()
         nmax = data.max()
         t0 = time.time()
-        k1 = self.program.max_min_global_stage1(
+        k1 = pyopencl.Kernel(self.program, "max_min_global_stage1")(
             self.queue,
             (size,),
             (wg,),
@@ -139,7 +140,7 @@ class TestReduction(unittest.TestCase):
             numpy.uint32(data.size),
             pyopencl.LocalMemory(8 * wg),
         )
-        k2 = self.program.max_min_global_stage2(
+        k2 = pyopencl.Kernel(self.program, "max_min_global_stage2")(
             self.queue,
             (wg,),
             (wg,),
@@ -202,7 +203,7 @@ class TestReduction(unittest.TestCase):
         nmin = data.min()
         nmax = data.max()
         t0 = time.time()
-        k1 = self.program.max_min_serial(
+        k1 = pyopencl.Kernel(self.program, "max_min_serial")(
             self.queue,
             (1,),
             (1,),
@@ -260,7 +261,7 @@ class TestReduction(unittest.TestCase):
         nmin = data.min()
         nmax = data.max()
         t0 = time.time()
-        k1 = self.program.max_min_vec16(
+        k1 = pyopencl.Kernel(self.program, "max_min_vec16")(
             self.queue,
             (1,),
             (1,),

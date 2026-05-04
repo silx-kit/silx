@@ -28,6 +28,7 @@ __date__ = "02/07/2018"
 
 import os
 import logging
+from fabio import TiffIO
 import numpy
 import unittest
 import tempfile
@@ -169,8 +170,8 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_string(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.bytes_("hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.bytes_)
+        self.assertEqual(dataset[()], "hi!")
+        self.assertEqual(dataset.dtype.type, numpy.str_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_metadata_list_integer(self):
@@ -194,8 +195,8 @@ class TestFabioH5(unittest.TestCase):
             "/scan_0/instrument/detector_0/others/string_looks_like_list"
         ]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
-        self.assertEqual(dataset[()], numpy.bytes_("2000 hi!"))
-        self.assertEqual(dataset.dtype.type, numpy.bytes_)
+        self.assertEqual(dataset[()], "2000 hi!")
+        self.assertEqual(dataset.dtype.type, numpy.str_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_float_32(self):
@@ -212,9 +213,7 @@ class TestFabioH5(unittest.TestCase):
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
 
     def test_float_64(self):
         float_list = [
@@ -241,9 +240,7 @@ class TestFabioH5(unittest.TestCase):
         data = h5_image["/scan_0/instrument/detector_0/others/time_of_day"]
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
-        # At least a float64
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
+        self.assertEqual(data.dtype.name, "float64")
 
     def test_mixed_float_size__scalar(self):
         # We expect to have a precision of 32 bits
@@ -259,9 +256,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
@@ -279,9 +274,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
@@ -299,9 +292,7 @@ class TestFabioH5(unittest.TestCase):
                 fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
-        # At worst a float32
-        self.assertIn(data.dtype.kind, ["d", "f"])
-        self.assertLessEqual(data.dtype.itemsize, 32 / 8)
+        self.assertEqual(data.dtype.name, "float64")
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
@@ -422,18 +413,13 @@ class TestFabioH5(unittest.TestCase):
 
     def test_unicode_header(self):
         """Test that it does not fail"""
-        try:
-            header = {}
-            header["foo"] = b"abc"
-            data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
-            fabio_image = fabio.edfimage.edfimage(data=data, header=header)
-            header = {}
-            header["foo"] = "abc\u2764"
-            fabio_image.append_frame(data=data, header=header)
-        except Exception as e:
-            _logger.error(e.args[0])
-            _logger.debug("Backtrace", exc_info=True)
-            self.skipTest("fabio do not allow to create the resource")
+        header = {}
+        header["foo"] = b"abc"
+        data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+        fabio_image = fabio.edfimage.edfimage(data=data, header=header)
+        header = {}
+        header["foo"] = "abc\u2764"
+        fabio_image.append_frame(data=data, header=header)
 
         h5_image = fabioh5.File(fabio_image=fabio_image)
         scan_header_path = "/scan_0/instrument/file/scan_header"
@@ -625,3 +611,30 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
         frameData = _TestableFrameData("foo", reader)
         self.assertEqual(frameData.dtype.kind, "i")
         self.assertEqual(frameData.shape, (10, 3, 2))
+
+
+def test_tiff_open_info(tmp_path):
+    data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+    filename = str(tmp_path / "test.tiff")
+    tiff = TiffIO.TiffIO(filename, mode="w")
+    tiff.writeImage(data, software="silx")
+
+    h5_image = fabioh5.File(file_name=filename)
+    image_data = h5_image["scan_0/measurement/image_0/data"]
+    numpy.testing.assert_equal(image_data[()], data)
+
+    info = h5_image["scan_0/measurement/image_0/info"]
+    assert info["others/software"][()] == "silx"
+
+
+def test_tiff_unicode_info(tmp_path):
+    data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
+    filename = str(tmp_path / "test.tiff")
+    tiff = TiffIO.TiffIO(filename, mode="w")
+    tiff.writeImage(data, info={"dimensions": "2 \xd7 2"})
+
+    h5_image = fabioh5.File(file_name=filename)
+    info = h5_image["scan_0/measurement/image_0/info/others/info"][0, 0]
+
+    assert info["key"] == "dimensions"
+    assert info["value"] == numpy.str_("2 \xd7 2")

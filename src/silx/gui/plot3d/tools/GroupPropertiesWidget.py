@@ -185,7 +185,7 @@ class GroupPropertiesWidget(qt.QWidget):
 
         markerSize = self._markerSizeSlider.value()
         for item in group.visit():
-            if isinstance(item, SymbolMixIn):
+            if isinstance(item, SymbolMixIn) and item.isSingleSymbolSize():
                 item.setSymbolSize(markerSize)
 
     def _lineWidthButtonClicked(self, checked=False):

@@ -33,7 +33,8 @@ from silx.gui.plot.stats import stats
 from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
-from silx.gui.plot import Plot1D, Plot2D
+from silx.gui.plot import Plot1D, Plot2D, PlotWidget
+from silx.gui.plot import items
 from silx.gui.plot.items.roi import (
     RectangleROI,
     PolygonROI,
@@ -51,10 +52,33 @@ from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.stats.stats import Stats
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.utils.testutils import ParametricTestCase
-import logging
 import numpy
+import pytest
 
-_logger = logging.getLogger(__name__)
+
+@pytest.mark.parametrize(
+    "itemclass", [items.Curve, items.Histogram, items.ImageData, items.Scatter]
+)
+def testStatsOfEmptyPlotItems(itemclass):
+    plot = PlotWidget(backend="none")
+    item = itemclass()
+    plot.addItem(item)
+
+    stats_ = stats.Stats()
+    for stat in [
+        stats.StatMin(),
+        stats.StatCoordMin(),
+        stats.StatMax(),
+        stats.StatCoordMax(),
+        stats.Stat(name="std", fct=numpy.std),
+        stats.Stat(name="mean", fct=numpy.mean),
+        stats.StatCOM(),
+    ]:
+        stats_.add(stat)
+
+    results = stats_.calculate(item, plot, onlimits=False, roi=None)
+    assert stats_.keys() == results.keys()
+    assert all(map(lambda v: v is None, results.values()))
 
 
 class TestStatsBase:

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 ESRF <silx@esrf.fr> -->
+<component type="desktop-application">
+  <id>org.silx.SilxView</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>silx view</name>
+  <summary>HDF5 data file browser and viewer</summary>
+
+  <description>
+    silx view is a browser and viewer of structured data files such as <a href="https://www.hdfgroup.org/solutions/hdf5/">HDF5 files</a>.
+    It supports the <a href="https://www.nexusformat.org/">NeXus convention</a>.
+  </description>
+
+  <launchable type="desktop-id">org.silx.SilxView.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>silx view main window</caption>
+      <image>https://www.silx.org/doc/silx/latest/_images/silx-view-image.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://www.silx.org/</url>
+  <url type="bugtracker">https://github.com/silx-kit/silx/issues</url>
+  <url type="help">http://www.silx.org/doc/silx/latest/</url>
+
+  <update_contact>silx@esrf.fr</update_contact>
+</component>

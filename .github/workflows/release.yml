@@ -184,10 +184,9 @@ jobs:
       - name: Test app
         run: |
           VOLUME=$(hdiutil info | grep "/Volumes/" | tail -1 | awk '{print $3}')
-          cd "$VOLUME"
-          if [ -d "silx.app" ]; then
-            ./silx.app/Contents/MacOS/silx-view --help
-            ./silx.app/Contents/MacOS/silx --help
+          if [ -d "$VOLUME/silx.app" ]; then
+            "$VOLUME/silx.app/Contents/MacOS/silx-view" --help
+            "$VOLUME/silx.app/Contents/MacOS/silx" --help
           fi
           hdiutil detach "$VOLUME"
 

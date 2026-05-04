@@ -50,17 +50,9 @@ _logger = logging.getLogger(__name__)
 
 try:
     import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
-
-    try:
-        from matplotlib import colormaps as _matplotlib_colormaps
-    except ImportError:  # For matplotlib < 3.5
-        from matplotlib import cm as _matplotlib_cm
-        from matplotlib.pyplot import colormaps as _matplotlib_colormaps
-    else:
-        _matplotlib_cm = None
+    from matplotlib import colormaps as _matplotlib_colormaps
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
-    _matplotlib_cm = None
     _matplotlib_colormaps = None
 
 
@@ -234,10 +226,7 @@ def _registerColormapFromMatplotlib(
     cursor_color: str = "black",
     preferred: bool = False,
 ):
-    if _matplotlib_cm is not None:
-        colormap = _matplotlib_cm.get_cmap(name)
-    else:  # matplotlib >= 3.5
-        colormap = _matplotlib_colormaps[name]
+    colormap = _matplotlib_colormaps[name]
     lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
     colors = _colormap.array_to_rgba8888(lut)
     registerLUT(name, colors, cursor_color, preferred)
@@ -1174,9 +1163,3 @@ def registerLUT(
         else:
             # The cache is not yet loaded, it's fine
             pass
-
-
-# Load some colormaps from matplotlib by default
-if _matplotlib_cm is not None:
-    _registerColormapFromMatplotlib("jet", cursor_color="pink", preferred=True)
-    _registerColormapFromMatplotlib("hsv", cursor_color="black", preferred=True)

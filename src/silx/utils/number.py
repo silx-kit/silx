@@ -32,7 +32,17 @@ import re
 import logging
 import warnings
 
+from silx.utils.deprecation import deprecated, deprecated_warning
+
 _logger = logging.getLogger(__name__)
+
+
+deprecated_warning(
+    "Module",
+    "silx.utils.number",
+    since_version="3.0.0",
+    replacement="numpy",
+)
 
 
 _biggest_float = None
@@ -56,6 +66,7 @@ _parse_numeric_value = re.compile(
 )
 
 
+@deprecated(since_version="3.0.0")
 def is_longdouble_64bits():
     """Returns true if the system uses floating-point 64bits for it's
     long double type.
@@ -66,6 +77,7 @@ def is_longdouble_64bits():
     return _biggest_float == numpy.float64
 
 
+@deprecated(replacement="numpy.min_scalar_type", since_version="3.0.0")
 def min_numerical_convertible_type(string, check_accuracy=True):
     """
     Parse the string and try to return the smallest numerical type to use for

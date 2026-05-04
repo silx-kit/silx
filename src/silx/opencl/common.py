@@ -29,11 +29,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__author__ = "Jerome Kieffer"
+__author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
-__copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2025"
+__copyright__ = "2012-2026 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "13/03/2026"
 __status__ = "stable"
 
 import os
@@ -362,8 +362,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
         return max_valid_wg
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
+    addition = program.addition
     if fast:
-        max_valid_wg = program.addition.get_work_group_info(
+        max_valid_wg = addition.get_work_group_info(
             pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device
         )
     else:
@@ -372,7 +373,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
             d_res = pyopencl.array.empty_like(d_data)
             wg = 1 << i
             try:
-                evt = program.addition(
+                evt = addition(
                     queue,
                     (shape,),
                     (wg,),
@@ -874,7 +875,7 @@ def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
         assert kernel in (
             k.function_name for k in program.all_kernels()
         ), "the kernel exists"
-        kernel = program.__getattr__(kernel_name)
+        kernel = pyopencl.Kernel(program, kernel_name)
 
     device = program.devices[0]
     query_wg = getattr(pyopencl.kernel_work_group_info, what)

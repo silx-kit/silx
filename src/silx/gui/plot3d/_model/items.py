@@ -269,8 +269,14 @@ class Settings(StaticRow):
             editorHint=(-90, 90),
         )
 
-        lightDirection = StaticRow(
-            ("Light Direction", None), children=(azimuthNode, altitudeNode)
+        lightDirection = ProxyRow(
+            name="Light",
+            fget=sceneWidget.getLightMode,
+            fset=sceneWidget.setLightMode,
+            notify=sceneWidget.sigStyleChanged,
+            toModelData=lambda mode: mode == "directional",
+            fromModelData=lambda mode: ("directional" if mode else None),
+            children=(azimuthNode, altitudeNode),
         )
 
         # Fog
@@ -1059,15 +1065,47 @@ class SymbolSizeRow(ItemProxyRow):
     :param Item3D item: Scene item with symbol size property
     """
 
-    def __init__(self, item):
+    def __init__(self, item, setflags: bool = True):
         super().__init__(
             item=item,
             name="Marker size",
             fget=item.getSymbolSize,
             fset=item.setSymbolSize,
+            toModelData=lambda data: (
+                "From data" if isinstance(data, numpy.ndarray) else data
+            ),
             events=items.ItemChangedType.SYMBOL_SIZE,
             editorHint=(1, 20),
         )  # TODO link with OpenGL max point size
+        # Disable tree row if the item size is an array
+        self.__isEnabled = item.isSingleSymbolSize()
+
+        if setflags:
+            self._setFlags()
+
+    def _isEnabled(self) -> bool:
+        return self.__isEnabled
+
+    def _setFlags(self):
+        if self._isEnabled():
+            self.setFlags(qt.Qt.ItemIsEnabled, 0)
+            self.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable, 1)
+        else:
+            self.setFlags(qt.Qt.NoItemFlags)
+
+    def _itemChanged(self, event):
+        """Set flags to enable/disable the row"""
+        if event == items.ItemChangedType.SYMBOL_SIZE:
+            item = self.sender()
+            self.__isEnabled = item.isSingleSymbolSize()
+            self._setFlags()
+
+            # Notify model
+            model = self.model()
+            if model is not None:
+                begin = self.index(column=0)
+                end = self.index(column=1)
+                model.dataChanged.emit(begin, end)
 
 
 class PlaneEquationRow(ItemProxyRow):
@@ -1617,13 +1655,13 @@ class Scatter2DPropertyMixInRow:
     :param str propertyName: Name of the Scatter2D property of this row
     """
 
-    def __init__(self, item, propertyName):
+    def __init__(self, item, propertyName, setflags: bool = True):
         assert propertyName in ("lineWidth", "symbol", "symbolSize")
         self.__propertyName = propertyName
 
         self.__isEnabled = item.isPropertyEnabled(propertyName)
-        self.__updateFlags()
-
+        if setflags:
+            self._setFlags()
         item.sigItemChanged.connect(self._itemChanged)
 
     def data(self, column, role):
@@ -1633,9 +1671,12 @@ class Scatter2DPropertyMixInRow:
         else:
             return super().data(column, role)
 
-    def __updateFlags(self):
+    def _isEnabled(self) -> bool:
+        return self.__isEnabled
+
+    def _setFlags(self):
         """Update model flags"""
-        if self.__isEnabled:
+        if self._isEnabled():
             self.setFlags(qt.Qt.ItemIsEnabled, 0)
             self.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable, 1)
         else:
@@ -1647,7 +1688,7 @@ class Scatter2DPropertyMixInRow:
             item = self.sender()
             if item is not None:  # This occurs with PySide/python2.7
                 self.__isEnabled = item.isPropertyEnabled(self.__propertyName)
-                self.__updateFlags()
+                self._setFlags()
 
             # Notify model
             model = self.model()
@@ -1679,8 +1720,18 @@ class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
     """
 
     def __init__(self, item):
-        SymbolSizeRow.__init__(self, item)
-        Scatter2DPropertyMixInRow.__init__(self, item, "symbolSize")
+        SymbolSizeRow.__init__(self, item, setflags=False)
+        Scatter2DPropertyMixInRow.__init__(self, item, "symbolSize", setflags=False)
+        self._setFlags()
+
+    def _isEnabled(self) -> bool:
+        return Scatter2DPropertyMixInRow._isEnabled(self) and SymbolSizeRow._isEnabled(
+            self
+        )
+
+    def _itemChanged(self, event):
+        Scatter2DPropertyMixInRow._itemChanged(self, event)
+        SymbolSizeRow._itemChanged(self, event)
 
 
 class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ItemProxyRow):

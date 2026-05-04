@@ -644,7 +644,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             baseLinewidth = self._DEFAULT_LINEWIDTH
         if isinstance(self, core.SymbolMixIn):
             baseSymbol = self.getSymbol()
-            baseSymbolsize = self.getSymbolSize()
+            baseSymbolsize = self.getSymbolSize() if self.isSingleSymbolSize() else 1
         else:
             baseSymbol = "o"
             baseSymbolsize = 1

@@ -265,6 +265,13 @@ Sample code that adds specific tools or functions to :class:`~silx.gui.plot.Plot
          :width: 150px
      - This example demonstrates how to use ScatterMaskToolsWidget
        and NamedScatterAlphaSlider with a PlotWidget.
+   * - :download:`plotLegendsWidget.py <../../../examples/plotLegendsWidget.py>`
+     - .. image:: img/plotLegendsWidget.png
+         :width: 150px
+     - This example illustrates how to display legends of items in a `PlotWidget`.
+
+       It uses a :class:`~silx.gui.plot.LegendsWidget.LegendWidget` attached to a
+       :class:`~silx.gui.plot.PlotWidget`.
    * - :download:`plotCurveLegendWidget.py <../../../examples/plotCurveLegendWidget.py>`
      - .. image:: img/plotCurveLegendWidget.png
          :width: 150px

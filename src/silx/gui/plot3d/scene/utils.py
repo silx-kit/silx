@@ -31,18 +31,28 @@ __license__ = "MIT"
 __date__ = "25/07/2016"
 
 
+from collections.abc import Sequence
 import logging
+from typing import Literal
 import numpy
+from numpy.typing import ArrayLike, DTypeLike
 
 from . import event
 
 _logger = logging.getLogger(__name__)
 
 
+Vector3 = Sequence[float]
+Vector4 = Sequence[float]
+Matrix4 = numpy.ndarray
+PrimitiveMode = Literal[
+    "points", "lines", "line_strip", "loop", "triangles", "triangle_strip", "fan"
+]
+
 # numpy #######################################################################
 
 
-def _uniqueAlongLastAxis(a):
+def _uniqueAlongLastAxis(a: numpy.ndarray) -> numpy.ndarray:
     """Numpy unique on the last axis of a 2D array
 
     Implemented here as not in numpy as of writing.
@@ -50,9 +60,8 @@ def _uniqueAlongLastAxis(a):
     See adding axis parameter to numpy.unique:
     https://github.com/numpy/numpy/pull/3584/files#r6225452
 
-    :param array_like a: Input array.
+    :param a: Input array.
     :return: Unique elements along the last axis.
-    :rtype: numpy.ndarray
     """
     assert len(a.shape) == 2
 
@@ -73,17 +82,18 @@ def _uniqueAlongLastAxis(a):
 # conversions #################################################################
 
 
-def triangleToLineIndices(triangleIndices, unicity=False):
+def triangleToLineIndices(
+    triangleIndices: numpy.ndarray, unicity: bool = False
+) -> numpy.ndarray:
     """Generates lines indices from triangle indices.
 
     This is generating lines indices for the edges of the triangles.
 
     :param triangleIndices: The indices to draw a set of vertices as triangles.
-    :type triangleIndices: numpy.ndarray
-    :param bool unicity: If True remove duplicated lines,
-                         else (the default) returns all lines.
-    :return: The indices to draw the edges of the triangles as lines.
-    :rtype: 1D numpy.ndarray of uint16 or uint32.
+    :param unicity: If True remove duplicated lines,
+                    else (the default) returns all lines.
+    :return: The indices to draw the edges of the triangles as lines
+             as a 1D array of uint16 or uint32.
     """
     # Makes sure indices ar packed by triangle
     triangleIndices = triangleIndices.reshape(-1, 3)
@@ -103,16 +113,15 @@ def triangleToLineIndices(triangleIndices, unicity=False):
     return lineindices
 
 
-def verticesNormalsToLines(vertices, normals, scale=1.0):
+def verticesNormalsToLines(
+    vertices: numpy.ndarray, normals: numpy.ndarray, scale: float = 1.0
+) -> numpy.ndarray:
     """Return vertices of lines representing normals at given positions.
 
-    :param vertices: Positions of the points.
-    :type vertices: numpy.ndarray with shape: (nbPoints, 3)
-    :param normals: Corresponding normals at the points.
-    :type normals: numpy.ndarray with shape: (nbPoints, 3)
-    :param float scale: The scale factor to apply to normals.
-    :returns: Array of vertices to draw corresponding lines.
-    :rtype: numpy.ndarray with shape: (nbPoints * 2, 3)
+    :param vertices: Positions of the points as a (nbPoints, 3) array.
+    :param normals: Corresponding normals at the points as a (nbPoints, 3) array.
+    :param scale: The scale factor to apply to normals.
+    :returns: Array of vertices to draw corresponding lines of shape (nbPoints * 2, 3)
     """
     linevertices = numpy.empty((len(vertices) * 2, 3), dtype=vertices.dtype)
     linevertices[0::2] = vertices
@@ -120,20 +129,18 @@ def verticesNormalsToLines(vertices, normals, scale=1.0):
     return linevertices
 
 
-def unindexArrays(mode, indices, *arrays):
+def unindexArrays(
+    mode: PrimitiveMode, indices: numpy.ndarray, *arrays: numpy.ndarray
+) -> tuple[numpy.ndarray, ...]:
     """Convert indexed GL primitives to unindexed ones.
 
     Given indices in arrays and the OpenGL primitive they represent,
     return the unindexed equivalent.
 
-    :param str mode:
-       Kind of primitive represented by indices.
-       In: points, lines, line_strip, loop, triangles, triangle_strip, fan.
-    :param indices: Indices in other arrays
-    :type indices: numpy.ndarray of dimension 1.
+    :param mode: Kind of primitive represented by indices.
+    :param indices: Indices in other arrays as a 1D array
     :param arrays: Remaining arguments are arrays to convert
     :return: Converted arrays
-    :rtype: tuple of numpy.ndarray
     """
     indices = numpy.asarray(indices)
 
@@ -187,16 +194,15 @@ def unindexArrays(mode, indices, *arrays):
     return tuple(numpy.ascontiguousarray(data[indices]) for data in arrays)
 
 
-def triangleStripToTriangles(strip):
+def triangleStripToTriangles(strip: numpy.ndarray) -> numpy.ndarray:
     """Convert a triangle strip to a set of triangles.
 
     The order of the corners is inverted for odd triangles.
 
-    :param numpy.ndarray strip:
+    :param strip:
         Array of triangle corners of shape (N, 3).
         N must be at least 3.
     :return: Equivalent triangles corner as an array of shape (N, 3, 3)
-    :rtype: numpy.ndarray
     """
     strip = numpy.array(strip).reshape(-1, 3)
     assert len(strip) >= 3
@@ -213,13 +219,11 @@ def triangleStripToTriangles(strip):
     return triangles
 
 
-def trianglesNormal(positions):
+def trianglesNormal(positions: numpy.ndarray) -> numpy.ndarray:
     """Return normal for each triangle.
 
-    :param positions: Serie of triangle's corners
-    :type positions: numpy.ndarray of shape (NbTriangles*3, 3)
-    :return: Normals corresponding to each position.
-    :rtype: numpy.ndarray of shape (NbTriangles, 3)
+    :param positions: Serie of triangle's corners as a (NbTriangles*3, 3) array
+    :return: Normals corresponding to each position as a (NbTriangles, 3) array
     """
     assert positions.ndim == 2
     assert positions.shape[1] == 3
@@ -240,14 +244,15 @@ def trianglesNormal(positions):
 # grid ########################################################################
 
 
-def gridVertices(dim0Array, dim1Array, dtype):
+def gridVertices(
+    dim0Array: ArrayLike, dim1Array: ArrayLike, dtype: DTypeLike
+) -> numpy.ndarray:
     """Generate an array of 2D positions from 2 arrays of 1D coordinates.
 
     :param dim0Array: 1D array-like of coordinates along the first dimension.
     :param dim1Array: 1D array-like of coordinates along the second dimension.
-    :param numpy.dtype dtype: Data type of the output array.
-    :return: Array of grid coordinates.
-    :rtype: numpy.ndarray with shape: (len(dim0Array), len(dim1Array), 2)
+    :param dtype: Data type of the output array.
+    :return: (len(dim0Array), len(dim1Array), 2) array of grid coordinates
     """
     grid = numpy.empty((len(dim0Array), len(dim1Array), 2), dtype=dtype)
     grid.T[0, :, :] = dim0Array
@@ -255,15 +260,14 @@ def gridVertices(dim0Array, dim1Array, dtype):
     return grid
 
 
-def triangleStripGridIndices(dim0, dim1):
+def triangleStripGridIndices(dim0: int, dim1: int) -> numpy.ndarray:
     """Generate indices to draw a grid of vertices as a triangle strip.
 
     Vertices are expected to be stored as row-major (i.e., C contiguous).
 
-    :param int dim0: The number of rows of vertices.
-    :param int dim1: The number of columns of vertices.
-    :return: The vertex indices
-    :rtype: 1D numpy.ndarray of uint32
+    :param dim0: The number of rows of vertices.
+    :param dim1: The number of columns of vertices.
+    :return: The vertex indices as a 1D array of uint32
     """
     assert dim0 >= 2
     assert dim1 >= 2
@@ -302,15 +306,14 @@ def triangleStripGridIndices(dim0, dim1):
     # return indices
 
 
-def linesGridIndices(dim0, dim1):
+def linesGridIndices(dim0: int, dim1: int) -> numpy.ndarray:
     """Generate indices to draw a grid of vertices as lines.
 
     Vertices are expected to be stored as row-major (i.e., C contiguous).
 
-    :param int dim0: The number of rows of vertices.
-    :param int dim1: The number of columns of vertices.
-    :return: The vertex indices.
-    :rtype: 1D numpy.ndarray of uint32
+    :param dim0: The number of rows of vertices.
+    :param dim1: The number of columns of vertices.
+    :return: The vertex indices as a 1D array of uint32
     """
     # Horizontal and vertical lines
     nbsegmentalongdim1 = 2 * (dim1 - 1)
@@ -338,18 +341,17 @@ def linesGridIndices(dim0, dim1):
 # intersection ################################################################
 
 
-def angleBetweenVectors(refVector, vectors, norm=None):
+def angleBetweenVectors(
+    refVector: numpy.ndarray, vectors: numpy.ndarray, norm: numpy.ndarray | None = None
+) -> float | numpy.ndarray:
     """Return the angle between 2 vectors.
 
-    :param refVector: Coordinates of the reference vector.
-    :type refVector: numpy.ndarray of shape: (NCoords,)
-    :param vectors: Coordinates of the vector(s) to get angle from reference.
-    :type vectors: numpy.ndarray of shape: (NCoords,) or (NbVector, NCoords)
+    :param refVector: Coordinates of the reference vector as a 1D array of shape: (NCoords,)
+    :param vectors: Coordinates of the vector(s) to get angle from reference
+                    as an array of shape: (NCoords,) or (NbVector, NCoords)
     :param norm: A direction vector giving an orientation to the angles
-                 or None.
     :returns: The angles in radians in [0, pi] if norm is None
               else in [0, 2pi].
-    :rtype: float or numpy.ndarray of shape (NbVectors,)
     """
     singlevector = len(vectors.shape) == 1
     if singlevector:  # Make it a 2D array for the computation
@@ -372,20 +374,17 @@ def angleBetweenVectors(refVector, vectors, norm=None):
     return angles[0] if singlevector else angles
 
 
-def segmentPlaneIntersect(s0, s1, planeNorm, planePt):
+def segmentPlaneIntersect(
+    s0: Vector3, s1: Vector3, planeNorm: Vector3, planePt: Vector3
+) -> list[numpy.ndarray]:
     """Compute the intersection of a segment with a plane.
 
     :param s0: First end of the segment
-    :type s0: 1D numpy.ndarray-like of length 3
     :param s1: Second end of the segment
-    :type s1: 1D numpy.ndarray-like of length 3
-    :param planeNorm: Normal vector of the plane.
-    :type planeNorm: numpy.ndarray of shape: (3,)
-    :param planePt: A point of the plane.
-    :type planePt: numpy.ndarray of shape: (3,)
+    :param planeNorm: Normal vector of the plane
+    :param planePt: A point of the plane
     :return: The intersection points. The number of points goes
              from 0 (no intersection) to 2 (segment in the plane)
-    :rtype: list of numpy.ndarray
     """
     s0, s1 = numpy.asarray(s0), numpy.asarray(s1)
 
@@ -405,19 +404,19 @@ def segmentPlaneIntersect(s0, s1, planeNorm, planePt):
         return []
 
 
-def boxPlaneIntersect(boxVertices, boxLineIndices, planeNorm, planePt):
+def boxPlaneIntersect(
+    boxVertices: ArrayLike,
+    boxLineIndices: ArrayLike,
+    planeNorm: ArrayLike,
+    planePt: ArrayLike,
+) -> numpy.ndarray:
     """Return intersection points between a box and a plane.
 
-    :param boxVertices: Position of the corners of the box.
-    :type boxVertices: numpy.ndarray with shape: (8, 3)
-    :param boxLineIndices: Indices of the box edges.
-    :type boxLineIndices: numpy.ndarray-like with shape: (12, 2)
-    :param planeNorm: Normal vector of the plane.
-    :type planeNorm: numpy.ndarray of shape: (3,)
-    :param planePt: A point of the plane.
-    :type planePt: numpy.ndarray of shape: (3,)
-    :return: The found intersection points
-    :rtype: numpy.ndarray with 2 dimensions
+    :param boxVertices: Position of the corners of the box as a (8, 3) array
+    :param boxLineIndices: Indices of the box edges as a (12, 2) array
+    :param planeNorm: Normal vector of the plane as a 3D vector
+    :param planePt: A point of the plane as a 3D vector
+    :return: The found intersection points as a 2D array
     """
     segments = numpy.take(boxVertices, boxLineIndices, axis=0)
 
@@ -439,13 +438,14 @@ def boxPlaneIntersect(boxVertices, boxLineIndices, planeNorm, planePt):
         return points
 
 
-def clipSegmentToBounds(segment, bounds):
+def clipSegmentToBounds(
+    segment: ArrayLike, bounds: ArrayLike
+) -> list[numpy.ndarray] | None:
     """Clip segment to volume aligned with axes.
 
-    :param numpy.ndarray segment: (p0, p1)
-    :param numpy.ndarray bounds: (lower corner, upper corner)
+    :param segment: (p0, p1)
+    :param bounds: (lower corner, upper corner)
     :return: Either clipped (p0, p1) or None if outside volume
-    :rtype: Union[None,List[numpy.ndarray]]
     """
     segment = numpy.asarray(segment)
     bounds = numpy.asarray(bounds)
@@ -482,19 +482,18 @@ def clipSegmentToBounds(segment, bounds):
     return segment
 
 
-def segmentVolumeIntersect(segment, nbins):
+def segmentVolumeIntersect(
+    segment: ArrayLike, nbins: ArrayLike
+) -> numpy.ndarray | None:
     """Get bin indices intersecting with segment
 
     It should work with N dimensions.
     Coordinate convention (z, y, x) or (x, y, z) should not matter
     as long as segment and nbins are consistent.
 
-    :param numpy.ndarray segment:
-        Segment end points as a 2xN array of coordinates
-    :param numpy.ndarray nbins:
-        Shape of the volume with same coordinates order as segment
+    :param segment: Segment end points as a 2xN array of coordinates
+    :param nbins: Shape of the volume with same coordinates order as segment
     :return: List of bins indices as a 2D array or None if no bins
-    :rtype: Union[None,numpy.ndarray]
     """
     segment = numpy.asarray(segment)
     nbins = numpy.asarray(nbins)
@@ -556,12 +555,12 @@ class Plane(event.Notifier):
     """Object handling a plane and notifying plane changes.
 
     :param point: A point on the plane.
-    :type point: 3-tuple of float.
     :param normal: Normal of the plane.
-    :type normal: 3-tuple of float.
     """
 
-    def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0)):
+    def __init__(
+        self, point: Vector3 = (0.0, 0.0, 0.0), normal: Vector3 = (0.0, 0.0, 1.0)
+    ):
         super().__init__()
 
         assert len(point) == 3
@@ -570,13 +569,13 @@ class Plane(event.Notifier):
         self._normal = numpy.array(normal, copy=True, dtype=numpy.float32)
         self.notify()
 
-    def setPlane(self, point=None, normal=None):
+    def setPlane(
+        self, point: Vector3 | None = None, normal: Vector3 | None = None
+    ) -> None:
         """Set plane point and normal and notify.
 
         :param point: A point on the plane.
-        :type point: 3-tuple of float or None.
         :param normal: Normal of the plane.
-        :type normal: 3-tuple of float or None.
         """
         planechanged = False
 
@@ -608,30 +607,30 @@ class Plane(event.Notifier):
             self.notify()
 
     @property
-    def point(self):
+    def point(self) -> Vector3:
         """A point on the plane."""
         return self._point.copy()
 
     @point.setter
-    def point(self, point):
+    def point(self, point: Vector3) -> None:
         self.setPlane(point=point)
 
     @property
-    def normal(self):
+    def normal(self) -> Vector3:
         """The (normalized) normal of the plane."""
         return self._normal.copy()
 
     @normal.setter
-    def normal(self, normal):
+    def normal(self, normal: Vector3) -> None:
         self.setPlane(normal=normal)
 
     @property
-    def parameters(self):
+    def parameters(self) -> numpy.ndarray:
         """Plane equation parameters: a*x + b*y + c*z + d = 0."""
         return numpy.append(self._normal, -numpy.dot(self._point, self._normal))
 
     @parameters.setter
-    def parameters(self, parameters):
+    def parameters(self, parameters: Vector4) -> None:
         assert len(parameters) == 4
         parameters = numpy.array(parameters, dtype=numpy.float32)
 
@@ -645,24 +644,21 @@ class Plane(event.Notifier):
         self.setPlane(point, normal)
 
     @property
-    def isPlane(self):
+    def isPlane(self) -> bool:
         """True if a plane is defined (i.e., ||normal|| != 0)."""
         return numpy.any(self.normal != 0.0)
 
-    def move(self, step):
+    def move(self, step: float):
         """Move the plane of step along the normal."""
         self.point += step * self.normal
 
-    def segmentIntersection(self, s0, s1):
+    def segmentIntersection(self, s0: Vector3, s1: Vector3) -> list[numpy.ndarray]:
         """Compute the plane intersection with segment [s0, s1].
 
         :param s0: First end of the segment
-        :type s0: 1D numpy.ndarray-like of length 3
         :param s1: Second end of the segment
-        :type s1: 1D numpy.ndarray-like of length 3
         :return: The intersection points. The number of points goes
                  from 0 (no intersection) to 2 (segment in the plane)
-        :rtype: list of 1D numpy.ndarray
         """
         if not self.isPlane:
             return []

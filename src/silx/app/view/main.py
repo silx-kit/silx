@@ -139,11 +139,12 @@ def mainQt(options):
     from silx.gui import qt
 
     # Make sure matplotlib is configured
-    # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
     import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])
     app.setDesktopFileName("org.silx.SilxView")
+    if qt.BINDING != "PyQt5":
+        app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
     qt.QLocale.setDefault(qt.QLocale.c())
 
     def sigintHandler(*args):

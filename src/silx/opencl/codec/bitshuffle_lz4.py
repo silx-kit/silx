@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/11/2022"
+__date__ = "13/03/2026"
 __status__ = "production"
 
 
@@ -180,7 +180,7 @@ class BitshuffleLz4(OpenclProcessing):
 
             wg = int(wg or self.block_size)
 
-            evt = self.program.lz4_unblock(
+            evt = self.kernels.lz4_unblock(
                 self.queue,
                 (1,),
                 (1,),
@@ -198,7 +198,7 @@ class BitshuffleLz4(OpenclProcessing):
                 assert out.dtype == self.dec_dtype
                 assert out.size == self.dec_size
 
-            evt = self.program.bslz4_decompress_block(
+            evt = self.kernels.bslz4_decompress_block(
                 self.queue,
                 (self.num_blocks * wg,),
                 (wg,),

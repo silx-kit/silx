@@ -43,6 +43,7 @@ from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
 from ..utils import parseutils
+from ..._utils import nfs_cache_refresh
 from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
 from .CustomPlotSelectionWindow import CustomPlotSelectionWindow
@@ -322,6 +323,9 @@ class Viewer(qt.QMainWindow):
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
+
+        nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
+
         model.insertFile(filename, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         self.__expandNodesFromPaths(self.__treeview, index, paths)
@@ -984,6 +988,9 @@ class Viewer(qt.QMainWindow):
         model = self.__customNxdata.model()
         model.createFromNxdata(h5nxdata)
 
+    def _copyNameToClipboard(self, obj):
+        qt.Application.clipboard().setText(obj.name)
+
     def customContextMenu(self, event):
         """Called to populate the context menu
 
@@ -1045,6 +1052,12 @@ class Viewer(qt.QMainWindow):
                     "Synchronize %s" % obj.local_filename, event.source()
                 )
                 action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
+                menu.addAction(action)
+
+            if silx.io.is_group(h5) or silx.io.is_dataset(h5):
+                menu.addSeparator()
+                action = qt.QAction("Copy path", event.source())
+                action.triggered.connect(lambda: self._copyNameToClipboard(h5))
                 menu.addAction(action)
 
     def __errorButtonClicked(self):

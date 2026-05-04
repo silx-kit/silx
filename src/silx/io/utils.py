@@ -603,12 +603,12 @@ def _open_url_with_h5pyd(url: str):
     :returns: h5pyd.File instance
     """
     if h5pyd is None:
-        raise OSError(f"URL '{url}' unsupported. Try to install h5pyd.")
+        raise OSError(f"URL '{url}' unsupported. Try to install silx[h5pyd].")
 
     # Retrieve configured HSDS endpoint if any
     default_endpoint = os.environ.get("H5SERV_ENDPOINT", None)
     if default_endpoint is None:
-        cfg = h5pyd.Config()
+        cfg = h5pyd.get_config()
         if "hs_endpoint" in cfg:
             default_endpoint = cfg["hs_endpoint"].rstrip("/")
     else:
