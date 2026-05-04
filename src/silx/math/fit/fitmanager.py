@@ -1,6 +1,6 @@
 # /*#########################################################################
 #
-# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ from . import bgtheories
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "29/04/2026"
 
 _logger = logging.getLogger(__name__)
 
@@ -78,12 +78,14 @@ class FitManager:
     :param weight_flag: If this parameter is ``True`` and ``sigmay``
         uncertainties are not specified, the square root of ``y`` is used
         as weights in the least-squares problem. If ``False``, the
-        uncertainties are set to 1.
+        uncertainties are set to 1. By default, it is set to ``True`` if
+        ``sigmay`` is provided and ``False`` otherwise.
     :type weight_flag: boolean
     """
 
-    def __init__(self, x=None, y=None, sigmay=None, weight_flag=False):
+    def __init__(self, x=None, y=None, sigmay=None, weight_flag=None):
         """ """
+        weight_flag = (sigmay is not None) if weight_flag is None else weight_flag
         self.fitconfig = {
             "WeightFlag": weight_flag,
             "fitbkg": "No Background",
@@ -747,7 +749,9 @@ class FitManager:
         :type y: Sequence or numpy array or None
         :param sigmay: The uncertainties in the ``ydata`` array. These are
             used as weights in the least-squares problem.
-            If ``None``, the uncertainties are assumed to be 1.
+            If provided, enables weighted fit.
+            If not provided (i.e. ``None``): use the square root of ``y`` if ``weight_flag`` is ``True``
+            else uncertainties are assumed to be 1.
         :type sigmay: Sequence or numpy array or None
         :param xmin: Lower value of x values to use for fitting
         :param xmax: Upper value of x values to use for fitting
@@ -777,10 +781,8 @@ class FitManager:
                     numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
                 )
             else:
-                self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = (
-                    numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
-                )
+                self.fitconfig["WeightFlag"] = True
+                self.sigmay0 = self.sigmay = numpy.array(sigmay)
 
             # take the data between limits, using boolean array indexing
             if (xmin is not None or xmax is not None) and len(self.xdata):
@@ -789,7 +791,14 @@ class FitManager:
                 bool_array = (self.xdata >= xmin) & (self.xdata <= xmax)
                 self.xdata = self.xdata[bool_array]
                 self.ydata = self.ydata[bool_array]
-                self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
+                if sigmay is None:
+                    self.sigmay = (
+                        self.sigmay[bool_array]
+                        if self.fitconfig["WeightFlag"]
+                        else None
+                    )
+                else:
+                    self.sigmay0 = self.sigmay = self.sigmay[bool_array]
 
         self._finite_mask = numpy.logical_and(
             numpy.all(
