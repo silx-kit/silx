@@ -31,8 +31,9 @@ __license__ = "MIT"
 __date__ = "07/01/2019"
 
 
-import os
 import logging
+import os
+import re
 import weakref
 from . import qt
 import silx.resources
@@ -68,6 +69,86 @@ def cleanIconCache():
 
 _supported_formats = None
 """Order of file format extension to check"""
+
+
+class _SvgIconEngine(qt.QIconEngine):
+    """Icon engine for SVG icons which tweaks color according to color scheme."""
+
+    def __init__(self, name: str):
+        super().__init__()
+        self._lightSvgPath = self._readSVGPath(name)
+        self._isDarkColorScheme = False
+        self._renderer = qt.QSvgRenderer(self._lightSvgPath)
+
+    @staticmethod
+    def _readSVGPath(name: str) -> bytes:
+        filename = silx.resources._resource_filename(
+            f"{name}.svg", default_directory="gui/icons"
+        )
+        qfile = qt.QFile(filename)
+        if not qfile.exists():
+            raise ValueError(f"SVG icon resource not found: {name}")
+
+        if not qfile.open(qt.QIODevice.ReadOnly | qt.QIODevice.Text):
+            raise ValueError(f"Cannot open SVG icon resource: {name}")
+
+        svgpath = bytes(qfile.readAll())
+        qfile.close()
+        return svgpath
+
+    @property
+    def _darkSvgPath(self) -> bytes:
+        palette = qt.QApplication.palette()
+        foregroundQColor = palette.color(qt.QPalette.Active, qt.QPalette.Text)
+        foreground = foregroundQColor.name()
+
+        svgpath = self._lightSvgPath.replace(
+            b"<svg", f'<svg fill="{foreground}"'.encode()
+        )
+        svgpath = re.sub(
+            b'fill="(#000000|#000)"', f'fill="{foreground}"'.encode(), svgpath
+        )
+        svgpath = re.sub(
+            b'stroke="(#000000|#000)"', f'stroke="{foreground}"'.encode(), svgpath
+        )
+        return svgpath
+
+    def _currentRenderer(self) -> qt.QSvgRenderer:
+        if qt.BINDING != "PyQt5":
+            isDark = (
+                qt.QApplication.styleHints().colorScheme() == qt.Qt.ColorScheme.Dark
+            )
+        else:
+            isDark = False
+
+        if isDark != self._isDarkColorScheme:
+            self._renderer.load(self._darkSvgPath if isDark else self._lightSvgPath)
+            self._isDarkColorScheme = isDark
+
+        return self._renderer
+
+    def paint(
+        self,
+        painter: qt.QPainter,
+        rect: qt.QRect,
+        mode: qt.QIcon.Mode,
+        state: qt.QIcon.State,
+    ):
+        renderer = self._currentRenderer()
+        if renderer.isValid():
+            renderer.render(painter, rect)
+
+    def pixmap(self, size: qt.QSize, mode: qt.QIcon.Mode, state: qt.QIcon.State):
+        pixmap = qt.QPixmap(size)
+        pixmap.fill(qt.Qt.transparent)
+
+        painter = qt.QPainter(pixmap)
+        self.paint(painter, qt.QRect(0, 0, size.width(), size.height()), mode, state)
+        painter.end()
+        return pixmap
+
+    def clone(self):
+        return _SvgIconEngine(self._lightSvgPath)
 
 
 class AbstractAnimatedIcon(qt.QObject):
@@ -333,8 +414,12 @@ def getQIcon(name):
     """
     cached_icons = getIconCache()
     if name not in cached_icons:
-        qfile = getQFile(name)
-        icon = qt.QIcon(qfile.fileName())
+        try:
+            icon = qt.QIcon(_SvgIconEngine(name))
+        except ValueError:
+            _logger.warning("Failed to load SVG icon")
+            qfile = getQFile(name)
+            icon = qt.QIcon(qfile.fileName())
         cached_icons[name] = icon
     else:
         icon = cached_icons[name]
