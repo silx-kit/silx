@@ -374,6 +374,38 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         elif numpy.iscomplexobj(data):
             _logger.warning("Converting complex image to absolute value to plot it.")
             data = numpy.absolute(data)
+
+        # Fast path: update renderer directly without full rebuild.
+        # Only safe when item has no pending state changes (origin, scale, etc.)
+        # and the data shape is unchanged.
+        renderer = self._backendRenderer
+        if (
+            renderer is not None
+            and hasattr(renderer, "updateData")
+            and not self._dirty
+            and self._data is not None
+            and self._data.shape == data.shape
+        ):
+            self._data = data
+            self._valueDataChanged()
+
+            # Compute clim: fixed range or delegate to renderer
+            colormap = self.getColormap()
+            vmin, vmax = colormap.getVMin(), colormap.getVMax()
+            if vmin is not None and vmax is not None:
+                renderer.updateData(data, clim=(float(vmin), float(vmax)))
+            else:
+                renderer.updateData(data, clim=None)
+
+            # Recompute colormapped display data (applies mask, etc.)
+            self._setColormappedData(self.getValueData(copy=False), copy=False)
+
+            plot = self.getPlot()
+            if plot is not None:
+                plot._setDirtyPlot()
+            self.sigItemChanged.emit(ItemChangedType.DATA)
+            return
+
         super().setData(data)
 
     def _updated(self, event=None, checkVisibility=True):
@@ -491,6 +523,20 @@ class ImageData(ImageDataBase):
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
         """
+        # Fast path: data-only update, bypass full pipeline
+        if alternative is None and alpha is None:
+            data_arr = numpy.asarray(data)
+            if (
+                data_arr.ndim == 2
+                and self._backendRenderer is not None
+                and hasattr(self._backendRenderer, "updateData")
+                and not self._dirty
+                and self._data is not None
+                and self._data.shape == data_arr.shape
+            ):
+                super().setData(data_arr, copy=copy)
+                return
+
         data = numpy.array(data, copy=copy or NP_OPTIONAL_COPY)
         assert data.ndim == 2
 
