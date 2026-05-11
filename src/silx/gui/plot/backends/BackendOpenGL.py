@@ -1581,20 +1581,35 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setXAxisTimeSeries(self, isTimeSeries):
         self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
-    def setXAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.xAxis.isLog:
-            if flag and self._keepDataAspectRatio:
+    def setXAxisScale(self, scale):
+        if scale == "asinh":
+            raise NotImplementedError(
+                f"Plot OpenGL backend does not support {scale} X axis"
+            )
+
+        is_log = True if scale == "log" else False
+        if is_log != self._plotFrame.xAxis.isLog:
+            if is_log and self._keepDataAspectRatio:
                 _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
-            self._plotFrame.xAxis.isLog = flag
+            self._plotFrame.xAxis.isLog = is_log
 
-    def setYAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.yAxis.isLog or flag != self._plotFrame.y2Axis.isLog:
-            if flag and self._keepDataAspectRatio:
+    def setYAxisScale(self, scale):
+        if scale == "asinh":
+            raise NotImplementedError(
+                f"Plot OpenGL backend does not support {scale} Y axis"
+            )
+
+        is_log = True if scale == "log" else False
+        if (
+            is_log != self._plotFrame.yAxis.isLog
+            or is_log != self._plotFrame.y2Axis.isLog
+        ):
+            if is_log and self._keepDataAspectRatio:
                 _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
-            self._plotFrame.yAxis.isLog = flag
-            self._plotFrame.y2Axis.isLog = flag
+            self._plotFrame.yAxis.isLog = is_log
+            self._plotFrame.y2Axis.isLog = is_log
 
     def setYAxisInverted(self, flag: bool):
         self._plotFrame.isYAxisInverted = flag
