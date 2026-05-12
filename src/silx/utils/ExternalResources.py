@@ -171,8 +171,8 @@ class ExternalResources:
                         break
                     time.sleep(1)
                 else:
-                    logger.error(
-                        f"Filename {filename} not present in all_data:{os.linesep}{self.all_data}"
+                    logger.warning(
+                        f"Timeout! Filename {filename} not present in all_data:{os.linesep}{json.dumps(self.all_data, indent=2)}"
                     )
                     os.remove(fullfilename)
                     return self.getfile(filename)
@@ -182,7 +182,7 @@ class ExternalResources:
                 h.update(fd.read())
 
             if h.hexdigest() != self.all_data[filename]:
-                logger.warning(f"Detected corruped file {fullfilename}")
+                logger.warning(f"Detected corrupted file {fullfilename} !")
                 self.all_data.pop(filename)
                 os.unlink(fullfilename)
                 return self.getfile(filename)
@@ -209,7 +209,7 @@ class ExternalResources:
                 data = opener(
                     f"{self.url_base}/{filename}", data=None, timeout=self.timeout
                 ).read()
-                logger.info("File %s successfully downloaded.", filename)
+                logger.info(f"File {filename} successfully downloaded.")
             except urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
