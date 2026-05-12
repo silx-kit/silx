@@ -158,7 +158,25 @@ class ExternalResources:
 
         fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
 
-        if not os.path.isfile(fullfilename):
+        if os.path.isfile(fullfilename):
+            h = self.hash()
+            with open(fullfilename, mode="rb") as fd:
+                h.update(fd.read())
+            if filename not in self.all_data:
+                dico = self.load_json()
+                dico.update(self.all_data)
+                self.all_data = dico
+                if filename not in self.all_data:
+                    logger.error(
+                        f"Filename {filename} not present in all_data:{os.linesep}{self.all_data}"
+                    )
+            if h.hexdigest() != self.all_data[filename]:
+                logger.warning(f"Detected corruped file {fullfilename}")
+                self.all_data.pop(filename)
+                os.unlink(fullfilename)
+                return self.getfile(filename)
+
+        else:
             logger.debug(
                 "Trying to download file %s, timeout set to %ss",
                 filename,
@@ -207,16 +225,6 @@ class ExternalResources:
                 self.all_data[filename] = self.get_hash(data=data)
                 self.save_json()
 
-        else:
-            h = self.hash()
-            with open(fullfilename, mode="rb") as fd:
-                h.update(fd.read())
-            if h.hexdigest() != self.all_data[filename]:
-                logger.warning(f"Detected corruped file {fullfilename}")
-                self.all_data.pop(filename)
-                os.unlink(fullfilename)
-                return self.getfile(filename)
-
         return fullfilename
 
     def load_json(self) -> dict:
@@ -234,7 +242,7 @@ class ExternalResources:
                 all_data = jdata
             else:
                 # recalculate the hash only if the data was stored as a list
-                self.all_data = {k: self.get_hash(k) for k in jdata}
+                all_data = {k: self.get_hash(k) for k in jdata}
         return all_data
 
     def save_json(self):
