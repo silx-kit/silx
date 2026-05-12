@@ -51,6 +51,8 @@ class ExternalResources:
 
     """
 
+    TIMEOUT = 10
+
     def __init__(self, project, url_base, env_key=None, timeout=60, data_home=None):
         """Constructor of the class
 
@@ -140,7 +142,7 @@ class ExternalResources:
             with self.sem:
                 if not self._initialized:
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
-                    self.lock = filelock.FileLock(self.lockfile, timeout=10)
+                    self.lock = filelock.FileLock(self.lockfile, timeout=self.TIMEOUT)
                     self.all_data = self.load_json()
                     self._initialized = True
 
@@ -159,23 +161,32 @@ class ExternalResources:
         fullfilename = os.path.abspath(os.path.join(self.data_home, filename))
 
         if os.path.isfile(fullfilename):
-            h = self.hash()
-            with open(fullfilename, mode="rb") as fd:
-                h.update(fd.read())
             if filename not in self.all_data:
-                dico = self.load_json()
-                dico.update(self.all_data)
-                self.all_data = dico
-                if filename not in self.all_data:
+                """File already exists but is not in the list of known files"""
+                time_out = time.time() + self.TIMEOUT
+                while time.time() < time_out:
+                    dico = self.load_json()
+                    if filename in dico:
+                        dico.update(self.all_data)
+                        self.all_data = dico
+                        break
+                    time.sleep(1)
+                else:
                     logger.error(
                         f"Filename {filename} not present in all_data:{os.linesep}{self.all_data}"
                     )
+                    os.remove(fullfilename)
+                    return self.getfile(filename)
+
+            h = self.hash()
+            with open(fullfilename, mode="rb") as fd:
+                h.update(fd.read())
+
             if h.hexdigest() != self.all_data[filename]:
                 logger.warning(f"Detected corruped file {fullfilename}")
                 self.all_data.pop(filename)
                 os.unlink(fullfilename)
                 return self.getfile(filename)
-
         else:
             logger.debug(
                 "Trying to download file %s, timeout set to %ss",
@@ -203,9 +214,10 @@ class ExternalResources:
             except urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
-            if not os.path.isdir(os.path.dirname(fullfilename)):
-                # Create sub-directory if needed
-                os.makedirs(os.path.dirname(fullfilename))
+            dirname = os.path.dirname(fullfilename)
+            if not os.path.isdir(dirname):
+                """Create sub-directory if needed"""
+                os.makedirs(dirname)
 
             try:
                 with open(fullfilename, mode="wb") as outfile:
@@ -214,17 +226,16 @@ class ExternalResources:
                 raise OSError(f"unable to write downloaded \
                     data to disk at {fullfilename}")
 
-            if not os.path.isfile(fullfilename):
+            if os.path.isfile(fullfilename):
+                self.all_data[filename] = self.get_hash(data=data)
+                self.save_json()
+            else:
                 raise RuntimeError("""Could not automatically download test files %s!
                     If you are behind a firewall, please set both environment variable
                      http_proxy and https_proxy.
                     This even works under windows !
                     Otherwise please try to download the files manually from
                     %s/%s""" % (filename, self.url_base, filename))
-            else:
-                self.all_data[filename] = self.get_hash(data=data)
-                self.save_json()
-
         return fullfilename
 
     def load_json(self) -> dict:
