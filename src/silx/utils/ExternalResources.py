@@ -162,8 +162,8 @@ class ExternalResources:
         if os.path.isfile(fullfilename):
             if filename not in self.all_data:
                 """File already exists but is not in the list of known files"""
-                time_out = time.time() + self.timeout
-                while time.time() < time_out:
+                time_out = time.perf_counter() + self.timeout
+                while time.perf_counter() < time_out:
                     dico = self.load_json()
                     if filename in dico:
                         dico.update(self.all_data)
