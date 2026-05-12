@@ -34,8 +34,9 @@ import logging
 import os
 import sys
 import tarfile
-import threading
 import tempfile
+import threading
+import time
 import unittest
 import urllib.request
 import urllib.error
@@ -50,8 +51,6 @@ class ExternalResources:
     and manage the temporary data during the tests.
 
     """
-
-    TIMEOUT = 10
 
     def __init__(self, project, url_base, env_key=None, timeout=60, data_home=None):
         """Constructor of the class
@@ -142,7 +141,7 @@ class ExternalResources:
             with self.sem:
                 if not self._initialized:
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
-                    self.lock = filelock.FileLock(self.lockfile, timeout=self.TIMEOUT)
+                    self.lock = filelock.FileLock(self.lockfile, timeout=self.timeout)
                     self.all_data = self.load_json()
                     self._initialized = True
 
@@ -163,7 +162,7 @@ class ExternalResources:
         if os.path.isfile(fullfilename):
             if filename not in self.all_data:
                 """File already exists but is not in the list of known files"""
-                time_out = time.time() + self.TIMEOUT
+                time_out = time.time() + self.timeout
                 while time.time() < time_out:
                     dico = self.load_json()
                     if filename in dico:
