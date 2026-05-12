@@ -25,7 +25,7 @@
 
 __authors__ = ["Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "21/12/2021"
+__date__ = "12/05/2026"
 
 
 import hashlib
@@ -40,6 +40,7 @@ import unittest
 import urllib.request
 import urllib.error
 import zipfile
+import filelock
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,13 @@ class ExternalResources:
         self.all_data = {}
         self.timeout = timeout
         self._data_home = data_home
+        self.testdata = ""
+        self.lock = None
+
+    @property
+    def lockfile(self):
+        """Returns the lockfile path."""
+        return self.testdata + ".lock"
 
     @property
     def data_home(self):
@@ -101,8 +109,14 @@ class ExternalResources:
             basename = f"{self.project}_testdata_{name}"
             data_home = os.path.join(tempfile.gettempdir(), basename)
         if not os.path.exists(data_home):
-            os.makedirs(data_home)
+            try:
+                os.makedirs(data_home)
+            except OSError as exc:
+                raise RuntimeError(
+                    f"Unable to create data directory {data_home} ! ({exc})"
+                )
         self._data_home = data_home
+
         return data_home
 
     def get_hash(self, filename=None, data=None):
@@ -126,15 +140,8 @@ class ExternalResources:
             with self.sem:
                 if not self._initialized:
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
-                    if os.path.exists(self.testdata):
-                        with open(self.testdata) as f:
-                            jdata = json.load(f)
-                        if isinstance(jdata, dict):
-                            self.all_data = jdata
-                        else:
-                            # recalculate the hash only if the data was stored as a list
-                            self.all_data = {k: self.get_hash(k) for k in jdata}
-                            self.save_json()
+                    self.lock = filelock.FileLock(self.lockfile, timeout=10)
+                    self.all_data = self.load_json()
                     self._initialized = True
 
     def getfile(self, filename):
@@ -186,8 +193,8 @@ class ExternalResources:
                 with open(fullfilename, mode="wb") as outfile:
                     outfile.write(data)
             except OSError:
-                raise OSError("unable to write downloaded \
-                    data to disk at %s" % self.data_home)
+                raise OSError(f"unable to write downloaded \
+                    data to disk at {fullfilename}")
 
             if not os.path.isfile(fullfilename):
                 raise RuntimeError("""Could not automatically download test files %s!
@@ -212,15 +219,40 @@ class ExternalResources:
 
         return fullfilename
 
+    def load_json(self) -> dict:
+        """Loads the JSON file containing the list of files and their hashes"""
+        all_data = {}
+        if self.testdata and os.path.exists(self.testdata):
+            try:
+                with self.lock:
+                    with open(self.testdata) as f:
+                        jdata = json.load(f)
+            except filelock.Timeout:
+                logger.error("Unable to lock JSON file")
+                jdata = {}
+            if isinstance(jdata, dict):
+                all_data = jdata
+            else:
+                # recalculate the hash only if the data was stored as a list
+                self.all_data = {k: self.get_hash(k) for k in jdata}
+        return all_data
+
     def save_json(self):
-        file_list = list(self.all_data.keys())
+        """Saves the JSON file containing the list of files and their hashes"""
+        dico = self.load_json()
+        dico.update(self.all_data)
+        file_list = list(dico.keys())
         file_list.sort()
-        dico = {i: self.all_data[i] for i in file_list}
+        dico = {i: dico[i] for i in file_list}  # reorder items
+
         try:
-            with open(self.testdata, "w") as fp:
-                json.dump(dico, fp, indent=4)
+            with self.lock:
+                with open(self.testdata, "w") as fp:
+                    json.dump(dico, fp, indent=4)
+        except filelock.Timeout:
+            logger.error("Unable to lock JSON file")
         except OSError:
-            logger.info("Unable to save JSON dict")
+            logger.error("Unable to save JSON dict")
 
     def getdir(self, dirname):
         """Downloads the requested tarball from the server
