@@ -777,10 +777,8 @@ class FitManager:
                     numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
                 )
             else:
-                self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = (
-                    numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
-                )
+                self.fitconfig["WeightFlag"] = True
+                self.sigmay0 = self.sigmay = numpy.array(sigmay)
 
             # take the data between limits, using boolean array indexing
             if (xmin is not None or xmax is not None) and len(self.xdata):
@@ -789,7 +787,14 @@ class FitManager:
                 bool_array = (self.xdata >= xmin) & (self.xdata <= xmax)
                 self.xdata = self.xdata[bool_array]
                 self.ydata = self.ydata[bool_array]
-                self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
+                if sigmay is None:
+                    self.sigmay = (
+                        self.sigmay[bool_array]
+                        if self.fitconfig["WeightFlag"]
+                        else None
+                    )
+                else:
+                    self.sigmay0 = self.sigmay = self.sigmay[bool_array]
 
         self._finite_mask = numpy.logical_and(
             numpy.all(

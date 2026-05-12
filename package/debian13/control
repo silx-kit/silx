@@ -36,6 +36,7 @@ Build-Depends: cython3 (>= 0.23.2),
                python3-sphinx,
                python3-sphinx-copybutton,
                python3-sphinxcontrib.programoutput,
+               python3-filelock,
                xauth,
                xvfb
 Standards-Version: 4.1.3
@@ -74,7 +75,10 @@ Description: Toolbox for X-Ray data analysis - Executables
 Package: python3-silx
 Architecture: any
 Section: python
-Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends},
+         python3-filelock
 Description: Toolbox for X-Ray data analysis - Python3
  The silx project aims at providing a collection of Python packages to
  support the development of data assessment, reduction and analysis
