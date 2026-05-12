@@ -1,8 +1,22 @@
 Release Notes
 =============
 
-3.0.0: 2026/04/24
+This is a bug fix release fixing `silx view` v3.0.0 not disabling hdf5 file locking.
+
+3.0.1: 2026/05/07
 -----------------
+
+* `silx view`:
+
+  * Fixed to ensure hdf5 file locking is disabled (PR #4595)
+  * Fixed Ubuntu taskbar icon by setting deskop file name (PR #4475)
+
+* `silx.gui.hdf5.Hdf5Item`: Fixed performance issue by caching icons (PR #4592)
+* `silx.gui.plot3d.scene``: Added typing to `transform` and `utils` modules (PR #4560)
+* Tools: Updated tool to prepare release notes (PR #4578)
+
+3.0.0: 2026/04/24 [yanked]
+--------------------------
 
 This version of silx requires Python >=3.10 and uses PySide6 as its default Qt binding.
 
