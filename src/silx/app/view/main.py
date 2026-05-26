@@ -136,7 +136,9 @@ def mainQt(options):
     # Make sure matplotlib is configured
     import silx.gui.utils.matplotlib  # noqa
 
-    app = qt.QApplication([])
+    app = qt.QApplication.instance()
+    if app is None:
+        app = qt.QApplication([])
     app.setDesktopFileName("org.silx.SilxView")
     if qt.BINDING != "PyQt5":
         app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
