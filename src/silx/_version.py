@@ -71,8 +71,8 @@ PRERELEASE_NORMALIZED_NAME = {"dev": "a", "alpha": "a", "beta": "b", "candidate"
 
 MAJOR = 3
 MINOR = 0
-MICRO = 1
-RELEV = "final"  # <16
+MICRO = 2
+RELEV = "dev"  # <16
 SERIAL = 0  # <16
 
 date = __date__
