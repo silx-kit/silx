@@ -78,7 +78,7 @@ SERIAL = 0  # <16
 date = __date__
 
 
-class VersionInfo(NamedTuple):
+class _VersionInfo(NamedTuple):
     major: int
     minor: int
     micro: int
@@ -86,7 +86,7 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info = VersionInfo(MAJOR, MINOR, MICRO, RELEV, SERIAL)
+version_info = _VersionInfo(MAJOR, MINOR, MICRO, RELEV, SERIAL)
 
 strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":
