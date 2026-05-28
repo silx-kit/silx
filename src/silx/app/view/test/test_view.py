@@ -28,6 +28,10 @@ __license__ = "MIT"
 __date__ = "07/06/2018"
 
 
+import contextlib
+import pathlib
+import subprocess
+import sys
 import weakref
 import numpy
 import h5py
@@ -387,3 +391,60 @@ class TestCustomNxdataWidgetInteraction(TestCaseQt):
         axesIndex = self.model.index(1, 0, nxdataIndex)
         item = self.model.itemFromIndex(axesIndex)
         self.model.removeAxisItem(item)
+
+
+@contextlib.contextmanager
+def runSilxViewInSubprocess(*options):
+    cmd = f"""import sys
+from silx.__main__ import main
+from silx.gui import qt
+
+
+app = qt.QApplication([])
+
+
+def isReady():
+    mainWindows = [w for w in app.topLevelWidgets() if isinstance(w, qt.QMainWindow)]
+    if any(w.isVisible() for w in mainWindows):
+        print("ready", flush=True)
+
+
+timer = qt.QTimer()
+timer.timeout.connect(isReady)
+timer.start(500)
+sys.argv = ["silx", "view"] + {list(options)}
+main()
+"""
+    with subprocess.Popen(
+        [sys.executable, "-c", cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    ) as process:
+        try:
+            for line in process.stdout:
+                if line.strip() == "ready":
+                    break
+            else:
+                raise RuntimeError("silx view subprocess never ready")
+
+            yield
+
+        finally:
+            process.terminate()
+
+
+def testSilxViewHdf5FileLockingDisabled(data_h5):
+    """Test that silx view does NOT locks hdf5 files when opening them"""
+    with runSilxViewInSubprocess(str(pathlib.Path(data_h5).resolve())):
+        with h5py.File(str(data_h5), mode="a"):
+            pass
+
+
+def testSilxViewHdf5FileLockingEnabled(data_h5):
+    """Test that silx view --hdf5-file-locking locks hdf5 files when opening them"""
+    with runSilxViewInSubprocess(
+        "--hdf5-file-locking", str(pathlib.Path(data_h5).resolve())
+    ):
+        with pytest.raises(IOError):
+            h5py.File(str(data_h5), mode="a")
