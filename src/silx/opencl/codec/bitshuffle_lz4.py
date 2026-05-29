@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "13/03/2026"
+__date__ = "29/05/2026"
 __status__ = "production"
 
 
@@ -122,12 +122,13 @@ class BitshuffleLz4(OpenclProcessing):
             kernel_workgroup_size(self.program, "bslz4_decompress_block"),
         )
 
-    def decompress(self, raw, out=None, wg=None, nbytes=None):
+    def decompress(self, raw, out=None, wg:int=None, nbytes:int=None, force_unblock_on_device:bool=True):
         """This function actually performs the decompression by calling the kernels
         :param numpy.ndarray raw: The compressed data as a 1D numpy array of char or string
         :param pyopencl.array out: pyopencl array in which to place the result.
         :param wg: tuneable parameter with the workgroup size.
         :param int nbytes: (Optional) Number of bytes occupied by the chunk in raw.
+        :param bool force_unblock_on_device: set to False for allowing Cython unblocking
         :return: The decompressed image as an pyopencl array.
         :rtype: pyopencl.array
         """
@@ -142,6 +143,7 @@ class BitshuffleLz4(OpenclProcessing):
             else:
                 len_raw = numpy.uint64(len(raw))
 
+            unblock_on_device = True
             if isinstance(raw, pyopencl.array.Array):
                 cmp_buffer = raw.data
                 num_blocks = self.num_blocks
@@ -149,6 +151,7 @@ class BitshuffleLz4(OpenclProcessing):
                 cmp_buffer = raw
                 num_blocks = self.num_blocks
             else:
+                unblock_on_device = False
                 if len_raw > self.cmp_size:
                     self.cmp_size = len_raw
                     logger.info("increase cmp buffer size to %s", self.cmp_size)
@@ -180,17 +183,21 @@ class BitshuffleLz4(OpenclProcessing):
 
             wg = int(wg or self.block_size)
 
-            evt = self.kernels.lz4_unblock(
-                self.queue,
-                (1,),
-                (1,),
-                cmp_buffer,
-                len_raw,
-                self.cl_mem["block_position"].data,
-                num_blocks,
-                self.cl_mem["nb_blocks"].data,
-            )
-            events.append(EventDescription("LZ4 unblock", evt))
+            if unblock_on_device:
+                evt = self.kernels.lz4_unblock(
+                    self.queue,
+                    (1,),
+                    (1,),
+                    cmp_buffer,
+                    len_raw,
+                    self.cl_mem["block_position"].data,
+                    num_blocks,
+                    self.cl_mem["nb_blocks"].data,
+                )
+                events.append(EventDescription("LZ4 unblock", evt))
+            else:
+                # Perform unblock with Cython
+                raise NotImplementedError("Cython path missing")
 
             if out is None:
                 out = self.cl_mem["dec"]
