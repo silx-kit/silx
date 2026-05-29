@@ -44,6 +44,7 @@ import numpy
 from ..common import ocl  # noqa F401 Initialize OpenCL
 from ..common import pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
+from .unblock_lz4 import _unblock_lz4
 
 import logging
 
@@ -151,7 +152,7 @@ class BitshuffleLz4(OpenclProcessing):
                 cmp_buffer = raw
                 num_blocks = self.num_blocks
             else:
-                unblock_on_device = False
+                unblock_on_device = force_unblock_on_device
                 if len_raw > self.cmp_size:
                     self.cmp_size = len_raw
                     logger.info("increase cmp buffer size to %s", self.cmp_size)
