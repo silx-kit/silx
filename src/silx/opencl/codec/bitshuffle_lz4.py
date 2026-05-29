@@ -123,7 +123,14 @@ class BitshuffleLz4(OpenclProcessing):
             kernel_workgroup_size(self.program, "bslz4_decompress_block"),
         )
 
-    def decompress(self, raw, out=None, wg:int=None, nbytes:int=None, force_unblock_on_device:bool=True):
+    def decompress(
+        self,
+        raw,
+        out=None,
+        wg: int = None,
+        nbytes: int = None,
+        force_unblock_on_device: bool = True,
+    ):
         """This function actually performs the decompression by calling the kernels
         :param numpy.ndarray raw: The compressed data as a 1D numpy array of char or string
         :param pyopencl.array out: pyopencl array in which to place the result.
