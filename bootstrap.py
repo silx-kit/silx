@@ -45,7 +45,7 @@ def build_project(name, root_dir):
     :param str root_dir: Root directory of the project
     :return: The path to the directory were build was performed
     """
-    extra = ["-Dbuildtype=debug"]
+    extra = []
     libdir = "lib"
     if sys.platform == "win32":
         libdir = "Lib"
