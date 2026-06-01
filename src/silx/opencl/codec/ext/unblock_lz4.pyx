@@ -12,7 +12,6 @@ __license__ = "MIT"
 __date__ = "01/06/2026"
 
 import os
-import struct
 cimport cython
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 import logging
@@ -70,13 +69,14 @@ def _unblock_lz4(bytes src):
         uint64_t total_nbytes = load64_at(src, 0)
         uint32_t block_nbytes = load32_at(src, 8)
         const uint8_t[::1] buffer = src
-        uint32_t[::1] block_start = numpy.empty(size//4+1, dtype=numpy.uint32)
+        uint32_t block_max = min(size//4+1, 1<<32-1)
+        uint64_t[::1] block_start = numpy.empty(block_max, dtype=numpy.uint64)
         uint32_t block_idx = 0
-        uint32_t pos = 12
-        uint32_t end = pos + 4
-        uint32_t block_size
+        uint64_t pos = 12
+        uint64_t end = pos + 4
+        uint64_t block_size
     with nogil:
-      while ((end<size) and (block_idx<size)):
+      while ((end<size) and (block_idx<block_max)):
             block_size = load32_at(buffer, pos)
             block_start[block_idx] = end
             block_idx +=1

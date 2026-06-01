@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/05/2026"
+__date__ = "01/06/2026"
 __status__ = "production"
 
 
@@ -205,7 +205,28 @@ class BitshuffleLz4(OpenclProcessing):
                 events.append(EventDescription("LZ4 unblock", evt))
             else:
                 # Perform unblock with Cython
-                raise NotImplementedError("Cython path missing")
+                block_position = _unblock_lz4(raw)
+                size = block_position.size
+                if size > self.num_blocks:
+                    self.num_blocks = size
+                    self.cl_mem["block_position"] = pyopencl.empty(
+                        self.num_blocks, numpy.uint64, None
+                    )
+
+                evt = pyopencl.enqueue_copy(
+                    self.queue,
+                    self.cl_mem["block_position"].data,
+                    block_position,
+                    is_blocking=False,
+                )
+                events.append(EventDescription("copy block_position H -> D", evt))
+                evt = pyopencl.enqueue_copy(
+                    self.queue,
+                    self.cl_mem["nb_blocks"].data,
+                    numpy.array([size], numpy.uint32),
+                    is_blocking=False,
+                )
+                events.append(EventDescription("copy nb_blocks H -> D", evt))
 
             if out is None:
                 out = self.cl_mem["dec"]
