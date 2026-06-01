@@ -129,7 +129,7 @@ class BitshuffleLz4(OpenclProcessing):
         out=None,
         wg: int = None,
         nbytes: int = None,
-        force_unblock_on_device: bool = True,
+        force_unblock_on_device: bool = False,
     ):
         """This function actually performs the decompression by calling the kernels
         :param numpy.ndarray raw: The compressed data as a 1D numpy array of char or string
