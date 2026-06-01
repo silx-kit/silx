@@ -28,5 +28,5 @@ pure_subdirs = [
 ]
 
 foreach subdir: pure_subdirs
-  install_subdir(subdir, install_dir: silx_dir)
+  install_subdir(subdir, install_dir: silx_dir / 'opencl')
 endforeach
