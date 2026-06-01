@@ -210,7 +210,7 @@ class BitshuffleLz4(OpenclProcessing):
                 if size > self.num_blocks:
                     self.num_blocks = size
                     self.cl_mem["block_position"] = pyopencl.array.empty(
-                        self.num_blocks, numpy.uint64, None
+                        self.queue, self.num_blocks, numpy.uint64
                     )
 
                 evt = pyopencl.enqueue_copy(
