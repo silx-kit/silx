@@ -9,7 +9,7 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "01/06/2026"
+__date__ = "04/06/2026"
 
 import os
 cimport cython
@@ -76,7 +76,7 @@ def _unblock_lz4(bytes src):
         uint64_t end = pos + 4
         uint64_t block_size
     with nogil:
-      while ((end<size) and (block_idx<block_max)):
+      while ((end+4<size) and (block_idx<block_max)):
             block_size = load32_at(buffer, pos)
             block_start[block_idx] = end
             block_idx +=1
