@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/06/2026"
+__date__ = "05/06/2026"
 __status__ = "production"
 
 
@@ -44,7 +44,7 @@ import numpy
 from ..common import ocl  # noqa F401 Initialize OpenCL
 from ..common import pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
-from .unblock_lz4 import _unblock_lz4
+from ._unblock_bslz4 import unblock_bslz4
 
 import logging
 
@@ -204,8 +204,8 @@ class BitshuffleLz4(OpenclProcessing):
                 )
                 events.append(EventDescription("LZ4 unblock", evt))
             else:
-                # Perform unblock with Cython
-                block_position = _unblock_lz4(raw)
+                # Perform unblock using Cython
+                block_position = unblock_bslz4(raw)
                 size = block_position.size
                 if size > self.num_blocks:
                     self.num_blocks = size
