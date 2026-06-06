@@ -577,5 +577,5 @@ def normalize(
         normalizer,
         nan_color=_UINT8_LUT[0],
     )
-    norm_data.shape = data.shape
+    norm_data = norm_data.reshape(data.shape)
     return NormalizeResult(norm_data, vmin, vmax)

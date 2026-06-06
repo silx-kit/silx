@@ -95,7 +95,7 @@ class MarchingSquaresSciKitImage:
             indexes = numpy.unique(indexes)
             indexes = indexes[mask[indexes] == 0]
             pixels = numpy.concatenate((indexes // x_dim, indexes % x_dim))
-            pixels.shape = 2, -1
+            pixels = pixels.reshape(2, -1)
             pixels = pixels.T
             result = pixels
         else:
@@ -106,7 +106,7 @@ class MarchingSquaresSciKitImage:
             indexes = indexes.ravel()
             indexes = numpy.unique(indexes)
             pixels = numpy.concatenate((indexes // x_dim, indexes % x_dim))
-            pixels.shape = 2, -1
+            pixels = pixels.reshape(2, -1)
             pixels = pixels.T
             result = pixels
         return result

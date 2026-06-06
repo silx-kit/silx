@@ -98,7 +98,7 @@ def bin2RGB(img):
     out += new_img[::2, 1::2, :]
     out /= 4
     if len(shape) != 3:
-        out.shape = new_shape[0], new_shape[1]
+        out = out.reshape(new_shape[0], new_shape[1])
     if dtype == numpy.uint8:
         return out.astype(dtype)
     else:

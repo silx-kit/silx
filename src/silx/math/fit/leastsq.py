@@ -215,17 +215,17 @@ def leastsq(
             sigma = numpy.asarray_chkfinite(sigma)
         else:
             sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
-        ydata.shape = -1
-        sigma.shape = -1
+        ydata = ydata.reshape(-1)
+        sigma = sigma.reshape(-1)
     else:
         ydata = numpy.asarray(ydata)
         xdata = numpy.asarray(xdata)
-        ydata.shape = -1
+        ydata = ydata.reshape(-1)
         if sigma is not None:
             sigma = numpy.asarray(sigma)
         else:
             sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
-        sigma.shape = -1
+        sigma = sigma.reshape(-1)
         # get rid of NaN in input data
         idx = numpy.isfinite(ydata)
         if False in idx:
@@ -237,7 +237,7 @@ def leastsq(
                 if len(xdata.shape) != 1:
                     msg = "Need to reshape input xdata."
                     _logger.warning(msg)
-                xdata.shape = -1
+                xdata = xdata.reshape(-1)
             else:
                 raise ValueError("Cannot reshape xdata to deal with NaN in ydata")
             ydata = ydata[idx]
@@ -268,7 +268,7 @@ def leastsq(
                         msg += "\nFunction should be rewritten to return a 1D array of floats."
                         msg += "\nTrying to reshape output."
                         _logger.warning(msg)
-                        evaluation.shape = ydata.shape
+                        evaluation = evaluation.reshape(ydata.shape)
                 if False in numpy.isfinite(evaluation):
                     msg = "Supplied function unable to handle non-finite x data"
                     msg += "\nAttempting to filter out those x data values."
@@ -288,9 +288,9 @@ def leastsq(
             else:
                 # we leave the xdata as they where
                 old_shape = xdata.shape
-                xdata.shape = ydata.shape
+                xdata = xdata.reshape(ydata.shape)
                 idx0 = numpy.isfinite(xdata)
-                xdata.shape = old_shape
+                xdata = xdata.reshape(old_shape)
             ydata = ydata[idx0]
             xdata = xdata[idx]
             sigma = sigma[idx0]
@@ -441,7 +441,7 @@ def leastsq(
                     msg += "\nFunction should be rewritten."
                     msg += "\nTrying to reshape output."
                     _logger.warning(msg)
-            yfit.shape = -1
+            yfit = yfit.reshape(-1)
             function_call_counter += 1
             chisq = (weight * pow(y - yfit, 2)).sum()
             absdeltachi = chisq0 - chisq
@@ -711,7 +711,7 @@ def chisq_alpha_beta(
             f2 = last_evaluation
         else:
             f2 = model(x, *parameters)
-            f2.shape = -1
+            f2 = f2.reshape(-1)
             function_calls += 1
     for i in range(n_free):
         if model_deriv is None:
@@ -720,7 +720,7 @@ def chisq_alpha_beta(
             newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar, noigno)
             f1 = model(x, *newpar)
-            f1.shape = -1
+            f1 = f1.reshape(-1)
             function_calls += 1
             if left_derivative:
                 pwork[free_index[i]] = fitparam[i] - delta[i]
@@ -749,12 +749,12 @@ def chisq_alpha_beta(
     if last_evaluation is None:
         if constraints is None:
             yfit = model(x, *fitparam)
-            yfit.shape = -1
+            yfit = yfit.reshape(-1)
         else:
             newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar, noigno)
             yfit = model(x, *newpar)
-            yfit.shape = -1
+            yfit = yfit.reshape(-1)
         function_calls += 1
     else:
         yfit = last_evaluation

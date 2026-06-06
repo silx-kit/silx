@@ -116,7 +116,7 @@ def binning(input_img, binsize):
                 out += big_array[i :: binsize[0], j :: binsize[1]]
     else:
         temp = big_array.copy()
-        temp.shape = (outputSize[0], binsize[0], outputSize[1], binsize[1])
+        temp = temp.reshape(outputSize[0], binsize[0], outputSize[1], binsize[1])
         out = temp.sum(axis=3).sum(axis=1)
     return out
 

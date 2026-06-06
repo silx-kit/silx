@@ -140,7 +140,7 @@ class TestSmooth(unittest.TestCase):
         noise *= 0.05
         y = x * (1 + noise)
 
-        y.shape = (100, 100)
+        y = y.reshape((100, 100))
 
         smoothed_y = filters.smooth2d(y)
 

@@ -1118,7 +1118,7 @@ cdef class MarchingSquaresMergeImpl(object):
         # Efficient cache using multi requests
         shape = 1000, 1000
         image = numpy.arange(shape[0] * shape[1]) / (shape[0] * shape[1])
-        image.shape = shape
+        image = image.reshape(shape)
         ms = MarchingSquaresMergeImpl(image, use_minmax_cache=True)
         levels = numpy.arange(0, 1, 0.05)
         for level in levels:

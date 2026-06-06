@@ -161,7 +161,7 @@ def add_gaussian_noise(y, stdev=1.0, mean=0.0):
     :return: Array of data with noise added
     """
     noise = numpy.random.normal(mean, stdev, size=y.size)
-    noise.shape = y.shape
+    noise = noise.reshape(y.shape)
     return y + noise
 
 
@@ -172,7 +172,7 @@ def add_poisson_noise(y):
     :return: Array of data with noise added
     """
     yn = numpy.random.poisson(y)
-    yn.shape = y.shape
+    yn = yn.reshape(y.shape)
     return yn
 
 
@@ -191,5 +191,5 @@ def add_relative_noise(y, max_noise=5.0):
     :return: Array of data with noise added
     """
     noise = max_noise * (2 * numpy.random.random(size=y.size) - 1)
-    noise.shape = y.shape
+    noise = noise.reshape(y.shape)
     return y * (1.0 + noise / 100.0)

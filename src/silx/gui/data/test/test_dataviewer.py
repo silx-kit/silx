@@ -73,7 +73,7 @@ def test_text_data(data_viewer_widget):
 
 def test_plot_1d_data(data_viewer_widget):
     data = numpy.arange(3**1)
-    data.shape = [3] * 1
+    data = data.reshape([3] * 1)
     data_viewer_widget.setData(data)
     availableModes = {v.modeId() for v in data_viewer_widget.currentAvailableViews()}
     assert DataViews.RAW_MODE == data_viewer_widget.displayMode()
@@ -82,7 +82,7 @@ def test_plot_1d_data(data_viewer_widget):
 
 def test_image_data(data_viewer_widget):
     data = numpy.arange(3**2)
-    data.shape = [3] * 2
+    data = data.reshape([3] * 2)
     data_viewer_widget.setData(data)
     availableModes = {v.modeId() for v in data_viewer_widget.currentAvailableViews()}
     assert DataViews.RAW_MODE == data_viewer_widget.displayMode()
@@ -100,7 +100,7 @@ def test_image_bool(data_viewer_widget):
 
 def test_image_complex_data(data_viewer_widget):
     data = numpy.arange(3**2, dtype=numpy.complex64)
-    data.shape = [3] * 2
+    data = data.reshape([3] * 2)
     data_viewer_widget.setData(data)
     availableModes = {v.modeId() for v in data_viewer_widget.currentAvailableViews()}
     assert DataViews.RAW_MODE == data_viewer_widget.displayMode()
@@ -109,7 +109,7 @@ def test_image_complex_data(data_viewer_widget):
 
 def test_plot_3d_data(data_viewer_widget):
     data = numpy.arange(3**3)
-    data.shape = [3] * 3
+    data = data.reshape([3] * 3)
     data_viewer_widget.setData(data)
     availableModes = {v.modeId() for v in data_viewer_widget.currentAvailableViews()}
     try:
@@ -123,35 +123,35 @@ def test_plot_3d_data(data_viewer_widget):
 
 def test_array_1d_data(data_viewer_widget):
     data = numpy.array(["aaa"] * (3**1))
-    data.shape = [3] * 1
+    data = data.reshape([3] * 1)
     data_viewer_widget.setData(data)
     assert DataViews.RAW_MODE == data_viewer_widget.displayedView().modeId()
 
 
 def test_array_2d_data(data_viewer_widget):
     data = numpy.array(["aaa"] * (3**2))
-    data.shape = [3] * 2
+    data = data.reshape([3] * 2)
     data_viewer_widget.setData(data)
     assert DataViews.RAW_MODE == data_viewer_widget.displayedView().modeId()
 
 
 def test_array_4d_data(data_viewer_widget):
     data = numpy.array(["aaa"] * (3**4))
-    data.shape = [3] * 4
+    data = data.reshape([3] * 4)
     data_viewer_widget.setData(data)
     assert DataViews.RAW_MODE == data_viewer_widget.displayedView().modeId()
 
 
 def test_record_4d_data(data_viewer_widget):
     data = numpy.zeros(3**4, dtype="3int8, float32, (2,3)float64")
-    data.shape = [3] * 4
+    data = data.reshape([3] * 4)
     data_viewer_widget.setData(data)
     assert DataViews.RAW_MODE == data_viewer_widget.displayedView().modeId()
 
 
 def test_3d_h5_dataset(data_viewer_widget, tmp_path):
     data = numpy.arange(3 * 3 * 3)
-    data.shape = 3, 3, 3
+    data = data.reshape(3, 3, 3)
     with h5py.File(tmp_path / "tmp.h5", "w") as h5file:
         h5file["data"] = data
 
@@ -228,7 +228,7 @@ class _TestAbstractDataViewer(TestCaseQt):
     def test_change_display_mode(self):
         listener = SignalListener()
         data = numpy.arange(10**4)
-        data.shape = [10] * 4
+        data = data.reshape([10] * 4)
         widget = self.create_widget()
         widget.selectionChanged.connect(listener)
         widget.setData(data)

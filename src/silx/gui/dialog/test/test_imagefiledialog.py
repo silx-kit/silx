@@ -52,7 +52,7 @@ def setUpModule():
     _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
 
     data = numpy.arange(100 * 100)
-    data.shape = 100, 100
+    data = data.reshape(100, 100)
 
     filename = _tmpDirectory + "/singleimage.edf"
     image = fabio.edfimage.EdfImage(data=data)

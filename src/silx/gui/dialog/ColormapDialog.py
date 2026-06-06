@@ -530,7 +530,7 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.setDataBackgroundColor("white")
 
         lut = numpy.arange(256)
-        lut.shape = 1, -1
+        lut = lut.reshape(1, -1)
         self._plot.addImage(lut, legend="lut")
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)

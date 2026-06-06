@@ -18,7 +18,7 @@ Let's look at a simple usage example:
     from silx.gui.data.ArrayTableWidget import ArrayTableWidget
     import numpy
     array = numpy.arange(1000)
-    array.shape = (5, 10, 20)
+    array = array.reshape(5, 10, 20)
     app = qt.QApplication([])
     w = ArrayTableWidget()
     w.setArrayData(array, labels=True)
@@ -78,7 +78,7 @@ a 5-dimensional array and display it:
 .. code-block:: python
 
     array = numpy.arange(10000)
-    array.shape = (5, 2, 10, 5, 20)
+    array = array.reshape(5, 2, 10, 5, 20)
     w.setArrayData(array, labels=True)
 
 .. |imgArray2| image:: img/arraywidget5D_0.png
@@ -220,7 +220,7 @@ of RGB colors.
 
    # data array
    data = numpy.arange(256**3)
-   data.shape = 256, 256, 256
+   data = data.reshape(256, 256, 256)
 
    # RGB colors array
    bcolors = numpy.empty((256, 256, 256, 3), dtype=numpy.uint8)

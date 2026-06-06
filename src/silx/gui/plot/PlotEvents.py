@@ -42,7 +42,7 @@ def prepareDrawingSignal(event, type_, points, parameters=None):
     eventDict["event"] = event
     eventDict["type"] = type_
     points = np.array(points, dtype=np.float32)
-    points.shape = -1, 2
+    points = points.reshape(-1, 2)
     eventDict["points"] = points
     eventDict["xdata"] = points[:, 0]
     eventDict["ydata"] = points[:, 1]

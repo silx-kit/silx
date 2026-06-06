@@ -514,7 +514,7 @@ class TestRegisteredLut(unittest.TestCase):
     def setUp(self):
         # Save preferred colormaps
         lut = numpy.arange(8 * 3)
-        lut.shape = -1, 3
+        lut = lut.reshape(-1, 3)
         lut = lut / (8.0 * 3)
         colors.registerLUT("test_8", colors=lut, cursor_color="blue")
 

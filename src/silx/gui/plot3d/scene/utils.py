@@ -108,7 +108,7 @@ def triangleToLineIndices(
         lineindices = _uniqueAlongLastAxis(lineindices.reshape(-1, 2))
 
     # Make sure it is 1D
-    lineindices.shape = -1
+    lineindices = lineindices.reshape(-1)
 
     return lineindices
 
@@ -460,10 +460,10 @@ def clipSegmentToBounds(
     points = offsets.reshape(-1, 1) * delta + p0
 
     # Avoid precision errors by using bounds value
-    points.shape = 2, 3, 3  # Reshape 1 point per bound value
+    points = points.reshape(2, 3, 3)  # Reshape 1 point per bound value
     for dim in range(3):
         points[:, dim, dim] = bounds[:, dim]
-    points.shape = -1, 3  # Set back to 2D array
+    points = points.reshape(-1, 3)  # Set back to 2D array
 
     # Find intersection points that are included in the volume
     mask = numpy.logical_and(

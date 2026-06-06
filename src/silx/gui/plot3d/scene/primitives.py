@@ -209,7 +209,7 @@ class Geometry(core.Elem):
 
             # Makes sure attrib0 is considered as an array of values
             if name == self.attrib0 and array.ndim == 1:
-                array.shape = 1, -1
+                array = array.reshape(1, -1)
 
             # Check length against another attribute array
             # Causes problems when updating
