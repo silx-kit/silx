@@ -351,10 +351,10 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self._array = numpy.array([])
         elif copy:
             # copy requested (default)
-            self._array = numpy.array(data, copy=True)
-            if hasattr(data, "dtype"):
-                # Avoid to lose the monkey-patched h5py dtype
-                self._array.dtype = data.dtype
+            # Avoid to lose the monkey-patched h5py dtype
+            self._array = numpy.array(
+                data, copy=True, dtype=getattr(data, "dtype", None)
+            )
         elif not _is_array(data):
             raise TypeError(
                 "data is not a proper array. Try setting"
