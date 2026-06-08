@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2022 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/11/2022"
+__date__ = "01/06/2026"
 
 import struct
 import numpy
@@ -123,3 +123,8 @@ class TestBitshuffleLz4:
 
         res = bs.decompress(array).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
+
+        # test cython accelerator:
+        ref_dev = bs.decompress(array, force_unblock_on_device=True).get()
+        res_cyt = bs.decompress(array, force_unblock_on_device=False).get()
+        assert numpy.array_equal(ref_dev, res_cyt), "Checks cython accelerator works"
