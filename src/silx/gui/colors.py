@@ -498,7 +498,7 @@ class Colormap(qt.QObject):
             )
         assert len(colors) != 0
         assert colors.ndim >= 2
-        colors.shape = -1, colors.shape[-1]
+        colors = colors.reshape(-1, colors.shape[-1])
         self._colors = _colormap.array_to_rgba8888(colors)
         self._name = None
         self.sigChanged.emit()

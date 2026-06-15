@@ -64,7 +64,7 @@ class TestByteOffset(unittest.TestCase):
         exception_loc = numpy.random.randint(0, size, size=nexcept)
         exception_value = numpy.random.randint(0, 1000000, size=nexcept)
         ref[exception_loc] = exception_value
-        ref.shape = shape
+        ref = ref.reshape(shape)
 
         raw = fabio.compression.compByteOffset(ref)
         return ref, raw

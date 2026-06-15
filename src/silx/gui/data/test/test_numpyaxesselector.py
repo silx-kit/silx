@@ -41,7 +41,7 @@ import h5py
 class TestNumpyAxesSelector(TestCaseQt):
     def test_creation(self):
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         widget = NumpyAxesSelector()
         widget.setVisible(True)
 
@@ -55,7 +55,7 @@ class TestNumpyAxesSelector(TestCaseQt):
 
     def test_output_samedim(self):
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         expectedResult = data
 
         widget = NumpyAxesSelector()
@@ -66,7 +66,7 @@ class TestNumpyAxesSelector(TestCaseQt):
 
     def test_output_moredim(self):
         data = numpy.arange(3 * 3 * 3 * 3)
-        data.shape = 3, 3, 3, 3
+        data = data.reshape(3, 3, 3, 3)
         expectedResult = data
 
         widget = NumpyAxesSelector()
@@ -80,7 +80,7 @@ class TestNumpyAxesSelector(TestCaseQt):
 
     def test_output_lessdim(self):
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         expectedResult = data[0]
 
         widget = NumpyAxesSelector()
@@ -91,7 +91,7 @@ class TestNumpyAxesSelector(TestCaseQt):
 
     def test_output_1dim(self):
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         expectedResult = data[0, 0, 0]
 
         widget = NumpyAxesSelector()
@@ -105,7 +105,7 @@ class TestNumpyAxesSelector(TestCaseQt):
         fd, tmp_name = tempfile.mkstemp(suffix=".h5")
         os.close(fd)
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         # create h5 data
         h5file = h5py.File(tmp_name, "w")
         h5file["data"] = data
@@ -136,7 +136,7 @@ class TestNumpyAxesSelector(TestCaseQt):
 
     def test_selected_data_event(self):
         data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
+        data = data.reshape(3, 3, 3)
         widget = NumpyAxesSelector()
         listener = SignalListener()
         widget.selectionChanged.connect(listener)

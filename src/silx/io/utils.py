@@ -239,7 +239,7 @@ def save1D(
             y_array = numpy.asarray(y)
             # make sure y_array is a 2D array even for a single curve
             if y_array.ndim == 1:
-                y_array.shape = 1, -1
+                y_array = y_array.reshape(1, -1)
             elif y_array.ndim not in [1, 2]:
                 raise IndexError("y must be a 1D or 2D array")
 

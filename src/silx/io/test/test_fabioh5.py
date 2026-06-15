@@ -87,7 +87,7 @@ class TestFabioH5(unittest.TestCase):
 
     def test_single_frame(self):
         data = numpy.arange(2 * 3)
-        data.shape = 2, 3
+        data = data.reshape(2, 3)
         fabio_image = fabio.edfimage.edfimage(data=data)
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
@@ -101,7 +101,7 @@ class TestFabioH5(unittest.TestCase):
 
     def test_multi_frames(self):
         data = numpy.arange(2 * 3)
-        data.shape = 2, 3
+        data = data.reshape(2, 3)
         fabio_image = fabio.edfimage.edfimage(data=data)
         fabio_image.append_frame(data=data)
         h5_image = fabioh5.File(fabio_image=fabio_image)
@@ -117,11 +117,11 @@ class TestFabioH5(unittest.TestCase):
     def test_heterogeneous_frames(self):
         """Frames containing 2 images with different sizes and a cube"""
         data1 = numpy.arange(2 * 3)
-        data1.shape = 2, 3
+        data1 = data1.reshape(2, 3)
         data2 = numpy.arange(2 * 5)
-        data2.shape = 2, 5
+        data2 = data2.reshape(2, 5)
         data3 = numpy.arange(2 * 5 * 1)
-        data3.shape = 2, 5, 1
+        data3 = data3.reshape(2, 5, 1)
         fabio_image = fabio.edfimage.edfimage(data=data1)
         fabio_image.append_frame(data=data2)
         fabio_image.append_frame(data=data3)
@@ -138,7 +138,7 @@ class TestFabioH5(unittest.TestCase):
     def test_single_3d_frame(self):
         """Image source contains a cube"""
         data = numpy.arange(2 * 3 * 4)
-        data.shape = 2, 3, 4
+        data = data.reshape(2, 3, 4)
         # Do not provide the data to the constructor to avoid slicing of the
         # data. In this way the result stay a cube, and not a multi-frame
         fabio_image = fabio.edfimage.edfimage()

@@ -584,6 +584,6 @@ def cmap(
         vmin,
         vmax,
         nan_color)
-    image.shape = data.shape + (nb_channels,)
+    image = image.reshape(data.shape + (nb_channels,))
 
     return image

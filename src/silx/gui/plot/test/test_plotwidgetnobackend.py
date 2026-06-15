@@ -503,7 +503,7 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertIsNone(image)
 
         image = numpy.arange(10).astype(numpy.float32)
-        image.shape = 5, 2
+        image = image.reshape(5, 2)
 
         plot.addImage(image, legend="image 0", info=["Hi!"])
 

@@ -648,13 +648,13 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         image = numpy.empty(dim0 * dim1, dtype=values.dtype)
                         image[: len(values)] = values
                         image[len(values) :] = float("nan")  # Transparent pixels
-                        image.shape = dim0, dim1
+                        image = image.reshape(dim0, dim1)
                     else:  # Per value alpha or no NaN, so convert to RGBA
                         rgbacolors = self.__applyColormapToData()
                         image = numpy.empty((dim0 * dim1, 4), dtype=numpy.uint8)
                         image[: len(rgbacolors)] = rgbacolors
                         image[len(rgbacolors) :] = (0, 0, 0, 0)  # Transparent pixels
-                        image.shape = dim0, dim1, 4
+                        image = image.reshape(dim0, dim1, 4)
 
                 if gridInfo.order == "column":
                     if image.ndim == 2:
@@ -755,7 +755,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         points[nbpoints:, 1] = yFiltered[-1]
                     else:
                         points = numpy.transpose((xFiltered, yFiltered))
-                    points.shape = shape[0], shape[1], 2
+                    points = points.reshape(shape[0], shape[1], 2)
 
                 else:  # column-major order
                     if nbpoints != numpy.prod(shape):
@@ -772,7 +772,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         points[nbpoints:, 1] = xFiltered[-1]
                     else:
                         points = numpy.transpose((yFiltered, xFiltered))
-                    points.shape = shape[1], shape[0], 2
+                    points = points.reshape(shape[1], shape[0], 2)
 
                 coords, indices = _quadrilateral_grid_as_triangles(points)
 

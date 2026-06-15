@@ -193,7 +193,7 @@ def chistogramnd(
         if histo_range.shape == (2,):
             pass
         elif histo_range.shape == (1, 2):
-            histo_range.shape = -1
+            histo_range = histo_range.reshape(-1)
         else:
             err_histo_range = True
     elif n_dims != 1 and histo_range.shape != (n_dims, 2):

@@ -278,7 +278,7 @@ class Test_leastsq(unittest.TestCase):
                     )
                 self.assertTrue(test_condition, msg)
 
-    @testutils.validate_logging(fitlogger.name, warning=3)
+    @testutils.validate_logging(fitlogger.name, warning=4)
     def testDataWithNaN(self):
         parameters_actual = [10.5, 2, 1000.0, 20.0, 15]
         x = numpy.arange(10000.0).reshape(1000, 10)

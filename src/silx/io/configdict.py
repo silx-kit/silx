@@ -175,7 +175,7 @@ def _parse_container(sstr):
                     nrows = len(sstr[3:-3].split("] ["))
                     data = sstr[3:-3].replace("] [", " ")
                     data = numpy.array([float(x) for x in data.split()])
-                    data.shape = nrows, -1
+                    data = data.reshape(nrows, -1)
                     return data
         # not a list and not an array
         raise ValueError
