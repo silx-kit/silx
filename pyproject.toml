@@ -31,7 +31,7 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                ]
 
 dependencies = [
-   'numpy',
+   'numpy < 2.5',
    'packaging',
    'h5py >= 3',
    'fabio',
