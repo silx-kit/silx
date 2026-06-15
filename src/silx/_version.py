@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2025 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,12 +48,12 @@ Thus 2.1.0a3 is hexversion 0x020100a3.
 
 """
 
-from collections import namedtuple
+from typing import NamedTuple
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "12/12/2023"
+__date__ = "30/04/2026"
 __status__ = "production"
 __docformat__ = "restructuredtext"
 __all__ = [
@@ -78,11 +78,15 @@ SERIAL = 0  # <16
 date = __date__
 
 
-_version_info = namedtuple(
-    "version_info", ["major", "minor", "micro", "releaselevel", "serial"]
-)
+class _VersionInfo(NamedTuple):
+    major: int
+    minor: int
+    micro: int
+    releaselevel: str
+    serial: int
 
-version_info = _version_info(MAJOR, MINOR, MICRO, RELEV, SERIAL)
+
+version_info = _VersionInfo(MAJOR, MINOR, MICRO, RELEV, SERIAL)
 
 strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":

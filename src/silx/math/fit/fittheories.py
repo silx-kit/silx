@@ -726,7 +726,7 @@ class FitTheories:
         fittedpar, cons = self.estimate_height_position_fwhm(x, y)
         npeaks = len(fittedpar) // 3
         newpar = []
-        newcons = numpy.zeros((5 * npeaks, 3), numpy.float64)
+        newcons = numpy.zeros((6 * npeaks, 3), numpy.float64)
         # find out related parameters proper index
         if not self.config["NoConstraintsFlag"]:
             if self.config["SameFwhmFlag"]:
