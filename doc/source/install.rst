@@ -137,32 +137,129 @@ for example:
 Dependencies
 ------------
 
-The mandatory dependencies are:
+*silx* provides a minimal installation and a number of optional dependency groups enabling additional features.
 
-- `fabio <https://github.com/silx-kit/fabio>`_
-- `h5py <http://docs.h5py.org/en/latest/build.html>`_
-- `numpy <http://www.numpy.org/>`_
-- `packaging <https://pypi.org/project/packaging/>`_
+Base installation
++++++++++++++++++
 
-The GUI widgets depend on the following extra packages:
+The default installation:
 
-* A Qt binding: either `PySide6 <https://pypi.org/project/PySide6/>`_ (>= 6.5),
-  `PyQt6 <https://pypi.org/project/PyQt6/>`_ (>= 6.5) or
-  `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ (>= 5.14)
-* `matplotlib <http://matplotlib.org/>`_ (>= 3.6)
-* `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `qtconsole <https://pypi.org/project/qtconsole>`_
-  for the ``silx.gui.console`` widget.
-* `python-dateutil <https://pypi.org/project/python-dateutil/>`_
+.. code-block:: bash
 
-*silx.opencl* further depends on OpenCL and the following packages too :
+    pip install silx
+
+provides:
+
+* Data I/O support, including HDF5 and many scientific image formats
+* Numerical algorithms and data processing
+* Utility modules and command-line tools
+* Non-GUI applications and scripts
+
+It installs:
+
+* `numpy <http://www.numpy.org/>`_ for numerical computing
+* `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 file access
+* `fabio <https://github.com/silx-kit/fabio>`_ for reading scientific image formats
+* `packaging <https://pypi.org/project/packaging/>`_ for package and version handling
+
+OpenCL acceleration
++++++++++++++++++++
+
+The `opencl` extra:
+
+.. code-block:: bash
+
+    pip install silx[opencl]
+
+adds support for GPU/OpenCL accelerated algorithms provided by :mod:`silx.opencl`.
+
+It installs:
 
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
+  for interfacing with OpenCL devices
 * `Mako <http://www.makotemplates.org/>`_
+  for generating OpenCL kernels
 
-*h5pyd* support to access HSDS urls depends on:
+Required system dependencies:
 
-* `h5pyd <https://github.com/HDFGroup/h5pyd>`_ (>= 0.20.0)
+* An OpenCL runtime (CPU or GPU implementation) provided by the system
+  or hardware vendor drivers (e.g. Intel, NVIDIA, AMD)
+
+Scientific and visualization features
++++++++++++++++++++++++++++++++++++++
+
+The `full_no_qt` extra:
+
+.. code-block:: bash
+
+    pip install silx[full_no_qt]
+
+adds support for most optional *silx* features except the Qt binding itself.
+
+It installs:
+
+* `silx[opencl]` for OpenCL-accelerated algorithms
+* `matplotlib <http://matplotlib.org/>`_
+  for Matplotlib Qt backend support
+* `python-dateutil <https://pypi.org/project/python-dateutil/>`_
+  for date and time handling in plots
+* `PyOpenGL <http://pyopengl.sourceforge.net/>`_
+  for 3D visualization widgets
+* `qtconsole <https://pypi.org/project/qtconsole>`_
+  for embedding an interactive IPython console in Qt applications
+* `hdf5plugin <https://github.com/silx-kit/hdf5plugin>`_
+  for reading and writing HDF5 datasets using additional compression filters
+* `pint <https://pint.readthedocs.io/>`_
+  for storing and restoring physical quantities with units
+* `scipy <https://scipy.org/>`_
+  for advanced numerical algorithms used by selected modules
+* `pooch <https://www.fatiando.org/pooch/>`_
+  for downloading example datasets used by some demonstrations
+* `Pillow <https://python-pillow.org/>`_
+  for image handling used by selected image-processing features
+* `qtawesome <https://github.com/spyder-ide/qtawesome>`_
+  for providing icon sets used by graphical applications
+
+Required system dependencies:
+
+* A working OpenGL implementation provided by the system graphics drivers
+  (NVIDIA, AMD, Intel) or by Mesa on Linux (hardware or software rendering)
+
+GUI support
++++++++++++
+
+The `full` extra:
+
+.. code-block:: bash
+
+    pip install silx[full]
+
+adds a Qt binding on top of `full_no_qt` and enables all graphical user interface components.
+
+It installs:
+
+* `PySide6 <https://pypi.org/project/PySide6/>`_,
+  the default Qt binding used by *silx*
+
+Alternative supported Qt bindings are:
+
+* `PyQt6 <https://pypi.org/project/PyQt6/>`_
+* `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_
+
+HSDS support
+++++++++++++
+
+The `h5pyd` extra:
+
+.. code-block:: bash
+
+    pip install silx[h5pyd]
+
+adds support for accessing HDF5 datasets hosted through HSDS (Highly Scalable Data Service).
+
+It installs:
+
+* `h5pyd <https://github.com/HDFGroup/h5pyd>`_, the Python client for HSDS
 
 
 Build dependencies
