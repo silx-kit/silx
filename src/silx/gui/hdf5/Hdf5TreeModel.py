@@ -29,7 +29,6 @@ __date__ = "12/03/2019"
 
 import os
 import logging
-import functools
 from .. import qt
 from .. import icons
 from .Hdf5Node import Hdf5Node
@@ -243,7 +242,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # while the QObject still exists.
         # We use a static method plus explicit references to objects to
         # release. The callback do not use any ref to self.
-        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
+        # onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
+        def onDestroy():
+            try:
+                self._closeFileList(self.__openedFiles)
+            except Exception:
+                pass
+
         self.destroyed.connect(onDestroy)
 
     @staticmethod
