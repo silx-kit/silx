@@ -797,6 +797,6 @@ class ROIStatsWidget(qt.QMainWindow):
             return False
         plot_item = self._statsROITable._getPlotItem(kind=item_kind, legend=item_legend)
         if plot_item is None:
-            _logger.warning("failed to retrieve the plot item you want toremove")
+            _logger.warning("failed to retrieve the plot item you want to remove")
             return False
         return self.removeItem(plotItem=plot_item, roi=roi)

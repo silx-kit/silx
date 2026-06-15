@@ -630,7 +630,7 @@ class NXdata:
                             axis_num = int(axis_attr)
                         except (ValueError, TypeError):
                             nxdata_logger.warning(
-                                "Could not interpret attr @axis asint on dataset %s",
+                                "Could not interpret attr @axis as int on dataset %s",
                                 dsname,
                             )
                             continue
