@@ -64,9 +64,17 @@ Install silx for development
 Format the code
 ---------------
 
-To format the code, use `black <https://black.readthedocs.io>`_::
+To format the code, use `ruff format <https://docs.astral.sh/ruff/formatter/>`_::
 
-    black .
+    ruff format .
+
+
+Check the code
+--------------
+
+To check (lint) the code, use `ruff check <https://docs.astral.sh/ruff/linter/>`_::
+
+    ruff check .
 
 
 Build the documentation

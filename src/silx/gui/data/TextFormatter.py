@@ -256,7 +256,7 @@ class TextFormatter(qt.QObject):
                 return "NULL_REF"
         vlen = h5py.check_dtype(vlen=dtype)
         if vlen is not None:
-            if vlen == str: # noqa: E721 (Numpy override __eq__ operator)
+            if vlen == str:  # noqa: E721 (Numpy override __eq__ operator)
                 # HDF5 UTF8
                 # With h5py>=3 reading dataset returns bytes
                 if isinstance(data, (bytes, numpy.bytes_)):
@@ -265,7 +265,7 @@ class TextFormatter(qt.QObject):
                     except UnicodeDecodeError:
                         self.__formatSafeAscii(data)
                 return self.__formatText(data)
-            elif vlen == bytes: # noqa: E721
+            elif vlen == bytes:  # noqa: E721
                 # HDF5 ASCII
                 return self.__formatCharString(data)
             elif isinstance(vlen, numpy.dtype):
