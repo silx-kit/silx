@@ -35,7 +35,7 @@ def mesonify(where, top=None):
         txt.append("],")
         if len(path) > len(top):
             txt.append(
-                f"subdir: '{where[len(top)+1:]}',  # Folder relative to site-packages to install to"
+                f"subdir: '{where[len(top) + 1 :]}',  # Folder relative to site-packages to install to"
             )
         txt.append(")")
         txt.append("")

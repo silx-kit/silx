@@ -73,11 +73,13 @@ def testResetZoomDataMarginsLogAxes(qapp, plotWidget):
 
     logMin, logMax = numpy.log10(1), numpy.log10(100)
     logRange = logMax - logMin
-    expectedXLimits = pow(10.0, logMin - 0.1 * logRange), pow(
-        10.0, logMax + 0.2 * logRange
+    expectedXLimits = (
+        pow(10.0, logMin - 0.1 * logRange),
+        pow(10.0, logMax + 0.2 * logRange),
     )
-    expectedYLimits = pow(10.0, logMin - 0.3 * logRange), pow(
-        10.0, logMax + 0.4 * logRange
+    expectedYLimits = (
+        pow(10.0, logMin - 0.3 * logRange),
+        pow(10.0, logMax + 0.4 * logRange),
     )
 
     assert plotWidget.getXAxis().getLimits() == expectedXLimits

@@ -1100,7 +1100,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype, overwrite
     v_majeur, v_mineur, v_micro = (int(i) for i in h5py.version.version.split(".")[:3])
     if calc_hexversion(v_majeur, v_mineur, v_micro) < calc_hexversion(2, 9, 0):
         raise Exception(
-            "h5py >= 2.9 should be installed to access the " "external feature."
+            "h5py >= 2.9 should be installed to access the external feature."
         )
 
     with h5py.File(output_url.file_path(), mode="a") as _h5_file:

@@ -37,7 +37,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _HeaderFrame(qt.QFrame):
-
     def __init__(self, parent):
         super().__init__(parent=parent)
         self.setFrameShape(qt.QFrame.StyledPanel)

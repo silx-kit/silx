@@ -164,7 +164,7 @@ class PositionInfo(qt.QWidget):
         plot = self.getPlotWidget()
         if plot is None:
             _logger.error(
-                "Trying to update PositionInfo " "while PlotWidget no longer exists"
+                "Trying to update PositionInfo while PlotWidget no longer exists"
             )
             return
 

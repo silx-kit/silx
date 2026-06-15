@@ -811,9 +811,10 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         y, x = numpy.ogrid[: shape[0], : shape[1]]
-        y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (
-            image.shape[1] - 1
-        ) / (shape[1] - 1)
+        y, x = (
+            y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1),
+            x * 1.0 * (image.shape[1] - 1) / (shape[1] - 1),
+        )
         b = silx.image.bilinear.BilinearImage(image)
         # TODO: could be optimized using strides
         x2d = numpy.zeros_like(y) + x

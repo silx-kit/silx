@@ -255,7 +255,6 @@ PROJECT_PATH = module.__path__[0]
 
 
 if __name__ == "__main__":  # Needed for multiprocessing support on Windows
-
     project_module = module
     PROJECT_PATH = str(Path(project_module.__path__[0]).resolve())
     print(f"PROJECT_PATH: {PROJECT_PATH}")

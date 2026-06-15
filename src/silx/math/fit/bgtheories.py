@@ -375,7 +375,7 @@ THEORY = dict(
         (
             "Linear",
             FitTheory(
-                description="Linear background, parameters 'Constant' and" " 'Slope'",
+                description="Linear background, parameters 'Constant' and 'Slope'",
                 function=lambda x, y0, a, b: a + b * x,
                 parameters=["Constant", "Slope"],
                 estimate=estimate_linear,

@@ -286,7 +286,7 @@ class SceneSelection(qt.QObject):
             or selectionModel.model().sceneWidget() is not self.parent()
         ):
             raise ValueError(
-                "Expecting a QItemSelectionModel " "attached to the same SceneWidget"
+                "Expecting a QItemSelectionModel attached to the same SceneWidget"
             )
 
         # Disconnect from previous selection model

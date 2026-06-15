@@ -330,16 +330,16 @@ class TestFFT(ParametricTestCase):
             fft = FFT(template=data, backend=backend_name, normalize=norm)
             res = fft.fft(data)
             ref = self._compute_numpy_normalized_fft(data, fft.axes, norm)
-            assert np.allclose(
-                res, ref, atol=tol, rtol=tol
-            ), f"Something wrong with {backend_name} norm={norm}"
+            assert np.allclose(res, ref, atol=tol, rtol=tol), (
+                f"Something wrong with {backend_name} norm={norm}"
+            )
 
             res2 = fft.ifft(res)
             ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
             # unscaled IFFT yields very large values. Use a relatively high "atol"
-            assert np.allclose(
-                res2, ref2, atol=res2.max() / 1e6
-            ), f"Something wrong with I{backend_name} norm={norm}"
+            assert np.allclose(res2, ref2, atol=res2.max() / 1e6), (
+                f"Something wrong with I{backend_name} norm={norm}"
+            )
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")

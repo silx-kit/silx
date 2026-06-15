@@ -349,9 +349,9 @@ class ImageStack(qt.QMainWindow):
     def createUrlIndexes(urls: tuple):
         indexes = {}
         for index, url in enumerate(urls):
-            assert isinstance(
-                url, DataUrl
-            ), f"url is expected to be a DataUrl. Get {type(url)}"
+            assert isinstance(url, DataUrl), (
+                f"url is expected to be a DataUrl. Get {type(url)}"
+            )
             indexes[index] = url
         return indexes
 

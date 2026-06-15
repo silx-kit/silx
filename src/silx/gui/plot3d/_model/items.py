@@ -275,7 +275,7 @@ class Settings(StaticRow):
             fset=sceneWidget.setLightMode,
             notify=sceneWidget.sigStyleChanged,
             toModelData=lambda mode: mode == "directional",
-            fromModelData=lambda mode: ("directional" if mode else None),
+            fromModelData=lambda mode: "directional" if mode else None,
             children=(azimuthNode, altitudeNode),
         )
 

@@ -137,7 +137,7 @@ class ArrayCalibration(AbstractCalibration):
         if isinstance(x, int) and x < len(self.calibration_array):
             return self.calibration_array[x]
         raise ValueError(
-            "ArrayCalibration must be applied to array of same size " "or to index."
+            "ArrayCalibration must be applied to array of same size or to index."
         )
 
     @functools.lru_cache

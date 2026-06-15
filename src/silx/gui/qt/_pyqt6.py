@@ -66,8 +66,10 @@ def patch_enums(*modules):
 
                 if any(
                     map(
-                        lambda ancestor: isinstance(ancestor, PyQt6.sip.wrappertype)
-                        and qenum is getattr(ancestor, qenumName, None),
+                        lambda ancestor: (
+                            isinstance(ancestor, PyQt6.sip.wrappertype)
+                            and qenum is getattr(ancestor, qenumName, None)
+                        ),
                         cls.__mro__[1:],
                     )
                 ):

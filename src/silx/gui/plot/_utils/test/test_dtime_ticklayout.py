@@ -63,10 +63,10 @@ def testNoCrash():
             ticks, _, _ = calcTicks(d1, d2, numTicks)
 
             margin = 2.5
-            assert (
-                numTicks / margin <= len(ticks) <= numTicks * margin
-            ), "Condition {} <= {} <= {} failed for # ticks={} and d2={}:".format(
-                numTicks / margin, len(ticks), numTicks * margin, numTicks, d2
+            assert numTicks / margin <= len(ticks) <= numTicks * margin, (
+                "Condition {} <= {} <= {} failed for # ticks={} and d2={}:".format(
+                    numTicks / margin, len(ticks), numTicks * margin, numTicks, d2
+                )
             )
 
         value = value * 1.5  # let date period grow exponentially

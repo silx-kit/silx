@@ -1663,7 +1663,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             FigureCanvasQTAgg.draw(self)
         except ValueError as err:
             _logger.debug(
-                "ValueError caught while calling FigureCanvasQTAgg.draw: " "'%s'",
+                "ValueError caught while calling FigureCanvasQTAgg.draw: '%s'",
                 err,
             )
 

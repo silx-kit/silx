@@ -269,8 +269,7 @@ class FioFile:
                 line_counter += 1
                 if line_counter > ABORTLINENO:
                     raise OSError(
-                        "Invalid fio file: Found no data "
-                        "after %s lines" % ABORTLINENO
+                        "Invalid fio file: Found no data after %s lines" % ABORTLINENO
                     )
             np_datatype = numpy.dtype(
                 [(n, t) for (n, t) in zip(self.names, self.dtypes)]

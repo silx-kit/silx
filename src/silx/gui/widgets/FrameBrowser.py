@@ -221,7 +221,6 @@ class FrameBrowser(qt.QWidget):
 
 
 class _SliderPlayWidgetAction(qt.QWidgetAction):
-
     sigValueChanged = qt.Signal(int)
 
     def __init__(
@@ -255,7 +254,6 @@ class _SliderPlayWidgetAction(qt.QWidgetAction):
 
 
 class _PlayButtonContextMenu(qt.QMenu):
-
     sigFrameRateChanged = qt.Signal(int)
 
     def __init__(self, parent: qt.QWidget | None = None):

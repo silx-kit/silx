@@ -166,9 +166,9 @@ class PrintPreviewDialog(qt.QDialog):
         """Resize :attr:`page`, :attr:`scene` and :attr:`view` to :attr:`printer`
         width and height."""
         printer = self.printer
-        assert (
-            printer is not None
-        ), "_updatePrinter should not be called unless a printer is defined"
+        assert printer is not None, (
+            "_updatePrinter should not be called unless a printer is defined"
+        )
         if self.scene is None:
             self.scene = qt.QGraphicsScene()
             self.scene.setBackgroundBrush(qt.QColor(qt.Qt.lightGray))

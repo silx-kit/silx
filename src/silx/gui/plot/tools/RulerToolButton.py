@@ -49,8 +49,8 @@ _logger = logging.getLogger(__name__)
 class _RulerROI(LineROI):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._formatFunction: None | (
-            typing.Callable[[numpy.ndarray, numpy.ndarray], str]
+        self._formatFunction: (
+            None | (typing.Callable[[numpy.ndarray, numpy.ndarray], str])
         ) = None
         self.setColor("#001122")  # Only there to trig updateStyle
 

@@ -872,9 +872,9 @@ def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
     assert isinstance(program, pyopencl.Program)
     if not isinstance(kernel, pyopencl.Kernel):
         kernel_name = kernel
-        assert kernel in (
-            k.function_name for k in program.all_kernels()
-        ), "the kernel exists"
+        assert kernel in (k.function_name for k in program.all_kernels()), (
+            "the kernel exists"
+        )
         kernel = pyopencl.Kernel(program, kernel_name)
 
     device = program.devices[0]

@@ -143,7 +143,7 @@ class StatsHandler:
                     )
                 if len(arg) == 1:
                     raise ValueError(
-                        "A function should be associated with the" "stat name"
+                        "A function should be associated with thestat name"
                     )
                 if len(arg) > 3:
                     raise ValueError(

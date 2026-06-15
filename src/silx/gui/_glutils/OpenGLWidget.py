@@ -207,8 +207,7 @@ else:
                     errMsg = "OpenGL not available"
                     if sys.platform.startswith("linux"):
                         errMsg += (
-                            ": If connected remotely, "
-                            "GLX forwarding might be disabled."
+                            ": If connected remotely, GLX forwarding might be disabled."
                         )
                     _logger.error(errMsg)
                     self.sigOpenGLContextError.emit(errMsg)

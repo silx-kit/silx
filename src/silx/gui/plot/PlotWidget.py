@@ -1926,7 +1926,7 @@ class PlotWidget(qt.QMainWindow):
         marker = self._getMarker(legend)
         if marker is not None and not isinstance(marker, markerClass):
             _logger.warning(
-                "Adding marker with same legend" " but different type replaces it"
+                "Adding marker with same legend but different type replaces it"
             )
             self.removeItem(marker)
             marker = None

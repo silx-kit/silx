@@ -176,7 +176,7 @@ class UiLoader(QUiLoader):
                     widget = self.customWidgets[class_name](parent)
                 except KeyError as error:
                     raise Exception(
-                        f"No custom widget {class_name} " "found in customWidgets"
+                        f"No custom widget {class_name} found in customWidgets"
                     ) from error
 
             if self.baseinstance:
