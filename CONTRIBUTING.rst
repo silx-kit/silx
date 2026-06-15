@@ -1,4 +1,4 @@
 CONTRIBUTING
 ============
 
-See https://silx.readthedocs.io/en/stable/contributing.html#how-to-contribute
+See https://silx.readthedocs.io/en/stable/contribute/#how-to-contribute
