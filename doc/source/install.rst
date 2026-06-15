@@ -101,6 +101,9 @@ To install silx from source, run:
        export LANG=en_US.UTF-9
 
 
+.. hint:: For editable installation see :ref:`install-silx-editable`.
+
+
 Build options
 +++++++++++++
 
