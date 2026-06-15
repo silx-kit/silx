@@ -289,7 +289,9 @@ class _TestHistogramnd(unittest.TestCase):
         filter_min = self.dtype_weights(self.filter_min)
 
         weight_idx = _get_values_index(
-            self.weights, filter_min, operator.ge  # <------ !!!
+            self.weights,
+            filter_min,
+            operator.ge,  # <------ !!!
         )
 
         result_np = np.histogramdd(
@@ -347,7 +349,9 @@ class _TestHistogramnd(unittest.TestCase):
         filter_max = self.dtype_weights(self.filter_max)
 
         weight_idx = _get_values_index(
-            self.weights, filter_max, operator.le  # <------ !!!
+            self.weights,
+            filter_max,
+            operator.le,  # <------ !!!
         )
 
         result_np = np.histogramdd(

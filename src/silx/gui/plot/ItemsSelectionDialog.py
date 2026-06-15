@@ -289,5 +289,5 @@ class ItemsSelectionDialog(qt.QDialog):
                 "the two will be selected."
             )
         elif mode == self.item_selector.NoSelection:
-            raise ValueError("The NoSelection mode is not allowed " "in this context.")
+            raise ValueError("The NoSelection mode is not allowed in this context.")
         self.item_selector.setSelectionMode(mode)

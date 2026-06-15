@@ -48,9 +48,9 @@ class TestStackView(TestCaseQt):
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
-            lambda i, j, k: numpy.sin(i / 15.0)
-            + numpy.cos(j / 4.0)
-            + 2 * numpy.sin(k / 6.0),
+            lambda i, j, k: (
+                numpy.sin(i / 15.0) + numpy.cos(j / 4.0) + 2 * numpy.sin(k / 6.0)
+            ),
             (10, 20, 30),
         )
 
@@ -231,9 +231,9 @@ class TestStackViewMainWindow(TestCaseQt):
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
-            lambda i, j, k: numpy.sin(i / 15.0)
-            + numpy.cos(j / 4.0)
-            + 2 * numpy.sin(k / 6.0),
+            lambda i, j, k: (
+                numpy.sin(i / 15.0) + numpy.cos(j / 4.0) + 2 * numpy.sin(k / 6.0)
+            ),
             (10, 20, 30),
         )
 

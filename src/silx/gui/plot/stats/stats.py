@@ -261,8 +261,7 @@ class _StatsContext:
     def _checkContextInputs(self, item, plot, onlimits, roi):
         if roi is not None and onlimits is True:
             raise ValueError(
-                "Stats context is unable to manage both a ROI"
-                "and the `onlimits` option"
+                "Stats context is unable to manage both a ROIand the `onlimits` option"
             )
 
 
@@ -798,7 +797,7 @@ class Stat(StatBase):
                 return self._fct(context.values)
             else:
                 raise ValueError(
-                    "Kind %s not managed by %s" "" % (context.kind, self.name)
+                    "Kind %s not managed by %s" % (context.kind, self.name)
                 )
         else:
             return None

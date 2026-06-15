@@ -106,14 +106,14 @@ def save_NXdata(
     """
     if h5py is None:
         raise ImportError(
-            "h5py could not be imported, but is required by " "save_NXdata function"
+            "h5py could not be imported, but is required by save_NXdata function"
         )
 
     if axes_names is not None:
         assert axes is not None, "Axes names defined, but missing axes arrays"
-        assert len(axes) == len(
-            axes_names
-        ), "Mismatch between number of axes and axes_names"
+        assert len(axes) == len(axes_names), (
+            "Mismatch between number of axes and axes_names"
+        )
 
     if axes is not None and axes_names is None:
         axes_names = []
@@ -154,7 +154,7 @@ def save_NXdata(
         if nxdata_name is not None:
             if nxdata_name in entry:
                 _logger.error(
-                    "Cannot assign an NXdata group to an existing" " group or dataset"
+                    "Cannot assign an NXdata group to an existing group or dataset"
                 )
                 return False
         else:
@@ -201,12 +201,12 @@ def save_NXdata(
             data_group.create_dataset("errors", data=signal_errors)
 
         if axes_errors is not None:
-            assert isinstance(
-                axes_errors, (list, tuple)
-            ), "axes_errors must be a list or a tuple of ndarray or None"
-            assert len(axes_errors) == len(
-                axes_names
-            ), "Mismatch between number of axes_errors and axes_names"
+            assert isinstance(axes_errors, (list, tuple)), (
+                "axes_errors must be a list or a tuple of ndarray or None"
+            )
+            assert len(axes_errors) == len(axes_names), (
+                "Mismatch between number of axes_errors and axes_names"
+            )
             for i, axis_errors in enumerate(axes_errors):
                 if axis_errors is not None:
                     dsname = axes_names[i] + "_errors"

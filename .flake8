@@ -1,7 +1,0 @@
-[flake8]
-extend-ignore = E203,E501,E701
-max-line-length = 88
-exclude =
-    .eggs
-    build
-    dist

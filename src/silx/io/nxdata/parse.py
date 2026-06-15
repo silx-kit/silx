@@ -348,7 +348,8 @@ class NXdata:
                 if axis_len != signal_size:
                     if axis_len not in self.group[signal_name].shape + (1, 2):
                         self.issues.append(
-                            "Axis %s number of elements does not " % axis_name
+                            "Axis %s number of elements does not "
+                            % axis_name
                             + "correspond to the length of any signal dimension,"
                             " it does not appear to be a constant or a linear calibration,"
                             + " and this does not seem to be a scatter plot."
@@ -454,7 +455,7 @@ class NXdata:
                     signal_number = int(signal_attr)
                 except (ValueError, TypeError):
                     nxdata_logger.warning(
-                        "Could not parse attr @signal=%s on " "dataset %s as an int",
+                        "Could not parse attr @signal=%s on dataset %s as an int",
                         signal_attr,
                         dsname,
                     )
@@ -629,7 +630,7 @@ class NXdata:
                             axis_num = int(axis_attr)
                         except (ValueError, TypeError):
                             nxdata_logger.warning(
-                                "Could not interpret attr @axis as" "int on dataset %s",
+                                "Could not interpret attr @axis as int on dataset %s",
                                 dsname,
                             )
                             continue

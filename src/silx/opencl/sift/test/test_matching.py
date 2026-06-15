@@ -151,8 +151,9 @@ class TestMatching(unittest.TestCase):
             order="C",
         )
         gpu_matchings.fill(0)
-        keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(
-            keypoints_end
+        keypoints_start, keypoints_end = (
+            numpy.int32(keypoints_start),
+            numpy.int32(keypoints_end),
         )
         nb_keypoints = numpy.int32(10000)
         counter = pyopencl.array.empty(self.queue, (1, 1), dtype=numpy.int32, order="C")

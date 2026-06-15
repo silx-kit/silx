@@ -253,9 +253,9 @@ class ListOfImages:
 
         if transposition is not None:
             assert len(transposition) == self.ndim
-            assert set(transposition) == set(
-                list(range(self.ndim))
-            ), "Transposition must be a sequence containing all dimensions"
+            assert set(transposition) == set(list(range(self.ndim))), (
+                "Transposition must be a sequence containing all dimensions"
+            )
             self.transposition = transposition
             self.__sort_shape()
 
@@ -463,9 +463,9 @@ class DatasetView:
 
         if transposition is not None:
             assert len(transposition) == self.ndim
-            assert set(transposition) == set(
-                list(range(self.ndim))
-            ), "Transposition must be a list containing all dimensions"
+            assert set(transposition) == set(list(range(self.ndim))), (
+                "Transposition must be a list containing all dimensions"
+            )
             self.transposition = transposition
             self.__sort_shape()
 

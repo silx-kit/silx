@@ -335,8 +335,9 @@ class _TestKeypoints(unittest.TestCase):
         gpu_descriptors.fill(0)
         gpu_grad = pyopencl.array.to_device(self.queue, grad)
         gpu_ori = pyopencl.array.to_device(self.queue, ori)
-        keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(
-            keypoints_end
+        keypoints_start, keypoints_end = (
+            numpy.int32(keypoints_start),
+            numpy.int32(keypoints_end),
         )
         grad_height, grad_width = numpy.int32(grad.shape)
         counter = pyopencl.array.to_device(self.queue, keypoints_end)

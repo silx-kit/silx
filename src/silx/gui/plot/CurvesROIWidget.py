@@ -143,9 +143,7 @@ class CurvesROIWidget(qt.QWidget):
         self.addButton.setToolTip("Remove the selected ROI")
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
-        self.addButton.setToolTip(
-            "Clear all created ROIs. We only let the " "default ROI"
-        )
+        self.addButton.setToolTip("Clear all created ROIs. We only let the default ROI")
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)

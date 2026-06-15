@@ -618,7 +618,7 @@ class Colormap(qt.QObject):
             raise NotEditableError("Colormap is not editable")
         if vmin is not None:
             if self._vmax is not None and vmin > self._vmax:
-                err = "Can't set vmin because vmin >= vmax. " "vmin = %s, vmax = %s" % (
+                err = "Can't set vmin because vmin >= vmax. vmin = %s, vmax = %s" % (
                     vmin,
                     self._vmax,
                 )
@@ -645,7 +645,7 @@ class Colormap(qt.QObject):
             raise NotEditableError("Colormap is not editable")
         if vmax is not None:
             if self._vmin is not None and vmax < self._vmin:
-                err = "Can't set vmax because vmax <= vmin. " "vmin = %s, vmax = %s" % (
+                err = "Can't set vmax because vmax <= vmin. vmin = %s, vmax = %s" % (
                     self._vmin,
                     vmax,
                 )

@@ -401,7 +401,9 @@ class StackView(qt.QMainWindow):
         y, x = (
             (1, 2)
             if self._perspective == 0
-            else (0, 2) if self._perspective == 1 else (0, 1)
+            else (0, 2)
+            if self._perspective == 1
+            else (0, 1)
         )
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])

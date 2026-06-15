@@ -66,7 +66,7 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
         self._labelNewItem.setText("Create new item in selected group (optional):")
         self._lineEditNewItem = qt.QLineEdit(self._newItemWidget)
         self._lineEditNewItem.setToolTip(
-            "Specify the name of a new item " "to be created in the selected group."
+            "Specify the name of a new item to be created in the selected group."
         )
         self._lineEditNewItem.textChanged.connect(self._onNewItemNameChange)
         newItemLayout.addWidget(self._labelNewItem)

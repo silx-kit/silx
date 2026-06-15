@@ -440,7 +440,7 @@ def main(argv):
             return -1
         elif options.mode == "w":
             _logger.info(
-                "Output file %s exists and mode is 'w'. " "Overwriting existing file.",
+                "Output file %s exists and mode is 'w'. Overwriting existing file.",
                 output_name,
             )
         elif options.mode in ["a", "r+"]:

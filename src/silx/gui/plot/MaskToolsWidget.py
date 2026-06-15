@@ -767,7 +767,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     strerror = e.strerror
                 else:
                     strerror = sys.exc_info()[1]
-                msg.setText("Cannot save.\n" "Input Output Error: %s" % strerror)
+                msg.setText("Cannot save.\nInput Output Error: %s" % strerror)
                 msg.exec()
                 return
 

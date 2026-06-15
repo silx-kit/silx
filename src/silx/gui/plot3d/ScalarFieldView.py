@@ -978,7 +978,7 @@ class ScalarFieldView(Plot3DWindow):
 
         tagStack = deque()
 
-        tagInRegex = re.compile("<(?P<itemId>[^ /]*) *" "(?P<args>.*)>")
+        tagInRegex = re.compile("<(?P<itemId>[^ /]*) *(?P<args>.*)>")
 
         tagOutRegex = re.compile("</(?P<itemId>[^ ]*)>")
 
@@ -1037,7 +1037,7 @@ class ScalarFieldView(Plot3DWindow):
                 if not argsMatch:
                     # TODO : explicit error
                     raise ValueError(
-                        'Failed to parse args "{}".' "".format(matchDict["args"])
+                        'Failed to parse args "{}".'.format(matchDict["args"])
                     )
                 argsDict = argsMatch.groupdict()
                 nIso = int(argsDict["nIso"])

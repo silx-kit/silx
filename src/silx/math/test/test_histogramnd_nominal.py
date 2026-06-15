@@ -784,7 +784,8 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo_inst.accumulate(
-            sample_2, weights=10 * self.weights  # <==== !!
+            sample_2,
+            weights=10 * self.weights,  # <==== !!
         )  # <==== !!
 
         histo = histo_inst.histo

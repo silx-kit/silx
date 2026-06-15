@@ -77,7 +77,7 @@ def commpare_results(
 
     result_txt = f" : results OK. c : {times[0]: <7.3f};"
     if result_np or result_np_w:
-        result_txt += f" np : {times[1]: <7.3f}; " "np (weights) {times[2]: <7.3f}."
+        result_txt += f" np : {times[1]: <7.3f}; np (weights) {{times[2]: <7.3f}}."
     print("\t" + txt + result_txt)
     return True
 

@@ -71,7 +71,11 @@ def convertArrayToQImage(array: numpy.ndarray) -> qt.QImage:
 
     height, width, depth = array.shape
     qimage = qt.QImage(
-        array.data, width, height, array.strides[0], format_  # bytesPerLine
+        array.data,
+        width,
+        height,
+        array.strides[0],
+        format_,  # bytesPerLine
     )
 
     return qimage.copy()  # Making a copy of the image and its data

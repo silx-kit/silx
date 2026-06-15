@@ -188,9 +188,7 @@ class SiftPlan(OpenclProcessing):
         # TODO WORKGROUP ....
         self.kernels_wg = {}
         self.scales = []  # in XY order
-        self.procsize = (
-            []
-        )  # same as  procsize but with dimension in (X,Y) not (slow, fast)
+        self.procsize = []  # same as  procsize but with dimension in (X,Y) not (slow, fast)
         self.wgsize = []
 
         self.octave_max = None
@@ -470,8 +468,9 @@ class SiftPlan(OpenclProcessing):
             assert image.shape[:2] == self.shape
             assert image.dtype in [self.dtype, numpy.float32]
             # old versions of pyopencl do not check for data contiguity
-            if not (isinstance(image, pyopencl.array.Array)) and not (
-                image.flags["C_CONTIGUOUS"]
+            if (
+                not (isinstance(image, pyopencl.array.Array))
+                and not (image.flags["C_CONTIGUOUS"])
             ):
                 image = numpy.ascontiguousarray(image)
             t0 = time.time()

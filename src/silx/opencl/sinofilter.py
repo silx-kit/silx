@@ -105,7 +105,7 @@ class SinoFilter(OpenclProcessing):
             n_angles, dwidth = sino_shape
         else:
             raise ValueError(
-                "Invalid sinogram number of dimensions: " "expected 2 dimensions"
+                "Invalid sinogram number of dimensions: expected 2 dimensions"
             )
         self.sino_shape = sino_shape
         self.n_angles = n_angles
@@ -178,9 +178,7 @@ class SinoFilter(OpenclProcessing):
             self.dwidth_padded,
             self.filter_name,
             cutoff=self.extra_options["cutoff"],
-        )[
-            : self.dwidth_padded // 2 + 1
-        ]  # R2C
+        )[: self.dwidth_padded // 2 + 1]  # R2C
         self.set_filter(filter_f, normalize=True)
 
     def set_filter(self, h_filt, normalize=True):
@@ -193,11 +191,14 @@ class SinoFilter(OpenclProcessing):
         :param normalize: Whether to normalize the filter with pi/num_angles.
         """
         if h_filt.size != self.sino_f_shape[-1]:
-            raise ValueError("""
+            raise ValueError(
+                """
                 Invalid filter size: expected %d, got %d.
                 Please check that the filter is the Fourier R2C transform of
                 some real 1D filter.
-                """ % (self.sino_f_shape[-1], h_filt.size))
+                """
+                % (self.sino_f_shape[-1], h_filt.size)
+            )
         if not (np.iscomplexobj(h_filt)):
             print("Warning: expected a complex Fourier filter")
         self.filter_f = h_filt
@@ -227,7 +228,7 @@ class SinoFilter(OpenclProcessing):
                 f"Expected sinogram shape {self.sino_shape}, got {arr.shape}"
             )
         if not (isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
-            raise ValueError("Expected either numpy.ndarray or " "pyopencl.array.Array")
+            raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
     def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
         """

@@ -1495,7 +1495,7 @@ THEORY = dict(
         (
             "Degree 2 Polynomial",
             FitTheory(
-                description="Degree 2 polynomial" "\ny = a*x^2 + b*x +c",
+                description="Degree 2 polynomial\ny = a*x^2 + b*x +c",
                 function=fitfuns.poly,
                 parameters=["a", "b", "c"],
                 estimate=fitfuns.estimate_quadratic,
@@ -1504,7 +1504,7 @@ THEORY = dict(
         (
             "Degree 3 Polynomial",
             FitTheory(
-                description="Degree 3 polynomial" "\ny = a*x^3 + b*x^2 + c*x + d",
+                description="Degree 3 polynomial\ny = a*x^3 + b*x^2 + c*x + d",
                 function=fitfuns.poly,
                 parameters=["a", "b", "c", "d"],
                 estimate=fitfuns.estimate_cubic,
@@ -1513,8 +1513,7 @@ THEORY = dict(
         (
             "Degree 4 Polynomial",
             FitTheory(
-                description="Degree 4 polynomial"
-                "\ny = a*x^4 + b*x^3 + c*x^2 + d*x + e",
+                description="Degree 4 polynomial\ny = a*x^4 + b*x^3 + c*x^2 + d*x + e",
                 function=fitfuns.poly,
                 parameters=["a", "b", "c", "d", "e"],
                 estimate=fitfuns.estimate_quartic,

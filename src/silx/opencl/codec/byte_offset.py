@@ -171,9 +171,9 @@ class ByteOffset(OpenclProcessing):
         :return: The decompressed image as an pyopencl array.
         :rtype: pyopencl.array
         """
-        assert (
-            self.dec_size is not None
-        ), "dec_size is a mandatory ByteOffset init argument for decompression"
+        assert self.dec_size is not None, (
+            "dec_size is a mandatory ByteOffset init argument for decompression"
+        )
 
         events = []
         with self.sem:

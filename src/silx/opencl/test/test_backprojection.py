@@ -134,7 +134,7 @@ class TestFBP(unittest.TestCase):
         delta = abs(res_clipped - ref_clipped)
         bad = delta > 1
         logger.debug(
-            "Absolute difference: %s with %s outlier pixels out of %s" "",
+            "Absolute difference: %s with %s outlier pixels out of %s",
             delta.max(),
             bad.sum(),
             np.prod(bad.shape),

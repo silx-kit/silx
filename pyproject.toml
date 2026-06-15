@@ -72,7 +72,7 @@ full = [
 h5pyd = [
     'h5pyd >= 0.20.0'
 ]
-doc =[
+doc = [
     'silx[full]',
     'Sphinx',                    # To build the documentation in doc/
     'sphinx-autodoc-typehints',  # For leveraging Python type hints from Sphinx
@@ -99,8 +99,7 @@ dev = [
     'ninja',
     'cython',
     "tomli>=1.0.0; python_version < '3.11'",  # For bootstrap.py and build_man_page.py
-    'black[jupyter]',                         # Formatting
-    'flake8',                                 # Linting
+    'ruff',                                   # Formatting and linting
     'pyinstaller>=6.0.0; sys_platform == "win32"',
 ]
 
@@ -125,13 +124,28 @@ setup = ['--vsenv']
 skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
 
 
-[tool.black]
-required-version = "26"
-target-version = ["py310", "py311", "py312", "py313", "py314"]
-
 [tool.pytest.ini_options]
 minversion = "6.0"
-testpaths = [ "src/silx" ]
+testpaths = ["src/silx"]
 
 [tool.uv]
 managed = false
+
+[tool.ruff.lint]
+select = ["E", "F"]
+exclude = [
+    ".eggs",
+    "build",
+    "dist",
+    "*.pyi",                                # Don't lint Cython code
+    "doc/source/Tutorials/Image.ipynb",     # Problem when linting magic commands
+    "doc/source/Tutorials/Sift/sift.ipynb", # Problem when linting magic commands
+]
+#
+ignore = [
+    "E402", # Import not at top of file not compatible with COPYRIGHT notice
+    "E501", # Line too long
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88
