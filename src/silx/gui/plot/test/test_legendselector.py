@@ -83,13 +83,12 @@ class TestLegendSelector(TestCaseQt):
         # layout.setContentsMargins(0,0,0,0)
         llist = []
 
-        for _idx, (l, c, s) in enumerate(zip(legends, colors, symbols)):
+        for _idx, (legend, c, s) in enumerate(zip(legends, colors, symbols)):
             ddict = {
                 "color": qt.QColor(c),
                 "linewidth": 4,
                 "symbol": s,
             }
-            legend = l
             llist.append((legend, ddict))
             # item = qt.QListWidgetItem(win)
             # legendWidget = LegendListItemWidget(l)

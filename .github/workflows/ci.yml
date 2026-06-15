@@ -20,9 +20,9 @@ jobs:
           python-version: "3.12"
           cache: "pip"
       - name: Install
-        run: pip install --upgrade black build flake8
-      - run: black --check .
-      - run: flake8
+        run: pip install --upgrade ruff build
+      - run: ruff format --check .
+      - run: ruff check .
       - name: Build wheel
         run: |
           python -m build --wheel
@@ -54,7 +54,7 @@ jobs:
             with_opencl: false
 
     steps:
-      - uses: actions/checkout@v5        
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -62,7 +62,7 @@ jobs:
       - uses: ./.github/actions/setup-system
       - name: Install build dependencies
         run: |
-          pip install --upgrade --pre build wheel 
+          pip install --upgrade --pre build wheel
 
       - name: Build wheel
         env:
