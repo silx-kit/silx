@@ -1,7 +1,6 @@
 subdir('io')
 subdir('math')
 subdir('image')
-subdir('opencl')
 
 py.install_sources([
     '__init__.py',
@@ -18,6 +17,7 @@ subdir: 'silx',  # Folder relative to site-packages to install to
 pure_subdirs = [
   'app',
   'gui',
+  'opencl',
   'resources',
   'sx',
   'test',
