@@ -41,6 +41,8 @@ which is described in other projects like `scikit-image <https://scikit-image.or
 If you encounter any problems or have any questions you can always ask on the `Issues page <https://github.com/silx-kit/silx/issues>`_.
 
 
+.. _install-silx-editable:
+
 Install silx for development
 ----------------------------
 
