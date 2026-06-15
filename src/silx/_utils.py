@@ -39,12 +39,11 @@ def nfs_cache_refresh(dirname: str) -> None:
         pass
 
 
-class Partial:
+class IgnoreArgPartial:
     """
-    Alternative implementation of ``functools.partial``.
-
-    Stores a callable together with positional and keyword arguments and
-    invokes it later when called.
+    Alternative implementation of ``functools.partial`` but the partial
+    function ignores any arguments. This was done because the signature
+    is not correct which causes PyQt to pass arguments when it shouldn't.
 
     This class was introduced as a workaround for segfaults observed with
     ``functools.partial`` in Qt/Python object destruction and garbage
@@ -61,9 +60,8 @@ class Partial:
         self._args = args
         self._kwargs = kwargs
 
-    def __call__(self, *args, **kwargs):
-        kwargs = {**self._kwargs, **kwargs}
-        return self._func(*self._args, *args, **kwargs)
+    def __call__(self, *_, **__):
+        return self._func(*self._args, **self._kwargs)
 
     def __repr__(self):
         return (
