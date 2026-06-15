@@ -33,7 +33,6 @@ __date__ = "05/03/2019"
 import sys
 import os
 import logging
-import functools
 
 import numpy
 
@@ -42,6 +41,7 @@ from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
 from .FileTypeComboBox import FileTypeComboBox
+from ..._utils import Partial as _Partial
 
 import fabio
 
@@ -606,10 +606,15 @@ class AbstractDataFileDialog(qt.QDialog):
         # to access to the content of the Python object with the `destroyed`
         # signal cause the Python method was already removed with the QWidget,
         # while the QObject still exists.
+        #
         # We use a static method plus explicit references to objects to
         # release. The callback do not use any ref to self.
-        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
-        self.destroyed.connect(onDestroy)
+        #
+        # Since Python 3.13, `functools.partial` can cause the callback to
+        # still segfaults, possible because it keeps a reference to the
+        # current call stack and hence this Qt object.
+
+        self.destroyed.connect(_Partial(self._closeFileList, self.__openedFiles))
 
     @staticmethod
     def _closeFileList(fileList):
