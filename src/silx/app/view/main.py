@@ -34,6 +34,7 @@ import sys
 import traceback
 
 from silx.app.utils import parseutils
+from silx.utils.system_limit import increase_max_opened_files
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
@@ -102,20 +103,7 @@ def mainQt(options):
     # Import most of the things here to be sure to use the right logging level
     #
 
-    # Use max opened files hard limit as soft limit
-    try:
-        import resource
-    except ImportError:
-        _logger.debug("No resource module available")
-    else:
-        if hasattr(resource, "RLIMIT_NOFILE"):
-            try:
-                hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-                resource.setrlimit(resource.RLIMIT_NOFILE, (hard_nofile, hard_nofile))
-            except (ValueError, OSError):
-                _logger.warning("Failed to retrieve and set the max opened files limit")
-            else:
-                _logger.debug("Set max opened files to %d", hard_nofile)
+    increase_max_opened_files()
 
     # This needs to be done prior to load HDF5
     hdf5_file_locking = "TRUE" if options.hdf5_file_locking else "FALSE"
@@ -131,10 +119,10 @@ def mainQt(options):
         )
 
     import silx
-    from silx.gui import qt
 
     # Make sure matplotlib is configured
     import silx.gui.utils.matplotlib  # noqa
+    from silx.gui import qt
 
     app = qt.QApplication.instance()
     if app is None:
