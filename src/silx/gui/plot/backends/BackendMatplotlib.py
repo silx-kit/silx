@@ -1302,25 +1302,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._isXAxisTimeSeries = isTimeSeries
         self.__initXAxisFormatterAndLocator()
 
-    def setXAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.1.0 when one tries to set an axis
-        # to log scale with both limits <= 0
-        # In this case a draw with positive limits is needed first
-        if flag:
+    def setXAxisScale(self, scale):
+        if scale == "log":
+            # Workaround for matplotlib 2.1.0 when one tries to set an axis
+            # to log scale with both limits <= 0
+            # In this case a draw with positive limits is needed first
             xlim = self.ax.get_xbound()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self._setXLimits(1, 10)
                 self.draw()
-
-        xscale = "log" if flag else "linear"
-        self.ax2.set_xscale(xscale)
-        self.ax.set_xscale(xscale)
+        self.ax2.set_xscale(scale)
+        self.ax.set_xscale(scale)
         self.__initXAxisFormatterAndLocator()
 
-    def setYAxisLogarithmic(self, flag):
-        # Workaround for matplotlib 2.0 issue with negative bounds
-        # before switching to log scale
-        if flag:
+    def setYAxisScale(self, scale):
+        if scale == "log":
+            # Workaround for matplotlib 2.0 issue with negative bounds
+            # before switching to log scale
             redraw = False
             for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
@@ -1332,15 +1330,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     redraw = True
             if redraw:
                 self.draw()
-
             self.ax2.set_yscale("log")
             self.ax.set_yscale("log")
             return
-
-        self.ax2.set_yscale("linear")
-        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
-        self.ax.set_yscale("linear")
-        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
+        self.ax2.set_yscale(scale)
+        self.ax.set_yscale(scale)
+        if scale == "linear":
+            self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
+            self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
     def setYAxisInverted(self, flag: bool):
         if self.ax.yaxis_inverted() != bool(flag):
