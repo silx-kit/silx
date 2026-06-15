@@ -101,7 +101,7 @@ To install silx from source, run:
        export LANG=en_US.UTF-9
 
 
-.. hint:: For editable installation see :ref:`install-silx-editable`.
+.. hint:: To install in `editable mode <https://setuptools.pypa.io/en/latest/userguide/development_mode.html>`_, see :ref:`install-silx-editable`.
 
 
 Build options
