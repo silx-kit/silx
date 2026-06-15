@@ -110,7 +110,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     output = numpy.empty(
         shape=(input_c.size,),
@@ -172,7 +172,7 @@ def snip1d(data, snip_width):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.snip1d(&data_c[0], data_c.size, snip_width)
 
@@ -216,7 +216,7 @@ def snip2d(data, snip_width):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.snip2d(&data_c[0], nrows, ncolumns, snip_width)
 
@@ -264,7 +264,7 @@ def snip3d(data, snip_width):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.snip3d(&data_c[0], nx, ny, nz, snip_width)
 
@@ -287,7 +287,7 @@ def savitsky_golay(data, npoints=5):
     data_c =  numpy.array(
         data,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     output = numpy.empty(
         shape=(data_c.size,),
@@ -338,7 +338,7 @@ def smooth1d(data):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.smooth1d(&data_c[0], data_c.size)
 
@@ -377,7 +377,7 @@ def smooth2d(data):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.smooth2d(&data_c[0], nrows, ncolumns)
 
@@ -420,7 +420,7 @@ def smooth3d(data):
         data,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
 
     filters_wrapper.smooth3d(&data_c[0], nx, ny, nz)
 

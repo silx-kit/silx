@@ -74,8 +74,8 @@ class ProfileImageLineROI(rois.ProfileImageLineROI):
         title = title + "; width = %d" % lineWidth
         _coords, profile2, _title, _xLabel = createProfile2(currentData2)
 
-        profile1 = profile1.reshape(-1)
-        profile2 = profile2.reshape(-1)
+        profile1 = profile1.ravel()
+        profile2 = profile2.ravel()
 
         title = title.format(xlabel="width", ylabel="height")
         xLabel = xLabel.format(xlabel="width", ylabel="height")

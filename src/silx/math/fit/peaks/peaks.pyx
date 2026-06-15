@@ -78,7 +78,7 @@ def peak_search(y, fwhm, sensitivity=3.5,
         y,
         copy=True,
         dtype=numpy.float64,
-        order='C').reshape(-1)
+        order='C').ravel()
     if debug:
         debug = 1
     else:

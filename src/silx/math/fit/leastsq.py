@@ -215,17 +215,17 @@ def leastsq(
             sigma = numpy.asarray_chkfinite(sigma)
         else:
             sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
-        ydata = ydata.reshape(-1)
-        sigma = sigma.reshape(-1)
+        ydata = ydata.ravel()
+        sigma = sigma.ravel()
     else:
         ydata = numpy.asarray(ydata)
         xdata = numpy.asarray(xdata)
-        ydata = ydata.reshape(-1)
+        ydata = ydata.ravel()
         if sigma is not None:
             sigma = numpy.asarray(sigma)
         else:
             sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
-        sigma = sigma.reshape(-1)
+        sigma = sigma.ravel()
         # get rid of NaN in input data
         idx = numpy.isfinite(ydata)
         if False in idx:
@@ -237,7 +237,7 @@ def leastsq(
                 if len(xdata.shape) != 1:
                     msg = "Need to reshape input xdata."
                     _logger.warning(msg)
-                xdata = xdata.reshape(-1)
+                xdata = xdata.ravel()
             else:
                 raise ValueError("Cannot reshape xdata to deal with NaN in ydata")
             ydata = ydata[idx]
@@ -441,7 +441,7 @@ def leastsq(
                     msg += "\nFunction should be rewritten."
                     msg += "\nTrying to reshape output."
                     _logger.warning(msg)
-            yfit = yfit.reshape(-1)
+            yfit = yfit.ravel()
             function_call_counter += 1
             chisq = (weight * pow(y - yfit, 2)).sum()
             absdeltachi = chisq0 - chisq
@@ -711,7 +711,7 @@ def chisq_alpha_beta(
             f2 = last_evaluation
         else:
             f2 = model(x, *parameters)
-            f2 = f2.reshape(-1)
+            f2 = f2.ravel()
             function_calls += 1
     for i in range(n_free):
         if model_deriv is None:
@@ -720,7 +720,7 @@ def chisq_alpha_beta(
             newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar, noigno)
             f1 = model(x, *newpar)
-            f1 = f1.reshape(-1)
+            f1 = f1.ravel()
             function_calls += 1
             if left_derivative:
                 pwork[free_index[i]] = fitparam[i] - delta[i]
@@ -749,12 +749,12 @@ def chisq_alpha_beta(
     if last_evaluation is None:
         if constraints is None:
             yfit = model(x, *fitparam)
-            yfit = yfit.reshape(-1)
+            yfit = yfit.ravel()
         else:
             newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar, noigno)
             yfit = model(x, *newpar)
-            yfit = yfit.reshape(-1)
+            yfit = yfit.ravel()
         function_calls += 1
     else:
         yfit = last_evaluation

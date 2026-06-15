@@ -105,7 +105,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: X coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute("x", copy=copy).reshape(-1)
+        return self._scatter.getAttribute("x", copy=copy).ravel()
 
     def getYData(self, copy=True):
         """Returns Y data coordinates.
@@ -115,7 +115,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Y coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute("y", copy=copy).reshape(-1)
+        return self._scatter.getAttribute("y", copy=copy).ravel()
 
     def getZData(self, copy=True):
         """Returns Z data coordinates.
@@ -125,7 +125,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Z coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute("z", copy=copy).reshape(-1)
+        return self._scatter.getAttribute("z", copy=copy).ravel()
 
     def getValueData(self, copy=True):
         """Returns data values.
@@ -135,7 +135,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: data values
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute("value", copy=copy).reshape(-1)
+        return self._scatter.getAttribute("value", copy=copy).ravel()
 
     def _pickFull(self, context, sort="depth"):
         """Perform picking in this item at given widget position.
@@ -323,16 +323,16 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         """
         x = numpy.array(
             x, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
-        ).reshape(-1)
+        ).ravel()
         y = numpy.array(
             y, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
-        ).reshape(-1)
+        ).ravel()
         assert len(x) == len(y)
 
         if isinstance(value, abc.Iterable):
             value = numpy.array(
                 value, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
-            ).reshape(-1)
+            ).ravel()
             assert len(value) == len(x)
         else:  # Single scalar
             value = numpy.array((float(value),), dtype=numpy.float32)

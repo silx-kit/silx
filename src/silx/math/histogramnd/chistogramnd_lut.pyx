@@ -108,7 +108,7 @@ def histogramnd_get_lut(sample,
         if histo_range.shape == (2,):
             pass
         elif histo_range.shape == (1, 2):
-            histo_range = histo_range.reshape(-1)
+            histo_range = histo_range.ravel()
         else:
             err_histo_range = True
     elif n_dims != 1 and histo_range.shape != (n_dims, 2):
@@ -195,7 +195,7 @@ def histogramnd_get_lut(sample,
         raise Exception(f'histogramnd returned an error : {rc}')
 
     edges = []
-    histo_range = histo_range.reshape(-1)
+    histo_range = histo_range.ravel()
     for i_dim in range(n_dims):
         dim_edges = np.zeros(n_bins[i_dim] + 1)
         rng_min = histo_range[2 * i_dim]

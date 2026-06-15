@@ -57,7 +57,7 @@ def _notNaNSlices(array, length=1):
     :return: Array of (start, end) slice indices
     :rtype: numpy.ndarray
     """
-    isnan = numpy.isnan(numpy.asarray(array).reshape(-1))
+    isnan = numpy.isnan(numpy.asarray(array).ravel())
     notnan = numpy.logical_not(isnan)
     start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
     if notnan[0]:
@@ -146,7 +146,7 @@ class _Fill2D:
                 end = numpy.append(end, len(isnan))
             slices = numpy.transpose((start, end))
             # discard slices with less than length values
-            slices = slices[numpy.diff(slices, axis=1).reshape(-1) >= 2]
+            slices = slices[numpy.diff(slices, axis=1).ravel() >= 2]
 
             # Number of points: slice + 2 * leading and trailing points
             # Twice leading and trailing points to produce degenerated triangles

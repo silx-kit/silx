@@ -194,7 +194,7 @@ def medfilt(data,
                 cval=cval)
 
     if reshaped:
-        output_buffer = output_buffer.reshape(-1)  # Convert to 1D array
+        output_buffer = output_buffer.ravel()  # Convert to 1D array
 
     return output_buffer
 
