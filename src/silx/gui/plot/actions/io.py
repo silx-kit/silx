@@ -52,6 +52,7 @@ from silx.io.nxdata import save_NXdata
 
 from . import PlotAction
 from ...utils.image import convertArrayToQImage
+from contextlib import contextmanager
 
 _logger = logging.getLogger(__name__)
 
@@ -85,8 +86,13 @@ class SaveAction(PlotAction):
 
     SNAPSHOT_FILTER_SVG = "Plot Snapshot as SVG (*.svg)"
     SNAPSHOT_FILTER_PNG = "Plot Snapshot as PNG (*.png)"
+    SNAPSHOT_WITH_COLORBAR_FILTER_PNG = "Plot Snapshot with ColorBar as PNG (*.png)"
 
-    DEFAULT_ALL_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
+    DEFAULT_ALL_FILTERS = (
+        SNAPSHOT_FILTER_PNG,
+        SNAPSHOT_WITH_COLORBAR_FILTER_PNG,
+        SNAPSHOT_FILTER_SVG,
+    )
 
     _DEFAULT_FMT = "%.18e"
 
@@ -177,7 +183,17 @@ class SaveAction(PlotAction):
         self._appendFilters = list(self.DEFAULT_APPEND_FILTERS)
 
         # Initialize filters
+        from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
+
         for nameFilter in self.DEFAULT_ALL_FILTERS:
+            if (
+                not isinstance(plot, PlotWindow)
+                and nameFilter == self.SNAPSHOT_WITH_COLORBAR_FILTER_PNG
+            ):
+                _logger.info(
+                    f"Ignore {nameFilter} because requires to have acces to the ColorBarWidget"
+                )
+                continue
             self.setFileFilter(
                 dataKind="all", nameFilter=nameFilter, func=self._saveSnapshot
             )
@@ -232,15 +248,31 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if nameFilter == self.SNAPSHOT_FILTER_PNG:
+        if nameFilter in (
+            self.SNAPSHOT_FILTER_PNG,
+            self.SNAPSHOT_WITH_COLORBAR_FILTER_PNG,
+        ):
             fileFormat = "png"
         elif nameFilter == self.SNAPSHOT_FILTER_SVG:
             fileFormat = "svg"
         else:  # Format not supported
             _logger.error("Saving plot snapshot failed: format not supported")
             return False
+        if nameFilter == self.SNAPSHOT_WITH_COLORBAR_FILTER_PNG:
+            # Note: today taking a pixmap of the widget works because the
+            # Central widget is only composed of the plot and the ColorBarWidget.
+            from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
 
-        plot.saveGraph(filename, fileFormat=fileFormat)
+            if not isinstance(plot, PlotWindow):
+                raise RuntimeError(
+                    f"An instance of {PlotWindow} is expected. Got {type(self.plot)}"
+                )
+            with _colorbar_visible(self.plot):
+                centralWidget = self.plot.centralWidget()
+                pixmap = centralWidget.grab()
+                pixmap.save(filename)
+        else:
+            plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 
     def _getAxesLabels(self, item):
@@ -873,3 +905,23 @@ class CopyAction(PlotAction):
         pngData = _plotAsPNG(self.plot)
         image = qt.QImage.fromData(pngData, "png")
         qt.QApplication.clipboard().setImage(image)
+
+
+@contextmanager
+def _colorbar_visible(plot):
+    """Context manager that makes sure the colorbar is displayed"""
+    from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
+
+    if not isinstance(plot, PlotWindow):
+        raise TypeError(
+            f"plot should be an instance of {PlotWindow}. Got {type(plot)}."
+        )
+
+    colorbar = plot.getColorBarWidget()
+    colorbarIsVisible = colorbar.isVisible()
+    if not colorbarIsVisible:
+        colorbar.setVisible(True)
+    try:
+        yield
+    finally:
+        colorbar.setVisible(colorbarIsVisible)
