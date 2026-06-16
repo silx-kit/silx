@@ -237,14 +237,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """Store the list of files opened by the model itself."""
         # FIXME: It should be managed one by one by Hdf5Item itself
 
-        # It is not possible to override the QObject destructor nor
-        # to access to the content of the Python object with the `destroyed`
-        # signal cause the Python method was already removed with the QWidget,
-        # while the QObject still exists.
-        # We use a static method plus explicit references to objects to
-        # release. The callback do not use any ref to self.
-        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
-        self.destroyed.connect(onDestroy)
+        if self.__ownFiles:
+            # It is not possible to override the QObject destructor nor
+            # to access to the content of the Python object with the `destroyed`
+            # signal cause the Python method was already removed with the QWidget,
+            # while the QObject still exists.
+            # We use a static method plus explicit references to objects to
+            # release. The callback do not use any ref to self.
+            onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
+            self.destroyed.connect(onDestroy)
 
     @staticmethod
     def _closeFileList(fileList):

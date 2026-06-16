@@ -75,7 +75,20 @@ class Viewer(qt.QMainWindow):
 
         self.__dialogState = None
         self.__customNxDataItem = None
-        self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
+
+        # Custom the model to be able to manage the life cycle of the files
+        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(self)
+        self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
+        self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
+
+        treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeModelSorted, ownFiles=False)
+        treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
+        treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
+        treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
+        treeModel.setDatasetDragEnabled(True)
+        self.__treeModelSorted.setSourceModel(treeModel)
+
+        self.__treeview = silx.gui.hdf5.Hdf5TreeView(self, model=self.__treeModelSorted)
         self.__treeview.setExpandsOnDoubleClick(False)
         """Silx HDF5 TreeView"""
 
@@ -85,21 +98,6 @@ class Viewer(qt.QMainWindow):
 
         self.__displayIt = None
         self.__treeWindow = self.__createTreeWindow(self.__treeview)
-
-        # Custom the model to be able to manage the life cycle of the files
-        treeModel = silx.gui.hdf5.Hdf5TreeModel(self.__treeview, ownFiles=False)
-        treeModel.sigH5pyObjectLoaded.connect(self.__h5FileLoaded)
-        treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
-        treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
-        treeModel.setDatasetDragEnabled(True)
-        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(
-            self.__treeview
-        )
-        self.__treeModelSorted.setSourceModel(treeModel)
-        self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
-        self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
-
-        self.__treeview.setModel(self.__treeModelSorted)
         rightPanel.addWidget(self.__treeWindow)
 
         self.__customNxdata = CustomNxdataWidget(self)
