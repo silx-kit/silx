@@ -58,7 +58,11 @@ class Hdf5TreeView(qt.QTreeView):
     to the selected objects.
     """
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+        model: Hdf5TreeModel | qt.QAbstractProxyModel | None = None,
+    ):
         """
         Constructor
 
@@ -66,7 +70,8 @@ class Hdf5TreeView(qt.QTreeView):
         """
         qt.QTreeView.__init__(self, parent)
 
-        model = self.createDefaultModel()
+        if model is None:
+            model = self.createDefaultModel()
         self.setModel(model)
 
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))

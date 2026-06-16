@@ -586,7 +586,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileModel.setReadOnly(True)
         self.__fileModel.directoryLoaded.connect(self.__directoryLoaded)
 
-        self.__dataModel = Hdf5TreeModel(self)
+        self.__dataModel = Hdf5TreeModel(self, ownFiles=False)
 
         self.__createWidgets()
         self.__initLayout()
