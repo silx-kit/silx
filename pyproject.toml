@@ -85,6 +85,7 @@ doc = [
 test = [
     'silx[full,h5pyd]',
     'bitshuffle',
+    'imageio[tifffile]',         # For dictdump links tests
     'pytest',                    # For testing
     'pytest-xvfb',               # For GUI testing
     'pytest-cov',                # For coverage

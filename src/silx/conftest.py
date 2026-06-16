@@ -80,6 +80,8 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:matplotlib._fontconfig_pattern",
     "ignore::DeprecationWarning:matplotlib._mathtext",
     "ignore::DeprecationWarning:pyparsing.util",
+    # Ignore numpy deprecation until fabio release with https://github.com/silx-kit/fabio/pull/641
+    "ignore:Setting the shape on a NumPy array has been deprecated in NumPy 2.5.:DeprecationWarning:fabio",
 )
 
 
