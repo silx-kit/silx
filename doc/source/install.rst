@@ -195,6 +195,7 @@ The `full_no_qt` extra:
     pip install silx[full_no_qt]
 
 adds support for most optional *silx* features except the Qt binding itself.
+See :ref:`GUI support <gui-support>` below for supported Qt bindings.
 
 It installs:
 
@@ -238,6 +239,7 @@ adds a Qt binding on top of `full_no_qt` and enables all graphical user interfac
 
 It installs:
 
+* `silx[full_no_qt]` for scientific and visualization libraries
 * `PySide6 <https://pypi.org/project/PySide6/>`_,
   the default Qt binding used by *silx*
 
