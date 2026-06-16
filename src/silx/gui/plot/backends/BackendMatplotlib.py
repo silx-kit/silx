@@ -1632,8 +1632,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self.ax.get_ybound(),
             self.ax2.get_ybound(),
         )
-        self.ax.set_autoscaley_on(True)
-        self.ax2.set_autoscaley_on(True)
 
         FigureCanvasQTAgg.resizeEvent(self, event)
         if self.isKeepDataAspectRatio() or self._hasOverlays():
@@ -1680,9 +1678,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
             if xLimits != self.ax.get_xbound() or yLimits != self.ax.get_ybound():
                 self._updateMarkers()
-
-            self.ax.set_autoscaley_on(False)
-            self.ax2.set_autoscaley_on(False)
 
             if xLimits != self.ax.get_xbound():
                 self._plot.getXAxis()._emitLimitsChanged()
