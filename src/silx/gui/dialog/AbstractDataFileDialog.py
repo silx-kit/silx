@@ -41,7 +41,7 @@ from silx.gui import qt
 from silx.gui.hdf5.Hdf5TreeModel import Hdf5TreeModel
 from . import utils
 from .FileTypeComboBox import FileTypeComboBox
-from ..._utils import IgnoreArgPartial as _Partial
+from ..._utils import NoArgPartial as _Partial
 
 import fabio
 

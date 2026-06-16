@@ -39,7 +39,7 @@ from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
 from ...io.url import DataUrl
 from ..._utils import nfs_cache_refresh as _nfs_cache_refresh
-from ..._utils import IgnoreArgPartial as _Partial
+from ..._utils import NoArgPartial as _Partial
 
 import h5py
 
