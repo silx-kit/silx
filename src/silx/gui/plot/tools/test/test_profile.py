@@ -596,7 +596,12 @@ def testProfile2D(plotStackView_for_profile):
     Plot1D or a plot 2D instance."""
     plot = plotStackView_for_profile
 
-    plot.setStack(numpy.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]))
+    plot.setStack(
+        stack=(
+            numpy.arange(0, 10).reshape(5, 2),
+            numpy.arange(10, 20).reshape(5, 2),
+        )
+    )
 
     toolBar = plot.getProfileToolbar()
 
@@ -604,7 +609,8 @@ def testProfile2D(plotStackView_for_profile):
     roiManager = manager.getRoiManager()
 
     roi = rois.ProfileImageStackHorizontalLineROI()
-    roi.setPosition(0.5)
+    roi.setPosition(2.5)
+    roi.setProfileLineWidth(3)
     roi.setProfileType("2D")
     roiManager.addRoi(roi)
     roiManager.setCurrentRoi(roi)
@@ -616,7 +622,14 @@ def testProfile2D(plotStackView_for_profile):
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)
-    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot2D)
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot2D)
+    images = plotWidget.getAllImages()
+    assert len(images) == 1
+    profile = images[0]
+    numpy.testing.assert_almost_equal(
+        profile.getData(), numpy.array([[4.0, 5.0], [14.0, 15.0]])
+    )
 
     roi.setProfileType("1D")
 
@@ -627,4 +640,12 @@ def testProfile2D(plotStackView_for_profile):
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)
-    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
+
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot1D)
+
+    # check result
+    curves = plotWidget.getAllCurves()
+    assert len(curves) == 1
+    profile = curves[0]
+    numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
