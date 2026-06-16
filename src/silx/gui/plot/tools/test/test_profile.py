@@ -29,8 +29,10 @@ __date__ = "28/06/2018"
 import contextlib
 import numpy
 import logging
+import pytest
 
 from silx.gui import qt
+from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate, QTest
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
@@ -526,83 +528,94 @@ class TestProfile3DToolBar(TestCaseQt):
         numpy.testing.assert_almost_equal(data, expected)
 
 
-class TestGetProfilePlot(TestCaseQt):
-    def setUp(self):
-        self.plot = None
-        super().setUp()
+@pytest.fixture
+def plot2D_for_profile(qapp):
+    plot = Plot2D()
+    plot.show()
+    qWaitForWindowExposedAndActivate(plot)
 
-    def tearDown(self):
-        if self.plot is not None:
-            manager = self.plot.getProfileToolbar().getProfileManager()
-            manager.clearProfile()
-            manager = None
-            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-            self.plot.close()
-            self.plot = None
+    yield plot
 
-        super().tearDown()
+    manager = plot.getProfileToolbar().getProfileManager()
+    manager.clearProfile()
+    manager = None
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
 
-    def testProfile1D(self):
-        self.plot = Plot2D()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        self.plot.addImage([[0, 1], [2, 3]])
 
-        toolBar = self.plot.getProfileToolbar()
+@pytest.fixture
+def plotStackView_for_profile(qapp):
+    plot = StackView()
+    plot.show()
+    qWaitForWindowExposedAndActivate(plot)
 
-        manager = toolBar.getProfileManager()
-        roiManager = manager.getRoiManager()
+    yield plot
 
-        roi = rois.ProfileImageHorizontalLineROI()
-        roi.setPosition(0.5)
-        roiManager.addRoi(roi)
-        roiManager.setCurrentRoi(roi)
+    manager = plot.getProfileToolbar().getProfileManager()
+    manager.clearProfile()
+    manager = None
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
+def testProfile1D(plot2D_for_profile):
+    plot = plot2D_for_profile
+    plot.addImage([[0, 1], [2, 3]])
 
-    def testProfile2D(self):
-        """Test that the profile plot associated to a stack view is either a
-        Plot1D or a plot 2D instance."""
-        self.plot = StackView()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
+    toolBar = plot.getProfileToolbar()
 
-        self.plot.setStack(numpy.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]))
+    manager = toolBar.getProfileManager()
+    roiManager = manager.getRoiManager()
 
-        toolBar = self.plot.getProfileToolbar()
+    roi = rois.ProfileImageHorizontalLineROI()
+    roi.setPosition(0.5)
+    roiManager.addRoi(roi)
+    roiManager.setCurrentRoi(roi)
 
-        manager = toolBar.getProfileManager()
-        roiManager = manager.getRoiManager()
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
 
-        roi = rois.ProfileImageStackHorizontalLineROI()
-        roi.setPosition(0.5)
-        roi.setProfileType("2D")
-        roiManager.addRoi(roi)
-        roiManager.setCurrentRoi(roi)
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot2D)
+def testProfile2D(plotStackView_for_profile):
+    """Test that the profile plot associated to a stack view is either a
+    Plot1D or a plot 2D instance."""
+    plot = plotStackView_for_profile
 
-        roi.setProfileType("1D")
+    plot.setStack(numpy.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]))
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+    toolBar = plot.getProfileToolbar()
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
+    manager = toolBar.getProfileManager()
+    roiManager = manager.getRoiManager()
+
+    roi = rois.ProfileImageStackHorizontalLineROI()
+    roi.setPosition(0.5)
+    roi.setProfileType("2D")
+    roiManager.addRoi(roi)
+    roiManager.setCurrentRoi(roi)
+
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
+
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot2D)
+
+    roi.setProfileType("1D")
+
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
+
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
