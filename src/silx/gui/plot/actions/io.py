@@ -191,7 +191,7 @@ class SaveAction(PlotAction):
                 and nameFilter == self.SNAPSHOT_WITH_COLORBAR_FILTER_PNG
             ):
                 _logger.info(
-                    f"Ignore {nameFilter} because requires to have acces to the ColorBarWidget"
+                    f"Ignore {nameFilter} because requires to have access to the ColorBarWidget"
                 )
                 continue
             self.setFileFilter(
