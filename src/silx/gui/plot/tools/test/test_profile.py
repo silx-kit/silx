@@ -43,6 +43,7 @@ from silx.gui.plot.tools.profile import editors
 from silx.gui.plot.items import roi as roi_items
 from silx.gui.plot.tools.profile import manager
 from silx.gui import plot as silx_plot
+from silx.gui.plot.tools.profile.manager import ProfileWindow
 
 _logger = logging.getLogger(__name__)
 
@@ -578,7 +579,7 @@ def testProfile1D(plot2D_for_profile):
             break
 
     profileWindow = roi.getProfileWindow()
-    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
     assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
 
 
@@ -606,7 +607,7 @@ def testProfile2D(plotStackView_for_profile):
             break
 
     profileWindow = roi.getProfileWindow()
-    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
     assert isinstance(profileWindow.getCurrentPlotWidget(), Plot2D)
 
     roi.setProfileType("1D")
@@ -617,5 +618,5 @@ def testProfile2D(plotStackView_for_profile):
             break
 
     profileWindow = roi.getProfileWindow()
-    assert isinstance(roi.getProfileWindow(), qt.QMainWindow)
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
     assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
