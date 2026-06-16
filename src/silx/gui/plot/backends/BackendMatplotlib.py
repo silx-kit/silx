@@ -24,6 +24,9 @@
 """Matplotlib Plot backend."""
 
 from __future__ import annotations
+from typing import Literal
+
+from .utils import Range, ensureAspectRatio, findDimToKeep
 
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
@@ -519,13 +522,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def __init__(self, plot, parent=None):
         super().__init__(plot, parent)
 
-        # matplotlib is handling keep aspect ratio at draw time
-        # When keep aspect ratio is on, and one changes the limits and
-        # ask them *before* next draw has been performed he will get the
-        # limits without applying keep aspect ratio.
-        # This attribute is used to ensure consistent values returned
-        # when getting the limits at the expense of a replot
-        self._dirtyLimits = True
         self._axesDisplayed = True
 
         self.fig = Figure(
@@ -567,6 +563,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
             axis.set_major_formatter(DefaultTickFormatter())
 
+        # Autoscale is handled manually by the backend
+        self.ax.set_autoscalex_on(False)
         self.ax.set_autoscaley_on(False)
         self.ax2.set_autoscaley_on(False)
 
@@ -1137,7 +1135,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # TODO images, markers? scatter plot? move in remove?
         # Right Y axis only support curve for now
         # Hide right Y axis if no line is present
-        self._dirtyLimits = False
         if not self.ax2.lines:
             self._enableAxis("right", False)
 
@@ -1200,74 +1197,71 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph limits
 
-    def _setXLimits(self, xmin: float, xmax: float):
-        xmin = min(xmin, xmax)
-        xmax = max(xmin, xmax)
-        if self.isXAxisInverted():
-            left, right = xmax, xmin
+    def setLimits(
+        self,
+        xmin: float,
+        xmax: float,
+        ymin: float,
+        ymax: float,
+        y2min: float | None = None,
+        y2max: float | None = None,
+    ):
+        if y2min is None or y2max is None:
+            y2Range = None
         else:
-            left, right = xmin, xmax
-        self.ax.set_xlim(left, right)
+            y2Range = (y2min, y2max)
+        self._setPlotBounds(xRange=(xmin, xmax), yRange=(ymin, ymax), y2Range=y2Range)
 
-    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        # Let matplotlib taking care of keep aspect ratio if any
-        self._dirtyLimits = True
-        self._setXLimits(xmin, xmax)
-
-        if y2min is not None and y2max is not None:
-            self.ax2.set_ybound(min(y2min, y2max), max(y2min, y2max))
-
-        self.ax.set_ybound(min(ymin, ymax), max(ymin, ymax))
-
-        self._updateMarkers()
-
-    def getGraphXLimits(self):
-        if self._dirtyLimits and self.isKeepDataAspectRatio():
-            self.ax.apply_aspect()
-            self.ax2.apply_aspect()
-            self._dirtyLimits = False
+    def getGraphXLimits(self) -> Range:
         return self.ax.get_xbound()
 
-    def setGraphXLimits(self, xmin, xmax):
-        self._dirtyLimits = True
-        self._setXLimits(xmin, xmax)
-        self._updateMarkers()
+    def setGraphXLimits(self, xmin: float, xmax: float):
+        self._setPlotBounds(xRange=(xmin, xmax))
 
-    def getGraphYLimits(self, axis):
+    def getGraphYLimits(self, axis: Literal["left", "right"]) -> Range | None:
         assert axis in ("left", "right")
         ax = self.ax2 if axis == "right" else self.ax
 
         if not ax.get_visible():
             return None
 
-        if self._dirtyLimits and self.isKeepDataAspectRatio():
-            self.ax.apply_aspect()
-            self.ax2.apply_aspect()
-            self._dirtyLimits = False
-
         return ax.get_ybound()
 
-    def setGraphYLimits(self, ymin, ymax, axis):
-        ax = self.ax2 if axis == "right" else self.ax
-        if ymax < ymin:
-            ymin, ymax = ymax, ymin
-        self._dirtyLimits = True
+    def setGraphYLimits(self, ymin: float, ymax: float, axis: Literal["left", "right"]):
+        if axis == "right":
+            self._setPlotBounds(y2Range=(ymin, ymax))
+        else:
+            self._setPlotBounds(yRange=(ymin, ymax))
 
-        if self.isKeepDataAspectRatio():
-            # matplotlib keeps limits of shared axis when keeping aspect ratio
-            # So x limits are kept when changing y limits....
-            # Change x limits first by taking into account aspect ratio
-            # and then change y limits.. so matplotlib does not need
-            # to make change (to y) to keep aspect ratio
-            xmin, xmax = ax.get_xbound()
-            curYMin, curYMax = ax.get_ybound()
+    def _setPlotBounds(
+        self,
+        xRange: Range | None = None,
+        yRange: Range | None = None,
+        y2Range: Range | None = None,
+    ):
+        # Keep data aspect ratio
+        if xRange is None:
+            xRange = self.ax.get_xbound()
+        if yRange is None:
+            yRange = self.ax.get_ybound()
+        if y2Range is None:
+            y2Range = self.ax2.get_ybound()
 
-            newXRange = (xmax - xmin) * (ymax - ymin) / (curYMax - curYMin)
-            xcenter = 0.5 * (xmin + xmax)
-            self._setXLimits(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
-
-        ax.set_ybound(ymin, ymax)
-
+        if not self.isKeepDataAspectRatio():
+            newXRange, newYRange, newY2Range = xRange, yRange, y2Range
+        else:
+            bbox = self.fig.get_window_extent()
+            newXRange, newYRange, newY2Range = ensureAspectRatio(
+                bbox.width,
+                bbox.height,
+                xRange,
+                yRange,
+                y2Range,
+                keepDim=findDimToKeep(bbox.width, bbox.height, xRange, yRange),
+            )
+        self.ax.set_xbound(*newXRange)
+        self.ax.set_ybound(*newYRange)
+        self.ax2.set_ybound(*newY2Range)
         self._updateMarkers()
 
     # Graph axes
@@ -1357,13 +1351,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def isYRightAxisVisible(self):
         return self.ax2.yaxis.get_visible()
-
-    def isKeepDataAspectRatio(self):
-        return self.ax.get_aspect() in (1.0, "equal")
-
-    def setKeepDataAspectRatio(self, flag):
-        self.ax.set_aspect(1.0 if flag else "auto")
-        self.ax2.set_aspect(1.0 if flag else "auto")
 
     def setGraphGrid(self, which):
         self.ax.grid(False, which="both")  # Disable all grid first
@@ -1505,8 +1492,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
 
-        self._limitsBeforeResize = None
-
         FigureCanvasQTAgg.setSizePolicy(
             self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding
         )
@@ -1626,17 +1611,10 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     # replot control
 
     def resizeEvent(self, event):
-        # Store current limits
-        self._limitsBeforeResize = (
-            self.ax.get_xbound(),
-            self.ax.get_ybound(),
-            self.ax2.get_ybound(),
-        )
-
         FigureCanvasQTAgg.resizeEvent(self, event)
-        if self.isKeepDataAspectRatio() or self._hasOverlays():
-            # This is needed with matplotlib 1.5.x and 2.0.x
-            self._plot._setDirtyPlot()
+        self._setPlotBounds(
+            self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound()
+        )
 
     def draw(self):
         """Overload draw
@@ -1670,21 +1648,6 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self._background = self.copy_from_bbox(self.fig.bbox)
         else:
             self._background = None  # Reset background
-
-        # Check if limits changed due to a resize of the widget
-        if self._limitsBeforeResize is not None:
-            xLimits, yLimits, yRightLimits = self._limitsBeforeResize
-            self._limitsBeforeResize = None
-
-            if xLimits != self.ax.get_xbound() or yLimits != self.ax.get_ybound():
-                self._updateMarkers()
-
-            if xLimits != self.ax.get_xbound():
-                self._plot.getXAxis()._emitLimitsChanged()
-            if yLimits != self.ax.get_ybound():
-                self._plot.getYAxis(axis="left")._emitLimitsChanged()
-            if yRightLimits != self.ax2.get_ybound():
-                self._plot.getYAxis(axis="right")._emitLimitsChanged()
 
         self._drawOverlays()
 

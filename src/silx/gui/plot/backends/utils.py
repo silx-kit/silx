@@ -27,8 +27,7 @@ def ensureAspectRatio(
 
     Warning: keepDim on right Y axis is not implemented !
 
-    :param str keepDim: The dimension to maintain: 'x', 'y' or None.
-        If None (the default), the dimension with the largest range.
+    :param keepDim: The dimension to maintain: 'x' or 'y'
     """
     if plotWidth <= 2 or plotHeight <= 2:
         return xRange, yRange, y2Range
