@@ -31,6 +31,7 @@ __date__ = "21/12/2018"
 
 import logging
 import weakref
+from typing import Literal
 
 import numpy
 
@@ -45,6 +46,7 @@ from ... import _glutils as glu
 from . import glutils
 from .glutils.PlotImageFile import saveImageToFile
 from silx.gui.colors import RGBAColorType
+from .utils import findDimToKeep, ensureAspectRatio
 
 _logger = logging.getLogger(__name__)
 
@@ -254,8 +256,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._progBase = glu.Program(_baseVertShd, _baseFragShd, attrib0="position")
         self._progTex = glu.Program(_texVertShd, _texFragShd, attrib0="position")
         self._plotFBOs = weakref.WeakKeyDictionary()
-
-        self._keepDataAspectRatio = False
 
         self._crosshairCursor = None
         self._mousePosInPixels = None
@@ -1483,7 +1483,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # Update axes range with a clipped range if too wide
         self._plotFrame.setDataRanges(xlim, ylim, y2lim)
 
-    def _ensureAspectRatio(self, keepDim=None):
+    def _ensureAspectRatio(self, keepDim: Literal["x", "y"] | None = None):
         """Update plot bounds in order to keep aspect ratio.
 
         Warning: keepDim on right Y axis is not implemented !
@@ -1492,44 +1492,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             If None (the default), the dimension with the largest range.
         """
         plotWidth, plotHeight = self._plotFrame.plotSize
-        if plotWidth <= 2 or plotHeight <= 2:
-            return
-
+        xRange, yRange, y2Range = self._plotFrame.dataRanges
         if keepDim is None:
             ranges = self._plot.getDataRange()
-            if (
-                ranges.y is not None
-                and ranges.x is not None
-                and (ranges.y[1] - ranges.y[0]) != 0.0
-            ):
-                dataRatio = (ranges.x[1] - ranges.x[0]) / float(
-                    ranges.y[1] - ranges.y[0]
-                )
-                plotRatio = plotWidth / float(plotHeight)  # Test != 0 before
-
-                keepDim = "x" if dataRatio > plotRatio else "y"
-            else:  # Limit case
-                keepDim = "x"
-
-        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self._plotFrame.dataRanges
-        if keepDim == "y":
-            dataW = (yMax - yMin) * plotWidth / float(plotHeight)
-            xCenter = 0.5 * (xMin + xMax)
-            xMin = xCenter - 0.5 * dataW
-            xMax = xCenter + 0.5 * dataW
-        elif keepDim == "x":
-            dataH = (xMax - xMin) * plotHeight / float(plotWidth)
-            yCenter = 0.5 * (yMin + yMax)
-            yMin = yCenter - 0.5 * dataH
-            yMax = yCenter + 0.5 * dataH
-            y2Center = 0.5 * (y2Min + y2Max)
-            y2Min = y2Center - 0.5 * dataH
-            y2Max = y2Center + 0.5 * dataH
-        else:
-            raise RuntimeError("Unsupported dimension to keep: %s" % keepDim)
+            keepDim = findDimToKeep(plotWidth, plotHeight, ranges.x, ranges.y)
+        newXRange, newYRange, newY2Range = ensureAspectRatio(
+            plotWidth, plotHeight, xRange, yRange, y2Range, keepDim
+        )
 
         # Update plot frame bounds
-        self._setDataRanges(xlim=(xMin, xMax), ylim=(yMin, yMax), y2lim=(y2Min, y2Max))
+        self._setDataRanges(xlim=newXRange, ylim=newYRange, y2lim=newY2Range)
 
     def _setPlotBounds(self, xRange=None, yRange=None, y2Range=None, keepDim=None):
         # Update axes range with a clipped range if too wide
@@ -1632,7 +1604,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             return self._keepDataAspectRatio
 
-    def setKeepDataAspectRatio(self, flag):
+    def setKeepDataAspectRatio(self, flag: bool):
         if flag and (self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog):
             _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
