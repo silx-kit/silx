@@ -25,7 +25,7 @@
 
 It is geared towards support of and conversion to HDF5/NeXus.
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """
 
 __authors__ = ["P. Knobel"]

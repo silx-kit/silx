@@ -40,7 +40,7 @@ It contains the following sub-packages and modules:
 - silx.gui.utils: Miscellaneous helpers for Qt
 - silx.gui.widgets: Miscellaneous standalone widgets
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """
 
 __authors__ = ["T. Vincent"]

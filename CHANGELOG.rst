@@ -1830,7 +1830,7 @@ Python 2.7 is no longer officially supported (even if tests pass and most of the
  * Adds specfile wrapper API compatible with legacy wrapper: silx.io.specfilewrapper
  * Transposes scan data in specfile module to have detector as first index
  * Set up nigthly build for sources package, debian packages (http://www.silx.org/pub/debian/)
-   and documentation (http://www.silx.org/doc/)
+   and documentation (https://silx.readthedocs.io/en/stable/)
 
 
 0.1.0: 2016/04/14

@@ -358,5 +358,5 @@ Additional resources
 
 - `h5py documentation <http://docs.h5py.org/en/latest/>`_
 - `Formats supported by FabIO <http://www.silx.org/doc/fabio/dev/getting_started.html#list-of-file-formats-that-fabio-can-read-and-write>`_
-- `Spec file with h5py-like structure <http://www.silx.org/doc/silx/dev/modules/io/spech5.html#api-description>`_
+- `Spec file with h5py-like structure <https://silx.readthedocs.io/en/latest/modules/io/spech5.html#api-description>`_
 - `HDF5 format documentation <https://support.hdfgroup.org/HDF5/>`_

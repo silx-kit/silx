@@ -31,7 +31,7 @@
 - silx.sx: High-level silx functions suited for (I)Python console.
 - silx.utils: Miscellaneous convenient functions
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """
 
 __authors__ = ["Jérôme Kieffer"]
