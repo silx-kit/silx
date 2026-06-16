@@ -561,7 +561,7 @@ def plotStackView_for_profile(qapp):
 
 def testProfile1D(plot2D_for_profile):
     plot = plot2D_for_profile
-    plot.addImage([[0, 1], [2, 3]])
+    plot.addImage([[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
 
     toolBar = plot.getProfileToolbar()
 
@@ -569,7 +569,8 @@ def testProfile1D(plot2D_for_profile):
     roiManager = manager.getRoiManager()
 
     roi = rois.ProfileImageHorizontalLineROI()
-    roi.setPosition(0.5)
+    roi.setPosition(2.5)
+    roi.setProfileLineWidth(3)
     roiManager.addRoi(roi)
     roiManager.setCurrentRoi(roi)
 
@@ -580,7 +581,14 @@ def testProfile1D(plot2D_for_profile):
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)
-    assert isinstance(profileWindow.getCurrentPlotWidget(), Plot1D)
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot1D)
+
+    # check result
+    curves = plotWidget.getAllCurves()
+    assert len(curves) == 1
+    profile = curves[0]
+    numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
 
 
 def testProfile2D(plotStackView_for_profile):
