@@ -26,7 +26,7 @@ For additional processing functions dedicated to 2D images,
 see the silx.image package.
 For OpenCL-based processing functions see the silx.opencl package.
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """
 
 __authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]

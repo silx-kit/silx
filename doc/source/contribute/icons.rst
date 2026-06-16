@@ -41,7 +41,7 @@ Add the files to silx
 
 Add both files to the `src/silx/resources/gui/icons <https://github.com/silx-kit/silx/tree/main/src/silx/resources/gui/icons>`_ folder. Both the SVG and PNG should be added to Git.
 
-Run the `tools/update_icons_rst.py <https://github.com/silx-kit/silx/blob/main/tools/update_icons_rst.py>`_ script to update the `documentation page <http://www.silx.org/doc/silx/latest/modules/gui/icons.html#available-icons>`_.
+Run the `tools/update_icons_rst.py <https://github.com/silx-kit/silx/blob/main/tools/update_icons_rst.py>`_ script to update the `documentation page <https://silx.readthedocs.io/en/latest/modules/gui/icons.html#available-icons>`_.
 
 
 .. _inkscape: https://inkscape.org/

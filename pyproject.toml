@@ -106,7 +106,7 @@ dev = [
 
 [project.urls]
 homepage = 'http://www.silx.org'
-documentation = 'http://www.silx.org/doc/silx/latest/'
+documentation = 'https://silx.readthedocs.io/en/latest/'
 source = 'https://github.com/silx-kit/silx'
 download = 'https://github.com/silx-kit/silx/releases'
 tracker = 'https://github.com/silx-kit/silx/issues'

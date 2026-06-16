@@ -23,5 +23,5 @@
 # ###########################################################################*/
 """This package contains a set of miscellaneous convenient features.
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """

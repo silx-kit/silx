@@ -32,7 +32,7 @@
 
 For more processing functions, see the silx.math and silx.image packages.
 
-See silx documentation: http://www.silx.org/doc/silx/latest/
+See silx documentation: https://silx.readthedocs.io/en/latest/
 """
 
 __author__ = "Jerome Kieffer"

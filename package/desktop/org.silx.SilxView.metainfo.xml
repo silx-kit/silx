@@ -17,13 +17,13 @@
   <screenshots>
     <screenshot type="default">
       <caption>silx view main window</caption>
-      <image>https://www.silx.org/doc/silx/latest/_images/silx-view-image.png</image>
+      <image>https://silx.readthedocs.io/en/latest/_images/silx-view-image.png</image>
     </screenshot>
   </screenshots>
 
   <url type="homepage">https://www.silx.org/</url>
   <url type="bugtracker">https://github.com/silx-kit/silx/issues</url>
-  <url type="help">http://www.silx.org/doc/silx/latest/</url>
+  <url type="help">https://silx.readthedocs.io/en/latest/</url>
 
   <update_contact>silx@esrf.fr</update_contact>
 </component>
