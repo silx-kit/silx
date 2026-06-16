@@ -24,13 +24,11 @@
 Nominal tests of the leastsq function.
 """
 
+import logging
 import numpy
-
 import pytest
 
-from silx.utils import testutils
-from silx.math.fit import leastsq
-from silx.math.fit.leastsq import _logger as fitlogger
+from silx.math.fit import leastsq, CDELTA, CFACTOR, CFIXED, CFREE, CPOSITIVE, CSUM
 
 
 def _my_exp(x):
@@ -73,6 +71,12 @@ def _gauss_derivative(x, params, idx):
         return tmp * 2.3548200450309493 * (x - p[1]) / (p[2] * p[2])
 
 
+def assert_fit_success(expected, actual):
+    assert numpy.allclose(expected, actual), (
+        f"Fit failed:\nExpected: {expected}\nActual:   {actual}"
+    )
+
+
 @pytest.mark.parametrize("with_sigma", [False, True])
 def test_unconstrained_fit(with_sigma):
     parameters_actual = [10.5, 2, 1000.0, 20.0, 15]
@@ -82,7 +86,7 @@ def test_unconstrained_fit(with_sigma):
     parameters_estimate = [0.0, 1.0, 900.0, 25.0, 10]
 
     fittedpar, cov = leastsq(_gauss, x, y, parameters_estimate, sigma=sigma)
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert_fit_success(parameters_actual, fittedpar)
 
 
 def test_derivative_function():
@@ -112,52 +116,48 @@ def test_derivative_function():
         )
 
 
+CONSTRAINTS = {
+    "none": None,
+    "all_free": [[CFREE, 0, 0]] * 8,
+    "all_positive": [[CPOSITIVE, 0, 0]] * 8,
+    "delta_position": [[CFREE, 0, 0]] * 6 + [[CDELTA, 3, 880], [CFREE, 0, 0]],
+    "sum_position": [[CPOSITIVE, 0, 0]] * 6 + [[CSUM, 3, 920], [CPOSITIVE, 0, 0]],
+    "factor": [
+        [CFREE, 0, 0],
+        [CFREE, 0, 0],
+        [CFACTOR, 5, 2],
+        [CFREE, 0, 0],
+        [CFREE, 0, 0],
+        [CFREE, 0, 0],
+        [CDELTA, 3, 880],
+        [CFREE, 0, 0],
+    ],
+}
+
+
+@pytest.mark.parametrize("constraints_name", CONSTRAINTS.keys())
 @pytest.mark.parametrize("model_deriv", [None, _gauss_derivative])
 @pytest.mark.parametrize("with_sigma", [False, True])
 @pytest.mark.parametrize("full_output", [None, 0, True])
-def test_constrained_fit(model_deriv, with_sigma, full_output):
-    # CFREE = 0
-    # CPOSITIVE = 1
-    # CQUOTED = 2
-    # CFIXED = 3
-    CFACTOR = 4
-    CDELTA = 5
-    CSUM = 6
+def test_constrained_fit(constraints_name, model_deriv, with_sigma, full_output):
     parameters_actual = [10.5, 2, 10000.0, 20.0, 150, 5000, 900.0, 300]
     x = numpy.arange(10000.0)
     y = _gauss(x, *parameters_actual)
     parameters_estimate = [0.0, 1.0, 900.0, 25.0, 10, 400, 850, 200]
-    constraints_all_free = [[0, 0, 0]] * len(parameters_actual)
-    constraints_all_positive = [[1, 0, 0]] * len(parameters_actual)
-    constraints_delta_position = [[0, 0, 0]] * len(parameters_actual)
-    constraints_delta_position[6] = [CDELTA, 3, 880]
-    constraints_sum_position = constraints_all_positive * 1
-    constraints_sum_position[6] = [CSUM, 3, 920]
-    constraints_factor = constraints_delta_position * 1
-    constraints_factor[2] = [CFACTOR, 5, 2]
-    constraints_list = [
-        None,
-        constraints_all_free,
-        constraints_all_positive,
-        constraints_delta_position,
-        constraints_sum_position,
-        constraints_factor,
-    ]
+    constraints = CONSTRAINTS[constraints_name]
 
-    for constraints in constraints_list:
-        sigma = numpy.sqrt(y) if with_sigma else None
-        fittedpar, cov = leastsq(
-            _gauss,
-            x,
-            y,
-            parameters_estimate,
-            sigma=sigma,
-            constraints=constraints,
-            model_deriv=model_deriv,
-            full_output=full_output,
-        )[:2]
-
-        assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    sigma = numpy.sqrt(y) if with_sigma else None
+    fittedpar, cov = leastsq(
+        _gauss,
+        x,
+        y,
+        parameters_estimate,
+        sigma=sigma,
+        constraints=constraints,
+        model_deriv=model_deriv,
+        full_output=full_output,
+    )[:2]
+    assert_fit_success(parameters_actual, fittedpar)
 
 
 def test_unconstrained_fit_analytical_derivative():
@@ -175,18 +175,18 @@ def test_unconstrained_fit_analytical_derivative():
         sigma=sigma,
         model_deriv=_gauss_derivative,
     )
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert_fit_success(parameters_actual, fittedpar)
 
 
 @pytest.mark.parametrize("check_finite", [True, False])
-def test_dadly_shaped_data(check_finite):
+def test_dadly_shaped_data(caplog, check_finite):
     parameters_actual = [10.5, 2, 1000.0, 20.0, 15]
     x = numpy.arange(10000.0).reshape(1000, 10)
     y = _gauss(x, *parameters_actual)
     sigma = numpy.sqrt(y)
     parameters_estimate = [0.0, 1.0, 900.0, 25.0, 10]
 
-    with testutils.LoggingValidator(fitlogger.name, warning=1):
+    with caplog.at_level(logging.WARNING, logger="silx.math.fit.leastsq"):
         fittedpar, cov = leastsq(
             _gauss,
             x,
@@ -195,7 +195,14 @@ def test_dadly_shaped_data(check_finite):
             sigma=sigma,
             check_finite=check_finite,
         )
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert caplog.record_tuples == [
+        (
+            "silx.math.fit.leastsq",
+            logging.WARNING,
+            "Supplied function does not return a 1D array of floats.\nFunction should be rewritten.\nTrying to reshape output.",
+        )
+    ]
+    assert_fit_success(parameters_actual, fittedpar)
 
 
 def test_xdata_non_finite_checked():
@@ -222,7 +229,7 @@ def test_xdata_non_finite_checked():
         )
 
 
-def test_xdata_non_finite_unchecked():
+def test_xdata_non_finite_unchecked(caplog):
     parameters_actual = [10.5, 2, 1000.0, 20.0, 15]
     x = numpy.arange(10000.0).reshape(1000, 10)
     y = _gauss(x, *parameters_actual)
@@ -230,14 +237,26 @@ def test_xdata_non_finite_unchecked():
     parameters_estimate = [0.0, 1.0, 900.0, 25.0, 10]
     x[500] = numpy.inf
 
-    with testutils.LoggingValidator(fitlogger.name, warning=2):
+    with caplog.at_level(logging.WARNING, logger="silx.math.fit.leastsq"):
         fittedpar, cov = leastsq(
             _gauss, x, y, parameters_estimate, sigma=sigma, check_finite=False
         )
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert caplog.record_tuples == [
+        (
+            "silx.math.fit.leastsq",
+            logging.WARNING,
+            "Supplied function does not return a proper array of floats.\nFunction should be rewritten to return a 1D array of floats.\nTrying to reshape output.",
+        ),
+        (
+            "silx.math.fit.leastsq",
+            logging.WARNING,
+            "Supplied function unable to handle non-finite x data\nAttempting to filter out those x data values.",
+        ),
+    ]
+    assert_fit_success(parameters_actual, fittedpar)
 
 
-def test_y_sigma_data_non_finite_unchecked():
+def test_y_sigma_data_non_finite_unchecked(caplog):
     parameters_actual = [10.5, 2, 1000.0, 20.0, 15]
     x = numpy.arange(10000.0).reshape(1000, 10)
     y = _gauss(x, *parameters_actual)
@@ -246,19 +265,34 @@ def test_y_sigma_data_non_finite_unchecked():
 
     parameters_estimate = [0.0, 1.0, 900.0, 25.0, 10]
 
-    with testutils.LoggingValidator(fitlogger.name, warning=1):
+    with caplog.at_level(logging.WARNING, logger="silx.math.fit.leastsq"):
         fittedpar, cov = leastsq(
             _gauss, x, y, parameters_estimate, sigma=sigma, check_finite=False
         )
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert caplog.record_tuples == [
+        (
+            "silx.math.fit.leastsq",
+            logging.WARNING,
+            "Need to reshape input xdata.",
+        )
+    ]
+    assert_fit_success(parameters_actual, fittedpar)
 
     # testing now with sigma containing NaN
     sigma[300] = numpy.nan
-    with testutils.LoggingValidator(fitlogger.name, warning=1):
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="silx.math.fit.leastsq"):
         fittedpar, cov = leastsq(
             _gauss, x, y, parameters_estimate, sigma=sigma, check_finite=False
         )
-    assert numpy.allclose(parameters_actual, fittedpar), "Unsuccessfull fit"
+    assert caplog.record_tuples == [
+        (
+            "silx.math.fit.leastsq",
+            logging.WARNING,
+            "Need to reshape input xdata.",
+        )
+    ]
+    assert_fit_success(parameters_actual, fittedpar)
 
 
 def test_uncertainties():
@@ -277,13 +311,11 @@ def test_uncertainties():
     assert len(uncertainties) == len(parameters_actual)
     assert len(uncertainties) == len(fittedpar)
     for uncertainty in uncertainties:
-        assert round(uncertainty, 7) != 0
+        assert abs(uncertainty) > 1e-7
 
     # set constraint FIXED for half the parameters.
     # This should cause leastsq to return 100% uncertainty.
     parameters_estimate = [10.6, 2.1, 1000.1, 20.1, 15.1, 2001.1, 30.2, 16.1]
-    CFIXED = 3
-    CFREE = 0
     constraints = []
     for i in range(len(parameters_estimate)):
         if i % 2:
@@ -302,4 +334,4 @@ def test_uncertainties():
     for i in range(len(parameters_estimate)):
         if i % 2:
             # test that all FIXED parameters have 100% uncertainty
-            assert round(uncertainties[i] - parameters_estimate[i], 7) == 0
+            assert abs(uncertainties[i] - parameters_estimate[i]) <= 1e-7
