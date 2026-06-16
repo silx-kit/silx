@@ -12,9 +12,10 @@ It displays a list of datasets, and allows to open multiple datasets.
 This list can be updated with drag and drop from silx view.
 
 
-.. |imgViewImg| image:: img/silx-compare.png
+
+.. |imgViewImg| figure:: img/silx-compare.png
    :height: 300px
-   :align: middle
+   :align: center
 
 
 Usage
