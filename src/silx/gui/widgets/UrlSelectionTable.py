@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 class _IntegratedRadioButton(qt.QWidget):
     """RadioButton integrated in the QTableWidget as a centered widget"""
 
-    toggled = qt.Signal()
+    toggled = qt.Signal(bool)
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent=parent)
@@ -59,7 +59,7 @@ class _IntegratedRadioButton(qt.QWidget):
         self._radio.setAutoExclusive(False)
         self._radio.setMinimumSize(self._radio.minimumSizeHint())
         self._radio.setMaximumSize(self._radio.minimumSizeHint())
-        self._radio.toggled.connect(self.toggled.emit)
+        self._radio.toggled.connect(self.toggled)
         layout.addWidget(self._radio)
         self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
 
@@ -233,7 +233,7 @@ class UrlSelectionTable(TableWidget):
             item.setIcon(icon)
             item.setToolTip(f"Error: {message}")
 
-    def _activeImgAChanged(self, row):
+    def _activeImgAChanged(self, row: int, checked: bool):
         if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
             self._updateCheckBoxes(self.IMG_A_COLUMN, row)
             url = self.item(row, self.FILENAME_COLUMN).dataUrl()
@@ -241,7 +241,7 @@ class UrlSelectionTable(TableWidget):
         else:
             self.sigImageAChanged.emit(None)
 
-    def _activeImgBChanged(self, row):
+    def _activeImgBChanged(self, row: int, checked: bool):
         if self._checkBoxes[row][self.IMG_B_COLUMN].isChecked():
             self._updateCheckBoxes(self.IMG_B_COLUMN, row)
             url = self.item(row, self.FILENAME_COLUMN).dataUrl()
