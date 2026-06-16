@@ -219,6 +219,8 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     assert axis in (0, 1)
     assert len(data.shape) == 3
     assert method in ("mean", "sum", "none")
+    # filter nan values
+    data = numpy.ma.masked_array(data=data, mask=numpy.isnan(data))
 
     # Convert from plot to image coords
     imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
