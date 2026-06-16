@@ -226,6 +226,8 @@ Required system dependencies:
 * A working OpenGL implementation provided by the system graphics drivers
   (NVIDIA, AMD, Intel) or by Mesa on Linux (hardware or software rendering)
 
+.. _gui-support:
+
 GUI support
 +++++++++++
 
