@@ -37,3 +37,37 @@ def nfs_cache_refresh(dirname: str) -> None:
                 _ = entry.stat()
     except Exception:
         pass
+
+
+class NoArgPartial:
+    """
+    Alternative implementation of ``functools.partial`` but the partial
+    function does not accept any arguments. This was done because otherwise
+    the function signature would not be correct which causes PyQt to pass
+    arguments when it shouldn't.
+
+    This class was introduced as a workaround for segfaults observed with
+    ``functools.partial`` in Qt/Python object destruction and garbage
+    collection scenarios since Python 3.13.
+
+    This is possible caused by the partial keeping a reference to the
+    callstack in which the partial funcion was created.
+    """
+
+    __slots__ = ("_func", "_args", "_kwargs")
+
+    def __init__(self, func, *args, **kwargs):
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+
+    def __call__(self):
+        return self._func(*self._args, **self._kwargs)
+
+    def __repr__(self):
+        return (
+            f"{type(self).__name__}("
+            f"{self._func!r}, "
+            f"args={self._args!r}, "
+            f"kwargs={self._kwargs!r})"
+        )

@@ -29,7 +29,6 @@ __date__ = "12/03/2019"
 
 import os
 import logging
-import functools
 from .. import qt
 from .. import icons
 from .Hdf5Node import Hdf5Node
@@ -40,6 +39,7 @@ from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
 from ...io.url import DataUrl
 from ..._utils import nfs_cache_refresh as _nfs_cache_refresh
+from ..._utils import NoArgPartial as _Partial
 
 import h5py
 
@@ -241,10 +241,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # to access to the content of the Python object with the `destroyed`
         # signal cause the Python method was already removed with the QWidget,
         # while the QObject still exists.
+        #
         # We use a static method plus explicit references to objects to
         # release. The callback do not use any ref to self.
-        onDestroy = functools.partial(self._closeFileList, self.__openedFiles)
-        self.destroyed.connect(onDestroy)
+        #
+        # Since Python 3.13, `functools.partial` can cause the callback to
+        # still segfaults, possible because it keeps a reference to the
+        # current call stack and hence this Qt object.
+
+        self.destroyed.connect(_Partial(self._closeFileList, self.__openedFiles))
 
     @staticmethod
     def _closeFileList(fileList):
