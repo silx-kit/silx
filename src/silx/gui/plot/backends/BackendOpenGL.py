@@ -23,8 +23,6 @@
 # ############################################################################*/
 """OpenGL Plot backend."""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"

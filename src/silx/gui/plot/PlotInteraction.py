@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """Implementation of the interaction for the :class:`Plot`."""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/02/2019"

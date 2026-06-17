@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from __future__ import annotations
+
 
 """This module implements date-time labels layout on graph axes."""
 

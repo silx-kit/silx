@@ -22,8 +22,6 @@
 # ############################################################################*/
 """Provides a wrapper to expose a dataset slice as a `commonh5.Dataset`."""
 
-from __future__ import annotations
-
 from typing import Union
 
 import h5py

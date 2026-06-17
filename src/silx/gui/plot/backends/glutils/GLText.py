@@ -26,8 +26,6 @@ This module provides minimalistic text support for OpenGL.
 It provides Latin-1 (ISO8859-1) characters for one monospace font at one size.
 """
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"

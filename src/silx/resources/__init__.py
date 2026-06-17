@@ -53,8 +53,6 @@ of this modules to ensure access across different distribution schemes:
              )
 """
 
-from __future__ import annotations
-
 __authors__ = ["V.A. Sole", "Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
 __date__ = "08/03/2019"

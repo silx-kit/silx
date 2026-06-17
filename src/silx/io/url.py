@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """URL module"""
 
-from __future__ import annotations
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "29/01/2018"

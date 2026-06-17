@@ -30,8 +30,6 @@ It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
 to the used backend.
 """
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "02/05/2018"

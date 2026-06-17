@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """Functions to apply pan and zoom on a Plot"""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent", "V. Valls"]
 __license__ = "MIT"
 __date__ = "08/08/2017"

@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module define core objects for profile tools."""
 
-from __future__ import annotations
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno", "V. Valls"]
 __license__ = "MIT"
 __date__ = "17/04/2020"

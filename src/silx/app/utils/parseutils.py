@@ -22,8 +22,6 @@
 # ############################################################################*/
 """Utils related to parsing"""
 
-from __future__ import annotations
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "28/05/2018"

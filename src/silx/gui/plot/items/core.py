@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module provides the base class for items of the :class:`Plot`."""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"

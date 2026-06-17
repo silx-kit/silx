@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module provides markers item of the :class:`Plot`."""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/03/2017"

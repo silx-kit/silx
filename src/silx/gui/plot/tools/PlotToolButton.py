@@ -25,8 +25,6 @@
 plot tools for a toolbar.
 """
 
-from __future__ import annotations
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "20/12/2023"

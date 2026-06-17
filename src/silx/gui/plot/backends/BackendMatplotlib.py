@@ -23,20 +23,17 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
-from __future__ import annotations
-from typing import Literal
-
-from .utils import Range, ensureAspectRatio, findDimToKeep
-
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
 
+from typing import Literal
 import logging
 import datetime as dt
 import numpy
 
+from .utils import Range, ensureAspectRatio, findDimToKeep
 from ... import qt
 
 # First of all init matplotlib and set its backend
