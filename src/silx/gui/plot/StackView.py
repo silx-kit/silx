@@ -70,11 +70,14 @@ __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
 __date__ = "10/10/2018"
 
+from typing import Any
+
 import numpy
 import logging
 
 import silx
 from silx.gui import qt
+from silx.utils.deprecation import deprecated
 from .. import icons
 from . import items, PlotWindow, actions
 from .items.image import ImageStack
@@ -326,7 +329,7 @@ class StackView(qt.QMainWindow):
         return save_NXdata(
             filename,
             nxentry_name=entryPath,
-            signal=self.getStack(copy=False, returnNumpyArray=True)[0],
+            signal=self.getData(copy=False, returnNumpyArray=True),
             signal_name="image_stack",
         )
 
@@ -625,6 +628,57 @@ class StackView(qt.QMainWindow):
         if not perspective_changed:  # avoid double signal (see self.setPerspective)
             self.sigStackChanged.emit(stack.size)
 
+    def _getParams(self) -> dict[str, Any]:
+        image = self._stackItem
+        if isinstance(image, items.ColormapMixIn):
+            colormap = image.getColormap()
+        else:
+            colormap = None
+
+        return {
+            "info": image.getInfo(),
+            "origin": image.getOrigin(),
+            "scale": image.getScale(),
+            "z": image.getZValue(),
+            "selectable": image.isSelectable(),
+            "draggable": image.isDraggable(),
+            "colormap": colormap,
+            "xlabel": image.getXLabel(),
+            "ylabel": image.getYLabel(),
+        }
+
+    def getData(
+        self, copy: bool = True, returnNumpyArray: bool = False
+    ) -> numpy.ndarray | list[numpy.ndarray] | ListOfImages | None:
+        """Get the original stack, as a 3D array or dataset.
+
+        :param copy: If True (default), then the object is copied
+            and returned as a numpy array.
+            Else, a reference to original data is returned, if possible.
+            If the original data is not a numpy array and parameter
+            returnNumpyArray is True, a copy will be made anyway.
+        :param returnNumpyArray: If True, the returned object is
+            guaranteed to be a numpy array.
+        :return: 3D stack and parameters.
+        """
+        if self._stack is None:
+            return None
+
+        if returnNumpyArray or copy:
+            return numpy.array(self._stack, copy=copy or NP_OPTIONAL_COPY)
+
+        # if a list of 2D arrays was cast into a ListOfImages,
+        # return the original list
+        if isinstance(self._stack, ListOfImages):
+            return self._stack.images
+
+        return self._stack
+
+    @deprecated(
+        reason="getStack will be removed in silx 4.0",
+        replacement="getData for the data, individual getters (e.g. getColormap) for the parameters.",
+        since_version="3.0.0",
+    )
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the original stack, as a 3D array or dataset.
 
@@ -641,32 +695,11 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        if self._stack is None:
+        stack = self.getData(copy, returnNumpyArray)
+        if stack is None:
             return None
 
-        image = self._stackItem
-        colormap = image.getColormap()
-
-        params = {
-            "info": image.getInfo(),
-            "origin": image.getOrigin(),
-            "scale": image.getScale(),
-            "z": image.getZValue(),
-            "selectable": image.isSelectable(),
-            "draggable": image.isDraggable(),
-            "colormap": colormap,
-            "xlabel": image.getXLabel(),
-            "ylabel": image.getYLabel(),
-        }
-        if returnNumpyArray or copy:
-            return numpy.array(self._stack, copy=copy or NP_OPTIONAL_COPY), params
-
-        # if a list of 2D arrays was cast into a ListOfImages,
-        # return the original list
-        if isinstance(self._stack, ListOfImages):
-            return self._stack.images, params
-
-        return self._stack, params
+        return stack, self._getParams()
 
     def setStackName(self, name: str | None):
         """Set the 3D stack name.
@@ -675,6 +708,38 @@ class StackView(qt.QMainWindow):
         """
         self._stack_name = name
 
+    def getCurrentData(
+        self, copy: bool = True, returnNumpyArray: bool = False
+    ) -> numpy.ndarray | list[numpy.ndarray] | ListOfImages | None:
+        """Get the stack, as it is currently displayed.
+
+        The first index of the returned stack is always the frame
+        index. If the perspective has been changed in the widget since the
+        data was first loaded, this will be reflected in the order of the
+        dimensions of the returned object.
+
+        :param copy: If True (default), then the object is copied
+            and returned as a numpy array.
+            Else, a reference to original data is returned, if possible.
+            If the original data is not a numpy array and parameter
+            `returnNumpyArray` is `True`, a copy will be made anyway.
+        :param returnNumpyArray: If `True`, the returned object is
+            guaranteed to be a numpy array.
+        :return: 3D stack
+        """
+        image = self.getActiveImage()
+        if image is None:
+            return None
+
+        if returnNumpyArray or copy:
+            return numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY)
+        return self.__transposed_view
+
+    @deprecated(
+        reason="getCurrentView will be removed in silx 4.0",
+        replacement="getCurrentData for the data, individual getters (e.g. getColormap) for the parameters.",
+        since_version="3.0.0",
+    )
     def getCurrentView(self, copy=True, returnNumpyArray=False):
         """Get the stack, as it is currently displayed.
 
@@ -696,32 +761,12 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self.getActiveImage()
-        if image is None:
+        stack_data = self.getCurrentData(copy, returnNumpyArray)
+        if stack_data is None:
             return None
 
-        if isinstance(image, items.ColormapMixIn):
-            colormap = image.getColormap()
-        else:
-            colormap = None
-
-        params = {
-            "info": image.getInfo(),
-            "origin": image.getOrigin(),
-            "scale": image.getScale(),
-            "z": image.getZValue(),
-            "selectable": image.isSelectable(),
-            "draggable": image.isDraggable(),
-            "colormap": colormap,
-            "xlabel": image.getXLabel(),
-            "ylabel": image.getYLabel(),
-        }
-        if returnNumpyArray or copy:
-            return (
-                numpy.array(self.__transposed_view, copy=copy or NP_OPTIONAL_COPY),
-                params,
-            )
-        return self.__transposed_view, params
+        params = self._getParams()
+        return stack_data, params
 
     def setFrameNumber(self, number):
         """Set the frame selection to a specific value
@@ -854,12 +899,12 @@ class StackView(qt.QMainWindow):
         The range scaling mode is given by current :class:`Colormap`'s
         :meth:`Colormap.getAutoscaleMode`.
         """
-        stack = self.getStack(copy=False, returnNumpyArray=True)
+        stack = self.getData(copy=False, returnNumpyArray=True)
         if stack is None:
             return  # No-op
 
         colormap = self.getColormap()
-        vmin, vmax = colormap.getColormapRange(data=stack[0])
+        vmin, vmax = colormap.getColormapRange(data=stack)
         colormap.setVRange(vmin=vmin, vmax=vmax)
 
     def setColormap(
