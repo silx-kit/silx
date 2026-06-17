@@ -463,6 +463,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
             msg.exec()
+        else:
+            self.sigMaskLoaded.emit(filename)
 
     def _saveMask(self):
         """Open Save mask dialog"""

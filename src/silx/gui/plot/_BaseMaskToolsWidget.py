@@ -379,6 +379,11 @@ class BaseMaskToolsWidget(qt.QWidget):
     :class:`scatterMaskToolsWidget`"""
 
     sigMaskChanged = qt.Signal()
+    sigMaskSaved = qt.Signal(str)
+    """Signal emitted when a mask is successfully saved to disk. Parameter is the path to the file"""
+    sigMaskLoaded = qt.Signal(str)
+    """Signal emitted when a mask is successfully loaded from disk. Parameter is the path to the file"""
+
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None, mask=None):
@@ -969,6 +974,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         :raise Exception: Raised if the process fails
         """
         self._mask.save(filename, kind)
+        self.sigMaskSaved.emit(filename)
 
     def getCurrentMaskColor(self):
         """Returns the color of the current selected level.

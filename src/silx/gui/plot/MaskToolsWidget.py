@@ -679,6 +679,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
             msg.exec()
+        else:
+            self.sigMaskLoaded.emit(filename)
 
     @staticmethod
     def _loadFromHdf5(filename):
