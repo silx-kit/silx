@@ -31,7 +31,8 @@ Splits the display horizontally into two panels:
 Horizontal Compare Mode
 """""""""""""""""""""""
 
-- Splits the display vertically into two panels
+Splits the display vertically into two panels: 
+
 - Dataset ``A`` is displayed at the **top**
 - Dataset ``B`` is displayed at the **bottom**
 
