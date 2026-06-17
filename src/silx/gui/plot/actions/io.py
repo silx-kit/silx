@@ -239,7 +239,7 @@ class SaveAction(PlotAction):
             # Note: The contents of the view depend on the plot type:
             # - When `plot` is a PlotWindow instance, the view includes the color bar (if visible).
             # - When `plot` is a PlotWidget, the view contains only the plot.
-            centralWidget = self.plot.centralWidget()
+            centralWidget = plot.centralWidget()
             pixmap = centralWidget.grab()
             pixmap.save(filename)
         elif nameFilter == self.SNAPSHOT_FILTER_SVG:
