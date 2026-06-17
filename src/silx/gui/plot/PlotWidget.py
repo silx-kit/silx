@@ -889,6 +889,66 @@ class PlotWidget(qt.QMainWindow):
             self._updateDataRange()
         return self._dataRange
 
+    def getVisibleDataRange(self) -> _PlotDataRange:
+        """
+        Compute data range of visible items restricted to current X axis limits.
+        """
+
+        xAxis = self.getXAxis()
+        xMin, xMax = xAxis.getLimits()
+
+        xMinOut = numpy.inf
+        xMaxOut = -numpy.inf
+
+        yMinLeft = numpy.inf
+        yMaxLeft = -numpy.inf
+
+        yMinRight = numpy.inf
+        yMaxRight = -numpy.inf
+
+        for item in self.getItems():
+            if not item.isVisible():
+                continue
+
+            if isinstance(item, items.PointsBase):
+                x = numpy.asarray(item.getXData())
+                y = numpy.asarray(item.getYData())
+
+                mask = (x >= xMin) & (x <= xMax)
+                if not numpy.any(mask):
+                    continue
+
+                x_vis = x[mask]
+                y_vis = y[mask]
+
+                xMinOut = numpy.nanmin([xMinOut, numpy.nanmin(x_vis)])
+                xMaxOut = numpy.nanmax([xMaxOut, numpy.nanmax(x_vis)])
+
+                if item.getYAxis() == "right":
+                    yMinRight = numpy.nanmin([yMinRight, numpy.nanmin(y_vis)])
+                    yMaxRight = numpy.nanmax([yMaxRight, numpy.nanmax(y_vis)])
+                else:
+                    yMinLeft = numpy.nanmin([yMinLeft, numpy.nanmin(y_vis)])
+                    yMaxLeft = numpy.nanmax([yMaxLeft, numpy.nanmax(y_vis)])
+            else:
+                bounds = item.getBounds()
+                if bounds is None:
+                    continue
+
+                xMinOut = numpy.nanmin([xMinOut, bounds[0]])
+                xMaxOut = numpy.nanmax([xMaxOut, bounds[1]])
+                yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
+                yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
+
+        def pack(a, b):
+            return None if not numpy.isfinite(a) else (a, b)
+
+        return _PlotDataRange(
+            x=pack(xMinOut, xMaxOut),
+            y=pack(yMinLeft, yMaxLeft),
+            yright=pack(yMinRight, yMaxRight),
+        )
+
     # Content management
 
     _KIND_TO_CLASSES = {
@@ -3301,7 +3361,11 @@ class PlotWidget(qt.QMainWindow):
             If None (the default), use margins from :meth:`getDataMargins`.
         """
         # Get data range
-        ranges = self.getDataRange()
+        if self._xAxis.isAutoScale():
+            ranges = self.getDataRange()
+        else:
+            ranges = self.getVisibleDataRange()
+
         xmin, xmax = (1.0, 100.0) if ranges.x is None else ranges.x
         ymin, ymax = (1.0, 100.0) if ranges.y is None else ranges.y
         if ranges.yright is None:
