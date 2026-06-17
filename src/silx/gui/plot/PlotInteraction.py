@@ -1896,18 +1896,28 @@ class PlotInteraction(qt.QObject):
         if not self.isZoomOnWheelEnabled():
             return
 
+        if angle == 0:
+            return
         plotWidget = self.parent()
         if plotWidget is None:
             return
 
         # All axes are enabled if keep aspect ratio is on
-        enabledAxes = (
-            EnabledAxes()
-            if plotWidget.isKeepDataAspectRatio()
-            else self.getZoomEnabledAxes()
-        )
+        if plotWidget.isKeepDataAspectRatio():
+            enabledAxes = EnabledAxes()
+        else:
+            modifiers = qt.QApplication.keyboardModifiers()
+            shiftPressed = modifiers & qt.Qt.ShiftModifier
+            altPressed = modifiers & qt.Qt.AltModifier
+            if shiftPressed or altPressed:
+                enabledAxes = EnabledAxes(
+                    xaxis=altPressed, yaxis=shiftPressed, y2axis=shiftPressed
+                )
+            else:
+                enabledAxes = self.getZoomEnabledAxes()
         if enabledAxes.isDisabled():
             return
 
         scale = 1.1 if angle > 0 else 1.0 / 1.1
+
         applyZoomToPlot(plotWidget, scale, (x, y), enabledAxes)

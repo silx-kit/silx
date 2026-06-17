@@ -321,7 +321,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         event.accept()
 
     def wheelEvent(self, event):
-        delta = event.angleDelta().y()
+        delta = event.angleDelta().x() + event.angleDelta().y()
         angleInDegrees = delta / 8.0
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseWheel(x, y, angleInDegrees)

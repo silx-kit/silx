@@ -52,9 +52,9 @@ class ZoomEnabledAxesMenu(qt.QMenu):
         self.__plotRef = weakref.ref(plot)
 
         self.addSection("Enabled axes")
-        self.__xAxisAction = qt.QAction("X axis", parent=self)
-        self.__yAxisAction = qt.QAction("Y left axis", parent=self)
-        self.__y2AxisAction = qt.QAction("Y right axis", parent=self)
+        self.__xAxisAction = qt.QAction("X axis (alt)", parent=self)
+        self.__yAxisAction = qt.QAction("Y left axis (shift)", parent=self)
+        self.__y2AxisAction = qt.QAction("Y right axis (shift)", parent=self)
 
         for action in (self.__xAxisAction, self.__yAxisAction, self.__y2AxisAction):
             action.setCheckable(True)
