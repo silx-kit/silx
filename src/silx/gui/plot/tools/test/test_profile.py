@@ -29,7 +29,6 @@ __date__ = "28/06/2018"
 import contextlib
 import numpy
 import logging
-import pytest
 
 from silx.gui import qt
 from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate, QTest
@@ -529,38 +528,11 @@ class TestProfile3DToolBar(TestCaseQt):
         numpy.testing.assert_almost_equal(data, expected)
 
 
-@pytest.fixture
-def plot2D_for_profile(qapp):
-    plot = Plot2D()
+def testProfile1D(qWidgetFactory):
+    plot = qWidgetFactory(Plot2D)
     plot.show()
     qWaitForWindowExposedAndActivate(plot)
 
-    yield plot
-
-    manager = plot.getProfileToolbar().getProfileManager()
-    manager.clearProfile()
-    manager = None
-    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-    plot.close()
-
-
-@pytest.fixture
-def plotStackView_for_profile(qapp):
-    plot = StackView()
-    plot.show()
-    qWaitForWindowExposedAndActivate(plot)
-
-    yield plot
-
-    manager = plot.getProfileToolbar().getProfileManager()
-    manager.clearProfile()
-    manager = None
-    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-    plot.close()
-
-
-def testProfile1D(plot2D_for_profile):
-    plot = plot2D_for_profile
     plot.addImage([[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
 
     toolBar = plot.getProfileToolbar()
@@ -591,10 +563,12 @@ def testProfile1D(plot2D_for_profile):
     numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
 
 
-def testProfile2D(plotStackView_for_profile):
+def testProfile2D(qWidgetFactory):
     """Test that the profile plot associated to a stack view is either a
     Plot1D or a plot 2D instance."""
-    plot = plotStackView_for_profile
+    plot = qWidgetFactory(StackView)
+    plot.show()
+    qWaitForWindowExposedAndActivate(plot)
 
     plot.setStack(
         stack=(
