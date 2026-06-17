@@ -39,23 +39,9 @@ Splits the display vertically into two panels:
 Color-Encoded Difference Modes
 """"""""""""""""""""""""""""""
 
-Blue/Red Compare Mode
-'''''''''''''''''''''
-
-- Visualizes differences between datasets using a blue/red color scheme
-- Useful for identifying positive and negative deviations
-
-Yellow/Cyan Compare Mode
-''''''''''''''''''''''''
-
-- Visualizes differences using a yellow/cyan color scheme
-- Provides alternative color mapping for difference visualization
-
-Raw Compare Mode
-''''''''''''''''
-
-- Displays the raw concatenated data without color encoding
-- Shows unprocessed dataset values for direct inspection
+- **Blue/Red** — Color scheme highlighting positive/negative deviations
+- **Yellow/Cyan** — Alternative to Blue/Red color mapping for difference visualization
+- **Raw** — Unprocessed concatenated data without color encoding for direct inspection
 
 
 More
