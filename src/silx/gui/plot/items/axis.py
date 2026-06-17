@@ -599,4 +599,4 @@ class YRightAxis(Axis):
     @docstring(Axis)
     def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
-        return ranges.y2
+        return ranges.y
