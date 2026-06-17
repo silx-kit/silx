@@ -23,7 +23,8 @@ Two selected datasets (labeled ``A`` and ``B``) can be compared using different 
 Vertical Compare Mode
 """""""""""""""""""""
 
-- Splits the display horizontally into two panels
+Splits the display horizontally into two panels:
+
 - Dataset ``A`` is displayed on the **left** side
 - Dataset ``B`` is displayed on the **right** side
 
