@@ -68,7 +68,6 @@ from .items.axis import TickMode  # noqa
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
-from ...gui.plot._utils.dtime_ticklayout import timestamp
 from ...utils.deprecation import deprecated_warning
 
 from .backends.BackendBase import BackendBase
@@ -1240,7 +1239,7 @@ class PlotWidget(qt.QMainWindow):
             # tickMode to TickMode.TIME_SERIES and, if necessary, set the axis
             # to the correct time zone.
             if len(x) > 0 and isinstance(x[0], dt.datetime):
-                x = [timestamp(d) for d in x]
+                x = [d.timestamp() for d in x]
 
             curve.setData(x, y, xerror, yerror, baseline=baseline, copy=copy)
 

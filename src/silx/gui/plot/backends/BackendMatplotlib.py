@@ -64,7 +64,6 @@ from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import (
     calcTicks,
     formatDatetimes,
-    timestamp,
 )
 from ...qt import inspect as qt_inspect
 from .... import config
@@ -205,7 +204,7 @@ class NiceDateLocator(Locator):
         dtTicks, self._spacing, self._unit = calcTicks(dtMin, dtMax, self.numTicks)
 
         # Convert datetime back to time stamps.
-        ticks = [timestamp(dtTick) for dtTick in dtTicks]
+        ticks = [dtTick.timestamp() for dtTick in dtTicks]
         return ticks
 
 

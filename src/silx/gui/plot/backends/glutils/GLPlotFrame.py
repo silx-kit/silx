@@ -58,7 +58,6 @@ from ..._utils.dtime_ticklayout import (
     calcTicksAdaptive,
     formatDatetimes,
 )
-from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -466,7 +465,7 @@ class PlotAxis:
                     ticks = formatDatetimes(visibleDatetimes, spacing, unit)
 
                     for tickDateTime, text in ticks.items():
-                        dataPos = timestamp(tickDateTime)
+                        dataPos = tickDateTime.timestamp()
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
                         yield ((xPixel, yPixel), dataPos, text)
