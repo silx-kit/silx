@@ -8,13 +8,50 @@ Purpose
 
 The *silx compare* command provides a graphical user interface to compare 2D data from files.
 
-It displays a list of datasets, and allows to open multiple datasets.
-This list can be updated with drag and drop from silx view.
+This tool allows you to list land open multiple datasets.
+
+.. |imgViewImg| figure:: img/silx-compare.png
+  :height: 300px
+  :align: center
 
 
-.. |imgViewImg| image:: img/silx-compare.png
-   :height: 300px
-   :align: middle
+Comparison Modes
+----------------
+
+Two selected datasets (labeled ``A`` and ``B``) can be compared using different visualization modes:
+
+Vertical Compare Mode
+"""""""""""""""""""""
+
+Splits the display horizontally into two panels:
+
+- Dataset ``A`` is displayed on the **left** side
+- Dataset ``B`` is displayed on the **right** side
+
+Horizontal Compare Mode
+"""""""""""""""""""""""
+
+Splits the display vertically into two panels: 
+
+- Dataset ``A`` is displayed at the **top**
+- Dataset ``B`` is displayed at the **bottom**
+
+Color-Encoded Difference Modes
+""""""""""""""""""""""""""""""
+
+- **Blue/Red** — Color scheme highlighting positive/negative deviations
+- **Yellow/Cyan** — Alternative to Blue/Red color mapping for difference visualization
+- **Raw** — Unprocessed concatenated data without color encoding for direct inspection
+
+
+More
+----
+
+You can add files by dragging and dropping them from ``silx view``.
+
+  .. figure:: http://www.silx.org/doc/silx/img/silx_compare_drag_and_drop.gif
+    :width: 300px
+    :align: center
 
 
 Usage
