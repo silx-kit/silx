@@ -425,7 +425,9 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             msg = "Extension '%s' is not supported."
             raise RuntimeError(msg % extension)
 
-        self.setSelectionMask(mask, copy=False)
+        effectiveMaskShape = self.setSelectionMask(mask, copy=False)
+        if effectiveMaskShape is not None:
+            self.sigMaskLoaded.emit(filename)
 
     def _loadMask(self):
         """Open load mask dialog"""
@@ -463,8 +465,6 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
             msg.exec()
-        else:
-            self.sigMaskLoaded.emit(filename)
 
     def _saveMask(self):
         """Open Save mask dialog"""

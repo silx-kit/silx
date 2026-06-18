@@ -630,6 +630,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg = "Mask was resized from %s to %s"
             msg = msg % (str(mask.shape), str(effectiveMaskShape))
             raise RuntimeWarning(msg)
+        self.sigMaskLoaded.emit(filename)
 
     def _loadMask(self):
         """Open load mask dialog"""
@@ -679,8 +680,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
             msg.exec()
-        else:
-            self.sigMaskLoaded.emit(filename)
 
     @staticmethod
     def _loadFromHdf5(filename):
