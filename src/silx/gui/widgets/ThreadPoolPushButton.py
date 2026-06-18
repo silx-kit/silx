@@ -63,33 +63,34 @@ class _Wrapper(qt.QRunnable):
         if not holder:
             return
 
-        holder.started.emit()
+        self._emitIfHolder("started")
         try:
             result = self.__callable(*self.__args, **self.__kwargs)
-            holder = self._getSignalHolder()
-            if holder:
-                holder.succeeded.emit(result)
+            self._emitIfHolder("succeeded", result)
         except Exception as e:
             module = self.__callable.__module__
             name = self.__callable.__name__
             _logger.error(
                 "Error while executing callable %s.%s.", module, name, exc_info=True
             )
-            holder = self._getSignalHolder()
-            if holder:
-                holder.failed.emit(e)
+            self._emitIfHolder("failed", e)
         finally:
             holder = self._getSignalHolder()
-            if holder:
-                holder.finished.emit()
-        holder = self._getSignalHolder()
-        if holder:
-            holder._sigReleaseRunner.emit(self)
+            self._emitIfHolder("finished")
+
+        self._emitIfHolder("_sigReleaseRunner", self)
 
     def autoDelete(self):
         """Returns true to ask the QThreadPool to manage the life cycle of
         this QRunner."""
         return True
+
+    def _emitIfHolder(self, emit_func, *args, **kwargs):
+        """Emit signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        getattr(holder, emit_func).emit(*args, **kwargs)
 
 
 class ThreadPoolPushButton(WaitingPushButton):
