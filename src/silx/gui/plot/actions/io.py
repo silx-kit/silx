@@ -236,17 +236,13 @@ class SaveAction(PlotAction):
                  True otherwise.
         """
         if nameFilter == self.SNAPSHOT_FILTER_PNG:
-            # Note: The contents of the view depend on the plot type:
-            # - When `plot` is a PlotWindow instance, the view includes the color bar (if visible).
-            # - When `plot` is a PlotWidget, the view contains only the plot.
-            centralWidget = plot.centralWidget()
-            pixmap = centralWidget.grab()
-            pixmap.save(filename)
+            fileFormat = "png"
         elif nameFilter == self.SNAPSHOT_FILTER_SVG:
-            plot.saveGraph(filename, fileFormat="svg")
+            fileFormat = "svg"
         else:  # Format not supported
             _logger.error("Saving plot snapshot failed: format not supported")
             return False
+        plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 
     def _getAxesLabels(self, item):
