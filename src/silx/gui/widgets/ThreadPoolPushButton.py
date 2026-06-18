@@ -27,6 +27,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "13/10/2016"
 
+import weakref
 import logging
 from .. import qt
 from .WaitingPushButton import WaitingPushButton
@@ -41,27 +42,43 @@ class _Wrapper(qt.QRunnable):
     def __init__(self, signalHolder, function, args, kwargs):
         """Constructor"""
         super().__init__()
-        self.__signalHolder = signalHolder
+        self.__signalHolder = weakref.ref(signalHolder)
         self.__callable = function
         self.__args = args
         self.__kwargs = kwargs
 
+    def _getSignalHolder(self):
+        if self.__signalHolder is None:
+            return None
+        return self.__signalHolder()
+
     def run(self):
-        holder = self.__signalHolder
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+
         holder.started.emit()
         try:
             result = self.__callable(*self.__args, **self.__kwargs)
-            holder.succeeded.emit(result)
+            holder = self._getSignalHolder()
+            if holder:
+                holder.succeeded.emit(result)
         except Exception as e:
             module = self.__callable.__module__
             name = self.__callable.__name__
             _logger.error(
                 "Error while executing callable %s.%s.", module, name, exc_info=True
             )
-            holder.failed.emit(e)
+            holder = self._getSignalHolder()
+            if holder:
+                holder.failed.emit(e)
         finally:
-            holder.finished.emit()
-        holder._sigReleaseRunner.emit(self)
+            holder = self._getSignalHolder()
+            if holder:
+                holder.finished.emit()
+        holder = self._getSignalHolder()
+        if holder:
+            holder._sigReleaseRunner.emit(self)
 
     def autoDelete(self):
         """Returns true to ask the QThreadPool to manage the life cycle of
