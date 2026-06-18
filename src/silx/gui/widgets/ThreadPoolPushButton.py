@@ -47,10 +47,16 @@ class _Wrapper(qt.QRunnable):
         self.__args = args
         self.__kwargs = kwargs
 
+        # connect signal / slots
+        signalHolder.destroyed.connect(self.clear_signal_holder)
+
     def _getSignalHolder(self):
         if self.__signalHolder is None:
             return None
         return self.__signalHolder()
+
+    def clear_signal_holder(self):
+        self.__signalHolder = None
 
     def run(self):
         holder = self._getSignalHolder()
