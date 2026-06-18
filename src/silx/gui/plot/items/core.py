@@ -33,6 +33,7 @@ import logging
 import enum
 import numbers
 from typing import Union
+from typing import NamedTuple
 import weakref
 
 import numpy
@@ -160,6 +161,47 @@ class ItemChangedType(enum.Enum):
     """Item's text background color changed flag."""
 
 
+class Bounds(NamedTuple):
+    xmin: float
+    xmax: float
+    ymin: float
+    ymax: float
+
+    @classmethod
+    def from_values(
+        cls,
+        xmin: float | None,
+        xmax: float | None,
+        ymin: float | None,
+        ymax: float | None,
+    ) -> "Bounds" | None:
+        """
+        Create a :class:`Bounds` instance from optional values.
+
+        ``None`` values are converted to ``NaN``.
+
+        :param xmin: Minimum X bound or None.
+        :param xmax: Maximum X bound or None.
+        :param ymin: Minimum Y bound or None.
+        :param ymax: Maximum Y bound or None.
+
+        :returns:
+            Returns a :class:`Bounds` instance. Returns ``None`` if
+            all values are ``None`` or NaN, meaning the bounds are undefined.
+        :rtype: :class:`Bounds` or ``None``
+        """
+
+        def none_to_nan(v):
+            return float("nan") if v is None else v
+
+        values = numpy.array(list(map(none_to_nan, (xmin, xmax, ymin, ymax))))
+
+        if numpy.all(numpy.isnan(values)):
+            return None
+
+        return cls(*values)
+
+
 class Item(qt.QObject):
     """Description of an item of the plot"""
 
@@ -221,17 +263,37 @@ class Item(qt.QObject):
         self.__connectToPlotWidget()
         self._updated()
 
-    def getBounds(self):  # TODO return a Bounds object rather than a tuple
+    def getBounds(self) -> Bounds | None:
         """Returns the bounding box of this item in data coordinates
 
         :returns: (xmin, xmax, ymin, ymax) or None
-        :rtype: 4-tuple of float or None
+        :rtype: Union[Bounds, None]
         """
         return self._getBounds()
 
-    def _getBounds(self):
+    def _getBounds(self) -> Bounds | None:
         """:meth:`getBounds` implementation to override by sub-class"""
         return None
+
+    def getResetBounds(self) -> Bounds | None:
+        """Returns the bounding box of this item used for resetting the axis ranges.
+
+        This is equivalent to :meth:`getBounds` when all axes are autoscaling.
+
+        Otherwise
+
+        - Fixed dependent axes: autoscale independent axes within the dependent axes limits
+        - Fixed independent axes: autoscale dependent axes within the independent axes limits
+        - Fixed axes limits are applied to the resulting bounds
+
+        :returns: (xmin, xmax, ymin, ymax) or None
+        :rtype: Union[Bounds, None]
+        """
+        return self._getResetBounds()
+
+    def _getResetBounds(self) -> Bounds | None:
+        """:meth:`getResetBounds` implementation to override by sub-class."""
+        return self.getBounds()
 
     def isVisible(self):
         """True if item is visible, False otherwise
@@ -319,28 +381,28 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> tuple[float, float, float, float] | None:
+    def getVisibleBounds(self) -> Bounds | None:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
             (xmin, xmax, ymin, ymax) in data coordinates of the visible area or
             None if item is not visible in the plot area.
-        :rtype: Union[List[float],None]
+        :rtype: Union[Bounds,None]
         """
         plot = self.getPlot()
         bounds = self.getBounds()
         if plot is None or bounds is None or not self.isVisible():
             return None
 
-        xmin, xmax = numpy.clip(bounds[:2], *plot.getXAxis().getLimits())
-        ymin, ymax = numpy.clip(
-            bounds[2:], *plot.getYAxis(self.__getYAxis()).getLimits()
-        )
+        xmin, xmax = plot.getXAxis().getLimits()
+        xmin, xmax = numpy.clip(bounds[:2], xmin, xmax)
+        ymin, ymax = plot.getYAxis(self._getYAxis()).getLimits()
+        ymin, ymax = numpy.clip(bounds[2:], ymin, ymax)
 
         if xmin == xmax or ymin == ymax:  # Outside the plot area
             return None
         else:
-            return xmin, xmax, ymin, ymax
+            return Bounds.from_values(xmin, xmax, ymin, ymax)
 
     def _isVisibleBoundsTracking(self) -> bool:
         """Returns True if visible bounds changes are tracked.
@@ -361,7 +423,7 @@ class Item(qt.QObject):
             self.__visibleBoundsTracking = enable
             self.__connectToPlotWidget()
 
-    def __getYAxis(self) -> str:
+    def _getYAxis(self) -> str:
         """Returns current Y axis ('left' or 'right')"""
         return self.getYAxis() if isinstance(self, YAxisMixIn) else "left"
 
@@ -372,7 +434,7 @@ class Item(qt.QObject):
 
         plot = self.getPlot()
         if plot is not None:
-            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+            for axis in (plot.getXAxis(), plot.getYAxis(self._getYAxis())):
                 axis.sigLimitsChanged.connect(self._visibleBoundsChanged)
 
             plot.installEventFilter(self)
@@ -386,7 +448,7 @@ class Item(qt.QObject):
 
         plot = self.getPlot()
         if plot is not None:
-            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+            for axis in (plot.getXAxis(), plot.getYAxis(self._getYAxis())):
                 axis.sigLimitsChanged.disconnect(self._visibleBoundsChanged)
 
             plot.removeEventFilter(self)
@@ -1063,7 +1125,7 @@ class YAxisMixIn(ItemMixInBase):
     def __init__(self):
         self._yaxis = self._DEFAULT_YAXIS
 
-    def getYAxis(self):
+    def getYAxis(self) -> str:
         """Returns the Y axis this curve belongs to.
 
         Either 'left' or 'right'.
@@ -1072,7 +1134,7 @@ class YAxisMixIn(ItemMixInBase):
         """
         return self._yaxis
 
-    def setYAxis(self, yaxis):
+    def setYAxis(self, yaxis: str) -> None:
         """Set the Y axis this curve belongs to.
 
         :param str yaxis: 'left' or 'right'
@@ -1634,7 +1696,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         data: numpy.ndarray,
         error: float | numpy.ndarray | None,
         positiveOnly: bool,
-    ) -> tuple[float]:
+    ) -> tuple[float, float]:
         if error is None:
             min_, max_ = min_max(data, finite=True)
             return min_, max_
@@ -1658,40 +1720,103 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
 
         return min_, max_
 
-    def _getBounds(self):
-        if self.getXData(copy=False).size == 0:  # Empty data
-            return None
-
+    def _getBounds(self) -> Bounds | None:
         plot = self.getPlot()
+
         if plot is not None:
             xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
+            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
 
-        if (xPositive, yPositive) not in self._boundsCache:
-            # use the getData class method because instance method can be
-            # overloaded to return additional arrays
-            data = PointsBase.getData(self, copy=False, displayed=True)
-            if len(data) == 5:
-                # hack to avoid duplicating caching mechanism in Scatter
-                # (happens when cached data is used, caching done using
-                # Scatter._filterData)
-                x, y, xerror, yerror = data[0], data[1], data[3], data[4]
-            else:
-                x, y, xerror, yerror = data
+        cache_key = (xPositive, yPositive)
+        if cache_key in self._boundsCache:
+            return self._boundsCache[cache_key]
 
+        x, y, xerror, yerror = self.__getRawDataBoundsData()
+        if x.size == 0:
+            return None
+
+        xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
+        ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
+
+        self._boundsCache[cache_key] = Bounds.from_values(xmin, xmax, ymin, ymax)
+        return self._boundsCache[cache_key]
+
+    def _getResetBounds(self) -> Bounds | None:
+        plot = self.getPlot()
+        if plot is None:
+            return self._getBounds()
+
+        x = self.getXData(copy=False)
+        y = self.getYData(copy=False)
+
+        if x.size == 0:
+            return None
+
+        if plot is not None:
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
+        else:
+            xPositive = False
+            yPositive = False
+
+        # x: independent variable
+        # y: dependent variable
+        # Fixed x: autoscale y within the x limits
+        # Fixed y: autoscale x within the y limits
+
+        mask = numpy.isfinite(x) & numpy.isfinite(y)
+
+        xAxis = plot.getXAxis()
+        if not xAxis.isAutoScale():
+            xmin, xmax = xAxis.getLimits()
+            mask &= (x >= xmin) & (x <= xmax)
+
+        yAxis = plot.getYAxis(self._getYAxis())
+        if not yAxis.isAutoScale():
+            ymin, ymax = yAxis.getLimits()
+            mask &= (y >= ymin) & (y <= ymax)
+
+        if not numpy.any(mask):
+            return None
+
+        x, y, xerror, yerror = self.__getRawDataBoundsData(mask=mask)
+
+        if x.size == 0:
+            return None
+
+        if xAxis.isAutoScale():
             xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
+        if yAxis.isAutoScale():
             ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
 
-            self._boundsCache[(xPositive, yPositive)] = tuple(
-                [
-                    (bound if bound is not None else numpy.nan)
-                    for bound in (xmin, xmax, ymin, ymax)
-                ]
-            )
-        return self._boundsCache[(xPositive, yPositive)]
+        return Bounds.from_values(xmin, xmax, ymin, ymax)
+
+    def __getRawDataBoundsData(self, mask=None):
+        # use the getData class method because instance method can be
+        # overloaded to return additional arrays
+        data = PointsBase.getData(self, copy=False, displayed=True)
+
+        if len(data) == 5:
+            # hack to avoid duplicating caching mechanism in Scatter
+            # (happens when cached data is used, caching done using
+            # Scatter._filterData)
+            x, y, xerror, yerror = data[0], data[1], data[3], data[4]
+        else:
+            x, y, xerror, yerror = data
+
+        if mask is not None:
+            x = x[mask]
+            y = y[mask]
+
+            if xerror is not None and numpy.size(xerror) > 1:
+                xerror = xerror[mask]
+            if yerror is not None and numpy.size(yerror) > 1:
+                yerror = yerror[mask]
+
+        return x, y, xerror, yerror
 
     def _getCachedData(self):
         """Return cached filtered data if applicable.
@@ -1702,7 +1827,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
             return None
 
         xPositive = plot.getXAxis()._isLogarithmic()
-        yPositive = plot.getYAxis()._isLogarithmic()
+        yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
         if (xPositive, yPositive) not in self._filteredCache:
             self._filteredCache[(xPositive, yPositive)] = self._filterData(
                 xPositive, yPositive

@@ -889,64 +889,63 @@ class PlotWidget(qt.QMainWindow):
             self._updateDataRange()
         return self._dataRange
 
-    def getVisibleDataRange(self) -> _PlotDataRange:
+    def _getResetDataRange(self) -> _PlotDataRange:
         """
-        Compute data range of visible items restricted to current X axis limits.
+        Returns this PlotWidget's data range for resetting. The current limits
+        of non-autoscaling axes are taking into account when determining the
+        range of autoscaling axes.
+
+        :return: a namedtuple with the following members :
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
         """
+        if (
+            self._xAxis.isAutoScale()
+            and self._yAxis.isAutoScale()
+            and self._yRightAxis.isAutoScale()
+        ):
+            return self.getDataRange()
 
-        xAxis = self.getXAxis()
-        xMin, xMax = xAxis.getLimits()
+        xMinList = []
+        xMaxList = []
 
-        xMinOut = numpy.inf
-        xMaxOut = -numpy.inf
+        yMinLeftList = []
+        yMaxLeftList = []
 
-        yMinLeft = numpy.inf
-        yMaxLeft = -numpy.inf
-
-        yMinRight = numpy.inf
-        yMaxRight = -numpy.inf
+        yMinRightList = []
+        yMaxRightList = []
 
         for item in self.getItems():
             if not item.isVisible():
                 continue
 
-            if isinstance(item, items.PointsBase):
-                x = numpy.asarray(item.getXData())
-                y = numpy.asarray(item.getYData())
+            bounds = item.getResetBounds()
+            if bounds is None:
+                continue
 
-                mask = (x >= xMin) & (x <= xMax)
-                if not numpy.any(mask):
-                    continue
+            xmin, xmax, ymin, ymax = bounds
 
-                x_vis = x[mask]
-                y_vis = y[mask]
+            xMinList.append(xmin)
+            xMaxList.append(xmax)
 
-                xMinOut = numpy.nanmin([xMinOut, numpy.nanmin(x_vis)])
-                xMaxOut = numpy.nanmax([xMaxOut, numpy.nanmax(x_vis)])
-
-                if item.getYAxis() == "right":
-                    yMinRight = numpy.nanmin([yMinRight, numpy.nanmin(y_vis)])
-                    yMaxRight = numpy.nanmax([yMaxRight, numpy.nanmax(y_vis)])
-                else:
-                    yMinLeft = numpy.nanmin([yMinLeft, numpy.nanmin(y_vis)])
-                    yMaxLeft = numpy.nanmax([yMaxLeft, numpy.nanmax(y_vis)])
+            if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
+                yMinRightList.append(ymin)
+                yMaxRightList.append(ymax)
             else:
-                bounds = item.getBounds()
-                if bounds is None:
-                    continue
+                yMinLeftList.append(ymin)
+                yMaxLeftList.append(ymax)
 
-                xMinOut = numpy.nanmin([xMinOut, bounds[0]])
-                xMaxOut = numpy.nanmax([xMaxOut, bounds[1]])
-                yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
-                yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
-
-        def pack(a, b):
-            return None if not numpy.isfinite(a) else (a, b)
+        def pack(min_list, max_list):
+            # min_list = [x for x in min_list if not numpy.isnan(x)]
+            # max_list = [x for x in max_list if not numpy.isnan(x)]
+            if not min_list or not max_list:
+                return None
+            return (min(min_list), max(max_list))
 
         return _PlotDataRange(
-            x=pack(xMinOut, xMaxOut),
-            y=pack(yMinLeft, yMaxLeft),
-            yright=pack(yMinRight, yMaxRight),
+            x=pack(xMinList, xMaxList),
+            y=pack(yMinLeftList, yMaxLeftList),
+            yright=pack(yMinRightList, yMaxRightList),
         )
 
     # Content management
@@ -3360,11 +3359,7 @@ class PlotWidget(qt.QMainWindow):
             Ratios of margins to add around the data inside the plot area for each side.
             If None (the default), use margins from :meth:`getDataMargins`.
         """
-        # Get data range
-        if self._xAxis.isAutoScale():
-            ranges = self.getDataRange()
-        else:
-            ranges = self.getVisibleDataRange()
+        ranges = self._getResetDataRange()
 
         xmin, xmax = (1.0, 100.0) if ranges.x is None else ranges.x
         ymin, ymax = (1.0, 100.0) if ranges.y is None else ranges.y
