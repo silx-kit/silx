@@ -43,6 +43,7 @@ from .core import (
     LineMixIn,
     LineGapColorMixIn,
     YAxisMixIn,
+    Bounds,
 )
 from ....utils.deprecation import deprecated
 from ... import colors
@@ -181,11 +182,14 @@ class BoundingRect(DataItem, YAxisMixIn):
             assert rect[2] <= rect[3]
 
         if rect != self.__bounds:
-            self.__bounds = rect
+            if rect is None:
+                self.__bounds = None
+            else:
+                self.__bounds = Bounds.from_values(*rect)
             self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
-    def _getBounds(self):
+    def _getBounds(self) -> Bounds | None:
         if self.__bounds is None:
             return None
         plot = self.getPlot()
@@ -202,9 +206,44 @@ class BoundingRect(DataItem, YAxisMixIn):
                     return None
                 if yPositive and bounds[2] <= 0:
                     bounds[2] = bounds[3]
-                return tuple(bounds)
+                return Bounds.from_values(*bounds)
 
         return self.__bounds
+
+    def _getResetBounds(self) -> Bounds | None:
+        bounds = self._getBounds()
+        if bounds is None:
+            return None
+
+        plot = self.getPlot()
+        if plot is None:
+            return bounds
+
+        xmin, xmax, ymin, ymax = bounds
+
+        xAxis = plot.getXAxis()
+        if not xAxis.isAutoScale():
+            lmin, lmax = xAxis.getLimits()
+
+            # Expand to fixed limits if item bounds are within them
+            if xmin >= lmin and xmax <= lmax:
+                xmin, xmax = lmin, lmax
+            elif xmin > lmax or xmax < lmin:
+                # No overlap
+                return None
+
+        yAxis = plot.getYAxis(self._getYAxis())
+        if not yAxis.isAutoScale():
+            lmin, lmax = yAxis.getLimits()
+
+            # Expand to fixed limits if item bounds are within them
+            if ymin >= lmin and ymax <= lmax:
+                ymin, ymax = lmin, lmax
+            elif ymin > lmax or ymax < lmin:
+                # No overlap
+                return None
+
+        return Bounds.from_values(xmin, xmax, ymin, ymax)
 
 
 class _BaseExtent(DataItem):
@@ -243,12 +282,16 @@ class _BaseExtent(DataItem):
         """
         return self.__range
 
-    def _getBounds(self):
+    def _getBounds(self) -> Bounds | None:
         min_, max_ = self.getRange()
 
         plot = self.getPlot()
         if plot is not None:
-            axis = plot.getXAxis() if self.__axis == "x" else plot.getYAxis()
+            if self.__axis == "x":
+                axis = plot.getXAxis()
+            else:
+                axis = plot.getYAxis(self._getYAxis())
+
             if axis._isLogarithmic():
                 if max_ <= 0:
                     return None
@@ -256,9 +299,59 @@ class _BaseExtent(DataItem):
                     min_ = max_
 
         if self.__axis == "x":
-            return min_, max_, float("nan"), float("nan")
+            return Bounds.from_values(min_, max_, float("nan"), float("nan"))
         else:
-            return float("nan"), float("nan"), min_, max_
+            return Bounds.from_values(float("nan"), float("nan"), min_, max_)
+
+    def _getResetBounds(self) -> Bounds | None:
+        bounds = self._getBounds()
+        if bounds is None:
+            return None
+
+        plot = self.getPlot()
+        if plot is None:
+            return bounds
+
+        xmin, xmax, ymin, ymax = bounds
+
+        # x: independent variable
+        # y: dependent variable
+        # Fixed x: autoscale y within the x limits
+        # Fixed y: autoscale x within the y limits
+
+        if self.__axis == "x":
+            xAxis = plot.getXAxis()
+
+            lmin, lmax = xAxis.getLimits()
+
+            if xAxis.isAutoScale():
+                xmin, xmax = lmin, lmax
+            else:
+                # Expand to fixed limits if item bounds are within them
+                if xmin >= lmin and xmax <= lmax:
+                    xmin, xmax = lmin, lmax
+                elif xmin > lmax or xmax < lmin:
+                    # No overlap
+                    return None
+
+            return Bounds.from_values(xmin, xmax, float("nan"), float("nan"))
+
+        else:
+            yAxis = plot.getYAxis(self._getYAxis())
+
+            lmin, lmax = yAxis.getLimits()
+
+            if yAxis.isAutoScale():
+                ymin, ymax = lmin, lmax
+            else:
+                # Expand to fixed limits if item bounds are within them
+                if ymin >= lmin and ymax <= lmax:
+                    ymin, ymax = lmin, lmax
+                elif ymin > lmax or ymax < lmin:
+                    # No overlap
+                    return None
+
+            return Bounds.from_values(float("nan"), float("nan"), ymin, ymax)
 
 
 class XAxisExtent(_BaseExtent):

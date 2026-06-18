@@ -43,6 +43,7 @@ from .core import (
     ColormapMixIn,
     AlphaMixIn,
     ItemChangedType,
+    Bounds,
 )
 from silx._utils import NP_OPTIONAL_COPY
 
@@ -152,27 +153,52 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             return False
         return True
 
-    def _getBounds(self):
-        if self.getData(copy=False).size == 0:  # Empty data
+    def _getBounds(self) -> Bounds | None:
+        plot = self.getPlot()
+        if plot is not None and not self._isPlotLinear(plot):
             return None
+
+        if self.getData(copy=False).size == 0:
+            return None  # Empty data
 
         height, width = self.getData(copy=False).shape[:2]
         origin = self.getOrigin()
         scale = self.getScale()
+
         # Taking care of scale might be < 0
         xmin, xmax = origin[0], origin[0] + width * scale[0]
         if xmin > xmax:
             xmin, xmax = xmax, xmin
+
         # Taking care of scale might be < 0
         ymin, ymax = origin[1], origin[1] + height * scale[1]
         if ymin > ymax:
             ymin, ymax = ymax, ymin
 
-        plot = self.getPlot()
-        if plot is not None and not self._isPlotLinear(plot):
+        return Bounds.from_values(xmin, xmax, ymin, ymax)
+
+    def _getResetBounds(self) -> Bounds | None:
+        bounds = self._getBounds()
+        if bounds is None:
             return None
-        else:
-            return xmin, xmax, ymin, ymax
+
+        plot = self.getPlot()
+        xmin, xmax, ymin, ymax = bounds
+
+        # x: independent variable
+        # y: independent variable
+        # Fixed x: autoscale y to the full range
+        # Fixed y: autoscale x to the full range
+
+        xAxis = plot.getXAxis()
+        if not xAxis.isAutoScale():
+            xmin, xmax = xAxis.getLimits()
+
+        yAxis = plot.getYAxis(self._getYAxis())
+        if not yAxis.isAutoScale():
+            ymin, ymax = yAxis.getLimits()
+
+        return Bounds.from_values(xmin, xmax, ymin, ymax)
 
     @docstring(DraggableMixIn)
     def drag(self, from_, to):
