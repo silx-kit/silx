@@ -564,9 +564,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             axis.set_major_formatter(DefaultTickFormatter())
 
         # Autoscale is handled manually by the backend
-        self.ax.set_autoscalex_on(False)
-        self.ax.set_autoscaley_on(False)
-        self.ax2.set_autoscaley_on(False)
+        self.ax.autoscale(enable=False)
+        self.ax2.autoscale(enable=False)
 
         # this works but the figure color is left
         self.ax.set_facecolor("none")
@@ -1216,7 +1215,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return self.ax.get_xbound()
 
     def setGraphXLimits(self, xmin: float, xmax: float):
-        self._setPlotBounds(xRange=(xmin, xmax))
+        self._setPlotBounds(xRange=(xmin, xmax), keepDim="x")
 
     def getGraphYLimits(self, axis: Literal["left", "right"]) -> Range | None:
         assert axis in ("left", "right")
@@ -1229,15 +1228,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setGraphYLimits(self, ymin: float, ymax: float, axis: Literal["left", "right"]):
         if axis == "right":
-            self._setPlotBounds(y2Range=(ymin, ymax))
+            self._setPlotBounds(y2Range=(ymin, ymax), keepDim="y")
         else:
-            self._setPlotBounds(yRange=(ymin, ymax))
+            self._setPlotBounds(yRange=(ymin, ymax), keepDim="y")
 
     def _setPlotBounds(
         self,
         xRange: Range | None = None,
         yRange: Range | None = None,
         y2Range: Range | None = None,
+        keepDim: Literal["x", "y"] | None = None,
     ):
         # Keep data aspect ratio
         if xRange is None:
@@ -1251,17 +1251,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
             newXRange, newYRange, newY2Range = xRange, yRange, y2Range
         else:
             bbox = self.fig.get_window_extent()
+            if keepDim is None:
+                xDataRange, yDataRange, _ = self._plot.getDataRange()
+                keepDim = findDimToKeep(bbox.width, bbox.height, xDataRange, yDataRange)
             newXRange, newYRange, newY2Range = ensureAspectRatio(
                 bbox.width,
                 bbox.height,
                 xRange,
                 yRange,
                 y2Range,
-                keepDim=findDimToKeep(bbox.width, bbox.height, xRange, yRange),
+                keepDim=keepDim,
             )
         self.ax.set_xbound(*newXRange)
         self.ax.set_ybound(*newYRange)
         self.ax2.set_ybound(*newY2Range)
+        # If plot range has changed, then emit signal
+        if xRange != newXRange:
+            self._plot.getXAxis()._emitLimitsChanged()
+        if yRange != newYRange:
+            self._plot.getYAxis(axis="left")._emitLimitsChanged()
+        if y2Range != newY2Range:
+            self._plot.getYAxis(axis="right")._emitLimitsChanged()
+
         self._updateMarkers()
 
     # Graph axes
@@ -1303,7 +1314,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # In this case a draw with positive limits is needed first
             xlim = self.ax.get_xbound()
             if xlim[0] <= 0 and xlim[1] <= 0:
-                self._setXLimits(1, 10)
+                self._setPlotBounds(xRange=(1, 10))
                 self.draw()
         self.ax2.set_xscale(scale)
         self.ax.set_xscale(scale)

@@ -100,7 +100,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
             self.assertTrue(numpy.allclose(expectedRatio, ratio, atol=0.01))
 
     def testChangeLimitsWithAspectRatio(self):
-        self.plot.setKeepDataAspectRatio()
+        self.plot.setKeepDataAspectRatio(True)
         self.qapp.processEvents()
         xlim = self.plot.getXAxis().getLimits()
         ylim = self.plot.getYAxis().getLimits()
@@ -1744,7 +1744,7 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                 self.assertEqual(yLim, (min(yData), max(yData)))
 
                 # x axis log
-                self.plot.getXAxis()._setLogarithmic(True)
+                self.plot.setXAxisLogarithmic(True)
                 self.qapp.processEvents()
 
                 xLim = self.plot.getXAxis().getLimits()
