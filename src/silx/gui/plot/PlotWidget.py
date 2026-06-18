@@ -25,8 +25,6 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
-from __future__ import annotations
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -100,7 +98,7 @@ class _PlotWidgetSelection(qt.QObject):
     sigSelectedItemsChanged = qt.Signal()
     """Signal emitted whenever the list of selected items changes."""
 
-    def __init__(self, parent: PlotWidget):
+    def __init__(self, parent: "PlotWidget"):
         assert isinstance(parent, PlotWidget)
         super().__init__(parent=parent)
 
@@ -379,7 +377,7 @@ class PlotWidget(qt.QMainWindow):
 
     def __init__(
         self,
-        parent: qt.Qt.Widget | None = None,
+        parent: qt.QWidget | None = None,
         backend: BackendType = None,
     ):
         self._autoreplot = False
@@ -665,7 +663,7 @@ class PlotWidget(qt.QMainWindow):
 
     # Default Qt context menu
 
-    def contextMenuEvent(self, event: qt.Qt.QContextEvent):
+    def contextMenuEvent(self, event: qt.QContextMenuEvent):
         """Override QWidget.contextMenuEvent to implement the context menu"""
         menu = qt.QMenu(self)
         from .actions.control import ZoomBackAction  # Avoid cyclic import

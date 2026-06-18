@@ -34,7 +34,7 @@ import weakref
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
 from silx.gui import colors
-import silx.gui.plot.items
+from ...items.core import Item
 
 
 class CurveProfileData(typing.NamedTuple):
@@ -186,7 +186,7 @@ class ProfileRoiMixIn:
             pass
 
     def computeProfile(
-        self, item: silx.gui.plot.items.Item
+        self, item: Item
     ) -> CurveProfileData | ImageProfileData | RgbaProfileData | CurvesProfileData:
         """
         Compute the profile which will be displayed.

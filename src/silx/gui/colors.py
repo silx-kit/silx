@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module provides API to manage colors."""
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "29/01/2019"
@@ -255,7 +253,7 @@ class _Colormappable:
 
     def _getColormapAutoscaleRange(
         self,
-        colormap: Colormap | None,
+        colormap: "Colormap | None",
     ) -> tuple[float | None, float | None]:
         """Returns the autoscale range for given colormap.
 
@@ -396,7 +394,7 @@ class Colormap(qt.QObject):
         self.__warnBadVmin = True
         self.__warnBadVmax = True
 
-    def setFromColormap(self, other: Colormap):
+    def setFromColormap(self, other: "Colormap"):
         """Set this colormap using information from the `other` colormap.
 
         :param other: Colormap to use as reference.
@@ -894,7 +892,7 @@ class Colormap(qt.QObject):
         colormap._setFromDict(dic)
         return colormap
 
-    def copy(self) -> Colormap:
+    def copy(self) -> "Colormap":
         """Return a copy of the Colormap."""
         colormap = Colormap(
             name=self._name,
