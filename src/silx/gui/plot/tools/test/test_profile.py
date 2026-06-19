@@ -29,6 +29,7 @@ __date__ = "28/06/2018"
 import contextlib
 import numpy
 import logging
+import pytest
 
 from silx.gui import qt
 from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate, QTest
@@ -528,12 +529,21 @@ class TestProfile3DToolBar(TestCaseQt):
         numpy.testing.assert_almost_equal(data, expected)
 
 
-def testProfile1D(qWidgetFactory):
+@pytest.mark.parametrize("with_mask", (True, False))
+def testProfile1D(qWidgetFactory, with_mask):
+    """Test that the profile plot associated to a Plot2D is a 1D plot and that mask is take into account.
+
+    Note: the mask; when applied; is at the center. As we have an od number of elements the expected result remains the same.
+    """
     plot = qWidgetFactory(Plot2D)
     plot.show()
     qWaitForWindowExposedAndActivate(plot)
 
     plot.addImage([[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
+    if with_mask:
+        mask = numpy.zeros((5, 2))
+        mask[2, :] = 1
+        plot.setSelectionMask(mask)
 
     toolBar = plot.getProfileToolbar()
 
@@ -563,9 +573,14 @@ def testProfile1D(qWidgetFactory):
     numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
 
 
-def testProfile2D(qWidgetFactory):
+@pytest.mark.parametrize("with_mask", (True, False))
+def testProfile2D(qWidgetFactory, with_mask):
     """Test that the profile plot associated to a stack view is either a
-    Plot1D or a plot 2D instance."""
+    Plot1D or a plot 2D instance.
+    Make sure also that the mask is take into account.
+
+    Note: the mask; when applied; is at the center. As we have an od number of elements the expected result remains the same.
+    """
     plot = qWidgetFactory(StackView)
     plot.show()
     qWaitForWindowExposedAndActivate(plot)
@@ -576,6 +591,10 @@ def testProfile2D(qWidgetFactory):
             numpy.arange(10, 20).reshape(5, 2),
         )
     )
+    if with_mask:
+        mask = numpy.zeros((5, 2))
+        mask[2, :] = 1
+        plot.getPlotWidget().setSelectionMask(mask)
 
     toolBar = plot.getProfileToolbar()
 

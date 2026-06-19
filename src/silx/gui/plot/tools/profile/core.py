@@ -241,9 +241,9 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     else:
         if start < height and end > 0:
             if method == "mean":
-                fct = numpy.mean
+                fct = numpy.nanmean
             elif method == "sum":
-                fct = numpy.sum
+                fct = numpy.nansum
             else:
                 raise ValueError("method not managed")
             profile = fct(data[:, max(0, start) : min(end, height), :], axis=1).astype(
