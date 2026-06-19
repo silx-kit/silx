@@ -397,6 +397,7 @@ class XAxis(Axis):
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
+        plot._setDirtyPlot()
 
         if scale == self.LOGARITHMIC:
             self._getBackend().setXAxisScale(scale="log")
@@ -462,6 +463,8 @@ class YAxis(Axis):
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
+        plot._setDirtyPlot()
+
         if scale == self.LOGARITHMIC:
             self._getBackend().setYAxisScale(scale="log")
             if vmin <= 0:
