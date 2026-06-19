@@ -470,7 +470,12 @@ def _assert_limits(
 
     lxmin, lxmax = xaxis.getLimits()
     lymin, lymax = yaxis.getLimits()
-    expected = lxmin, lxmax, lymin, lymax
+    if item_type == _TestItemType.XEXTENT:
+        expected = lxmin, lxmax, numpy.nan, numpy.nan
+    elif item_type == _TestItemType.YEXTENT:
+        expected = numpy.nan, numpy.nan, lymin, lymax
+    else:
+        expected = lxmin, lxmax, lymin, lymax
 
     numpy.testing.assert_allclose(actual, expected, rtol=rtol, atol=atol)
 
