@@ -630,6 +630,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg = "Mask was resized from %s to %s"
             msg = msg % (str(mask.shape), str(effectiveMaskShape))
             raise RuntimeWarning(msg)
+        self.sigMaskLoaded.emit(filename)
 
     def _loadMask(self):
         """Open load mask dialog"""
