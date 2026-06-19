@@ -35,8 +35,8 @@ __date__ = "21/12/2018"
 from collections.abc import Callable
 import weakref
 from silx.gui.colors import RGBAColorType
-from typing import Literal
 
+from ..items.types import AxisScaleType
 from ... import qt
 
 # Names for setCursor
@@ -487,10 +487,10 @@ class BackendBase:
         """
         self.__xAxisTimeSeries = bool(isTimeSeries)
 
-    def setXAxisScale(self, scale: Literal["linear", "log", "asinh"]):
+    def setXAxisScale(self, scale: AxisScaleType):
         pass
 
-    def setYAxisScale(self, scale: Literal["linear", "log", "asinh"]):
+    def setYAxisScale(self, scale: AxisScaleType):
         pass
 
     def setXAxisInverted(self, flag: bool):
