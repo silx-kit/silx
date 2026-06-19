@@ -219,8 +219,6 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     assert axis in (0, 1)
     assert len(data.shape) == 3
     assert method in ("mean", "sum", "none")
-    # filter nan values
-    data = numpy.ma.masked_array(data=data, mask=numpy.isnan(data))
 
     # Convert from plot to image coords
     imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
@@ -243,9 +241,9 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     else:
         if start < height and end > 0:
             if method == "mean":
-                fct = numpy.mean
+                fct = numpy.nanmean
             elif method == "sum":
-                fct = numpy.sum
+                fct = numpy.nansum
             else:
                 raise ValueError("method not managed")
             profile = fct(data[:, max(0, start) : min(end, height), :], axis=1).astype(
