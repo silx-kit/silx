@@ -84,9 +84,12 @@ class SaveAction(PlotAction):
     """
 
     SNAPSHOT_FILTER_SVG = "Plot Snapshot as SVG (*.svg)"
-    SNAPSHOT_FILTER_PNG = "Plot Snapshot as PNG (*.png)"
+    SNAPSHOT_FILTER_PNG = "View Snapshot as PNG (*.png)"
 
-    DEFAULT_ALL_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
+    DEFAULT_ALL_FILTERS = (
+        SNAPSHOT_FILTER_PNG,
+        SNAPSHOT_FILTER_SVG,
+    )
 
     _DEFAULT_FMT = "%.18e"
 
@@ -239,7 +242,6 @@ class SaveAction(PlotAction):
         else:  # Format not supported
             _logger.error("Saving plot snapshot failed: format not supported")
             return False
-
         plot.saveGraph(filename, fileFormat=fileFormat)
         return True
 

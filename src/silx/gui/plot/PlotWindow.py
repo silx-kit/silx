@@ -33,6 +33,7 @@ __date__ = "12/04/2019"
 from collections import abc
 import logging
 import weakref
+from io import BytesIO, StringIO
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
@@ -493,6 +494,28 @@ class PlotWindow(PlotWidget):
             self.colorbarAction, self.yAxisScaleButton
         )
         return toolbar
+
+    def saveGraph(
+        self,
+        filename: str | StringIO | BytesIO,
+        fileFormat: str | None = None,
+        dpi: int | None = None,
+    ) -> bool:
+        # Overwrite the original function to be able to grab the central widget and
+        # potentially have the colorbar embed.
+        if fileFormat == "png":
+            centralWidget = self.centralWidget()
+            pixmap = centralWidget.grab()
+            if dpi is None:
+                pixmap.save(filename)
+            else:
+                image = pixmap.toImage()
+                # note: 0.0254 is used to convert from inch to meter
+                image.setDotsPerMeterX(dpi / 0.0254)
+                image.setDotsPerMeterY(dpi / 0.0254)
+                image.save(filename)
+            return True
+        return super().saveGraph(filename=filename, fileFormat=fileFormat, dpi=dpi)
 
     def toolBar(self):
         """Return a QToolBar from the QAction of the PlotWindow."""
