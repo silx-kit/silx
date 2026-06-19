@@ -77,7 +77,7 @@ class _Wrapper(qt.QRunnable):
         finally:
             self._emitFinished()
 
-        self._emitSigReleaseRunner(self)
+        self._emitSigReleaseRunner()
 
     def autoDelete(self):
         """Returns true to ask the QThreadPool to manage the life cycle of
@@ -114,12 +114,12 @@ class _Wrapper(qt.QRunnable):
             return
         holder.failed.emit(error)
 
-    def _emitSigReleaseRunner(self, runner):
+    def _emitSigReleaseRunner(self):
         """Emit '_sigReleaseRunner' signal only if holder still exists."""
         holder = self._getSignalHolder()
         if not holder:
             return
-        self._sigReleaseRunner.emit(runner)
+        self._sigReleaseRunner.emit(self)
 
 
 class ThreadPoolPushButton(WaitingPushButton):
