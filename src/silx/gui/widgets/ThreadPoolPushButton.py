@@ -27,7 +27,9 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "13/10/2016"
 
+import weakref
 import logging
+from typing import Any
 from .. import qt
 from .WaitingPushButton import WaitingPushButton
 
@@ -41,32 +43,84 @@ class _Wrapper(qt.QRunnable):
     def __init__(self, signalHolder, function, args, kwargs):
         """Constructor"""
         super().__init__()
-        self.__signalHolder = signalHolder
+        self.__signalHolder = weakref.ref(signalHolder)
         self.__callable = function
         self.__args = args
         self.__kwargs = kwargs
 
+        # connect signal / slots
+        signalHolder.destroyed.connect(self._clearSignalHolder)
+
+    def _getSignalHolder(self):
+        if self.__signalHolder is None:
+            return None
+        return self.__signalHolder()
+
+    def _clearSignalHolder(self):
+        self.__signalHolder = None
+
     def run(self):
-        holder = self.__signalHolder
-        holder.started.emit()
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+
+        self._emitStarted()
         try:
             result = self.__callable(*self.__args, **self.__kwargs)
-            holder.succeeded.emit(result)
+            self._emitSucceeded(result)
         except Exception as e:
             module = self.__callable.__module__
             name = self.__callable.__name__
             _logger.error(
                 "Error while executing callable %s.%s.", module, name, exc_info=True
             )
-            holder.failed.emit(e)
+            self._emitFailed(e)
         finally:
-            holder.finished.emit()
-        holder._sigReleaseRunner.emit(self)
+            self._emitFinished()
+
+        self._emitSigReleaseRunner()
 
     def autoDelete(self):
         """Returns true to ask the QThreadPool to manage the life cycle of
         this QRunner."""
         return True
+
+    # Signal emission under condition of holder existing
+
+    def _emitSucceeded(self, result: Any):
+        """Emit 'succeeded' signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        holder.succeeded.emit(result)
+
+    def _emitStarted(self):
+        """Emit 'started' signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        holder.started.emit()
+
+    def _emitFinished(self):
+        """Emit 'finished' signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        holder.finished.emit()
+
+    def _emitFailed(self, error: Exception):
+        """Emit 'failed' signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        holder.failed.emit(error)
+
+    def _emitSigReleaseRunner(self):
+        """Emit '_sigReleaseRunner' signal only if holder still exists."""
+        holder = self._getSignalHolder()
+        if not holder:
+            return
+        holder._sigReleaseRunner.emit(self)
 
 
 class ThreadPoolPushButton(WaitingPushButton):
