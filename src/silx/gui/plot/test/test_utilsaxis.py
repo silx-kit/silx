@@ -21,12 +21,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for PlotWidget"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "20/11/2018"
 
+import numpy
 
 from silx.gui.plot import PlotWidget
 from silx.gui.utils.testutils import TestCaseQt
@@ -237,3 +237,16 @@ class TestAxisSync(TestCaseQt):
         self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
         self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
         self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
+
+    def testAddImage(self):
+        x_sync = SyncAxes([self.plot1.getXAxis()])
+        x_sync.addAxis(self.plot2.getXAxis())
+        y_sync = SyncAxes([self.plot1.getYAxis()])
+        y_sync.addAxis(self.plot2.getYAxis())
+
+        self.plot1.addImage(numpy.arange(100).reshape(5, 20))
+        assert self.plot1.getGraphXLimits() == (0, 20)
+        assert self.plot2.getGraphXLimits() == (0, 20)
+
+        assert self.plot1.getGraphYLimits() == (0, 5)
+        assert self.plot2.getGraphYLimits() == (0, 5)
