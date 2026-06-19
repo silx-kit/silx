@@ -178,27 +178,11 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         return Bounds.from_values(xmin, xmax, ymin, ymax)
 
     def _getResetBounds(self) -> Bounds | None:
-        bounds = self._getBounds()
-        if bounds is None:
-            return None
-
-        plot = self.getPlot()
-        xmin, xmax, ymin, ymax = bounds
-
         # x: independent variable
         # y: independent variable
         # Fixed x: autoscale y to the full range
         # Fixed y: autoscale x to the full range
-
-        xAxis = plot.getXAxis()
-        if not xAxis.isAutoScale():
-            xmin, xmax = xAxis.getLimits()
-
-        yAxis = plot.getYAxis(self._getYAxis())
-        if not yAxis.isAutoScale():
-            ymin, ymax = yAxis.getLimits()
-
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return self._getBounds()
 
     @docstring(DraggableMixIn)
     def drag(self, from_, to):

@@ -236,16 +236,7 @@ class Histogram(
         edges = edges[edges_mask]
         values = values[values_mask]
 
-        bounds = self.__getHistogramMinMax(values, edges, yPositive)
-        if bounds is None:
-            return None
-
-        xmin2, xmax2, ymin2, ymax2 = bounds
-        if xAxis.isAutoScale():
-            xmin, xmax = xmin2, xmax2
-        if yAxis.isAutoScale():
-            ymin, ymax = ymin2, ymax2
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return self.__getHistogramMinMax(values, edges, yPositive)
 
     @staticmethod
     def __getHistogramMinMax(values, edges, yPositive) -> Bounds | None:
