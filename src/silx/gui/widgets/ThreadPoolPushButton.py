@@ -107,7 +107,7 @@ class _Wrapper(qt.QRunnable):
             return
         holder.finished.emit()
 
-    def _emitFailed(self, error):
+    def _emitFailed(self, error: Exception):
         """Emit 'failed' signal only if holder still exists."""
         holder = self._getSignalHolder()
         if not holder:
