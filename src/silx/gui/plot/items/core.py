@@ -1766,7 +1766,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
     def _getResetBounds(self) -> Bounds | None:
         plot = self.getPlot()
         if plot is None:
-            return self._getBounds()
+            return self.getBounds()
 
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
