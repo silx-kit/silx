@@ -540,6 +540,10 @@ def testProfile1D(qWidgetFactory, with_mask):
     qWaitForWindowExposedAndActivate(plot)
 
     plot.addImage([[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
+    if with_mask:
+        mask = numpy.zeros((5, 2))
+        mask[2, :] = 1
+        plot.setSelectionMask(mask)
 
     toolBar = plot.getProfileToolbar()
 
