@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """Image stack view with data prefetch capabilty."""
 
-from __future__ import annotations
-
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "04/03/2019"

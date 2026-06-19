@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This package provides test of the root modules"""
 
-from __future__ import annotations
-
 import importlib
 import os.path
 import subprocess

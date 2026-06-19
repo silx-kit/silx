@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-from __future__ import annotations
+
 
 """
 This module provides utility methods on top of h5py, mainly to handle

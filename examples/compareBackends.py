@@ -26,8 +26,6 @@
 This script compares the rendering of PlotWidget's matplotlib and OpenGL backends.
 """
 
-from __future__ import annotations
-
 __license__ = "MIT"
 
 import numpy

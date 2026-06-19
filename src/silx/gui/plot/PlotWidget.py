@@ -25,8 +25,6 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
-from __future__ import annotations
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -68,7 +66,6 @@ from .items.axis import TickMode  # noqa
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
-from ...gui.plot._utils.dtime_ticklayout import timestamp
 from ...utils.deprecation import deprecated_warning
 
 from .backends.BackendBase import BackendBase
@@ -101,7 +98,7 @@ class _PlotWidgetSelection(qt.QObject):
     sigSelectedItemsChanged = qt.Signal()
     """Signal emitted whenever the list of selected items changes."""
 
-    def __init__(self, parent: PlotWidget):
+    def __init__(self, parent: "PlotWidget"):
         assert isinstance(parent, PlotWidget)
         super().__init__(parent=parent)
 
@@ -380,7 +377,7 @@ class PlotWidget(qt.QMainWindow):
 
     def __init__(
         self,
-        parent: qt.Qt.Widget | None = None,
+        parent: qt.QWidget | None = None,
         backend: BackendType = None,
     ):
         self._autoreplot = False
@@ -666,7 +663,7 @@ class PlotWidget(qt.QMainWindow):
 
     # Default Qt context menu
 
-    def contextMenuEvent(self, event: qt.Qt.QContextEvent):
+    def contextMenuEvent(self, event: qt.QContextMenuEvent):
         """Override QWidget.contextMenuEvent to implement the context menu"""
         menu = qt.QMenu(self)
         from .actions.control import ZoomBackAction  # Avoid cyclic import
@@ -1240,7 +1237,7 @@ class PlotWidget(qt.QMainWindow):
             # tickMode to TickMode.TIME_SERIES and, if necessary, set the axis
             # to the correct time zone.
             if len(x) > 0 and isinstance(x[0], dt.datetime):
-                x = [timestamp(d) for d in x]
+                x = [d.timestamp() for d in x]
 
             curve.setData(x, y, xerror, yerror, baseline=baseline, copy=copy)
 

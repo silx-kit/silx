@@ -23,20 +23,17 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
-from __future__ import annotations
-from typing import Literal
-
-from .utils import Range, ensureAspectRatio, findDimToKeep
-
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
 
+from typing import Literal
 import logging
 import datetime as dt
 import numpy
 
+from .utils import Range, ensureAspectRatio, findDimToKeep
 from ... import qt
 
 # First of all init matplotlib and set its backend
@@ -64,7 +61,6 @@ from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import (
     calcTicks,
     formatDatetimes,
-    timestamp,
 )
 from ...qt import inspect as qt_inspect
 from .... import config
@@ -205,7 +201,7 @@ class NiceDateLocator(Locator):
         dtTicks, self._spacing, self._unit = calcTicks(dtMin, dtMax, self.numTicks)
 
         # Convert datetime back to time stamps.
-        ticks = [timestamp(dtTick) for dtTick in dtTicks]
+        ticks = [dtTick.timestamp() for dtTick in dtTicks]
         return ticks
 
 

@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module define core objects for profile tools."""
 
-from __future__ import annotations
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno", "V. Valls"]
 __license__ = "MIT"
 __date__ = "17/04/2020"
@@ -36,7 +34,7 @@ import weakref
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
 from silx.gui import colors
-import silx.gui.plot.items
+from ...items.core import Item
 
 
 class CurveProfileData(typing.NamedTuple):
@@ -188,7 +186,7 @@ class ProfileRoiMixIn:
             pass
 
     def computeProfile(
-        self, item: silx.gui.plot.items.Item
+        self, item: Item
     ) -> CurveProfileData | ImageProfileData | RgbaProfileData | CurvesProfileData:
         """
         Compute the profile which will be displayed.

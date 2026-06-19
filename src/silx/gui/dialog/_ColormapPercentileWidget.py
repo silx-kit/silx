@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from silx.gui import qt
 from ..colors import Colormap
 

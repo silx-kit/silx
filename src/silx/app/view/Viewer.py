@@ -22,8 +22,6 @@
 # ############################################################################*/
 """Browse a data file with a GUI"""
 
-from __future__ import annotations
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "15/01/2019"

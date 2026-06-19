@@ -21,17 +21,18 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from __future__ import annotations
+
 
 """This module defines two main classes:
 
-    - :class:`FrameBrowser`: a widget with 4 buttons (first, previous, next,
-      last) to browse between frames and a text entry to access a specific frame
-      by typing it's number)
-    - :class:`HorizontalSliderWithBrowser`: a FrameBrowser with an additional
-      slider. This class inherits :class:`qt.QAbstractSlider`.
+- :class:`FrameBrowser`: a widget with 4 buttons (first, previous, next,
+  last) to browse between frames and a text entry to access a specific frame
+  by typing it's number)
+- :class:`HorizontalSliderWithBrowser`: a FrameBrowser with an additional
+  slider. This class inherits :class:`qt.QAbstractSlider`.
 
 """
+
 from silx.gui import qt
 from silx.gui import icons
 

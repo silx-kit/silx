@@ -25,8 +25,6 @@
 This modules provides the rendering of plot titles, axes and grid.
 """
 
-from __future__ import annotations
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -58,7 +56,6 @@ from ..._utils.dtime_ticklayout import (
     calcTicksAdaptive,
     formatDatetimes,
 )
-from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
 
@@ -466,7 +463,7 @@ class PlotAxis:
                     ticks = formatDatetimes(visibleDatetimes, spacing, unit)
 
                     for tickDateTime, text in ticks.items():
-                        dataPos = timestamp(tickDateTime)
+                        dataPos = tickDateTime.timestamp()
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
                         yield ((xPixel, yPixel), dataPos, text)

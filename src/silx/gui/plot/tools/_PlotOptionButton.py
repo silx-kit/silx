@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 from silx.gui import qt
 import qtawesome
@@ -40,7 +38,7 @@ class PlotOptionButton(PlotToolButton):
         self._menu.addAction(plot.getCrosshairAction())
         self._menu.addAction(plot.getPanWithArrowKeysAction())
 
-    def setPlot(self, plot: PlotWindow):
+    def setPlot(self, plot: "PlotWindow"):
         from ..PlotWindow import PlotWindow  # noqa: F811 avoid cyclic import
 
         if not isinstance(plot, PlotWindow):

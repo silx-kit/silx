@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """This module provides the class for axes of the :class:`PlotWidget`."""
 
-from __future__ import annotations
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "22/11/2018"

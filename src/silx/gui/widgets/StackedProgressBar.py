@@ -22,7 +22,6 @@
 #
 # ###########################################################################*/
 
-from __future__ import annotations
 
 from typing import NamedTuple, Any
 
@@ -67,7 +66,7 @@ class StackedProgressBar(qt.QProgressBar):
     Multiple stacked progress bar in single component
     """
 
-    def __init__(self, parent: qt.Qwidget | None = None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent=parent)
         self.__stacks: dict[str, ProgressItem] = {}
         self._animated: int = 0
