@@ -55,7 +55,7 @@ class _Wrapper(qt.QRunnable):
             return None
         return self.__signalHolder()
 
-    def clear_signal_holder(self):
+    def _clearSignalHolder(self):
         self.__signalHolder = None
 
     def run(self):
