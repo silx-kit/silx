@@ -29,6 +29,7 @@ __date__ = "13/10/2016"
 
 import weakref
 import logging
+from typing import Any
 from .. import qt
 from .WaitingPushButton import WaitingPushButton
 
