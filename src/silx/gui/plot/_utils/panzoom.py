@@ -32,6 +32,7 @@ import logging
 import math
 from typing import NamedTuple
 import numpy
+from ..types import AxisScaleType
 
 _logger = logging.getLogger(__name__)
 
@@ -46,15 +47,14 @@ FLOAT32_SAFE_MAX = 1e37
 # TODO double support
 
 
-def checkAxisLimits(vmin: float, vmax: float, isLog: bool = False, name: str = ""):
+def checkAxisLimits(
+    vmin: float, vmax: float, axisScale: AxisScaleType = "linear", name: str = ""
+) -> tuple[float, float]:
     """Makes sure axis range is not empty and within supported range.
 
-    :param vmin: Min axis value
-    :param vmax: Max axis value
     :return: (min, max) making sure min < max
-    :rtype: 2-tuple of float
     """
-    min_ = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
+    min_ = FLOAT32_MINPOS if axisScale == "log" else FLOAT32_SAFE_MIN
     vmax = numpy.clip(vmax, min_, FLOAT32_SAFE_MAX)
     vmin = numpy.clip(vmin, min_, FLOAT32_SAFE_MAX)
 

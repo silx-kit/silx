@@ -149,7 +149,7 @@ class Axis(qt.QObject):
         :return: (min, max) making sure min < max
         """
         return _utils.checkAxisLimits(
-            vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel
+            vmin, vmax, axisScale=self.getScale(), name=self._defaultLabel
         )
 
     def _getDataRange(self) -> tuple[float, float] | None:

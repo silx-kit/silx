@@ -91,11 +91,11 @@ def addMarginsToLimits(
                 y2Min = pow(10.0, yMinLog - yMinMargin * yRangeLog)
                 y2Max = pow(10.0, yMaxLog + yMaxMargin * yRangeLog)
 
-    xMin, xMax = checkAxisLimits(xMin, xMax, isXLog)
-    yMin, yMax = checkAxisLimits(yMin, yMax, isYLog)
+    xMin, xMax = checkAxisLimits(xMin, xMax, "log" if isXLog else "linear")
+    yMin, yMax = checkAxisLimits(yMin, yMax, "log" if isYLog else "linear")
 
     if y2Min is None or y2Max is None:
         return xMin, xMax, yMin, yMax
     else:
-        y2Min, y2Max = checkAxisLimits(y2Min, y2Max, isYLog)
+        y2Min, y2Max = checkAxisLimits(y2Min, y2Max, "log" if isYLog else "linear")
         return xMin, xMax, yMin, yMax, y2Min, y2Max

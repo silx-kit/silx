@@ -1039,17 +1039,17 @@ class GLPlotFrame2D(GLPlotFrame):
         """
         if x is not None:
             self._dataRanges["x"] = checkAxisLimits(
-                x[0], x[1], self.xAxis.isLog, name="x"
+                x[0], x[1], "log" if self.xAxis.isLog else "linear", name="x"
             )
 
         if y is not None:
             self._dataRanges["y"] = checkAxisLimits(
-                y[0], y[1], self.yAxis.isLog, name="y"
+                y[0], y[1], "log" if self.yAxis.isLog else "linear", name="y"
             )
 
         if y2 is not None:
             self._dataRanges["y2"] = checkAxisLimits(
-                y2[0], y2[1], self.y2Axis.isLog, name="y2"
+                y2[0], y2[1], "log" if self.y2Axis.isLog else "linear", name="y2"
             )
 
         self.xAxis.dataRange = self._dataRanges["x"]
