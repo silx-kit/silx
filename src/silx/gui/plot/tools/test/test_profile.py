@@ -31,6 +31,7 @@ import numpy
 import logging
 
 from silx.gui import qt
+from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate, QTest
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
@@ -41,6 +42,7 @@ from silx.gui.plot.tools.profile import editors
 from silx.gui.plot.items import roi as roi_items
 from silx.gui.plot.tools.profile import manager
 from silx.gui import plot as silx_plot
+from silx.gui.plot.tools.profile.manager import ProfileWindow
 
 _logger = logging.getLogger(__name__)
 
@@ -526,83 +528,98 @@ class TestProfile3DToolBar(TestCaseQt):
         numpy.testing.assert_almost_equal(data, expected)
 
 
-class TestGetProfilePlot(TestCaseQt):
-    def setUp(self):
-        self.plot = None
-        super().setUp()
+def testProfile1D(qWidgetFactory):
+    plot = qWidgetFactory(Plot2D)
+    plot.show()
+    qWaitForWindowExposedAndActivate(plot)
 
-    def tearDown(self):
-        if self.plot is not None:
-            manager = self.plot.getProfileToolbar().getProfileManager()
-            manager.clearProfile()
-            manager = None
-            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-            self.plot.close()
-            self.plot = None
+    plot.addImage([[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]])
 
-        super().tearDown()
+    toolBar = plot.getProfileToolbar()
 
-    def testProfile1D(self):
-        self.plot = Plot2D()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        self.plot.addImage([[0, 1], [2, 3]])
+    manager = toolBar.getProfileManager()
+    roiManager = manager.getRoiManager()
 
-        toolBar = self.plot.getProfileToolbar()
+    roi = rois.ProfileImageHorizontalLineROI()
+    roi.setPosition(2.5)
+    roi.setProfileLineWidth(3)
+    roiManager.addRoi(roi)
+    roiManager.setCurrentRoi(roi)
 
-        manager = toolBar.getProfileManager()
-        roiManager = manager.getRoiManager()
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
 
-        roi = rois.ProfileImageHorizontalLineROI()
-        roi.setPosition(0.5)
-        roiManager.addRoi(roi)
-        roiManager.setCurrentRoi(roi)
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot1D)
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+    # check result
+    curves = plotWidget.getAllCurves()
+    assert len(curves) == 1
+    profile = curves[0]
+    numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
 
-    def testProfile2D(self):
-        """Test that the profile plot associated to a stack view is either a
-        Plot1D or a plot 2D instance."""
-        self.plot = StackView()
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
+def testProfile2D(qWidgetFactory):
+    """Test that the profile plot associated to a stack view is either a
+    Plot1D or a plot 2D instance."""
+    plot = qWidgetFactory(StackView)
+    plot.show()
+    qWaitForWindowExposedAndActivate(plot)
 
-        self.plot.setStack(numpy.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]))
+    plot.setStack(
+        stack=(
+            numpy.arange(0, 10).reshape(5, 2),
+            numpy.arange(10, 20).reshape(5, 2),
+        )
+    )
 
-        toolBar = self.plot.getProfileToolbar()
+    toolBar = plot.getProfileToolbar()
 
-        manager = toolBar.getProfileManager()
-        roiManager = manager.getRoiManager()
+    manager = toolBar.getProfileManager()
+    roiManager = manager.getRoiManager()
 
-        roi = rois.ProfileImageStackHorizontalLineROI()
-        roi.setPosition(0.5)
-        roi.setProfileType("2D")
-        roiManager.addRoi(roi)
-        roiManager.setCurrentRoi(roi)
+    roi = rois.ProfileImageStackHorizontalLineROI()
+    roi.setPosition(2.5)
+    roi.setProfileLineWidth(3)
+    roi.setProfileType("2D")
+    roiManager.addRoi(roi)
+    roiManager.setCurrentRoi(roi)
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot2D)
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot2D)
+    images = plotWidget.getAllImages()
+    assert len(images) == 1
+    profile = images[0]
+    numpy.testing.assert_almost_equal(
+        profile.getData(), numpy.array([[4.0, 5.0], [14.0, 15.0]])
+    )
 
-        roi.setProfileType("1D")
+    roi.setProfileType("1D")
 
-        for _ in range(20):
-            self.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+    for _ in range(20):
+        QTest.qWait(200)
+        if not manager.hasPendingOperations():
+            break
 
-        profileWindow = roi.getProfileWindow()
-        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
-        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
+    profileWindow = roi.getProfileWindow()
+    assert isinstance(roi.getProfileWindow(), ProfileWindow)
+
+    plotWidget = profileWindow.getCurrentPlotWidget()
+    assert isinstance(plotWidget, Plot1D)
+
+    # check result
+    curves = plotWidget.getAllCurves()
+    assert len(curves) == 1
+    profile = curves[0]
+    numpy.testing.assert_almost_equal(profile.getYData(), numpy.array([4.0, 5.0]))
