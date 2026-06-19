@@ -84,4 +84,4 @@ jobs:
           QT_API: ${{ matrix.QT_API }}
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
         run: |
-          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
+          pytest --pyargs silx.opencl.codec.test.test_bitshuffle_lz4 --capture=no

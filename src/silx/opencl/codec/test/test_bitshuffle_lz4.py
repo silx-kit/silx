@@ -59,7 +59,6 @@ TESTCASES = (  # dtype, shape
 )
 
 
-@pytest.mark.skipif(True, reason="Failing test")  # Remove once test is fixed
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
     reason="PyOpenCl or bitshuffle is missing",
@@ -90,6 +89,7 @@ class TestBitshuffleLz4:
         """
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
+        print(bs.ctx)
         res = bs.decompress(raw).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
 
