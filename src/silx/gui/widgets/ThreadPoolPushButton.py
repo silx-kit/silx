@@ -86,7 +86,7 @@ class _Wrapper(qt.QRunnable):
 
     # Signal emission under condition of holder existing
 
-    def _emitSucceeded(self, result):
+    def _emitSucceeded(self, result: Any):
         """Emit 'succeeded' signal only if holder still exists."""
         holder = self._getSignalHolder()
         if not holder:
