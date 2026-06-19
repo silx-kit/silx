@@ -63,6 +63,7 @@ class TestImageStack(TestCaseQt):
                     file_path=file_name, data_path=str(i), scheme="silx"
                 )
         self.widget = ImageStack()
+        self.widget.setNPrefetch(10)
 
         self.urlLoadedListener = SignalListener()
         self.widget.sigLoaded.connect(self.urlLoadedListener)
