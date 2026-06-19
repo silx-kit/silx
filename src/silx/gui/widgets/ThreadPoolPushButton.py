@@ -120,7 +120,7 @@ class _Wrapper(qt.QRunnable):
         holder = self._getSignalHolder()
         if not holder:
             return
-        self._sigReleaseRunner.emit(self)
+        holder._sigReleaseRunner.emit(self)
 
 
 class ThreadPoolPushButton(WaitingPushButton):
