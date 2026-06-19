@@ -1171,7 +1171,7 @@ class _NXdataCurveView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayCurvePlot
+        from silx.gui.data.ArrayCurvePlot import ArrayCurvePlot
 
         widget = ArrayCurvePlot(parent)
         return widget
