@@ -79,6 +79,7 @@ def unblock_bslz4(bytes src):
             block_idx +=1
             pos = end + block_size
             end = pos + 4
+        # Remove last block if it overflows
         if end >= size:
             block_idx -= 1
     return numpy.asarray(block_start[:block_idx])
