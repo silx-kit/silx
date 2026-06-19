@@ -84,7 +84,7 @@ class _PlotInteraction:
         :param plot: The plot to apply modifications to.
         """
         self._needReplot = False
-        self._selectionAreas = set()
+        self._legends = set()
         self._plot = weakref.ref(plot)  # Avoid cyclic-ref
 
     @property
@@ -136,13 +136,57 @@ class _PlotInteraction:
             overlay=True,
         )
 
-        self._selectionAreas.add(legend)
+        self._legends.add(legend)
 
-    def resetSelectionArea(self):
-        """Remove all selection areas set by setSelectionArea."""
-        for legend in self._selectionAreas:
-            self.plot.remove(legend, kind="item")
-        self._selectionAreas = set()
+    def setMarker(
+        self,
+        x: float,
+        y: float,
+        name: str = "",
+        color: tuple[float, ...] | str | None = None,
+    ) -> None:
+        """
+        :param float x: The x data coord.
+        :param float y: The y data coord.
+        :param name: The name of the marker.
+        :param color: The name of the color.
+        """
+        legend = "__MARKER__" + name
+
+        self.plot.addMarker(
+            x=x,
+            y=y,
+            legend=legend,
+            symbol="o",
+            color=color,
+            text=None,
+            selectable=False,
+            draggable=False,
+        )
+
+        self._legends.add(legend)
+
+    def clearItems(self):
+        """
+        Remove all selection areas set by setSelectionArea
+        and markers set by setMarker.
+        """
+        for legend in self._legends:
+            self.plot.remove(legend, kind=("item", "marker"))
+        self._legends = set()
+
+    def insideMarker(self, x: float, y: float, name="") -> bool:
+        """
+        :param float x: The x pixel coord.
+        :param float y: The y pixel coord.
+        :returns: True when the marker is selected.
+        """
+        legend = "__MARKER__" + name
+        marker = self.plot._getMarker(legend)
+        if marker is None:
+            return False
+
+        return marker.pick(x, y) is not None
 
 
 # Zoom/Pan ####################################################################
@@ -450,11 +494,11 @@ class Zoom(_PlotInteractionWithClickEvents):
             # Avoid empty zoom area
             self._zoom(x0, y0, x1, y1)
 
-        self.resetSelectionArea()
+        self.clearItems()
 
     def cancel(self):
         if isinstance(self.state, self.states["drag"]):
-            self.resetSelectionArea()
+            self.clearItems()
 
 
 # Select ######################################################################
@@ -501,23 +545,10 @@ class SelectPolygon(Select):
             self.updateFirstPoint()
 
         def updateFirstPoint(self):
-            """Update drawing first point, using self._firstPos"""
-            x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
-
-            offset = self.machine.getDragThreshold()
-            points = [
-                (x - offset, y - offset),
-                (x - offset, y + offset),
-                (x + offset, y + offset),
-                (x + offset, y - offset),
-            ]
-            points = [
-                self.machine.plot.pixelToData(xpix, ypix, check=False)
-                for xpix, ypix in points
-            ]
-            self.machine.setSelectionArea(
-                points, fill=None, color=self.machine.color, name="first_point"
-            )
+            """Display first point as a fixed-size square marker."""
+            x, y = self._firstPos
+            r, g, b, _ = self.machine.color
+            self.machine.setMarker(x, y, "first_point", color=(r, g, b, 0.5))
 
         def updateSelectionArea(self):
             """Update drawing selection area using self.points"""
@@ -538,7 +569,7 @@ class SelectPolygon(Select):
                 self.machine.cancel()
 
         def closePolygon(self):
-            self.machine.resetSelectionArea()
+            self.machine.clearItems()
             self.points[-1] = self.points[0]
             eventDict = prepareDrawingSignal(
                 "drawingFinished", "polygon", self.points, self.machine.parameters
@@ -554,13 +585,10 @@ class SelectPolygon(Select):
             if btn == LEFT_BTN:
                 # checking if the position is close to the first point
                 # if yes : closing the "loop"
-                firstPos = self.machine.plot.dataToPixel(*self._firstPos, check=False)
-                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-
-                threshold = self.machine.getDragThreshold()
+                insideFirst = self.machine.insideMarker(x, y, "first_point")
 
                 # Only allow to close polygon after first point
-                if len(self.points) > 2 and dx <= threshold and dy <= threshold:
+                if len(self.points) > 2 and insideFirst:
                     self.closePolygon()
                     return False
 
@@ -580,6 +608,7 @@ class SelectPolygon(Select):
                     *self.points[-2], check=False
                 )
                 dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
+                threshold = self.machine.getDragThreshold()
                 if dx >= threshold or dy >= threshold:
                     self.points.append(dataPos)
                 else:
@@ -589,12 +618,9 @@ class SelectPolygon(Select):
             return False
 
         def onMove(self, x, y):
-            firstPos = self.machine.plot.dataToPixel(*self._firstPos, check=False)
-            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            threshold = self.machine.getDragThreshold()
-
-            if dx <= threshold and dy <= threshold:
-                x, y = firstPos  # Snap to first point
+            if self.machine.insideMarker(x, y, "first_point"):
+                # Snap to first point
+                x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
 
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
@@ -607,7 +633,7 @@ class SelectPolygon(Select):
 
     def cancel(self):
         if isinstance(self.state, self.states["select"]):
-            self.resetSelectionArea()
+            self.clearItems()
 
     def getDragThreshold(self):
         """Return dragging ratio with device to pixel ratio applied.
@@ -744,7 +770,7 @@ class SelectEllipse(Select2Points):
         self.plot.notify(**eventDict)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        self.clearItems()
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -759,7 +785,7 @@ class SelectEllipse(Select2Points):
         self.plot.notify(**eventDict)
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class SelectRectangle(Select2Points):
@@ -790,7 +816,7 @@ class SelectRectangle(Select2Points):
         self.plot.notify(**eventDict)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        self.clearItems()
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -801,7 +827,7 @@ class SelectRectangle(Select2Points):
         self.plot.notify(**eventDict)
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class SelectLine(Select2Points):
@@ -823,7 +849,7 @@ class SelectLine(Select2Points):
         self.plot.notify(**eventDict)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        self.clearItems()
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -834,7 +860,7 @@ class SelectLine(Select2Points):
         self.plot.notify(**eventDict)
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class Select1Point(Select):
@@ -904,7 +930,7 @@ class SelectHLine(Select1Point):
         self.plot.notify(**eventDict)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        self.clearItems()
 
         eventDict = prepareDrawingSignal(
             "drawingFinished", "hline", self._hLine(y), self.parameters
@@ -912,7 +938,7 @@ class SelectHLine(Select1Point):
         self.plot.notify(**eventDict)
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class SelectVLine(Select1Point):
@@ -939,7 +965,7 @@ class SelectVLine(Select1Point):
         self.plot.notify(**eventDict)
 
     def endSelect(self, x, y):
-        self.resetSelectionArea()
+        self.clearItems()
 
         eventDict = prepareDrawingSignal(
             "drawingFinished", "vline", self._vLine(x), self.parameters
@@ -947,7 +973,7 @@ class SelectVLine(Select1Point):
         self.plot.notify(**eventDict)
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class DrawFreeHand(Select):
@@ -979,7 +1005,7 @@ class DrawFreeHand(Select):
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
                 if self.__isOut:
-                    self.machine.resetSelectionArea()
+                    self.machine.clearItems()
                 self.machine.endSelect(x, y)
                 self.goto("idle")
 
@@ -1040,10 +1066,10 @@ class DrawFreeHand(Select):
         self._points = None
 
     def cancelSelect(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
     def cancel(self):
-        self.resetSelectionArea()
+        self.clearItems()
 
 
 class SelectFreeLine(ClickOrDrag, _PlotInteraction):
@@ -1080,7 +1106,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         self._processEvent(x, y, isLast=True)
 
     def cancel(self):
-        self.resetSelectionArea()
+        self.clearItems()
         self._points = []
 
     def _processEvent(self, x, y, isLast):
