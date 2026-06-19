@@ -37,7 +37,6 @@ import datetime as dt
 import itertools
 from io import BytesIO, StringIO
 import numbers
-import warnings
 from typing import Any, Callable, Generator, Literal
 
 
@@ -835,48 +834,6 @@ class PlotWidget(qt.QMainWindow):
         """
         self._dataRange = None
 
-    def _updateDataRange(self):
-        """
-        Recomputes the range of the data displayed on this PlotWidget.
-        """
-        xMin = yMinLeft = yMinRight = float("nan")
-        xMax = yMaxLeft = yMaxRight = float("nan")
-
-        for item in self.getItems():
-            if item.isVisible():
-                bounds = item.getBounds()
-                if bounds is not None:
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore", category=RuntimeWarning)
-                        # Ignore All-NaN slice encountered
-                        xMin = numpy.nanmin([xMin, bounds[0]])
-                        xMax = numpy.nanmax([xMax, bounds[1]])
-                    # Take care of right axis
-                    if (
-                        isinstance(item, items.YAxisMixIn)
-                        and item.getYAxis() == "right"
-                    ):
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore", category=RuntimeWarning)
-                            # Ignore All-NaN slice encountered
-                            yMinRight = numpy.nanmin([yMinRight, bounds[2]])
-                            yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
-                    else:
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore", category=RuntimeWarning)
-                            # Ignore All-NaN slice encountered
-                            yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
-                            yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
-
-        def lGetRange(x, y):
-            return None if numpy.isnan(x) and numpy.isnan(y) else (x, y)
-
-        xRange = lGetRange(xMin, xMax)
-        yLeftRange = lGetRange(yMinLeft, yMaxLeft)
-        yRightRange = lGetRange(yMinRight, yMaxRight)
-
-        self._dataRange = _PlotDataRange(x=xRange, y=yLeftRange, yright=yRightRange)
-
     def getDataRange(self) -> _PlotDataRange:
         """
         Returns this PlotWidget's data range.
@@ -886,7 +843,7 @@ class PlotWidget(qt.QMainWindow):
                 or None if no data is associated with the axis.
         """
         if self._dataRange is None:
-            self._updateDataRange()
+            self._dataRange = self._computeDataRange(reset=False)
         return self._dataRange
 
     def _getResetDataRange(self) -> _PlotDataRange:
@@ -906,6 +863,9 @@ class PlotWidget(qt.QMainWindow):
         ):
             return self.getDataRange()
 
+        return self._computeDataRange(reset=True)
+
+    def _computeDataRange(self, reset: bool = False) -> _PlotDataRange:
         xMinList = []
         xMaxList = []
 
@@ -919,7 +879,10 @@ class PlotWidget(qt.QMainWindow):
             if not item.isVisible():
                 continue
 
-            bounds = item.getResetBounds()
+            if reset:
+                bounds = item.getResetBounds()
+            else:
+                bounds = item.getBounds()
             if bounds is None:
                 continue
 
