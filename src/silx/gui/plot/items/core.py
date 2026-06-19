@@ -174,7 +174,7 @@ class Bounds(NamedTuple):
         xmax: float | None,
         ymin: float | None,
         ymax: float | None,
-    ) -> "Bounds" | None:
+    ) -> "Bounds | None":
         """
         Create a :class:`Bounds` instance from optional values.
 
