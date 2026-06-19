@@ -579,6 +579,9 @@ class ImageView(PlotWindow):
             self._cache = result
             self._histoHPlot.setProfileSum(result)
             self._histoVPlot.setProfileSum(result)
+        else:
+            self._histoHPlot.clear()
+            self._histoVPlot.clear()
 
     # Plots event listeners
 
