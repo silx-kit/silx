@@ -75,7 +75,6 @@ class _Wrapper(qt.QRunnable):
             )
             self._emitIfHolder("failed", e)
         finally:
-            holder = self._getSignalHolder()
             self._emitIfHolder("finished")
 
         self._emitIfHolder("_sigReleaseRunner", self)
