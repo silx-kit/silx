@@ -302,7 +302,10 @@ class ImageStack(qt.QMainWindow):
         """
         if n < 0:
             raise ValueError("'n' should be positive")
-        if self._urlData.maxsize < self.__n_prefetch:
+        if (
+            self._urlData.maxsize is not None
+            and self._urlData.maxsize < self.__n_prefetch
+        ):
             _logger.warning(
                 "Number of prefetchs lower that data cache size: This is not optimal"
             )
