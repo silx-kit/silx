@@ -10,7 +10,7 @@ The *silx compare* command provides a graphical user interface to compare 2D dat
 
 This tool allows you to list land open multiple datasets.
 
-.. |imgViewImg| figure:: img/silx-compare.png
+.. figure:: img/silx-compare.png
   :height: 300px
   :align: center
 
