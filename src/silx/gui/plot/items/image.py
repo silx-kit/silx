@@ -182,7 +182,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         # y: independent variable
         # Fixed x: autoscale y to the full range
         # Fixed y: autoscale x to the full range
-        return self._getBounds()
+        return self.getBounds()
 
     @docstring(DraggableMixIn)
     def drag(self, from_, to):

@@ -203,7 +203,7 @@ class Histogram(
     def _getResetBounds(self) -> Bounds | None:
         plot = self.getPlot()
         if plot is None:
-            return self._getBounds()
+            return self.getBounds()
 
         values, edges, yPositive = self.__getRawDataBoundsData()
 
