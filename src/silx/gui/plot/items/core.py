@@ -289,7 +289,26 @@ class Item(qt.QObject):
         :returns: (xmin, xmax, ymin, ymax) or None
         :rtype: Union[Bounds, None]
         """
-        return self._getResetBounds()
+        bounds = self._getResetBounds()
+        if bounds is None:
+            return None
+
+        plot = self.getPlot()
+        if plot is None:
+            return bounds
+
+        xmin, xmax, ymin, ymax = bounds
+
+        # Apply the fixed limits when not autoscaling
+        xAxis = plot.getXAxis()
+        if not xAxis.isAutoScale():
+            xmin, xmax = xAxis.getLimits()
+
+        yAxis = plot.getYAxis(self._getYAxis())
+        if not yAxis.isAutoScale():
+            ymin, ymax = yAxis.getLimits()
+
+        return Bounds.from_values(xmin, xmax, ymin, ymax)
 
     def _getResetBounds(self) -> Bounds | None:
         """:meth:`getResetBounds` implementation to override by sub-class."""
