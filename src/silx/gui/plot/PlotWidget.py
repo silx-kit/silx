@@ -936,8 +936,8 @@ class PlotWidget(qt.QMainWindow):
                 yMaxLeftList.append(ymax)
 
         def pack(min_list, max_list):
-            # min_list = [x for x in min_list if not numpy.isnan(x)]
-            # max_list = [x for x in max_list if not numpy.isnan(x)]
+            min_list = [x for x in min_list if not numpy.isnan(x)]
+            max_list = [x for x in max_list if not numpy.isnan(x)]
             if not min_list or not max_list:
                 return None
             return (min(min_list), max(max_list))
