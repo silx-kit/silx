@@ -146,12 +146,8 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
         axes."""
-        linear = plot.getXAxis().LINEAR
-        if plot.getXAxis().getScale() != linear:
-            return False
-        if plot.getYAxis().getScale() != linear:
-            return False
-        return True
+        xAxis, yAxis = self._getAxisInstances(plot)
+        return xAxis.getScale() == xAxis.LINEAR and yAxis.getScale() == yAxis.LINEAR
 
     def _getBounds(self) -> Bounds | None:
         plot = self.getPlot()

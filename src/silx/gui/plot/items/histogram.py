@@ -163,8 +163,9 @@ class Histogram(
         # Filter-out values <= 0
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -215,12 +216,10 @@ class Histogram(
         values_mask = numpy.isfinite(values)
         edges_mask = numpy.isfinite(edges)
 
-        xAxis = plot.getXAxis()
+        xAxis, yAxis = self._getAxisInstances(plot)
         if not xAxis.isAutoScale():
             xmin, xmax = xAxis.getLimits()
             edges_mask &= (edges >= xmin) & (edges <= xmax)
-
-        yAxis = plot.getYAxis(self._getYAxis())
         if not yAxis.isAutoScale():
             ymin, ymax = yAxis.getLimits()
             values_mask &= (values >= ymin) & (values <= ymax)
@@ -257,8 +256,9 @@ class Histogram(
     def __getRawDataBoundsData(self):
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
