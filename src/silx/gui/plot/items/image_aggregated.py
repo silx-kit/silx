@@ -186,13 +186,13 @@ class ImageDataAggregated(ImageDataBase):
         """Refresh image when plot limits change"""
         previousPlot = self.getPlot()
         if previousPlot is not None:
-            for axis in (previousPlot.getXAxis(), previousPlot.getYAxis()):
+            for axis in self._getAxisInstances(previousPlot):
                 axis.sigLimitsChanged.disconnect(self.__plotLimitsChanged)
 
         super()._setPlot(plot)
 
         if plot is not None:
-            for axis in (plot.getXAxis(), plot.getYAxis()):
+            for axis in self._getAxisInstances(plot):
                 axis.sigLimitsChanged.connect(self.__plotLimitsChanged)
 
     def __plotLimitsChanged(self):

@@ -300,11 +300,9 @@ class Item(qt.QObject):
         xmin, xmax, ymin, ymax = bounds
 
         # Apply the fixed limits when not autoscaling
-        xAxis = plot.getXAxis()
+        xAxis, yAxis = self._getAxisInstances(plot)
         if not xAxis.isAutoScale():
             xmin, xmax = xAxis.getLimits()
-
-        yAxis = plot.getYAxis(self._getYAxis())
         if not yAxis.isAutoScale():
             ymin, ymax = yAxis.getLimits()
 
@@ -409,13 +407,17 @@ class Item(qt.QObject):
         :rtype: Union[Bounds,None]
         """
         plot = self.getPlot()
-        bounds = self.getBounds()
-        if plot is None or bounds is None or not self.isVisible():
+        if plot is None or not self.isVisible():
             return None
 
-        xmin, xmax = plot.getXAxis().getLimits()
+        bounds = self.getBounds()
+        if bounds is None:
+            return None
+
+        xAxis, yAxis = self._getAxisInstances(plot)
+        xmin, xmax = xAxis.getLimits()
         xmin, xmax = numpy.clip(bounds[:2], xmin, xmax)
-        ymin, ymax = plot.getYAxis(self._getYAxis()).getLimits()
+        ymin, ymax = yAxis.getLimits()
         ymin, ymax = numpy.clip(bounds[2:], ymin, ymax)
 
         if xmin == xmax or ymin == ymax:  # Outside the plot area
@@ -443,8 +445,20 @@ class Item(qt.QObject):
             self.__connectToPlotWidget()
 
     def _getYAxis(self) -> str:
-        """Returns current Y axis ('left' or 'right')"""
+        """Returns current Y axis name, either 'left' or 'right'"""
         return self.getYAxis() if isinstance(self, YAxisMixIn) else "left"
+
+    def _getYAxisInstance(self, plot):
+        """Returns the current Y axis instance"""
+        return plot.getYAxis(self._getYAxis())
+
+    def _getXAxisInstance(self, plot):
+        """Returns the X axis instance"""
+        return plot.getXAxis()
+
+    def _getAxisInstances(self, plot):
+        """Returns the X and current Y axis instances"""
+        return self._getXAxisInstance(plot), self._getYAxisInstance(plot)
 
     def __connectToPlotWidget(self) -> None:
         """Connect to PlotWidget signals and install event filter"""
@@ -453,7 +467,7 @@ class Item(qt.QObject):
 
         plot = self.getPlot()
         if plot is not None:
-            for axis in (plot.getXAxis(), plot.getYAxis(self._getYAxis())):
+            for axis in self._getAxisInstances(plot):
                 axis.sigLimitsChanged.connect(self._visibleBoundsChanged)
 
             plot.installEventFilter(self)
@@ -467,7 +481,7 @@ class Item(qt.QObject):
 
         plot = self.getPlot()
         if plot is not None:
-            for axis in (plot.getXAxis(), plot.getYAxis(self._getYAxis())):
+            for axis in self._getAxisInstances(plot):
                 axis.sigLimitsChanged.disconnect(self._visibleBoundsChanged)
 
             plot.removeEventFilter(self)
@@ -1147,14 +1161,15 @@ class YAxisMixIn(ItemMixInBase):
     def getYAxis(self) -> str:
         """Returns the Y axis this curve belongs to.
 
-        Either 'left' or 'right'.
+        This function returns the axis name, either 'left' or 'right',
+        not the axis instance.
 
         :rtype: str
         """
         return self._yaxis
 
     def setYAxis(self, yaxis: str) -> None:
-        """Set the Y axis this curve belongs to.
+        """Set the Y axis name this curve belongs to.
 
         :param str yaxis: 'left' or 'right'
         """
@@ -1175,7 +1190,7 @@ class YAxisMixIn(ItemMixInBase):
                     plot.getYAxis(previousYAxis).sigLimitsChanged.disconnect(
                         self._visibleBoundsChanged
                     )
-                    plot.getYAxis(self.getYAxis()).sigLimitsChanged.connect(
+                    self._getYAxisInstance(plot).sigLimitsChanged.connect(
                         self._visibleBoundsChanged
                     )
                 self._visibleBoundsChanged()
@@ -1743,8 +1758,9 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         plot = self.getPlot()
 
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -1774,12 +1790,9 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         if x.size == 0:
             return None
 
-        if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
-        else:
-            xPositive = False
-            yPositive = False
+        xAxis, yAxis = self._getAxisInstances(plot)
+        xPositive = xAxis._isLogarithmic()
+        yPositive = yAxis._isLogarithmic()
 
         # x: independent variable
         # y: dependent variable
@@ -1788,12 +1801,10 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
 
         mask = numpy.isfinite(x) & numpy.isfinite(y)
 
-        xAxis = plot.getXAxis()
         if not xAxis.isAutoScale():
             xmin, xmax = xAxis.getLimits()
             mask &= (x >= xmin) & (x <= xmax)
 
-        yAxis = plot.getYAxis(self._getYAxis())
         if not yAxis.isAutoScale():
             ymin, ymax = yAxis.getLimits()
             mask &= (y >= ymin) & (y <= ymax)
@@ -1845,8 +1856,9 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         if plot is None:
             return None
 
-        xPositive = plot.getXAxis()._isLogarithmic()
-        yPositive = plot.getYAxis(self._getYAxis())._isLogarithmic()
+        xAxis, yAxis = self._getAxisInstances(plot)
+        xPositive = xAxis._isLogarithmic()
+        yPositive = yAxis._isLogarithmic()
         if (xPositive, yPositive) not in self._filteredCache:
             self._filteredCache[(xPositive, yPositive)] = self._filterData(
                 xPositive, yPositive

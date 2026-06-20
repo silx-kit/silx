@@ -194,8 +194,9 @@ class BoundingRect(DataItem, YAxisMixIn):
             return None
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
             if xPositive or yPositive:
                 bounds = list(self.__bounds)
                 if xPositive and bounds[1] <= 0:
@@ -221,7 +222,8 @@ class BoundingRect(DataItem, YAxisMixIn):
 
         xmin, xmax, ymin, ymax = bounds
 
-        xAxis = plot.getXAxis()
+        xAxis, yAxis = self._getAxisInstances(plot)
+
         if not xAxis.isAutoScale():
             lmin, lmax = xAxis.getLimits()
 
@@ -232,7 +234,6 @@ class BoundingRect(DataItem, YAxisMixIn):
                 # No overlap
                 return None
 
-        yAxis = plot.getYAxis(self._getYAxis())
         if not yAxis.isAutoScale():
             lmin, lmax = yAxis.getLimits()
 
@@ -288,9 +289,9 @@ class _BaseExtent(DataItem):
         plot = self.getPlot()
         if plot is not None:
             if self.__axis == "x":
-                axis = plot.getXAxis()
+                axis = self._getXAxisInstance(plot)
             else:
-                axis = plot.getYAxis(self._getYAxis())
+                axis = self._getYAxisInstance(plot)
 
             if axis._isLogarithmic():
                 if max_ <= 0:
@@ -320,7 +321,7 @@ class _BaseExtent(DataItem):
         # Fixed y: autoscale x within the y limits
 
         if self.__axis == "x":
-            xAxis = plot.getXAxis()
+            xAxis = self._getXAxisInstance(plot)
 
             lmin, lmax = xAxis.getLimits()
 
@@ -337,7 +338,7 @@ class _BaseExtent(DataItem):
             return Bounds.from_values(xmin, xmax, float("nan"), float("nan"))
 
         else:
-            yAxis = plot.getYAxis(self._getYAxis())
+            yAxis = self._getYAxisInstance(plot)
 
             lmin, lmax = yAxis.getLimits()
 
@@ -405,8 +406,9 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
         if plot is None or not plot.isVisible():
             return
 
-        xmin, xmax = plot.getXAxis().getLimits()
-        ymin, ymax = plot.getYAxis().getLimits()
+        xAxis, yAxis = self._getAxisInstances(plot)
+        xmin, xmax = xAxis.getLimits()
+        ymin, ymax = yAxis.getLimits()
 
         slope = self.getSlope()
         intercept = self.getIntercept()
