@@ -276,7 +276,7 @@ class Item(qt.QObject):
         return None
 
     def getResetBounds(self) -> Bounds | None:
-        """Returns the bounding box of this item used for resetting the axis ranges.
+        """Returns the bounds of this item used for resetting the axis ranges.
 
         This is equivalent to :meth:`getBounds` when all axes are autoscaling.
 
