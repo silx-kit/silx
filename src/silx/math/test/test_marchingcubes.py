@@ -127,7 +127,7 @@ class TestMarchingCubes(ParametricTestCase):
         isolevel = 0.5
         size = 9
         chessboard = numpy.zeros((size, size, size), dtype=numpy.float32)
-        chessboard.reshape(-1)[::2] = 1  # OK as long as dimensions are odd
+        chessboard.ravel()[::2] = 1  # OK as long as dimensions are odd
 
         ref_result = marchingcubes.MarchingCubes(chessboard, isolevel)
 

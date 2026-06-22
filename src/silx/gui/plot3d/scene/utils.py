@@ -108,7 +108,7 @@ def triangleToLineIndices(
         lineindices = _uniqueAlongLastAxis(lineindices.reshape(-1, 2))
 
     # Make sure it is 1D
-    lineindices = lineindices.reshape(-1)
+    lineindices = lineindices.ravel()
 
     return lineindices
 
@@ -456,7 +456,7 @@ def clipSegmentToBounds(
     delta = p1 - p0
     deltaNotZero = numpy.array(delta, copy=True)
     deltaNotZero[deltaNotZero == 0] = numpy.nan  # Invalidated to avoid division by zero
-    offsets = ((bounds - p0) / deltaNotZero).reshape(-1)
+    offsets = ((bounds - p0) / deltaNotZero).ravel()
     points = offsets.reshape(-1, 1) * delta + p0
 
     # Avoid precision errors by using bounds value

@@ -369,15 +369,15 @@ def scatter(
     plt.getPlotWidget().setDefaultColormap(colormap)
 
     if x is not None and y is not None:  # Add a scatter plot
-        x = numpy.array(x, copy=True).reshape(-1)
-        y = numpy.array(y, copy=True).reshape(-1)
+        x = numpy.array(x, copy=True).ravel()
+        y = numpy.array(y, copy=True).ravel()
         assert len(x) == len(y)
 
         if value is None:
             value = numpy.ones(len(x), dtype=numpy.float32)
 
         elif isinstance(value, abc.Iterable):
-            value = numpy.array(value, copy=True).reshape(-1)
+            value = numpy.array(value, copy=True).ravel()
             assert len(x) == len(value)
 
         else:

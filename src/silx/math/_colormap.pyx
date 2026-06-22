@@ -574,11 +574,11 @@ def cmap(
         nan_color = numpy.zeros((nb_channels,), dtype=colors.dtype)
     else:
         nan_color = numpy.ascontiguousarray(
-            nan_color, dtype=colors.dtype).reshape(-1)
+            nan_color, dtype=colors.dtype).ravel()
     assert nan_color.shape == (nb_channels,)
 
     image = _cmap(
-        data.reshape(-1),
+        data.ravel(),
         colors.reshape(-1, nb_channels),
         norm,
         vmin,

@@ -267,11 +267,11 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
             delta += 2 * db
 
     if not invert_coords:
-        return (numpy.asarray(b_coords).reshape(-1),
-                numpy.asarray(a_coords).reshape(-1))
+        return (numpy.asarray(b_coords).ravel(),
+                numpy.asarray(a_coords).ravel())
     else:
-        return (numpy.asarray(a_coords).reshape(-1),
-                numpy.asarray(b_coords).reshape(-1))
+        return (numpy.asarray(a_coords).ravel(),
+                numpy.asarray(b_coords).ravel())
 
 
 def circle_fill(int crow, int ccol, float radius):
