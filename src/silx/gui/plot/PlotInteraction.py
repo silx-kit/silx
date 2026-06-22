@@ -153,7 +153,7 @@ class _PlotInteraction:
         """
         legend = "__MARKER__" + name
 
-        self.plot.addMarker(
+        marker = self.plot.addMarker(
             x=x,
             y=y,
             legend=legend,
@@ -163,6 +163,7 @@ class _PlotInteraction:
             selectable=False,
             draggable=False,
         )
+        marker.setSymbolSize(15)
 
         self._legends.add(legend)
 
