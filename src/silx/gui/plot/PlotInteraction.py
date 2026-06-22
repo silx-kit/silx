@@ -84,7 +84,7 @@ class _PlotInteraction:
         :param plot: The plot to apply modifications to.
         """
         self._needReplot = False
-        self._legends = set()
+        self._legends: set[str] = set()
         self._plot = weakref.ref(plot)  # Avoid cyclic-ref
 
     @property
@@ -166,7 +166,7 @@ class _PlotInteraction:
 
         self._legends.add(legend)
 
-    def clearItems(self):
+    def clearItems(self) -> None:
         """
         Remove all selection areas set by setSelectionArea
         and markers set by setMarker.
