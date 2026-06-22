@@ -3709,7 +3709,7 @@ class PlotWidget(qt.QMainWindow):
                      a tuple of 4 floats.
         :param shape: Only for 'draw' mode. The kind of shape to draw.
                       In 'polygon', 'rectangle', 'line', 'vline', 'hline',
-                      'freeline'.
+                      'polylines'.
                       Default is 'polygon'.
         :param label: Only for 'draw' mode, sent in drawing events.
         :param zoomOnWheel: Toggle zoom on wheel support
