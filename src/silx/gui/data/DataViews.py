@@ -42,6 +42,7 @@ from silx.math.combo import min_max
 from ._DataInfo import DataInfo
 from ._DataView import DataView
 from ._RgbaImagePlot import RgbaImagePlot
+from ._NxCurvePlot import NxCurvePlot
 
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
@@ -1170,10 +1171,8 @@ class _NXdataCurveView(_NXdataBaseDataView):
             icon=icons.getQIcon("view-1d"),
         )
 
-    def createWidget(self, parent):
-        from silx.gui.data.ArrayCurvePlot import ArrayCurvePlot
-
-        widget = ArrayCurvePlot(parent)
+    def createWidget(self, parent) -> NxCurvePlot:
+        widget = NxCurvePlot(parent)
         return widget
 
     def axesNames(self, data, info):
@@ -1186,22 +1185,27 @@ class _NXdataCurveView(_NXdataBaseDataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_default(data, validate=False)
-        signals_names = [nxd.signal_name] + nxd.auxiliary_signals_names
-        if nxd.axes_dataset_names[-1] is not None:
-            x_errors = nxd.get_axis_errors(nxd.axes_dataset_names[-1])
-        else:
-            x_errors = None
+
+        if nxd is None:
+            return
+
+        axes_errors = []
+        for axis in nxd.axes_dataset_names:
+            if axis is None:
+                axes_errors.append(None)
+            else:
+                axes_errors.append(nxd.get_axis_errors(axis))
 
         self.getWidget().setCurvesData(
-            [nxd.signal] + nxd.auxiliary_signals,
-            nxd.axes[-1],
-            yerror=nxd.errors,
-            xerror=x_errors,
-            ylabels=signals_names,
-            xlabel=nxd.axes_names[-1],
-            title=nxd.title or signals_names[0],
-            xscale=nxd.plot_style.axes_scale_types[-1],
-            yscale=nxd.plot_style.signal_scale_type,
+            signals=[nxd.signal] + nxd.auxiliary_signals,
+            signal_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            signal_errors=nxd.errors,
+            signal_scale=nxd.plot_style.signal_scale_type,
+            axes=nxd.axes,
+            axes_scales=nxd.plot_style.axes_scale_types,
+            axes_names=nxd.axes_names,
+            axes_errors=axes_errors,
+            title=nxd.title or nxd.signal_name,
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
