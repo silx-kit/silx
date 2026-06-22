@@ -224,25 +224,19 @@ class BoundingRect(DataItem, YAxisMixIn):
 
         xAxis, yAxis = self._getAxisInstances(plot)
 
-        if not xAxis.isAutoScale():
-            lmin, lmax = xAxis.getLimits()
+        xbounds = _adjust_bounds_for_axis(
+            xmin, xmax, xAxis, autoscale_returns_axis_limits=False
+        )
+        if xbounds is None:
+            return None
+        xmin, xmax = xbounds
 
-            # Expand to fixed limits if item bounds are within them
-            if xmin >= lmin and xmax <= lmax:
-                xmin, xmax = lmin, lmax
-            elif xmin > lmax or xmax < lmin:
-                # No overlap
-                return None
-
-        if not yAxis.isAutoScale():
-            lmin, lmax = yAxis.getLimits()
-
-            # Expand to fixed limits if item bounds are within them
-            if ymin >= lmin and ymax <= lmax:
-                ymin, ymax = lmin, lmax
-            elif ymin > lmax or ymax < lmin:
-                # No overlap
-                return None
+        ybounds = _adjust_bounds_for_axis(
+            ymin, ymax, yAxis, autoscale_returns_axis_limits=False
+        )
+        if ybounds is None:
+            return None
+        ymin, ymax = ybounds
 
         return Bounds.from_values(xmin, xmax, ymin, ymax)
 
@@ -315,44 +309,59 @@ class _BaseExtent(DataItem):
 
         xmin, xmax, ymin, ymax = bounds
 
-        # x: independent variable
-        # y: dependent variable
-        # Fixed x: autoscale y within the x limits
-        # Fixed y: autoscale x within the y limits
-
         if self.__axis == "x":
             xAxis = self._getXAxisInstance(plot)
+            xbounds = _adjust_bounds_for_axis(
+                xmin,
+                xmax,
+                xAxis,
+                autoscale_returns_axis_limits=True,
+            )
+            if xbounds is None:
+                return None
 
-            lmin, lmax = xAxis.getLimits()
-
-            if xAxis.isAutoScale():
-                xmin, xmax = lmin, lmax
-            else:
-                # Expand to fixed limits if item bounds are within them
-                if xmin >= lmin and xmax <= lmax:
-                    xmin, xmax = lmin, lmax
-                elif xmin > lmax or xmax < lmin:
-                    # No overlap
-                    return None
-
+            xmin, xmax = xbounds
             return Bounds.from_values(xmin, xmax, float("nan"), float("nan"))
 
         else:
             yAxis = self._getYAxisInstance(plot)
+            ybounds = _adjust_bounds_for_axis(
+                ymin,
+                ymax,
+                yAxis,
+                autoscale_returns_axis_limits=True,
+            )
+            if ybounds is None:
+                return None
 
-            lmin, lmax = yAxis.getLimits()
-
-            if yAxis.isAutoScale():
-                ymin, ymax = lmin, lmax
-            else:
-                # Expand to fixed limits if item bounds are within them
-                if ymin >= lmin and ymax <= lmax:
-                    ymin, ymax = lmin, lmax
-                elif ymin > lmax or ymax < lmin:
-                    # No overlap
-                    return None
-
+            ymin, ymax = ybounds
             return Bounds.from_values(float("nan"), float("nan"), ymin, ymax)
+
+
+def _adjust_bounds_for_axis(
+    vmin: float,
+    vmax: float,
+    axis,
+    autoscale_returns_axis_limits: bool,
+) -> tuple[float, float] | None:
+    lmin, lmax = axis.getLimits()
+
+    if axis.isAutoScale():
+        if autoscale_returns_axis_limits:
+            return lmin, lmax
+        return vmin, vmax
+
+    # Contained entirely within current limits?
+    if vmin >= lmin and vmax <= lmax:
+        # Expand to current limits
+        return lmin, lmax
+
+    # No overlap?
+    if vmin > lmax or vmax < lmin:
+        return None
+
+    # Overlap but not fully contained
+    return vmin, vmax
 
 
 class XAxisExtent(_BaseExtent):
