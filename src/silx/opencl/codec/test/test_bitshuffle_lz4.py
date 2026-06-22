@@ -59,7 +59,6 @@ TESTCASES = (  # dtype, shape
 )
 
 
-@pytest.mark.skipif(True, reason="Failing test")  # Remove once test is fixed
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
     reason="PyOpenCl or bitshuffle is missing",
