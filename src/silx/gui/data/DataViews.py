@@ -1196,10 +1196,14 @@ class _NXdataCurveView(_NXdataBaseDataView):
             else:
                 axes_errors.append(nxd.get_axis_errors(axis))
 
+        signal_errors = [
+            nxd.get_axis_errors(signal) for signal in nxd.auxiliary_signals_names
+        ]
+
         self.getWidget().setCurvesData(
             signals=[nxd.signal] + nxd.auxiliary_signals,
             signal_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
-            signal_errors=nxd.errors,
+            signal_errors=[nxd.errors] + signal_errors,
             signal_scale=nxd.plot_style.signal_scale_type,
             axes=nxd.axes,
             axes_scales=nxd.plot_style.axes_scale_types,

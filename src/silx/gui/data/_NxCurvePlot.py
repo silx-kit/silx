@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import numpy
 
 from silx.gui import qt
@@ -22,7 +24,7 @@ class NxCurvePlot(qt.QWidget):
 
         self.__signals: list[numpy.ndarray] | None = None
         self.__signals_names: list[str] | None = None
-        self.__signal_errors: numpy.ndarray | None = None
+        self.__signal_errors: list[numpy.ndarray] | None = None
         self.__signal_scale: AxisScaleType = "linear"
         self.__axes: list[numpy.ndarray] | None = None
         self.__axes_names: list[str] | None = None
@@ -45,23 +47,23 @@ class NxCurvePlot(qt.QWidget):
 
     def setCurvesData(
         self,
-        signals: list[numpy.ndarray],
-        signal_names: list[str] | None = None,
-        signal_errors: numpy.ndarray | None = None,
+        signals: Sequence[numpy.ndarray],
+        signal_names: Sequence[str],
+        signal_errors: Sequence[numpy.ndarray] | None = None,
         signal_scale: AxisScaleType | None = None,
-        axes: list[numpy.ndarray] | None = None,
-        axes_names: list[str] | None = None,
-        axes_errors: list[numpy.ndarray | None] | None = None,
-        axes_scales: list[AxisScaleType | None] | None = None,
+        axes: Sequence[numpy.ndarray] | None = None,
+        axes_names: Sequence[str] | None = None,
+        axes_errors: Sequence[numpy.ndarray | None] | None = None,
+        axes_scales: Sequence[AxisScaleType | None] | None = None,
         title: str | None = None,
     ):
-        self.__signals = signals
-        self.__signals_names = signal_names
-        self.__signal_errors = signal_errors
+        self.__signals = list(signals)
+        self.__signals_names = list(signal_names)
+        self.__signal_errors = list(signal_errors) if signal_errors else None
         self.__signal_scale = signal_scale or "linear"
-        self.__axes = axes
-        self.__axes_names = axes_names
-        self.__axes_errors = axes_errors
+        self.__axes = list(axes) if axes else None
+        self.__axes_names = list(axes_names) if axes_names else None
+        self.__axes_errors = list(axes_errors) if axes_errors else None
         self.__axes_scales = (
             [scale or "linear" for scale in axes_scales] if axes_scales else None
         )
@@ -84,10 +86,9 @@ class NxCurvePlot(qt.QWidget):
         self._updateCurve()
 
     def _updateCurve(self):
-        if self.__signals is None:
+        if self.__signals is None or self.__signals_names is None:
             return
 
-        legends = self.__signals_names or [None] * len(self.__signals)
         self._plot.clear()
 
         axes_selection = self._axesSelector.selection()
@@ -104,28 +105,22 @@ class NxCurvePlot(qt.QWidget):
 
         # Main signal
         if self.__signal_errors is not None:
-            y_errors = self.__signal_errors[axes_selection]
+            y_errors = [errors[axes_selection] for errors in self.__signal_errors]
         else:
-            y_errors = None
+            y_errors = [None] * len(self.__signals)
 
-        mainCurve = self._plot.addCurve(
-            x,
-            self.__signals[0][axes_selection],
-            legend=legends[0],
-            xerror=x_errors,
-            yerror=y_errors,
-        )
-        self._plot.getYAxis().setScale(self.__signal_scale)
-        self._plot.setActiveCurve(mainCurve.getLegend())
-
-        # Aux signals
-        for i, signal in enumerate(self.__signals[1:]):
+        for signal, legend, y_error in zip(
+            self.__signals, self.__signals_names, y_errors
+        ):
             self._plot.addCurve(
                 x,
                 signal[axes_selection],
-                legend=legends[i],
+                legend=legend,
                 xerror=x_errors,
+                yerror=y_error,
             )
+        self._plot.getYAxis().setScale(self.__signal_scale)
+        self._plot.setActiveCurve(self.__signals_names[0])
 
         if self.__axes_names:
             self._plot.setGraphXLabel(self.__axes_names[xIndex])
