@@ -58,15 +58,35 @@ class NxCurvePlot(qt.QWidget):
         title: str | None = None,
     ):
         self.__signals = list(signals)
+        if len(signal_names) != len(signals):
+            raise ValueError("Signal names must match the length of signals")
         self.__signals_names = list(signal_names)
-        self.__signal_errors = list(signal_errors) if signal_errors else None
+        if signal_errors:
+            if len(signal_errors) != len(signals):
+                raise ValueError("Signal errors must match the length of signals")
+            self.__signal_errors = list(signal_errors)
+        else:
+            self.__signal_errors = None
         self.__signal_scale = signal_scale or "linear"
         self.__axes = list(axes) if axes else None
-        self.__axes_names = list(axes_names) if axes_names else None
-        self.__axes_errors = list(axes_errors) if axes_errors else None
-        self.__axes_scales = (
-            [scale or "linear" for scale in axes_scales] if axes_scales else None
-        )
+        if axes_names:
+            if axes and len(axes) != len(axes_names):
+                raise ValueError("Axis names must match the length of axes")
+            self.__axes_names = list(axes_names)
+        else:
+            self.__axes_names = None
+        if axes_errors:
+            if axes and len(axes) != len(axes_errors):
+                raise ValueError("Axis errors must match the length of axes")
+            self.__axes_errors = list(axes_errors)
+        else:
+            self.__axes_errors = None
+        if axes_scales:
+            if axes and len(axes) != len(axes_scales):
+                raise ValueError("Axis scales must match the length of axes")
+            self.__axes_scales = list(scale or "linear" for scale in axes_scales)
+        else:
+            self.__axes_scales = None
 
         with blockSignals(self._axesSelector):
             self._axesSelector.clear()
