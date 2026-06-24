@@ -62,6 +62,8 @@ _AVAILABLE_LUTS: dict[str, _LUT_DESCRIPTION] = {
     "inferno": _LUT_DESCRIPTION("resource", "#00ff00"),
     "plasma": _LUT_DESCRIPTION("resource", "#00ff00"),
     "temperature": _LUT_DESCRIPTION("builtin", "#ff66ff"),
+    "twilight": _LUT_DESCRIPTION("resource", "#ff66ff"),
+    "twilight_shifted": _LUT_DESCRIPTION("resource", "#ff66ff"),
 }
 """Description for internal porpose of all the default LUT provided by the library."""
 

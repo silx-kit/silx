@@ -1378,6 +1378,8 @@ class PlaneColormapItem(ColormapBase):
         "magma",
         "inferno",
         "plasma",
+        "twilight",
+        "twilight_shifted",
     ]
 
     def getEditor(self, parent, option, index):

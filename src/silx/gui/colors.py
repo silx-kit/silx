@@ -449,7 +449,7 @@ class Colormap(qt.QObject):
         :param name: The name of the colormap.
             At least the following names are supported: 'gray',
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
-            'viridis', 'magma', 'inferno', 'plasma'.
+            'viridis', 'magma', 'inferno', 'plasma', 'twilight', 'twilight_shifted'.
         """
         name = str(name)
         if self._name == name:
@@ -939,7 +939,7 @@ class Colormap(qt.QObject):
         The list should at least contain and start by:
 
          ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
-         'viridis', 'magma', 'inferno', 'plasma')
+         'viridis', 'magma', 'inferno', 'plasma', 'twilight', 'twilight_shifted')
         """
         registered_colormaps = _colormap.get_registered_colormaps()
         colormaps = set(registered_colormaps)
@@ -1095,6 +1095,8 @@ _DEFAULT_PREFERRED_COLORMAPS = (
     "temperature",
     "jet",
     "hsv",
+    "twilight",
+    "twilight_shifted",
 )
 
 

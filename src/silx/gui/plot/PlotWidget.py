@@ -3050,7 +3050,7 @@ class PlotWidget(qt.QMainWindow):
 
         The list contains at least:
         ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
-        'magma', 'inferno', 'plasma', 'viridis')
+        'magma', 'inferno', 'plasma', 'viridis', 'twilight', 'twilight_shifted')
         """
         return Colormap.getSupportedColormaps()
 
