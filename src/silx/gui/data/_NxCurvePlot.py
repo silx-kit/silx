@@ -24,7 +24,7 @@ class NxCurvePlot(qt.QWidget):
 
         self.__signals: list[numpy.ndarray] | None = None
         self.__signals_names: list[str] | None = None
-        self.__signal_errors: list[numpy.ndarray] | None = None
+        self.__signal_errors: list[numpy.ndarray | None] | None = None
         self.__signal_scale: AxisScaleType = "linear"
         self.__axes: list[numpy.ndarray] | None = None
         self.__axes_names: list[str] | None = None
@@ -49,7 +49,7 @@ class NxCurvePlot(qt.QWidget):
         self,
         signals: Sequence[numpy.ndarray],
         signal_names: Sequence[str],
-        signal_errors: Sequence[numpy.ndarray] | None = None,
+        signal_errors: Sequence[numpy.ndarray | None] | None = None,
         signal_scale: AxisScaleType | None = None,
         axes: Sequence[numpy.ndarray] | None = None,
         axes_names: Sequence[str] | None = None,
@@ -123,11 +123,10 @@ class NxCurvePlot(qt.QWidget):
         else:
             x_errors = None
 
-        # Main signal
-        if self.__signal_errors is not None:
-            y_errors = [errors[axes_selection] for errors in self.__signal_errors]
-        else:
+        if self.__signal_errors is None:
             y_errors = [None] * len(self.__signals)
+        else:
+            y_errors = self.__signal_errors
 
         for signal, legend, y_error in zip(
             self.__signals, self.__signals_names, y_errors
@@ -137,7 +136,7 @@ class NxCurvePlot(qt.QWidget):
                 signal[axes_selection],
                 legend=legend,
                 xerror=x_errors,
-                yerror=y_error,
+                yerror=y_error[axes_selection] if y_error else None,
             )
         self._plot.getYAxis().setScale(self.__signal_scale)
         self._plot.setActiveCurve(self.__signals_names[0])
