@@ -3,7 +3,8 @@ from typing import Sequence
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot.items.axis import AxisScaleType
+from ..plot.items import Curve
+from ..plot.items.axis import AxisScaleType
 
 from ..plot import Plot1D
 from ..utils import blockSignals
@@ -26,6 +27,7 @@ class NxCurvePlot(qt.QWidget):
         self.__signals_names: list[str] | None = None
         self.__signal_errors: list[numpy.ndarray | None] | None = None
         self.__signal_scale: AxisScaleType = "linear"
+        self.__signal_curves: list[Curve] = []
         self.__axes: list[numpy.ndarray] | None = None
         self.__axes_names: list[str] | None = None
         self.__axes_errors: list[numpy.ndarray | None] | None = None
@@ -35,7 +37,7 @@ class NxCurvePlot(qt.QWidget):
         self._plot.setGraphGrid(True)
 
         self._axesSelector = NumpyAxesSelector(self)
-        self._axesSelector.selectionChanged.connect(self._updateCurve)
+        self._axesSelector.selectionChanged.connect(self._updateYData)
         self._axesSelector.selectedAxisChanged.connect(self._updateCurve)
 
         layout = qt.QVBoxLayout()
@@ -106,10 +108,9 @@ class NxCurvePlot(qt.QWidget):
         self._updateCurve()
 
     def _updateCurve(self):
+        """Updates X and Y data. Called when the plotted dimension changes"""
         if self.__signals is None or self.__signals_names is None:
             return
-
-        self._plot.clear()
 
         axes_selection = self._axesSelector.selection()
         xIndex = self._axesSelector.getIndicesOfNamedAxes()["X"]
@@ -128,15 +129,19 @@ class NxCurvePlot(qt.QWidget):
         else:
             y_errors = self.__signal_errors
 
+        self._plot.clear()
+        self.__signal_curves.clear()
         for signal, legend, y_error in zip(
             self.__signals, self.__signals_names, y_errors
         ):
-            self._plot.addCurve(
-                x,
-                signal[axes_selection],
-                legend=legend,
-                xerror=x_errors,
-                yerror=y_error[axes_selection] if y_error else None,
+            self.__signal_curves.append(
+                self._plot.addCurve(
+                    x,
+                    signal[axes_selection],
+                    legend=legend,
+                    xerror=x_errors,
+                    yerror=y_error[axes_selection] if y_error else None,
+                )
             )
         self._plot.getYAxis().setScale(self.__signal_scale)
         self._plot.setActiveCurve(self.__signals_names[0])
@@ -147,7 +152,29 @@ class NxCurvePlot(qt.QWidget):
             self._plot.getXAxis().setScale(self.__axes_scales[xIndex])
         self._plot.resetZoom()
 
+    def _updateYData(self):
+        """Update Y data **only**. Called when the slicing indices change"""
+        if self.__signals is None or self.__signals_names is None:
+            return
+
+        if self.__signal_errors is None:
+            y_errors = [None] * len(self.__signals)
+        else:
+            y_errors = self.__signal_errors
+
+        axes_selection = self._axesSelector.selection()
+        for curve, signal, y_error in zip(
+            self.__signal_curves, self.__signals, y_errors
+        ):
+            curve.setData(
+                curve.getXData(False),
+                signal[axes_selection],
+                xerror=curve.getXErrorData(False),
+                yerror=y_error[axes_selection] if y_error else None,
+            )
+
     def clear(self):
         with blockSignals(self._axesSelector):
             self._axesSelector.clear()
+        self.__signal_curves.clear()
         self._plot.clear()
