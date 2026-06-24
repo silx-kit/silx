@@ -521,7 +521,7 @@ class Select(StateMachine, _PlotInteraction):
         StateMachine.__init__(self, states, state)
 
     @property
-    def color(self):
+    def color(self) -> colors.RGBAColorType | None:
         return self.parameters.get("color", None)
 
 
@@ -548,8 +548,12 @@ class SelectPolygon(Select):
         def updateFirstPoint(self):
             """Display first point as a fixed-size square marker."""
             x, y = self._firstPos
-            r, g, b, _ = self.machine.color
-            self.machine.setMarker(x, y, "first_point", color=(r, g, b, 0.5))
+            if self.machine.color is None:
+                color = 0.0, 0.0, 0.0, 0.0
+            else:
+                r, g, b, _ = self.machine.color
+                color = r, g, b, 0.5
+            self.machine.setMarker(x, y, "first_point", color=color)
 
         def updateSelectionArea(self):
             """Update drawing selection area using self.points"""
@@ -1089,7 +1093,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         self.parameters = parameters
 
     @property
-    def color(self):
+    def color(self) -> colors.RGBAColorType | None:
         return self.parameters.get("color", None)
 
     def click(self, x, y, btn):
@@ -1517,13 +1521,13 @@ class ZoomAndSelect(ItemsInteraction):
     :param color: The color to use for the zoom area bounding box
     """
 
-    def __init__(self, plot, color):
+    def __init__(self, plot, color: colors.RGBAColorType | None):
         super().__init__(plot)
         self._zoom = Zoom(plot, color)
         self._doZoom = False
 
     @property
-    def color(self):
+    def color(self) -> colors.RGBAColorType | None:
         """Color of the zoom area"""
         return self._zoom.color
 
