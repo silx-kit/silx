@@ -43,7 +43,7 @@ dependencies = [
 build-backend = 'mesonpy'
 requires = [
     'meson-python',
-    'Cython',
+    'Cython!=3.3.0a1',
 ]
 
 
