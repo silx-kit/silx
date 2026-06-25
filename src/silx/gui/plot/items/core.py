@@ -33,7 +33,6 @@ import logging
 import enum
 import numbers
 from typing import Union
-from typing import NamedTuple
 import weakref
 
 import numpy
@@ -47,6 +46,7 @@ from ... import colors
 from ...colors import Colormap, _Colormappable
 from ._cache import LRUCache
 from ._pick import PickingResult
+from .types import ItemBounds, AxesInfo
 
 from silx import config
 from silx._utils import NP_OPTIONAL_COPY
@@ -161,47 +161,6 @@ class ItemChangedType(enum.Enum):
     """Item's text background color changed flag."""
 
 
-class Bounds(NamedTuple):
-    xmin: float
-    xmax: float
-    ymin: float
-    ymax: float
-
-    @classmethod
-    def from_values(
-        cls,
-        xmin: float | None,
-        xmax: float | None,
-        ymin: float | None,
-        ymax: float | None,
-    ) -> "Bounds | None":
-        """
-        Create a :class:`Bounds` instance from optional values.
-
-        ``None`` values are converted to ``NaN``.
-
-        :param xmin: Minimum X bound or None.
-        :param xmax: Maximum X bound or None.
-        :param ymin: Minimum Y bound or None.
-        :param ymax: Maximum Y bound or None.
-
-        :returns:
-            Returns a :class:`Bounds` instance. Returns ``None`` if
-            all values are ``None`` or NaN, meaning the bounds are undefined.
-        :rtype: :class:`Bounds` or ``None``
-        """
-
-        def none_to_nan(v):
-            return float("nan") if v is None else v
-
-        values = numpy.array(list(map(none_to_nan, (xmin, xmax, ymin, ymax))))
-
-        if numpy.all(numpy.isnan(values)):
-            return None
-
-        return cls(*values)
-
-
 class Item(qt.QObject):
     """Description of an item of the plot"""
 
@@ -263,52 +222,48 @@ class Item(qt.QObject):
         self.__connectToPlotWidget()
         self._updated()
 
-    def getBounds(self) -> Bounds | None:
+    def getBounds(self) -> ItemBounds | None:
         """Returns the bounding box of this item in data coordinates
 
         :returns: (xmin, xmax, ymin, ymax) or None
-        :rtype: Union[Bounds, None]
+        :rtype: Union[ItemBounds, None]
         """
         return self._getBounds()
 
-    def _getBounds(self) -> Bounds | None:
+    def _getBounds(self) -> ItemBounds | None:
         """:meth:`getBounds` implementation to override by sub-class"""
         return None
 
-    def getResetBounds(self) -> Bounds | None:
+    def getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         """Returns the bounds of this item used for resetting the axis ranges.
 
         This is equivalent to :meth:`getBounds` when all axes are autoscaling.
 
         Otherwise
 
-        - Fixed dependent axes: autoscale independent axes within the dependent axes limits
-        - Fixed independent axes: autoscale dependent axes within the independent axes limits
-        - Fixed axes limits are applied to the resulting bounds
+        - Limits are used as bounds when fixed
+        - When dependent axis is fixed: autoscale independent axis within the dependent axis limits
+        - When independent axis is fixed: autoscale dependent axis within the independent axis limits
 
+        :param axesInfo:
         :returns: (xmin, xmax, ymin, ymax) or None
-        :rtype: Union[Bounds, None]
+        :rtype: Union[ItemBounds, None]
         """
-        bounds = self._getResetBounds()
+        bounds = self._getResetBounds(axesInfo)
         if bounds is None:
             return None
 
-        plot = self.getPlot()
-        if plot is None:
-            return bounds
-
         xmin, xmax, ymin, ymax = bounds
 
-        # Apply the fixed limits when not autoscaling
-        xAxis, yAxis = self._getAxisInstances(plot)
-        if not xAxis.isAutoScale():
-            xmin, xmax = xAxis.getLimits()
-        if not yAxis.isAutoScale():
-            ymin, ymax = yAxis.getLimits()
+        # Use current limits when not autoscaling
+        if not axesInfo.x.auto:
+            xmin, xmax = axesInfo.x.limits()
+        if not axesInfo.y.auto:
+            ymin, ymax = axesInfo.y.limits()
 
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _getResetBounds(self) -> Bounds | None:
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         """:meth:`getResetBounds` implementation to override by sub-class."""
         return self.getBounds()
 
@@ -398,13 +353,13 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> Bounds | None:
+    def getVisibleBounds(self) -> ItemBounds | None:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
             (xmin, xmax, ymin, ymax) in data coordinates of the visible area or
             None if item is not visible in the plot area.
-        :rtype: Union[Bounds,None]
+        :rtype: Union[ItemBounds,None]
         """
         plot = self.getPlot()
         if plot is None or not self.isVisible():
@@ -423,7 +378,7 @@ class Item(qt.QObject):
         if xmin == xmax or ymin == ymax:  # Outside the plot area
             return None
         else:
-            return Bounds.from_values(xmin, xmax, ymin, ymax)
+            return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     def _isVisibleBoundsTracking(self) -> bool:
         """Returns True if visible bounds changes are tracked.
@@ -1754,9 +1709,11 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
 
         return min_, max_
 
-    def _getBounds(self) -> Bounds | None:
-        plot = self.getPlot()
+    def _getBounds(self) -> ItemBounds | None:
+        if self.getXData(copy=False).size == 0:  # Empty data
+            return None
 
+        plot = self.getPlot()
         if plot is not None:
             xAxis, yAxis = self._getAxisInstances(plot)
             xPositive = xAxis._isLogarithmic()
@@ -1765,34 +1722,25 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
             xPositive = False
             yPositive = False
 
-        cache_key = (xPositive, yPositive)
-        if cache_key in self._boundsCache:
-            return self._boundsCache[cache_key]
+        key = xPositive, yPositive
+        if key in self._boundsCache:
+            return self._boundsCache[key]
 
         x, y, xerror, yerror = self.__getRawDataBoundsData()
-        if x.size == 0:
-            return None
 
         xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
         ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
 
-        self._boundsCache[cache_key] = Bounds.from_values(xmin, xmax, ymin, ymax)
-        return self._boundsCache[cache_key]
+        bounds = ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        self._boundsCache[key] = bounds
+        return bounds
 
-    def _getResetBounds(self) -> Bounds | None:
-        plot = self.getPlot()
-        if plot is None:
-            return self.getBounds()
-
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
 
         if x.size == 0:
             return None
-
-        xAxis, yAxis = self._getAxisInstances(plot)
-        xPositive = xAxis._isLogarithmic()
-        yPositive = yAxis._isLogarithmic()
 
         # x: independent variable
         # y: dependent variable
@@ -1801,12 +1749,12 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
 
         mask = numpy.isfinite(x) & numpy.isfinite(y)
 
-        if not xAxis.isAutoScale():
-            xmin, xmax = xAxis.getLimits()
+        if not axesInfo.x.auto:
+            xmin, xmax = axesInfo.x.limits()
             mask &= (x >= xmin) & (x <= xmax)
 
-        if not yAxis.isAutoScale():
-            ymin, ymax = yAxis.getLimits()
+        if not axesInfo.y.auto:
+            ymin, ymax = axesInfo.y.limits()
             mask &= (y >= ymin) & (y <= ymax)
 
         if not numpy.any(mask):
@@ -1817,12 +1765,12 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         if x.size == 0:
             return None
 
-        if xAxis.isAutoScale():
-            xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
-        if yAxis.isAutoScale():
-            ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
+        if axesInfo.x.auto:
+            xmin, xmax = self.__minMaxDataWithError(x, xerror, axesInfo.x.log)
+        if axesInfo.y.auto:
+            ymin, ymax = self.__minMaxDataWithError(y, yerror, axesInfo.y.log)
 
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     def __getRawDataBoundsData(self, mask=None):
         # use the getData class method because instance method can be

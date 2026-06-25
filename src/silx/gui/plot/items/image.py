@@ -43,8 +43,8 @@ from .core import (
     ColormapMixIn,
     AlphaMixIn,
     ItemChangedType,
-    Bounds,
 )
+from .types import ItemBounds, AxesInfo
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -149,7 +149,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         xAxis, yAxis = self._getAxisInstances(plot)
         return xAxis.getScale() == xAxis.LINEAR and yAxis.getScale() == yAxis.LINEAR
 
-    def _getBounds(self) -> Bounds | None:
+    def _getBounds(self) -> ItemBounds | None:
         plot = self.getPlot()
         if plot is not None and not self._isPlotLinear(plot):
             return None
@@ -171,9 +171,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if ymin > ymax:
             ymin, ymax = ymax, ymin
 
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _getResetBounds(self) -> Bounds | None:
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         # x: independent variable
         # y: independent variable
         # Fixed x: autoscale y to the full range
