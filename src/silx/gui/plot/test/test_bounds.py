@@ -61,7 +61,7 @@ def test_curve_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(items, item_type=_TestItemType.POINTS, **fixed_args)
+    _assert_reset_bounds(plot, items, item_type=_TestItemType.POINTS, **fixed_args)
     _assert_limits(items, xaxis, yaxis, item_type=_TestItemType.POINTS, **fixed_args)
 
 
@@ -116,7 +116,7 @@ def test_scatter_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(items, item_type=_TestItemType.POINTS, **fixed_args)
+    _assert_reset_bounds(plot, items, item_type=_TestItemType.POINTS, **fixed_args)
     _assert_limits(items, xaxis, yaxis, item_type=_TestItemType.POINTS, **fixed_args)
 
 
@@ -178,7 +178,12 @@ def test_histogram_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     _reset_zoom(qapp, plot)
 
     _assert_reset_bounds(
-        items, item_type=_TestItemType.HISTOGRAM, **fixed_args, rtol=rtol, atol=atol
+        plot,
+        items,
+        item_type=_TestItemType.HISTOGRAM,
+        **fixed_args,
+        rtol=rtol,
+        atol=atol,
     )
     _assert_limits(
         items,
@@ -232,7 +237,7 @@ def test_image_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(items, item_type=_TestItemType.IMAGE, **fixed_args)
+    _assert_reset_bounds(plot, items, item_type=_TestItemType.IMAGE, **fixed_args)
     _assert_limits(items, xaxis, yaxis, item_type=_TestItemType.IMAGE, **fixed_args)
 
 
@@ -299,7 +304,7 @@ def test_bounding_rect_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(items, item_type=_TestItemType.BOUNDRECT, **fixed_args)
+    _assert_reset_bounds(plot, items, item_type=_TestItemType.BOUNDRECT, **fixed_args)
     _assert_limits(items, xaxis, yaxis, item_type=_TestItemType.BOUNDRECT, **fixed_args)
 
 
@@ -369,7 +374,7 @@ def test_extent_bounds_vs_reset_zoom(qapp, qWidgetFactory, axis):
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(items, item_type=item_type, **fixed_args)
+    _assert_reset_bounds(plot, items, item_type=item_type, **fixed_args)
     _assert_limits(items, xaxis, yaxis, item_type=item_type, **fixed_args)
 
 
@@ -407,6 +412,7 @@ class _TestItemType(Enum):
 
 
 def _assert_reset_bounds(
+    plot,
     items,
     item_type: _TestItemType,
     fixed_xmin=None,
@@ -427,7 +433,8 @@ def _assert_reset_bounds(
             fixed_ymin=fixed_ymin,
             fixed_ymax=fixed_ymax,
         )
-        actual = item.getResetBounds()
+
+        actual = plot._itemResetBounds(item)
         if expected is None:
             assert actual is None, item.getName()
         else:

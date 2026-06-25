@@ -43,8 +43,8 @@ from .core import (
     LineMixIn,
     LineGapColorMixIn,
     YAxisMixIn,
-    Bounds,
 )
+from .types import ItemBounds, AxisInfo, AxesInfo
 from ....utils.deprecation import deprecated
 from ... import colors
 from silx._utils import NP_OPTIONAL_COPY
@@ -185,11 +185,11 @@ class BoundingRect(DataItem, YAxisMixIn):
             if rect is None:
                 self.__bounds = None
             else:
-                self.__bounds = Bounds.from_values(*rect)
+                self.__bounds = ItemBounds.from_values(*rect)
             self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
-    def _getBounds(self) -> Bounds | None:
+    def _getBounds(self) -> ItemBounds | None:
         if self.__bounds is None:
             return None
         plot = self.getPlot()
@@ -207,38 +207,32 @@ class BoundingRect(DataItem, YAxisMixIn):
                     return None
                 if yPositive and bounds[2] <= 0:
                     bounds[2] = bounds[3]
-                return Bounds.from_values(*bounds)
+                return ItemBounds.from_values(*bounds)
 
         return self.__bounds
 
-    def _getResetBounds(self) -> Bounds | None:
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None
 
-        plot = self.getPlot()
-        if plot is None:
-            return bounds
-
         xmin, xmax, ymin, ymax = bounds
 
-        xAxis, yAxis = self._getAxisInstances(plot)
-
         xbounds = _adjust_bounds_for_axis(
-            xmin, xmax, xAxis, autoscale_returns_axis_limits=False
+            xmin, xmax, axesInfo.x, autoscale_returns_axis_limits=False
         )
         if xbounds is None:
             return None
         xmin, xmax = xbounds
 
         ybounds = _adjust_bounds_for_axis(
-            ymin, ymax, yAxis, autoscale_returns_axis_limits=False
+            ymin, ymax, axesInfo.y, autoscale_returns_axis_limits=False
         )
         if ybounds is None:
             return None
         ymin, ymax = ybounds
 
-        return Bounds.from_values(xmin, xmax, ymin, ymax)
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
 
 class _BaseExtent(DataItem):
@@ -277,7 +271,7 @@ class _BaseExtent(DataItem):
         """
         return self.__range
 
-    def _getBounds(self) -> Bounds | None:
+    def _getBounds(self) -> ItemBounds | None:
         min_, max_ = self.getRange()
 
         plot = self.getPlot()
@@ -294,59 +288,53 @@ class _BaseExtent(DataItem):
                     min_ = max_
 
         if self.__axis == "x":
-            return Bounds.from_values(min_, max_, float("nan"), float("nan"))
+            return ItemBounds.from_values(min_, max_, float("nan"), float("nan"))
         else:
-            return Bounds.from_values(float("nan"), float("nan"), min_, max_)
+            return ItemBounds.from_values(float("nan"), float("nan"), min_, max_)
 
-    def _getResetBounds(self) -> Bounds | None:
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None
 
-        plot = self.getPlot()
-        if plot is None:
-            return bounds
-
         xmin, xmax, ymin, ymax = bounds
 
         if self.__axis == "x":
-            xAxis = self._getXAxisInstance(plot)
             xbounds = _adjust_bounds_for_axis(
                 xmin,
                 xmax,
-                xAxis,
+                axesInfo.x,
                 autoscale_returns_axis_limits=True,
             )
             if xbounds is None:
                 return None
 
             xmin, xmax = xbounds
-            return Bounds.from_values(xmin, xmax, float("nan"), float("nan"))
+            return ItemBounds.from_values(xmin, xmax, float("nan"), float("nan"))
 
         else:
-            yAxis = self._getYAxisInstance(plot)
             ybounds = _adjust_bounds_for_axis(
                 ymin,
                 ymax,
-                yAxis,
+                axesInfo.y,
                 autoscale_returns_axis_limits=True,
             )
             if ybounds is None:
                 return None
 
             ymin, ymax = ybounds
-            return Bounds.from_values(float("nan"), float("nan"), ymin, ymax)
+            return ItemBounds.from_values(float("nan"), float("nan"), ymin, ymax)
 
 
 def _adjust_bounds_for_axis(
     vmin: float,
     vmax: float,
-    axis,
+    axis: AxisInfo,
     autoscale_returns_axis_limits: bool,
 ) -> tuple[float, float] | None:
-    lmin, lmax = axis.getLimits()
+    lmin, lmax = axis.limits()
 
-    if axis.isAutoScale():
+    if axis.auto:
         if autoscale_returns_axis_limits:
             return lmin, lmax
         return vmin, vmax

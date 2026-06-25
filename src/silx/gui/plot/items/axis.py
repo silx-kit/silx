@@ -36,6 +36,7 @@ import dateutil.tz
 from ....utils.proxy import docstring
 from ... import qt
 from .. import _utils
+from .types import AxisInfo
 
 
 class TickMode(enum.Enum):
@@ -340,6 +341,15 @@ class Axis(qt.QObject):
             y2Min, y2Max = plot.getYAxis("right").getLimits()
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
+
+    def getInfo(self) -> AxisInfo:
+        vmin, vmax = self.getLimits()
+        log = self.getScale() == self.LOGARITHMIC
+        if log:
+            vmin = max(0, vmin)
+            vmax = max(0, vmax)
+        auto = self.isAutoScale()
+        return AxisInfo(vmin=vmin, vmax=vmax, auto=auto, log=log)
 
 
 class XAxis(Axis):

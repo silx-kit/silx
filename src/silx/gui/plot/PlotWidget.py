@@ -36,7 +36,7 @@ import datetime as dt
 import itertools
 from io import BytesIO, StringIO
 import numbers
-from typing import Any, Callable, Generator, Literal, NamedTuple
+from typing import Any, Callable, Generator, Literal
 
 
 import numpy
@@ -58,6 +58,7 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
+from .items.types import PlotDataRange, AxesInfo, ItemBounds
 from .items.core import PickingResult
 from .items.curve import CurveStyle
 from .items.axis import TickMode  # noqa
@@ -71,16 +72,6 @@ from .backends.BackendBase import BackendBase
 _logger = logging.getLogger(__name__)
 if _matplotlib is None:
     _logger.debug("matplotlib not available")
-
-
-class PlotDataRange(NamedTuple):
-    """
-    Object returned when requesting the data range.
-    """
-
-    x: tuple[float, float] | None
-    y: tuple[float, float] | None
-    yright: tuple[float, float] | None
 
 
 class _PlotWidgetSelection(qt.QObject):
@@ -883,7 +874,7 @@ class PlotWidget(qt.QMainWindow):
                 continue
 
             if reset:
-                bounds = item.getResetBounds()
+                bounds = self._itemResetBounds(item)
             else:
                 bounds = item.getBounds()
             if bounds is None:
@@ -913,6 +904,15 @@ class PlotWidget(qt.QMainWindow):
             y=pack(yMinLeftList, yMaxLeftList),
             yright=pack(yMinRightList, yMaxRightList),
         )
+
+    def _itemResetBounds(self, item: items.Item) -> ItemBounds | None:
+        xAxis = self.getXAxis()
+        if isinstance(item, items.YAxisMixIn):
+            yAxis = self.getYAxis(item.getYAxis())
+        else:
+            yAxis = self.getYAxis()
+        axisInfo = AxesInfo(x=xAxis.getInfo(), y=yAxis.getInfo())
+        return item.getResetBounds(axisInfo)
 
     # Content management
 
