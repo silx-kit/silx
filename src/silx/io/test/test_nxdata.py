@@ -805,3 +805,16 @@ def test_units(tmp_path):
         assert len(nxd.axes_names) == 2
         assert nxd.axes_names[0] == "Latitude (deg)"
         assert nxd.axes_names[1] == "Longitude (sec)"
+
+
+def test_empty_aux_signals(tmp_path):
+    with h5py.File(tmp_path / "nx.h5", "w") as h5file:
+        nxdata_grp = h5file.create_group("NXdata")
+        nxdata_grp.attrs["NX_class"] = "NXdata"
+        nxdata_grp.create_dataset("signal", data=numpy.arange(20))
+        nxdata_grp.attrs["signal"] = "signal"
+        nxdata_grp.attrs["auxiliary_signals"] = []
+
+        nxd = nxdata.NXdata(nxdata_grp)
+        assert nxd.signal_name == "signal"
+        assert nxd.auxiliary_signals_dataset_names == []
