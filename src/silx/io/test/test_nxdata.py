@@ -1,38 +1,11 @@
-# /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# ############################################################################*/
-"""Tests for NXdata parsing"""
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "02/12/2025"
-
-
 import h5py
 import numpy
 import pytest
 
+
 from .. import nxdata
-from ..dictdump import dicttoh5
+from ..dictdump import dicttoh5, dicttonx
+
 
 text_dtype = h5py.special_dtype(vlen=str)
 
@@ -818,3 +791,59 @@ def test_empty_aux_signals(tmp_path):
         nxd = nxdata.NXdata(nxdata_grp)
         assert nxd.signal_name == "signal"
         assert nxd.auxiliary_signals_dataset_names == []
+
+
+def test_get_signal_errors(tmp_path):
+    nx_dict = {
+        "NXdata": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "@auxiliary_signals": ["aux_signal_1", "aux_signal_2"],
+            "signal": numpy.linspace(0, 100, 11),
+            "signal_errors": numpy.linspace(0, 10, 11),
+            "aux_signal_1": numpy.linspace(-5, -5, 11),
+            "aux_signal_1_errors": numpy.linspace(0, 1, 11),
+            "aux_signal_2": numpy.linspace(-100, 0, 11),
+        }
+    }
+
+    dicttonx(nx_dict, tmp_path / "nx.h5")
+
+    with h5py.File(tmp_path / "nx.h5", "r") as h5file:
+        nxdata_grp = h5file["NXdata"]
+        signal_errors = nxdata_grp["signal_errors"]
+        aux_signal_errors = nxdata_grp["aux_signal_1_errors"]
+
+        nxd = nxdata.NXdata(nxdata_grp)
+        errors = nxd.errors
+        assert isinstance(errors, h5py.Dataset)
+        numpy.testing.assert_equal(signal_errors[()], errors[()])
+
+        aux_errors = nxd.auxiliary_signal_errors
+        assert aux_errors == [aux_signal_errors, None]
+
+
+def test_get_axis_errors(tmp_path):
+    with h5py.File(tmp_path / "nx.h5", "w") as h5file:
+        nxdata_grp = h5file.create_group("NXdata")
+        nxdata_grp.attrs["NX_class"] = "NXdata"
+        nxdata_grp.attrs["signal"] = "signal"
+        nxdata_grp.attrs["axes"] = ["x", "y", "z"]
+        nxdata_grp.create_dataset("signal", data=numpy.random.random((10, 3, 4)))
+        nxdata_grp.create_dataset("x", data=numpy.arange(0, 10, 10))
+        y_dset = nxdata_grp.create_dataset("y", data=[0, 1, 2])
+        y_dset.attrs["long_name"] = "Y"
+        y_errors = nxdata_grp.create_dataset("y_errors", data=[0.1, 0.2, 0.3])
+        z_dset = nxdata_grp.create_dataset("z", data=[0, 1, 2, 3])
+        z_dset.attrs["first_good"] = 1
+        z_dset.attrs["last_good"] = 2
+        z_dset_errors = nxdata_grp.create_dataset(
+            "z_errors", data=[0.01, 0.02, 0.03, 0.04]
+        )
+
+        nxd = nxdata.NXdata(nxdata_grp)
+        assert nxd.get_axis_errors("x") is None
+        # Check long_name works
+        assert nxd.get_axis_errors("Y") == y_errors
+        # Check good indices are applied
+        numpy.testing.assert_equal(nxd.get_axis_errors("z"), z_dset_errors[1:3])

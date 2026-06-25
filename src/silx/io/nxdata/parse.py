@@ -490,6 +490,16 @@ class NXdata:
         return [self.group[dsname] for dsname in self.auxiliary_signals_dataset_names]
 
     @property
+    def auxiliary_signal_errors(self) -> list[h5py.Dataset | None]:
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
+        return [
+            _get_errors(self.group, signal)
+            for signal in self.auxiliary_signals_dataset_names
+        ]
+
+    @property
     def interpretation(self) -> Interpretation:
         """*@interpretation* attribute associated with the *signal*
         dataset of the NXdata group. ``None`` if no interpretation
@@ -738,48 +748,38 @@ class NXdata:
         if axis_name not in self.group:
             raise KeyError("group does not contain a dataset named '%s'" % axis_name)
 
-        len_axis = len(self.group[axis_name])
+        good_indices = _good_indices(self.group[axis_name])
+        # Try to find the errors dataset the standard way
+        error_dset = _get_errors(self.group, axis_name)
 
-        fg_idx = self.group[axis_name].attrs.get("first_good", 0)
-        lg_idx = self.group[axis_name].attrs.get("last_good", len_axis - 1)
+        if error_dset is not None:
+            return error_dset[good_indices] if good_indices is not None else error_dset
 
-        # case of axisname_errors dataset present
-        errors_name = axis_name + "_errors"
-        if errors_name in self.group and is_dataset(self.group[errors_name]):
-            if fg_idx != 0 or lg_idx != (len_axis - 1):
-                return self.group[errors_name][fg_idx : lg_idx + 1]
-            else:
-                return self.group[errors_name]
-        # case of uncertainties dataset name provided in @uncertainties
+        # Else, fallback on dataset name provided in @uncertainties
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
+        if uncertainties_names is None:
+            return None
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
-        if uncertainties_names is not None:
-            # take the uncertainty with the same index as the axis in @axes
-            axes_ds_names = get_attr_as_unicode(self.group, "axes")
-            if axes_ds_names is None:
-                axes_ds_names = get_attr_as_unicode(self.signal, "axes")
-            if isinstance(axes_ds_names, str):
-                axes_ds_names = [axes_ds_names]
-            elif isinstance(axes_ds_names, numpy.ndarray):
-                # transform numpy.ndarray into list
-                axes_ds_names = list(axes_ds_names)
-            assert isinstance(axes_ds_names, list)
-            if hasattr(axes_ds_names[0], "decode"):
-                axes_ds_names = [ax_name.decode("utf-8") for ax_name in axes_ds_names]
-            if axis_name not in axes_ds_names:
-                raise KeyError(
-                    "group attr @axes does not mention a dataset "
-                    + "named '%s'" % axis_name
-                )
-            errors = self.group[
-                uncertainties_names[list(axes_ds_names).index(axis_name)]
-            ]
-            if fg_idx == 0 and lg_idx == (len_axis - 1):
-                return errors  # dataset
-            else:
-                return errors[fg_idx : lg_idx + 1]  # numpy array
-        return None
+        # take the uncertainty with the same index as the axis in @axes
+        axes_ds_names = get_attr_as_unicode(self.group, "axes")
+        if axes_ds_names is None:
+            axes_ds_names = get_attr_as_unicode(self.signal, "axes")
+        if isinstance(axes_ds_names, str):
+            axes_ds_names = [axes_ds_names]
+        elif isinstance(axes_ds_names, numpy.ndarray):
+            # transform numpy.ndarray into list
+            axes_ds_names = list(axes_ds_names)
+        assert isinstance(axes_ds_names, list)
+        if hasattr(axes_ds_names[0], "decode"):
+            axes_ds_names = [ax_name.decode("utf-8") for ax_name in axes_ds_names]
+        if axis_name not in axes_ds_names:
+            raise KeyError(
+                "group attr @axes does not mention a dataset "
+                + "named '%s'" % axis_name
+            )
+        errors = self.group[uncertainties_names[list(axes_ds_names).index(axis_name)]]
+        return errors[good_indices] if good_indices is not None else errors
 
     @property
     def errors(self) -> h5py.Dataset | None:
@@ -790,17 +790,14 @@ class NXdata:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        dataset_names = [
-            # From NXData:
-            "errors",
-            # Not Nexus (VARIABLE_errors is only for axes), but supported anyway
-            self.signal_dataset_name + "_errors",
-        ]
-        for name in dataset_names:
-            entity = self.group.get(name)
-            if entity is not None and is_dataset(entity):
-                return entity
+        errors = _get_errors(self.group, self.signal_dataset_name)
+        if errors is not None:
+            return errors
 
+        # Fallback on "errors" dataset: deprecated way of specifing errors (NIAC2018)
+        entity = self.group.get("errors")
+        if isinstance(entity, h5py.Dataset):
+            return entity
         return None
 
     @property
@@ -1104,3 +1101,27 @@ def get_default(group: Any, validate: bool = True) -> NXdata | None:
     :raise TypeError: if group is not a h5py-like group
     """
     return _get_default(group, validate, [])
+
+
+def _good_indices(dset: h5py.Dataset) -> slice | None:
+    first_good_index: int | None = dset.attrs.get("first_good")
+    last_good_index: int | None = dset.attrs.get("last_good")
+
+    if first_good_index is None and last_good_index is None:
+        return None
+
+    if last_good_index is None:
+        return slice(first_good_index, None)
+
+    return slice(first_good_index, last_good_index + 1)
+
+
+def _get_errors(group: h5py.Group, name: str) -> h5py.Dataset | None:
+    if name not in group:
+        raise KeyError(f"group does not contain a dataset named {name}")
+
+    errors = group.get(f"{name}_errors")
+    if not isinstance(errors, h5py.Dataset):
+        return None
+
+    return errors
