@@ -241,9 +241,10 @@ class Item(qt.QObject):
 
         Otherwise
 
-        - Limits are used as bounds when fixed
-        - When dependent axis is fixed: autoscale independent axis within the dependent axis limits
-        - When independent axis is fixed: autoscale dependent axis within the independent axis limits
+        - Return `None` when the item does not fall within fixed axes limits.
+        - Axis limits are used as bounds when fixed when within the fixed axes limits.
+        - When dependent axis is fixed: autoscale independent axis within the dependent axis limits.
+        - When independent axis is fixed: autoscale dependent axis within the independent axis limits.
 
         :param axesInfo:
         :returns: (xmin, xmax, ymin, ymax) or None

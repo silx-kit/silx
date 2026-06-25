@@ -44,7 +44,8 @@ from .core import (
     LineGapColorMixIn,
     YAxisMixIn,
 )
-from .types import ItemBounds, AxisInfo, AxesInfo
+from .types import ItemBounds, AxesInfo
+from ._bound_utils import bounds_outside_fixed_limits
 from ....utils.deprecation import deprecated
 from ... import colors
 from silx._utils import NP_OPTIONAL_COPY
@@ -216,23 +217,15 @@ class BoundingRect(DataItem, YAxisMixIn):
         if bounds is None:
             return None
 
-        xmin, xmax, ymin, ymax = bounds
+        # x: independent variable
+        # y: independent variable
+        # Fixed x: autoscale y to the full range
+        # Fixed y: autoscale x to the full range
 
-        xbounds = _adjust_bounds_for_axis(
-            xmin, xmax, axesInfo.x, autoscale_returns_axis_limits=False
-        )
-        if xbounds is None:
+        if bounds_outside_fixed_limits(bounds, axesInfo):
             return None
-        xmin, xmax = xbounds
 
-        ybounds = _adjust_bounds_for_axis(
-            ymin, ymax, axesInfo.y, autoscale_returns_axis_limits=False
-        )
-        if ybounds is None:
-            return None
-        ymin, ymax = ybounds
-
-        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        return bounds
 
 
 class _BaseExtent(DataItem):
@@ -297,59 +290,12 @@ class _BaseExtent(DataItem):
         if bounds is None:
             return None
 
-        xmin, xmax, ymin, ymax = bounds
+        # only one variable (x or y) so they cannot influence eachother
 
-        if self.__axis == "x":
-            xbounds = _adjust_bounds_for_axis(
-                xmin,
-                xmax,
-                axesInfo.x,
-                autoscale_returns_axis_limits=True,
-            )
-            if xbounds is None:
-                return None
+        if bounds_outside_fixed_limits(bounds, axesInfo):
+            return None
 
-            xmin, xmax = xbounds
-            return ItemBounds.from_values(xmin, xmax, float("nan"), float("nan"))
-
-        else:
-            ybounds = _adjust_bounds_for_axis(
-                ymin,
-                ymax,
-                axesInfo.y,
-                autoscale_returns_axis_limits=True,
-            )
-            if ybounds is None:
-                return None
-
-            ymin, ymax = ybounds
-            return ItemBounds.from_values(float("nan"), float("nan"), ymin, ymax)
-
-
-def _adjust_bounds_for_axis(
-    vmin: float,
-    vmax: float,
-    axis: AxisInfo,
-    autoscale_returns_axis_limits: bool,
-) -> tuple[float, float] | None:
-    lmin, lmax = axis.limits()
-
-    if axis.auto:
-        if autoscale_returns_axis_limits:
-            return lmin, lmax
-        return vmin, vmax
-
-    # Contained entirely within current limits?
-    if vmin >= lmin and vmax <= lmax:
-        # Expand to current limits
-        return lmin, lmax
-
-    # No overlap?
-    if vmin > lmax or vmax < lmin:
-        return None
-
-    # Overlap but not fully contained
-    return vmin, vmax
+        return bounds
 
 
 class XAxisExtent(_BaseExtent):

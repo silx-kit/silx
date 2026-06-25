@@ -45,6 +45,7 @@ from .core import (
     ItemChangedType,
 )
 from .types import ItemBounds, AxesInfo
+from ._bound_utils import bounds_outside_fixed_limits
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -174,11 +175,19 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        bounds = self.getBounds()
+        if bounds is None:
+            return None
+
         # x: independent variable
         # y: independent variable
         # Fixed x: autoscale y to the full range
         # Fixed y: autoscale x to the full range
-        return self.getBounds()
+
+        if bounds_outside_fixed_limits(bounds, axesInfo):
+            return None
+
+        return bounds
 
     @docstring(DraggableMixIn)
     def drag(self, from_, to):
