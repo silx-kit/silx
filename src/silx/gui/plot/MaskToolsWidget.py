@@ -54,6 +54,8 @@ from . import items
 from ..colors import cursorColorForColormap, rgba
 from .. import qt
 from ..utils import LockReentrant
+from ._utils import mask as _mask_utils
+
 
 _logger = logging.getLogger(__name__)
 
@@ -184,17 +186,21 @@ class ImageMask(BaseMask):
         :param int width:
         :param bool mask: True to mask (default), False to unmask.
         """
-        assert 0 < level < 256
+        _mask_utils.assert_mask_value(level)
         if row + height <= 0 or col + width <= 0:
             return  # Rectangle outside image, avoid negative indices
-        selection = self._mask[
+
+        new_layer = self.getMask(copy=True)
+
+        selection = new_layer[
             max(0, row) : row + height + 1, max(0, col) : col + width + 1
         ]
         if mask:
             selection[:, :] = level
         else:
             selection[selection == level] = 0
-        self._notify()
+
+        self.addLayer(new_layer, copy=False)
 
     def updatePolygon(self, level, vertices, mask=True):
         """Mask/Unmask a polygon of the given mask level.
@@ -203,12 +209,16 @@ class ImageMask(BaseMask):
         :param vertices: Nx2 array of polygon corners as (row, col)
         :param bool mask: True to mask (default), False to unmask.
         """
-        fill = shapes.polygon_fill_mask(vertices, self._mask.shape)
+        fill = shapes.polygon_fill_mask(vertices, self.getMaskShape())
+
+        new_layer = self.getMask(copy=True)
+
         if mask:
-            self._mask[fill != 0] = level
+            new_layer[fill != 0] = level
         else:
-            self._mask[numpy.logical_and(fill != 0, self._mask == level)] = 0
-        self._notify()
+            new_layer[numpy.logical_and(fill != 0, new_layer == level)] = 0
+
+        self.addLayer(new_layer, copy=False)
 
     def updatePoints(self, level, rows, cols, mask=True):
         """Mask/Unmask points with given coordinates.
@@ -220,18 +230,18 @@ class ImageMask(BaseMask):
         :type cols: 1D numpy.ndarray
         :param bool mask: True to mask (default), False to unmask.
         """
-        valid = numpy.logical_and(
-            numpy.logical_and(rows >= 0, cols >= 0),
-            numpy.logical_and(rows < self._mask.shape[0], cols < self._mask.shape[1]),
-        )
-        rows, cols = rows[valid], cols[valid]
+        with self.updateLastLayer() as last_mask:
+            valid = numpy.logical_and(
+                numpy.logical_and(rows >= 0, cols >= 0),
+                numpy.logical_and(rows < last_mask.shape[0], cols < last_mask.shape[1]),
+            )
+            rows, cols = rows[valid], cols[valid]
 
-        if mask:
-            self._mask[rows, cols] = level
-        else:
-            inMask = self._mask[rows, cols] == level
-            self._mask[rows[inMask], cols[inMask]] = 0
-        self._notify()
+            if mask:
+                last_mask[rows, cols] = level
+            else:
+                inMask = last_mask[rows, cols] == level
+                last_mask[rows[inMask], cols[inMask]] = 0
 
     def updateDisk(self, level, crow, ccol, radius, mask=True):
         """Mask/Unmask a disk of the given mask level.
@@ -352,8 +362,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             return mask.shape
 
         if self._data.shape[0:2] == (0, 0) or mask.shape == self._data.shape[0:2]:
-            self._mask.setMask(mask, copy=copy)
-            self._mask.commit()
+            self._mask.addMask(mask, copy=copy)
             return mask.shape
         else:
             _logger.warning(
@@ -367,8 +376,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             height = min(self._data.shape[0], mask.shape[0])
             width = min(self._data.shape[1], mask.shape[1])
             resizedMask[:height, :width] = mask[:height, :width]
-            self._mask.setMask(resizedMask, copy=False)
-            self._mask.commit()
+            self._mask.addMask(resizedMask, copy=False)
             return resizedMask.shape
 
     # Handle mask refresh on the plot
