@@ -77,7 +77,7 @@ inline bool has_match_over(token_t token)
 }
 
 //parse overflow, return the number of overflow and the new position
-inline uint2 read_overflow(local uint8_t* buffer, 
+inline uint2 read_overflow(local uint8_t* buffer,
                            position_t buffer_size,
                            position_t idx){
     position_t num = 0;
@@ -106,7 +106,7 @@ inline void copy_repeat(local uint8_t* dest,
                         const position_t src_position,
                         const position_t dist,
                         const position_t length){
-    
+
     // if there is overlap, it means we repeat, so we just
     // need to organize our copy around that
     for (position_t i=get_local_id(0); i<length; i+=get_local_size(0)) {
@@ -117,13 +117,13 @@ inline void copy_repeat(local uint8_t* dest,
 inline void copy_collab(local uint8_t* dest,
                         const position_t dest_position,
                         local uint8_t* source,
-                        const position_t src_position,    
+                        const position_t src_position,
                         const position_t dist,
                         const position_t length){
     //Generic copy function
     if (dist < length) {
         copy_repeat(dest, dest_position, source, src_position, dist, length);
-    } 
+    }
     else {
         copy_no_overlap(dest, dest_position, source, src_position, length);
     }
@@ -183,12 +183,12 @@ inline void _lz4_unblock(global uint8_t *src,
                            const uint64_t size,
                            local uint64_t *block_position){
     uint32_t gid = get_group_id(0);
-    uint32_t lid = get_local_id(0);    
+    uint32_t lid = get_local_id(0);
     if (lid == 0){
         uint64_t block_start=16;
         uint32_t block_size = load32_at(src, 12, SWAP_BE);
         uint64_t block_end = block_start + block_size;
-        
+
         for (uint32_t block_idx=0; block_idx<gid; block_idx++){
             // printf("gid %u idx %u %lu-%lu\n",gid, block_idx,block_start,block_end);
             block_start = block_end + 4;
@@ -206,7 +206,7 @@ inline void _lz4_unblock(global uint8_t *src,
 //        if (gid>get_num_groups(0)-10) printf("Success finish unblock gid %u block: %lu - %lu\n",gid,block_start,block_end);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-}                    
+}
 
 
 //Decompress one block in shared memory
@@ -214,11 +214,11 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
                                             local uint8_t* local_dec,
                                             const uint32_t cmp_buffer_size,
                                             const uint32_t dec_buffer_size){
-    
+
     uint32_t gid = get_group_id(0); // One block is decompressed by one workgroup
     uint32_t lid = get_local_id(0); // This is the thread position in the group...
     uint32_t wg = get_local_size(0); // workgroup size
-        
+
     position_t dec_idx = 0;
     position_t cmp_idx = 0;
     while (cmp_idx < cmp_buffer_size) {
@@ -227,11 +227,11 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
         // if (lid==0)        printf("gid %u at idx %u/%u. Token is litterials: %u; matches: %u\n", gid, cmp_idx, cmp_buffer_size,tok.s0, tok.s1);
 
         cmp_idx+=1;
-        
+
         // read the length of the literals
         position_t num_literals = tok.s0;
         if (has_liter_over(tok)) {
-            uint2 tmp = read_overflow(local_cmp, 
+            uint2 tmp = read_overflow(local_cmp,
                                       cmp_buffer_size,
                                       cmp_idx);
             num_literals += tmp.s0;
@@ -244,7 +244,7 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
         copy_no_overlap(local_dec, dec_idx, local_cmp, cmp_idx, num_literals);
         cmp_idx += num_literals;
         dec_idx += num_literals;
-        
+
         // Note that the last sequence stops right after literals field.
         // There are specific parsing rules to respect to be compatible with the
         // reference decoder : 1) The last 5 bytes are always literals 2) The last
@@ -252,23 +252,23 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
         // less then 13 bytes can only be represented as literals These rules are in
         // place to benefit speed and ensure buffer limits are never crossed.
         if (cmp_idx < cmp_buffer_size) {
-            
+
           // read the offset
           uint16_t offset = load16_at(local_cmp, cmp_idx, SWAP_LE);
           // if (lid==0) printf("gid %u: offset is %u at %u\n",gid, offset, cmp_idx);
           if (offset == 0) {
               //corruped block
-              if (lid == 0) 
+              if (lid == 0)
                   printf("Corrupted block #%u\n", gid);
               return 0;
           }
-          
+
           cmp_idx += 2;
 
           // read the match length
           position_t match = 4 + tok.s1;
           if (has_match_over(tok)) {
-            uint2 tmp = read_overflow(local_cmp, 
+            uint2 tmp = read_overflow(local_cmp,
                                       cmp_buffer_size,
                                       cmp_idx);
             match += tmp.s0;
@@ -277,7 +277,7 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
 
           //syncronize threads before reading shared memory
           barrier(CLK_LOCAL_MEM_FENCE);
-          
+
           // copy match
           copy_collab(local_dec, dec_idx, local_dec, dec_idx - offset, offset, match);
           dec_idx += match;
@@ -409,7 +409,7 @@ inline void bitunshuffle64( local uint8_t* inp,
 - Memset arrays
 - read block position stored in block_position array
 
-Param: 
+Param:
 - src: input buffer in global memory
 - size: input buffer size
 - block_position: output buffer in local memory containing the index of the begining of each block
@@ -432,18 +432,20 @@ kernel void lz4_unblock(global uint8_t *src,
 
     uint32_t block_idx = 0;
     uint64_t pos = 12;
+    uint64_t end = pos + 4;
     uint32_t block_size;
-        
-    while ((pos+4<size) && (block_idx<max_blocks)){
+
+    while ((end<size) && (block_idx<max_blocks)){
         block_size = load32_at(src, pos, SWAP_BE);
-        block_start[block_idx] = pos + 4;
-        block_idx +=1;
-        pos += 4 + block_size;
+        block_start[block_idx] = end;
+        block_idx += 1;
+        pos = end + block_size;
+        end = pos + 4;
     }
     nb_blocks[0] = block_idx;
-}                    
+}
 
-// decompress a frame blockwise. 
+// decompress a frame blockwise.
 // Needs the block position to be known in advance (block_start) calculated from lz4_unblock.
 // one workgroup treats on block.
 
@@ -451,31 +453,32 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
                                     global uint8_t* dec_dest,
                                     global uint64_t* block_start,
                                     global uint32_t *nb_blocks,
-                                    const uint8_t item_size){
-    
+                                    const uint8_t item_size,
+                                    const uint64_t comp_size){
+
     uint32_t gid = get_group_id(0); // One block is decompressed by one workgroup
     uint32_t lid = get_local_id(0); // This is the thread position in the group...
     uint32_t wg = get_local_size(0); // workgroup size
-    
+
     //guard if the number of wg scheduled is too large
     if (gid >=nb_blocks[0]) return;
-    
+
     // No need to guard, the number of blocks can be calculated in advance.
     uint64_t start_read = block_start[gid];
     if (start_read<12) return;
-    
+
     local uint8_t local_cmp[LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA];
     local uint8_t local_dec[LZ4_BLOCK_SIZE];
-    
-    uint32_t cmp_buffer_size = load32_at(comp_src, start_read-4, SWAP_BE); 
-    uint64_t end_read = start_read + cmp_buffer_size;
+
+    uint32_t cmp_buffer_size = load32_at(comp_src, start_read-4, SWAP_BE);
+    uint64_t end_read = min(start_read + cmp_buffer_size, comp_size);
     // Copy locally the compressed buffer and memset the destination buffer
     for (uint32_t i=lid; i<cmp_buffer_size; i+=wg){
         uint64_t read_pos = start_read + i;
-        if (read_pos<end_read)
+        if (read_pos < end_read)
             local_cmp[i] = comp_src[read_pos];
         else
-            local_cmp[i] = 0;            
+            local_cmp[i] = 0;
     }
     for (uint32_t i=lid+cmp_buffer_size; i<LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA; i+=wg){
             local_cmp[i] = 0;
@@ -484,13 +487,13 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
             local_dec[i] = 0;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     //All the work is performed here:
     uint32_t dec_size = lz4_decompress_local_block( local_cmp, local_dec, cmp_buffer_size, LZ4_BLOCK_SIZE);
-    
+
     barrier(CLK_LOCAL_MEM_FENCE);
     local uint8_t* local_buffer;
-    
+
     //Perform bit-unshuffle
     if (item_size == 1){
 //        if ((gid==0) && (lid==0)) printf("bitunshuffle8");
@@ -516,7 +519,7 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
         local_buffer = local_dec;
     }
 
-        
+
     //Finally copy the destination data from local to global memory:
     uint64_t start_write = LZ4_BLOCK_SIZE*gid;
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -538,8 +541,8 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
 
 }
 
-// decompress a frame blockwise. 
-// block-start are searched by one thread from each workgroup ... not very efficient 
+// decompress a frame blockwise.
+// block-start are searched by one thread from each workgroup ... not very efficient
 // one workgroup treats on block.
 
 kernel void bslz4_decompress_frame(
@@ -547,11 +550,11 @@ kernel void bslz4_decompress_frame(
     const uint64_t src_size,
     global uint8_t* dec_dest,
     const uint8_t item_size){
-    
+
     uint32_t gid = get_group_id(0); // One block is decompressed by one workgroup
     uint32_t lid = get_local_id(0); // This is the thread position in the group...
     uint32_t wg = get_local_size(0); // workgroup size
-    
+
     local uint8_t local_cmp[LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA];
     local uint8_t local_dec[LZ4_BLOCK_SIZE];
     local uint64_t block[2]; // will contain begining and end of the current block
@@ -561,19 +564,19 @@ kernel void bslz4_decompress_frame(
     _lz4_unblock(comp_src, src_size, block);
     start_read = block[0];
     end_read = block[1];
-    cmp_buffer_size = end_read - start_read; 
+    cmp_buffer_size = end_read - start_read;
     if (cmp_buffer_size == 0){
         if (lid == 0) printf("gid=%u: Empty buffer\n", gid);
         return;
     }
-        
+
     // Copy locally the compressed buffer and memset the destination buffer
     for (uint32_t i=lid; i<cmp_buffer_size; i+=wg){
         uint64_t read_pos = start_read + i;
         if (read_pos<end_read)
             local_cmp[i] = comp_src[read_pos];
         else
-            local_cmp[i] = 0;            
+            local_cmp[i] = 0;
     }
     for (uint32_t i=lid+cmp_buffer_size; i<LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA; i+=wg){
             local_cmp[i] = 0;
@@ -582,14 +585,14 @@ kernel void bslz4_decompress_frame(
             local_dec[i] = 0;
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-        
+
     //All the work is performed here:
     uint32_t dec_size;
     dec_size = lz4_decompress_local_block( local_cmp, local_dec, cmp_buffer_size, LZ4_BLOCK_SIZE);
-    
+
     barrier(CLK_LOCAL_MEM_FENCE);
     local uint8_t* local_buffer;
-    
+
     //Perform bit-unshuffle
     if (item_size == 1){
 //        if ((gid==0) && (lid==0)) printf("bitunshuffle8");
@@ -614,7 +617,7 @@ kernel void bslz4_decompress_frame(
     else {
         local_buffer = local_dec;
     }
-        
+
     //Finally copy the destination data from local to global memory:
     uint64_t start_write = LZ4_BLOCK_SIZE*gid;
     barrier(CLK_LOCAL_MEM_FENCE);
