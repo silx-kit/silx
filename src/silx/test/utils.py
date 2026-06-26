@@ -69,6 +69,12 @@ class _TestOptions:
         self.WITH_GL_TEST_REASON = ""
         """Reason for OpenGL tests are disabled if any"""
 
+        self.WITH_PYGFX_TEST = True
+        """pygfx tests are included"""
+
+        self.WITH_PYGFX_TEST_REASON = ""
+        """Reason for pygfx tests are disabled if any"""
+
         self.WITH_HIGH_MEM_TEST = False
         """Skip tests using too much memory"""
 
@@ -116,6 +122,32 @@ class _TestOptions:
             except ImportError:
                 self.WITH_GL_TEST = False
                 self.WITH_GL_TEST_REASON = "OpenGL package not available"
+
+        if parsed_options is not None and not parsed_options.pygfx:
+            self.WITH_PYGFX_TEST = False
+            self.WITH_PYGFX_TEST_REASON = "Skipped by command line"
+        elif os.environ.get("WITH_PYGFX_TEST", "True") == "False":
+            self.WITH_PYGFX_TEST = False
+            self.WITH_PYGFX_TEST_REASON = "Skipped by WITH_PYGFX_TEST env var"
+        elif sys.platform.startswith("linux") and not os.environ.get("DISPLAY", ""):
+            self.WITH_PYGFX_TEST = False
+            self.WITH_PYGFX_TEST_REASON = "DISPLAY env variable not set"
+        else:
+            try:
+                import pygfx  # noqa: F401
+            except ImportError:
+                self.WITH_PYGFX_TEST = False
+                self.WITH_PYGFX_TEST_REASON = "pygfx package not available"
+            else:
+                try:
+                    import pygfx as gfx
+
+                    gfx.renderers.wgpu.get_shared().device
+                except Exception:
+                    self.WITH_PYGFX_TEST = False
+                    self.WITH_PYGFX_TEST_REASON = (
+                        "pygfx wgpu device not available (no GPU)"
+                    )
 
         if parsed_options is not None and parsed_options.high_mem:
             self.WITH_HIGH_MEM_TEST = True
