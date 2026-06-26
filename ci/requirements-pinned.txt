@@ -2,3 +2,4 @@
 --find-links http://www.silx.org/pub/wheelhouse/
 
 # Placeholder for pinned packages used by CI
+Cython==3.2.6
