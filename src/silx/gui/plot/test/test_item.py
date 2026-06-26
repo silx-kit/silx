@@ -531,7 +531,7 @@ def testPlotWidgetAddShape(plotWidget):
         (4.0, (8.0, 4.0, 4.0, 4.0)),
     ),
 )
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testLineStyle(qapp_utils, plotWidget, linestyle):
     """Test different line styles for LineMixIn items"""
     plotWidget.setGraphTitle(f"Line style: {linestyle}")

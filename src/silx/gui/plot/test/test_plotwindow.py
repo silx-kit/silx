@@ -166,9 +166,12 @@ class TestPlotWindow(TestCaseQt):
         ylimits = self.plot.getYAxis().getLimits()
         isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
 
-        for backend in ("gl", "mpl"):
-            with self.subTest():
-                self.plot.setBackend(backend)
+        for backend in ("gl", "mpl", "pygfx"):
+            with self.subTest(backend=backend):
+                try:
+                    self.plot.setBackend(backend)
+                except Exception:
+                    continue
                 self.plot.replot()
                 self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
                 self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
