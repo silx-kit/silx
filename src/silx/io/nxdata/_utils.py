@@ -57,6 +57,26 @@ attribute.
 """
 
 
+def _decode(attr):
+    if isinstance(attr, str):
+        return attr
+    elif isinstance(attr, bytes):
+        # byte-string
+        return attr.decode("utf-8")
+    elif isinstance(attr, numpy.ndarray) and not attr.shape:
+        if isinstance(attr[()], bytes):
+            # byte string as ndarray scalar
+            return attr[()].decode("utf-8")
+        else:
+            # other scalar, possibly unicode
+            return attr[()]
+    elif isinstance(attr, numpy.ndarray):
+        return [_decode(element) for element in attr]
+    else:
+        # TODO: Fix typing
+        return copy.deepcopy(attr)
+
+
 def get_attr_as_unicode(
     item: h5py.Group | h5py.Dataset,
     attr_name: str,
@@ -75,26 +95,7 @@ def get_attr_as_unicode(
     """
     attr = item.attrs.get(attr_name, default)
 
-    if isinstance(attr, bytes):
-        # byte-string
-        return attr.decode("utf-8")
-    elif isinstance(attr, numpy.ndarray) and not attr.shape:
-        if isinstance(attr[()], bytes):
-            # byte string as ndarray scalar
-            return attr[()].decode("utf-8")
-        else:
-            # other scalar, possibly unicode
-            return attr[()]
-    elif isinstance(attr, numpy.ndarray) and len(attr.shape):
-        if hasattr(attr[0], "decode"):
-            # array of byte-strings
-            return [element.decode("utf-8") for element in attr]
-        else:
-            # other array, most likely unicode objects
-            return [element for element in attr]
-    else:
-        # TODO: Fix typing
-        return copy.deepcopy(attr)
+    return _decode(attr)
 
 
 def get_uncertainties_names(group: h5py.Group, signal_name: str) -> list[str] | None:
