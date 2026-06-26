@@ -236,9 +236,9 @@ class PlotAxisCore:
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert (
-            len(color) == 4
-        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        assert len(color) == 4, (
+            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        )
         if self._foregroundColor != color:
             self._foregroundColor = color
             self._dirtyTicks()
@@ -529,9 +529,9 @@ class PlotFrameCore:
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert (
-            len(color) == 4
-        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        assert len(color) == 4, (
+            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        )
         if self._foregroundColor != color:
             self._foregroundColor = color
             for axis in self.axes:
@@ -546,9 +546,9 @@ class PlotFrameCore:
     @gridColor.setter
     def gridColor(self, color):
         """Color used for grid"""
-        assert (
-            len(color) == 4
-        ), f"gridColor must have length 4, got {len(self._gridColor)}"
+        assert len(color) == 4, (
+            f"gridColor must have length 4, got {len(self._gridColor)}"
+        )
         if self._gridColor != color:
             self._gridColor = color
             self._dirty()
@@ -1384,9 +1384,9 @@ class PlotFrame2DCore(PlotFrameCore):
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert (
-            len(color) == 4
-        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        assert len(color) == 4, (
+            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+        )
         if self._foregroundColor != color:
             self._y2Axis.foregroundColor = color
             PlotFrameCore.foregroundColor.fset(self, color)

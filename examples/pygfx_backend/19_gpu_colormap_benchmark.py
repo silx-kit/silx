@@ -187,8 +187,7 @@ class StreamingBenchmark(qt.QWidget):
         print("\n".join(lines[-1:]))
 
         self._status.setText(
-            f"Done: {avg_fps:.1f} FPS | "
-            f"plot {avg_plot:.1f} + other {avg_other:.1f}ms"
+            f"Done: {avg_fps:.1f} FPS | plot {avg_plot:.1f} + other {avg_other:.1f}ms"
         )
         self._start_btn.setEnabled(True)
         self._stop_btn.setEnabled(False)
