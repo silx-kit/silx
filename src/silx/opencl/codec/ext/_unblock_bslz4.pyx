@@ -75,7 +75,7 @@ def unblock_bslz4(bytes src):
     with nogil:
         while ((end < size) and (block_idx < block_max)):
             block_size = load32_at(buffer, pos)
-            if block_size>8230:
+            if block_size>=8230:
                 # This is an invalid block ... since it is larger than the compressed block size
                 # the actual (uncompressed) block size is 8184
                 # but compressed block can be 5% larger in case of incompressible data
