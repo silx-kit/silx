@@ -116,7 +116,7 @@ class BenchmarkWidget(qt.QWidget):
             return
 
         self._label.setText(
-            f"Benchmarking: {backend} | {self._n_points} points | " f"{self._duration}s"
+            f"Benchmarking: {backend} | {self._n_points} points | {self._duration}s"
         )
         self._fps_labels[backend].setText("running...")
         self._fps_labels[backend].setStyleSheet("color: blue;")
