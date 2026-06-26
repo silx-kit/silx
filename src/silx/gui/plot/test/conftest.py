@@ -40,4 +40,6 @@ def plotWidget(qWidgetFactory, request):
         backend = "mpl"  # Backend was not defined
     if backend == "gl":
         request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
+    elif backend == "pygfx":
+        request.getfixturevalue("use_pygfx")  # Skip test if pygfx test disabled
     yield qWidgetFactory(PlotWidget, backend=backend)
