@@ -45,6 +45,7 @@ class Config:
 
     - 'matplotlib' (default) or 'mpl'
     - 'opengl', 'gl'
+    - 'pygfx', 'wgpu' (requires pygfx and rendercanvas packages)
     - 'none'
     - A :class:`silx.gui.plot.backend.BackendBase.BackendBase` class
     - A callable returning backend class or binding name
