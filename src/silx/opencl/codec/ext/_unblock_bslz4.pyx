@@ -10,7 +10,7 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "05/06/2026"
+__date__ = "26/06/2026"
 
 
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
@@ -61,11 +61,11 @@ def unblock_bslz4(bytes src):
     :return: list of start of block in the input stream (as numpy array)
     """
     cdef:
-        uint32_t size = len(src)
+        uint64_t size = len(src)
         uint64_t total_nbytes = load64_at(src, 0)
         uint32_t block_nbytes = load32_at(src, 8)
         const uint8_t[::1] buffer = src
-        uint32_t block_max = min(size//4+1, 1<<32-1)
+        uint32_t block_max = min(size//4+1, (1<<32)-1)
         uint64_t[::1] block_start = numpy.empty(block_max, dtype=numpy.uint64)
         uint32_t block_idx = 0
         uint64_t pos = 12
@@ -75,11 +75,13 @@ def unblock_bslz4(bytes src):
     with nogil:
         while ((end < size) and (block_idx < block_max)):
             block_size = load32_at(buffer, pos)
+            if block_size>8230:
+                # This is an invalid block ... since it is larger than the compressed block size
+                # the actual (uncompressed) block size is 8184
+                # but compressed block can be 5% larger in case of incompressible data
+                break
             block_start[block_idx] = end
             block_idx +=1
             pos = end + block_size
             end = pos + 4
-        # Remove last block if it overflows
-        if end >= size:
-            block_idx -= 1
     return numpy.asarray(block_start[:block_idx])
