@@ -31,15 +31,19 @@ __date__ = "08/12/2020"
 
 import os
 import weakref
+from contextlib import contextmanager
+from typing import Generator
 
 import numpy
 
-from silx._utils import NP_OPTIONAL_COPY
 from silx.gui import qt, icons
 from silx.gui.widgets.FloatEdit import FloatEdit
 from silx.gui.colors import Colormap
 from silx.gui.colors import rgba
 from .actions.mode import PanModeAction
+from ._utils import mask as _mask_utils
+from ._utils.mask import MaskLayerInfo
+from .items import Item
 
 
 class BaseMask(qt.QObject):
@@ -68,15 +72,9 @@ class BaseMask(qt.QObject):
     sigRedoable = qt.Signal(bool)
     """Signal emitted when redo becomes possible/impossible"""
 
-    def __init__(self, dataItem=None):
-        self.historyDepth = 10
-        """Maximum number of operation stored in history list for undo"""
-        # Init lists for undo/redo
-        self._history = []
-        self._redo = []
-
-        # Store the mask
-        self._mask = numpy.array((), dtype=numpy.uint8)
+    def __init__(self, dataItem: Item | None = None) -> None:
+        # Store the mask layers
+        self._layers: _mask_utils.MaskLayers | None = None
 
         # Store the plot item to be masked
         self._dataItem = None
@@ -85,7 +83,11 @@ class BaseMask(qt.QObject):
             self.reset(self.getDataValues().shape)
         super().__init__()
 
-    def setDataItem(self, item):
+    # ------------------------------------------------------------------
+    # Data item
+    # ------------------------------------------------------------------
+
+    def setDataItem(self, item: Item) -> None:
         """Set a data item
 
         :param item: A plot item, subclass of :class:`silx.gui.plot.items.Item`
@@ -93,14 +95,14 @@ class BaseMask(qt.QObject):
         """
         self._dataItem = item
 
-    def getDataItem(self):
+    def getDataItem(self) -> Item | None:
         """Returns current plot item the mask is on.
 
         :rtype: Union[~silx.gui.plot.items.Item,None]
         """
         return self._dataItem
 
-    def getDataValues(self):
+    def getDataValues(self) -> numpy.ndarray:
         """Return data values, as a numpy array with the same shape
         as the mask.
 
@@ -112,21 +114,80 @@ class BaseMask(qt.QObject):
         """
         raise NotImplementedError("To be implemented in subclass")
 
-    def _notify(self):
+    # ------------------------------------------------------------------
+    # Notification
+    # ------------------------------------------------------------------
+
+    def _notify(self) -> None:
         """Notify of mask change."""
         self.sigChanged.emit()
 
-    def getMask(self, copy=True):
+    def _stateChanged(self) -> None:
+        self.sigStateChanged.emit()
+
+    def _updateUndoRedoSignals(self) -> None:
+        if self._layers is None:
+            self.sigUndoable.emit(False)
+            self.sigRedoable.emit(False)
+        else:
+            self.sigUndoable.emit(self._layers.can_undo())
+            self.sigRedoable.emit(self._layers.can_redo())
+
+    # ------------------------------------------------------------------
+    # Get/update the mask
+    # ------------------------------------------------------------------
+
+    def getMaskShape(self) -> tuple[int, ...]:
+        if self._layers is None:
+            return ()
+        return self._layers.shape
+
+    def getMask(self, copy: bool = True) -> numpy.ndarray:
         """Get the current mask as a numpy array.
+
+        This returns a combination of all mask layers. Modifications
+        to the returned array will be lost upon next invalidation.
+        So `copy=False` is only useful for performance reasons.
+
+        :param bool copy: True (default) to get a copy of the mask.
+                          If False, the returned array MUST not be modified.
+        :param bool last: True to get the last layer, False to get the merged layers.
+        :return: The array of the mask with dimension of the data to be masked.
+        :rtype: numpy.ndarray of uint8
+        """
+        if self._layers is None:
+            return _mask_utils.empty_mask(())
+
+        return self._layers.get_merged_mask(copy=copy)
+
+    def getLastLayer(self, copy: bool = True) -> numpy.ndarray:
+        """Get the current mask as a numpy array.
+
+        Modifications to the returned array will not immediately
+        affect the merged mask. So `copy=False` is only useful for
+        performance reasons. Use `updateLastLayer` to modify the
+        last mask layer.
 
         :param bool copy: True (default) to get a copy of the mask.
                           If False, the returned array MUST not be modified.
         :return: The array of the mask with dimension of the data to be masked.
         :rtype: numpy.ndarray of uint8
         """
-        return numpy.array(self._mask, copy=copy or NP_OPTIONAL_COPY)
+        if self._layers is None:
+            return _mask_utils.empty_mask(())
 
-    def setMask(self, mask, copy=True):
+        return self._layers.get_last_layer(copy=copy)
+
+    @contextmanager
+    def updateLastLayer(self) -> Generator[numpy.array, None, None]:
+        mask = self._layers.get_last_layer(copy=False)
+        try:
+            yield mask
+        finally:
+            self._layers.update_last_layer(mask, copy=False)
+            self._notify()
+
+    def addLayer(self, mask: numpy.ndarray, copy: bool = True):
         """Set the mask to a new array.
 
         :param numpy.ndarray mask: The array to use for the mask.
@@ -135,87 +196,143 @@ class BaseMask(qt.QObject):
         :param bool copy: True (the default) to copy the array,
                           False to use it as is if possible.
         """
-        self._mask = numpy.array(
-            mask, copy=copy or NP_OPTIONAL_COPY, order="C", dtype=numpy.uint8
-        )
+        if self._layers is None:
+            self._layers = _mask_utils.MaskLayers(mask.shape)
+
+        self._layers.add_layer(mask, copy=copy)
+
         self._notify()
 
-    # History control
-    def resetHistory(self):
-        """Reset history"""
-        self._history = [numpy.array(self._mask, copy=True)]
-        self._redo = []
-        self.sigUndoable.emit(False)
-        self.sigRedoable.emit(False)
+    def setMask(self, mask: numpy.ndarray, copy: bool = True):
+        """Set the mask to a new array.
 
-    def commit(self):
-        """Append the current mask to history if changed"""
-        if (
-            not self._history
-            or self._redo
-            or not numpy.array_equal(self._mask, self._history[-1])
-        ):
-            if self._redo:
-                self._redo = []  # Reset redo as a new action as been performed
-                self.sigRedoable[bool].emit(False)
+        :param numpy.ndarray mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8, C-contiguous.
+                    Array of other types are converted.
+        :param bool copy: True (the default) to copy the array,
+                          False to use it as is if possible.
+        :param bool add: Modify the last layer or add a new one.
+        """
+        self.clear()
+        self.addLayer(mask, copy=copy)
 
-            while len(self._history) >= self.historyDepth:
-                self._history.pop(0)
-            self._history.append(numpy.array(self._mask, copy=True))
+    # ------------------------------------------------------------------
+    # Layer API
+    # ------------------------------------------------------------------
 
-            if len(self._history) == 2:
-                self.sigUndoable.emit(True)
-        self.sigStateChanged.emit()
+    def getMaskLayerInfo(self) -> list[MaskLayerInfo]:
+        if self._layers is None:
+            return []
 
-    def undo(self):
-        """Restore previous mask if any"""
-        if len(self._history) > 1:
-            self._redo.append(self._history.pop())
-            self._mask = numpy.array(self._history[-1], copy=True)
-            self._notify()  # Do not store this change in history
+        return self._layers.get_layer_info()
 
-            if len(self._redo) == 1:  # First redo
-                self.sigRedoable.emit(True)
-            if len(self._history) == 1:  # Last value in history
-                self.sigUndoable.emit(False)
-            self.sigStateChanged.emit()
+    def enableMaskLayer(self, layerId: int) -> None:
+        if self._layers is None:
+            return
 
-    def redo(self):
-        """Restore previously undone modification if any"""
-        if self._redo:
-            self._mask = self._redo.pop()
-            self._history.append(numpy.array(self._mask, copy=True))
+        self._layers.enable_layer(layerId)
+        self._notify()
+        self._updateUndoRedoSignals()
+        self._stateChanged()
+
+    def disableMaskLayer(self, layerId: int) -> None:
+        if self._layers is None:
+            return
+
+        self._layers.disable_layer(layerId)
+        self._notify()
+        self._updateUndoRedoSignals()
+        self._stateChanged()
+
+    def removeMaskLayer(self, layerId: int) -> None:
+        if self._layers is None:
+            return
+
+        self._layers.remove_layer(layerId)
+        self._notify()
+        self._stateChanged()
+
+    # ------------------------------------------------------------------
+    # Deprecated History Control
+    # ------------------------------------------------------------------
+
+    def resetHistory(self) -> None:
+        if self._layers is not None:
+            self._layers.reset_history()
+
+        self._updateUndoRedoSignals()
+
+    def commit(self) -> None:
+        if self._layers is None:
+            return
+
+        self._layers.add_empty_layer()
+        self._updateUndoRedoSignals()
+        self._stateChanged()
+
+    def undo(self) -> None:
+        if self._layers is None:
+            return
+
+        if self._layers.undo():
             self._notify()
+            self._updateUndoRedoSignals()
+            self._stateChanged()
 
-            if not self._redo:  # No more redo
-                self.sigRedoable.emit(False)
-            if len(self._history) == 2:  # Something to undo
-                self.sigUndoable.emit(True)
-            self.sigStateChanged.emit()
+    def redo(self) -> None:
+        if self._layers is None:
+            return
 
+        if self._layers.redo():
+            self._notify()
+            self._updateUndoRedoSignals()
+            self._stateChanged()
+
+    # ------------------------------------------------------------------
     # Whole mask operations
+    # ------------------------------------------------------------------
 
-    def clear(self, level):
+    def clear(self, level: int) -> None:
         """Set all values of the given mask level to 0.
 
         :param int level: Value of the mask to set to 0.
         """
-        assert 0 < level < 256
-        self._mask[self._mask == level] = 0
-        self._notify()
+        _mask_utils.assert_mask_value(level)
 
-    def invert(self, level):
+        if self._layers is None:
+            return
+
+        mask = self.getMask(copy=True)
+        mask[mask == level] = 0
+
+        self._layers.add_layer(mask, or_operation=False, copy=False)
+
+        self._notify()
+        self._updateUndoRedoSignals()
+        self._stateChanged()
+
+    def invert(self, level: int) -> None:
         """Invert mask of the given mask level.
 
         0 values become level and level values become 0.
 
         :param int level: The level to invert.
         """
-        assert 0 < level < 256
-        masked = self._mask == level
-        self._mask[self._mask == 0] = level
-        self._mask[masked] = 0
+        _mask_utils.assert_mask_value(level)
+
+        if self._layers is None:
+            return
+
+        mask = self.getMask(copy=True)
+        masked = mask == level
+        mask[mask == 0] = level
+        mask[masked] = 0
+
+        self._layers.add_layer(mask, or_operation=False, copy=False)
+
         self._notify()
+        self._updateUndoRedoSignals()
+        self._stateChanged()
 
     def reset(self, shape=None):
         """Reset the mask to zero and change its shape.
@@ -226,16 +343,19 @@ class BaseMask(qt.QObject):
         :type shape: tuple of int
         """
         if shape is None:
-            # assume dimensionality never changes
-            shape = (0,) * len(self._mask.shape)  # empty array
-        shapeChanged = shape != self._mask.shape
-        self._mask = numpy.zeros(shape, dtype=numpy.uint8)
-        if shapeChanged:
-            self.resetHistory()
+            if self._layers is None:
+                return
+
+            self._layers.clear()
+        else:
+            self._layers = _mask_utils.MaskLayers(shape)
 
         self._notify()
 
-    # To be implemented
+    # ------------------------------------------------------------------
+    # Persist
+    # ------------------------------------------------------------------
+
     def save(self, filename, kind):
         """Save current mask in a file
 
@@ -245,8 +365,11 @@ class BaseMask(qt.QObject):
         """
         raise NotImplementedError("To be implemented in subclass")
 
-    # update thresholds
-    def updateStencil(self, level, stencil, mask=True):
+    # ------------------------------------------------------------------
+    # Threshold operations
+    # ------------------------------------------------------------------
+
+    def updateStencil(self, level: int, stencil: numpy.ndarray, mask: bool = True):
         """Mask/Unmask points from boolean mask: all elements that are True
         in the boolean mask are set to ``level`` (if ``mask=True``) or 0
         (if ``mask=False``)
@@ -256,13 +379,14 @@ class BaseMask(qt.QObject):
         :type stencil: numpy.array of same dimension as the mask
         :param bool mask: True to mask (default), False to unmask.
         """
-        if mask:
-            self._mask[stencil] = level
-        else:
-            self._mask[numpy.logical_and(self._mask == level, stencil)] = 0
+        with self.updateLastLayer() as last_mask:
+            if mask:
+                last_mask[stencil] = level
+            else:
+                last_mask[numpy.logical_and(last_mask == level, stencil)] = 0
         self._notify()
 
-    def updateBelowThreshold(self, level, threshold, mask=True):
+    def updateBelowThreshold(self, level: int, threshold: float, mask: bool = True):
         """Mask/unmask all points whose values are below a threshold.
 
         :param int level:
@@ -303,7 +427,10 @@ class BaseMask(qt.QObject):
             level, numpy.logical_not(numpy.isfinite(self.getDataValues())), mask
         )
 
-    # Drawing operations:
+    # ------------------------------------------------------------------
+    # Drawing operations
+    # ------------------------------------------------------------------
+
     def updateRectangle(self, level, row, col, height, width, mask=True):
         """Mask/Unmask data inside a rectangle, with the given mask level.
 
@@ -416,7 +543,7 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         if not isinstance(mask, BaseMask):
             raise TypeError("mask is not an instance of BaseMask")
-        self._mask = mask
+        self._mask: BaseMask = mask
 
         self._mask.sigChanged.connect(self._updatePlotMask)
         self._mask.sigChanged.connect(self._emitSigMaskChanged)
@@ -1090,12 +1217,10 @@ class BaseMaskToolsWidget(qt.QWidget):
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
         self._mask.clear(self.levelSpinBox.value())
-        self._mask.commit()
 
     def _handleInvertMask(self):
         """Invert the current mask level selection."""
         self._mask.invert(self.levelSpinBox.value())
-        self._mask.commit()
 
     # Handle drawing tools UI events
 

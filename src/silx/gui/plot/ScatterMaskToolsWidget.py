@@ -94,14 +94,14 @@ class ScatterMask(BaseMask):
             updated
         :param bool mask: True to mask (default), False to unmask.
         """
-        if mask:
-            self._mask[indices] = level
-        else:
-            # unmask only where mask level is the specified value
-            indices_stencil = numpy.zeros_like(self._mask, dtype=bool)
-            indices_stencil[indices] = True
-            self._mask[numpy.logical_and(self._mask == level, indices_stencil)] = 0
-        self._notify()
+        with self.updateLastLayer() as last_mask:
+            if mask:
+                last_mask[indices] = level
+            else:
+                # unmask only where mask level is the specified value
+                indices_stencil = numpy.zeros_like(last_mask, dtype=bool)
+                indices_stencil[indices] = True
+                last_mask[numpy.logical_and(last_mask == level, indices_stencil)] = 0
 
     # update shapes
     def updatePolygon(self, level, vertices, mask=True):
@@ -240,7 +240,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._data_scatter.getXData(copy=False).shape == (0,)
             or mask.shape == self._data_scatter.getXData(copy=False).shape
         ):
-            self._mask.setMask(mask, copy=copy)
+            self._mask.addLayer(mask, copy=copy)
             self._mask.commit()
             return mask.shape
         else:
@@ -348,7 +348,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
             if (
                 self._data_scatter.getXData(copy=False).shape
-                != self._mask.getMask(copy=False).shape
+                != self._mask.getMaskShape()
             ):
                 # scatter has not the same size, remove mask and stop listening
                 if self.plot._getItem(kind="scatter", legend=self._maskName):
@@ -385,7 +385,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._mask.setDataItem(self._data_scatter)
             if (
                 self._data_scatter.getXData(copy=False).shape
-                != self._mask.getMask(copy=False).shape
+                != self._mask.getMaskShape()
             ):
                 self._mask.reset(self._data_scatter.getXData(copy=False).shape)
                 self._mask.commit()
