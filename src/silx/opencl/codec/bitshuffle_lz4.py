@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/06/2026"
+__date__ = "26/06/2026"
 __status__ = "production"
 
 
@@ -243,6 +243,7 @@ class BitshuffleLz4(OpenclProcessing):
                 self.cl_mem["block_position"].data,
                 self.cl_mem["nb_blocks"].data,
                 numpy.uint8(self.dec_dtype.itemsize),
+                numpy.uint64(len_raw),
             )
             events.append(EventDescription("LZ4 decompress", evt))
         self.profile_multi(events)
