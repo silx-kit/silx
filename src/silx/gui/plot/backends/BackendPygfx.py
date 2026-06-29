@@ -1477,14 +1477,26 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     PRESENT_METHOD = "screen"
     """Present method for rendering. "screen" uses direct GPU rendering
-    (~3x faster), "image" uses CPU readback (works with remote desktops).
+    (~3x faster), "bitmap" uses CPU readback (works with remote desktops).
+    Automatically forced to "bitmap" on native Wayland (see __init__).
     Set before creating the plot."""
 
     def __init__(self, plot, parent=None):
+        present_method = self.PRESENT_METHOD
+        # On native Wayland the "screen" present shares Qt's wl_display
+        # connection and bypasses Qt's compositing, which triggers Wayland
+        # protocol errors (wl_callback) and crashes (see wgpu-py#688).
+        # Fall back to the robust "bitmap" present (CPU readback) there.
+        # X11/XWayland keep the faster "screen" present.
+        if (
+            present_method == "screen"
+            and qt.QGuiApplication.platformName() == "wayland"
+        ):
+            present_method = "bitmap"
         QRenderWidget.__init__(
             self,
             parent=parent,
-            present_method=self.PRESENT_METHOD,
+            present_method=present_method,
             vsync=self.VSYNC,
         )
         BackendBase.BackendBase.__init__(self, plot, parent)
