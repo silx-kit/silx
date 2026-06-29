@@ -541,10 +541,15 @@ class PlotWidget(qt.QMainWindow):
                             "pygfx backend is not available: "
                             "DISPLAY environment variable not set"
                         )
-                    if os.environ.get("XDG_SESSION_TYPE", "") == "wayland":
+                    # rendercanvas runs on Linux through X11/XWayland: on a Wayland
+                    # session it forces QT_QPA_PLATFORM=xcb and renders via XWayland.
+                    # So the blocker is the actual Qt platform, not the session type:
+                    # XWayland (xcb) works, only the native "wayland" platform does not.
+                    if qt.QGuiApplication.platformName() == "wayland":
                         raise RuntimeError(
                             "pygfx backend is not available: "
-                            "Wayland sessions are not supported"
+                            "the native Wayland Qt platform is not supported; "
+                            "run with QT_QPA_PLATFORM=xcb to use XWayland"
                         )
 
                 try:
