@@ -47,6 +47,13 @@ def pytest_addoption(parser):
         help="Disable tests using OpenGL",
     )
     parser.addoption(
+        "--no-pygfx",
+        dest="pygfx",
+        default=True,
+        action="store_false",
+        help="Disable tests using pygfx",
+    )
+    parser.addoption(
         "--no-opencl",
         dest="opencl",
         default=True,
@@ -117,6 +124,16 @@ def use_opengl(test_options):
     """
     if not test_options.WITH_GL_TEST:
         pytest.skip(test_options.WITH_GL_TEST_REASON, allow_module_level=True)
+
+
+@pytest.fixture(scope="session")
+def use_pygfx(test_options):
+    """Fixture to flag test using pygfx.
+
+    This can be skipped with `--no-pygfx`.
+    """
+    if not test_options.WITH_PYGFX_TEST:
+        pytest.skip(test_options.WITH_PYGFX_TEST_REASON, allow_module_level=True)
 
 
 @pytest.fixture(scope="session")

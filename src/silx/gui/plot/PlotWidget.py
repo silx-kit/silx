@@ -531,6 +531,29 @@ class PlotWidget(qt.QMainWindow):
                     _logger.debug("Backtrace", exc_info=True)
                     raise RuntimeError("OpenGL backend is not available")
 
+            elif backend in ("pygfx", "wgpu"):
+                import os
+                import sys
+
+                if sys.platform.startswith("linux"):
+                    if not os.environ.get("DISPLAY", "") and not os.environ.get(
+                        "WAYLAND_DISPLAY", ""
+                    ):
+                        raise RuntimeError(
+                            "pygfx backend is not available: "
+                            "neither DISPLAY nor WAYLAND_DISPLAY is set"
+                        )
+                    # Both XWayland (xcb) and the native "wayland" Qt platform are
+                    # supported: BackendPygfx uses the fast "screen" present on
+                    # X11/XWayland and falls back to "bitmap" present on native
+                    # Wayland, where "screen" would conflict with Qt's compositing.
+
+                try:
+                    from .backends.BackendPygfx import BackendPygfx as backendClass
+                except ImportError:
+                    _logger.debug("Backtrace", exc_info=True)
+                    raise RuntimeError("pygfx backend is not available")
+
             elif backend == "none":
                 from .backends.BackendBase import BackendBase as backendClass
 
@@ -563,11 +586,12 @@ class PlotWidget(qt.QMainWindow):
 
         - 'matplotlib' and 'mpl': Matplotlib with Qt.
         - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
+        - 'pygfx' and 'wgpu': pygfx/WGPU backend (requires pygfx and rendercanvas)
         - 'none': No backend, to run headless for testing purpose.
 
         :param backend:
             The backend to use, in:
-            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none',
+            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'pygfx', 'wgpu', 'none',
             a :class:`BackendBase.BackendBase` class.
             If multiple backends are provided, the first available one is used.
         :raises ValueError: Unsupported backend descriptor
