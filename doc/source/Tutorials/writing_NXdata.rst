@@ -310,3 +310,34 @@ In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
     If the image axes have the same ``units`` or both have no ``units``, the image aspect ratio will kept.
     
     In the example above, the two axes ``x`` and ``y`` have different ``units`` so that the image aspect ratio is not conserved.
+
+RGB(A) images
++++++++++++++
+
+RGB images can be represented by datasets of 3 dimensions: one for the height, one for the width and one for the color channels. The color channel dimension must be last and its size be equal to 3 (or 4 for RGBA images).
+
+In addition, the attribute `interpretation` must be set to `rgb-image` (or `rgba-image` for RGBA) for `silx` to correctly interpret the dataset.
+
+.. code-block:: python
+
+    import h5py
+
+    with h5py.File("myfile.h5", "w") as h5file:
+        entry = h5file.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+
+        nxdata = entry.create_group("my_rgb_image")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "data"
+        nxdata.create_dataset(
+            "data",
+            data=[
+                [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                [[0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
+                [[1, 1, 1], [0, 0, 0], [0.5, 0.5, 0.5]],
+            ],
+        )
+        nxdata.attrs["interpretation"] = "rgb-image"
+
+
+.. image:: img/nxrgbimage.png
