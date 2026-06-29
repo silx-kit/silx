@@ -536,21 +536,17 @@ class PlotWidget(qt.QMainWindow):
                 import sys
 
                 if sys.platform.startswith("linux"):
-                    if not os.environ.get("DISPLAY", ""):
+                    if not os.environ.get("DISPLAY", "") and not os.environ.get(
+                        "WAYLAND_DISPLAY", ""
+                    ):
                         raise RuntimeError(
                             "pygfx backend is not available: "
-                            "DISPLAY environment variable not set"
+                            "neither DISPLAY nor WAYLAND_DISPLAY is set"
                         )
-                    # rendercanvas runs on Linux through X11/XWayland: on a Wayland
-                    # session it forces QT_QPA_PLATFORM=xcb and renders via XWayland.
-                    # So the blocker is the actual Qt platform, not the session type:
-                    # XWayland (xcb) works, only the native "wayland" platform does not.
-                    if qt.QGuiApplication.platformName() == "wayland":
-                        raise RuntimeError(
-                            "pygfx backend is not available: "
-                            "the native Wayland Qt platform is not supported; "
-                            "run with QT_QPA_PLATFORM=xcb to use XWayland"
-                        )
+                    # Both XWayland (xcb) and the native "wayland" Qt platform are
+                    # supported: BackendPygfx uses the fast "screen" present on
+                    # X11/XWayland and falls back to "bitmap" present on native
+                    # Wayland, where "screen" would conflict with Qt's compositing.
 
                 try:
                     from .backends.BackendPygfx import BackendPygfx as backendClass
