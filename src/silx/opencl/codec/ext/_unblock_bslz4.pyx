@@ -10,14 +10,15 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "26/06/2026"
+__date__ = "30/06/2026"
 
 
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
+from libc.math cimport ceil
 import numpy
 
 
-cdef inline uint64_t load64_at(const uint8_t[::1] src,
+cdef inline uint64_t load64_BE(const uint8_t[::1] src,
                                uint64_t pos) noexcept nogil :
     """Read a 64-bit BIG-endian integer at the given position in the stream.
 
@@ -37,7 +38,7 @@ cdef inline uint64_t load64_at(const uint8_t[::1] src,
     return result
 
 
-cdef inline uint32_t load32_at(const uint8_t[::1] src,
+cdef inline uint32_t load32_BE(const uint8_t[::1] src,
                       uint64_t pos) noexcept nogil :
     """Read a 32-bit BIG-endian integer at the given position in the stream.
 
@@ -53,7 +54,7 @@ cdef inline uint32_t load32_at(const uint8_t[::1] src,
     return result
 
 
-def unblock_bslz4(bytes src):
+def unblock_bslz4(bytes src, uint8_t item_size=4):
     """
     Parse a compressed Bitshuffle-LZ4 stream and record the start of each LZ4-block
 
@@ -62,26 +63,37 @@ def unblock_bslz4(bytes src):
     """
     cdef:
         uint64_t size = len(src)
-        uint64_t total_nbytes = load64_at(src, 0)
-        uint32_t block_nbytes = load32_at(src, 8)
+        uint64_t total_nbytes = load64_BE(src, 0)
+        uint32_t block_nbytes = load32_BE(src, 8)
         const uint8_t[::1] buffer = src
-        uint32_t block_max = min(size//4+1, (1<<32)-1)
-        uint64_t[::1] block_start = numpy.empty(block_max, dtype=numpy.uint64)
+        uint32_t block_max, block_max_size
+        uint64_t[::1] block_start
         uint32_t block_idx = 0
         uint64_t pos = 12
         uint64_t end = pos + 4
         uint64_t block_size
 
+    if block_nbytes == 0:
+            block_nbytes = 1<<13  # 8k
+            # This is a simplified version. One should take into account the item_size
+    block_max_size = int(ceil(block_nbytes * 1.0046))
+    # the actual (uncompressed) block size is 8184
+    # but compressed block can be 0.5% larger in case of incompressible data
+    block_max = (total_nbytes + block_nbytes - 1) // block_nbytes
+    block_start = numpy.empty(block_max, dtype=numpy.uint64)
     with nogil:
-        while ((end < size) and (block_idx < block_max)):
-            block_size = load32_at(buffer, pos)
-            if block_size>=8230:
+        for block_idx in range(block_max):
+            if end >= size:
+                # This would read beyond the end of the stream -> invalid
+                block_start = block_start[:block_idx]
+                break
+            block_size = load32_BE(buffer, pos)
+            if block_size>=block_max_size:
                 # This is an invalid block ... since it is larger than the compressed block size
-                # the actual (uncompressed) block size is 8184
-                # but compressed block can be 5% larger in case of incompressible data
+                block_start = block_start[:block_idx]
                 break
             block_start[block_idx] = end
-            block_idx +=1
             pos = end + block_size
             end = pos + 4
-    return numpy.asarray(block_start[:block_idx])
+
+    return numpy.asarray(block_start)

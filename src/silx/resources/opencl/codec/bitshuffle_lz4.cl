@@ -422,23 +422,35 @@ Hint on workgroup size: little kernel ... wg=1, 1 wg is enough.
 */
 
 kernel void lz4_unblock(global uint8_t *src,
-                        const uint64_t size,
+                        const  uint64_t size,
                         global uint64_t *block_start,
-                        const uint32_t max_blocks,
+                               uint32_t max_blocks,
                         global uint32_t *nb_blocks){
 
-    uint64_t total_nbytes = load64_at(src,0,SWAP_BE);
-    uint32_t block_nbytes = load32_at(src,8,SWAP_BE);
-
-    uint32_t block_idx = 0;
+    uint64_t total_nbytes = load64_at(src,0,SWAP_BE); // uncompressed data
+    uint32_t block_nbytes = load32_at(src,8,SWAP_BE); // uncompressed
+    if (block_nbytes == 0){
+            block_nbytes = 1<<13;  // 8k
+            // This is a simplified version. One should take into account the item_size
+    }
+    uint32_t block_max_size = (uint32_t)(ceil(block_nbytes * 1.0046f)); // "compressed"
+    uint32_t block_idx;
     uint64_t pos = 12;
-    uint64_t end = pos + 4;
+    uint64_t end = 16;
     uint32_t block_size;
+    max_blocks = min(max_blocks, (uint32_t)(total_nbytes + block_nbytes - 1) / block_nbytes);
 
-    while ((end<size) && (block_idx<max_blocks)){
+    for (block_idx=0; block_idx<max_blocks; block_idx++){
+        if (end >= size){
+            // This would read beyond the end of the stream -> invalid
+            break;
+        }
         block_size = load32_at(src, pos, SWAP_BE);
+        if (block_size>=block_max_size){
+            // This is an invalid block ... since it is larger than the compressed block size
+            break;
+        }
         block_start[block_idx] = end;
-        block_idx += 1;
         pos = end + block_size;
         end = pos + 4;
     }
