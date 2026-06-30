@@ -63,15 +63,6 @@ def create_NXentry(group, name):
     return node
 
 
-def waitForPendingOperations(qapp_utils: TestCaseQt, model):
-    for _ in range(20):
-        if not model.hasPendingOperations():
-            break
-        qapp_utils.qWait(200)
-    else:
-        raise RuntimeError("Still waiting for a pending operation")
-
-
 def testErrorInInsertFilenameAsync(tmp_path, caplog, qapp_utils):
     filename = str(tmp_path / "corrupt.h5")
     with open(filename, "wb") as h5file:
@@ -82,7 +73,7 @@ def testErrorInInsertFilenameAsync(tmp_path, caplog, qapp_utils):
     model.insertFileAsync(filename)
 
     assert qt.silxGlobalThreadPool().waitForDone(2000)  # Needed for PySide6
-    waitForPendingOperations(qapp_utils, model)
+    qapp_utils.waitUntil(lambda: not model.hasPendingOperations())
     assert len(caplog.records) == 1
     assert "can't be read as HDF5" in caplog.records[0].getMessage()
 
@@ -148,7 +139,7 @@ class TestHdf5TreeModel(TestCaseQt):
             self.assertIsInstance(
                 model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem
             )
-            waitForPendingOperations(self, model)
+            self.waitUntil(lambda: not model.hasPendingOperations())
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
         finally:
@@ -180,7 +171,7 @@ class TestHdf5TreeModel(TestCaseQt):
         index = model.index(0, 0, qt.QModelIndex())
         node1 = model.nodeFromIndex(index)
         model.synchronizeH5pyObject(h5)
-        waitForPendingOperations(self, model)
+        self.waitUntil(lambda: not model.hasPendingOperations())
         # Now h5 was loaded from it's filename
         # Another ref is owned by the model
         h5.close()
@@ -270,7 +261,7 @@ class TestHdf5TreeModel(TestCaseQt):
         model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # after sync
-        waitForPendingOperations(self, model)
+        self.waitUntil(lambda: not model.hasPendingOperations())
         index = model.index(0, 0, qt.QModelIndex())
         self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
         # clean up
@@ -455,14 +446,6 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         self.h5 = None
         TestCaseQt.tearDown(self)
 
-    def waitForPendingOperations(self, model):
-        for _ in range(20):
-            if not model.hasPendingOperations():
-                break
-            self.qWait(200)
-        else:
-            raise RuntimeError("Still waiting for a pending operation")
-
     def testInsert(self):
         h5 = h5py.File(self.filename, mode="r")
         self.model.insertH5pyObject(h5)
@@ -495,7 +478,7 @@ class TestHdf5TreeModelSignals(TestCaseQt):
 
     def testSynchonized(self):
         self.model.synchronizeH5pyObject(self.h5)
-        waitForPendingOperations(self, self.model)
+        self.waitUntil(lambda: not self.model.hasPendingOperations())
         self.assertEqual(self.listener.callCount(), 1)
         self.assertEqual(
             self.listener.karguments(argumentName="signal")[0], "synchronized"

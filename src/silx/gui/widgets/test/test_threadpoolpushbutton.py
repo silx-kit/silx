@@ -13,26 +13,13 @@ def button(qWidgetFactory):
 
 
 @pytest.fixture()
-def waitForPendingOperations(button, qapp_utils):
-    def _waitForPendingOperations():
-        for i in range(50):
-            if not button.hasPendingOperations():
-                break
-            qapp_utils.qWait(10)
-        else:
-            raise RuntimeError("Still waiting for a pending operation")
-
-    return _waitForPendingOperations
-
-
-@pytest.fixture()
 def listener():
     listener = SignalListener()
     yield listener
     listener.clear()
 
 
-def testExecute(button, waitForPendingOperations):
+def testExecute(button, qapp_utils):
     result = []
 
     def appendToResult(name):
@@ -40,11 +27,11 @@ def testExecute(button, waitForPendingOperations):
 
     button.setCallable(appendToResult, "a")
     button.executeCallable()
-    waitForPendingOperations()
+    qapp_utils.waitUntil(lambda: not button.hasPendingOperations())
     assert result == ["a"]
 
 
-def testMultiExecution(button, waitForPendingOperations):
+def testMultiExecution(button, qapp_utils):
     result = []
 
     def appendToResult(name):
@@ -54,11 +41,11 @@ def testMultiExecution(button, waitForPendingOperations):
     numberOfCalls = qt.silxGlobalThreadPool().maxThreadCount()
     for _ in range(numberOfCalls):
         button.executeCallable()
-    waitForPendingOperations()
+    qapp_utils.waitUntil(lambda: not button.hasPendingOperations())
     assert result == ["a"] * numberOfCalls
 
 
-def testSaturateThreadPool(button, waitForPendingOperations):
+def testSaturateThreadPool(button, qapp_utils):
     result = []
 
     def appendToResult(name):
@@ -69,7 +56,7 @@ def testSaturateThreadPool(button, waitForPendingOperations):
     numberOfCalls = qt.silxGlobalThreadPool().maxThreadCount() * 2
     for _ in range(numberOfCalls):
         button.executeCallable()
-    waitForPendingOperations()
+    qapp_utils.waitUntil(lambda: not button.hasPendingOperations())
     assert result == ["a"] * numberOfCalls
 
 
