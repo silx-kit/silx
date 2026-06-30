@@ -79,6 +79,7 @@ def unblock_bslz4(bytes src, uint8_t item_size=4):
     block_max_size = int(ceil(block_nbytes * 1.0046))
     # the actual (uncompressed) block size is 8184
     # but compressed block can be 0.5% larger in case of incompressible data
+
     block_max = (total_nbytes + block_nbytes - 1) // block_nbytes
     block_start = numpy.empty(block_max, dtype=numpy.uint64)
     with nogil:

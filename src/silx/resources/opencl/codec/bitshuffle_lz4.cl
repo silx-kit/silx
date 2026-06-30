@@ -479,11 +479,13 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
     uint64_t start_read = block_start[gid];
     if (start_read<12) return;
 
+
     local uint8_t local_cmp[LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA];
     local uint8_t local_dec[LZ4_BLOCK_SIZE];
 
     uint32_t cmp_buffer_size = load32_at(comp_src, start_read-4, SWAP_BE);
     uint64_t end_read = min(start_read + cmp_buffer_size, comp_size);
+
     // Copy locally the compressed buffer and memset the destination buffer
     for (uint32_t i=lid; i<cmp_buffer_size; i+=wg){
         uint64_t read_pos = start_read + i;
@@ -539,11 +541,11 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
         dec_dest[start_write + i] = local_buffer[i];
     }
 
-    if (gid+1==get_num_groups(0)){
+    if (gid+1 == nb_blocks[0]){
         uint64_t total_nbytes = load64_at(comp_src,0,SWAP_BE);
         uint64_t end_write = dec_size + start_write;
         int32_t remaining = total_nbytes - end_write;
-//        if (lid==0) printf("gid %u is last block has %u elements. Writing ends at %u/%lu, copy remaining %d\n",gid, dec_size, end_write, total_nbytes, remaining);
+        // if (lid==0) printf("gid %u is last block has %u elements. Writing ends at %u/%lu, copy remaining %d\n",gid, dec_size, end_write, total_nbytes, remaining);
         if ((remaining>0) && (remaining<item_size*8)){
             for (uint32_t i=lid; i<remaining; i++){
                 dec_dest[end_write + i] = comp_src[end_read+i];
