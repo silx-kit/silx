@@ -214,22 +214,18 @@ class TestImageStack(TestCaseQt):
         # make sure if all urls are removed nothing is plot anymore
         self.widget.getPlotWidget().getActiveImage() is None
 
-    def _waitUntilUrlLoaded(self, timeout=2.0):
+    def _waitUntilUrlLoaded(self):
         """Wait until all image urls are loaded"""
-        loop_duration = 0.2
-        remaining_duration = timeout
-        while len(self.widget._loadingThreads) > 0 and remaining_duration > 0:
-            remaining_duration -= loop_duration
-            time.sleep(loop_duration)
-            self.qapp.processEvents()
-
-        if remaining_duration <= 0.0:
-            remaining_urls = []
-            for thread_ in self.widget._loadingThreads:
-                remaining_urls.append(thread_.url.path())
+        try:
+            self.waitAsLongAs(
+                lambda: len(self.widget._loadingThreads) > 0, msecs=0.2, nretries=10
+            )
+        except RuntimeError:
+            remaining_urls = [
+                thread_.url.path() for thread_ in self.widget._loadingThreads
+            ]
             mess = (
                 "All images are not loaded after the time out. "
                 "Remaining urls are: " + str(remaining_urls)
             )
             raise TimeoutError(mess)
-        return True

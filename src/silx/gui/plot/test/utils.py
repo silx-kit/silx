@@ -68,12 +68,7 @@ class PlotWidgetTestCase(TestCaseQt):
         self.plot.destroyed.connect(self.__onPlotDestroyed)
         self.plot.close()
         del self.plot
-        for _ in range(100):
-            if not self.plotAlive:
-                break
-            self.qWait(10)
-        else:
-            logger.error("Plot is still alive")
+        self.waitAsLongAs(lambda: self.plotAlive)
 
     def tearDown(self):
         if not self._currentTestSucceeded():

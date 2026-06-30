@@ -89,13 +89,7 @@ class TestSubmitToQtThread(TestCaseQt):
         """Call submitToQtMainThread from a Python thread"""
         thread = threading.Thread(target=self._threadedTest)
         thread.start()
-        for i in range(100):  # Loop over for 10 seconds
-            self.qapp.processEvents()
-            thread.join(0.1)
-            if not thread.is_alive():
-                break
-        else:
-            self.fail("Thread task still running")
+        self.waitAsLongAs(thread.is_alive)
 
     def testFromQtThread(self):
         """Call submitToQtMainThread from a Qt thread pool"""
@@ -114,10 +108,4 @@ class TestSubmitToQtThread(TestCaseQt):
         threadPool = qt.silxGlobalThreadPool()
         runner = Runner(self._threadedTest)
         threadPool.start(runner)
-        for i in range(100):  # Loop over for 10 seconds
-            self.qapp.processEvents()
-            done = threadPool.waitForDone(100)
-            if done:
-                break
-        else:
-            self.fail("Thread pool task still running")
+        self.waitAsLongAs(lambda: not threadPool.waitForDone(10))

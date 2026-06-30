@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from silx.gui import qt
-from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate, QTest
+from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 
 from silx.gui.plot import PlotWindow, Plot1D, Plot2D, Profile
 from silx.gui.plot.StackView import StackView
@@ -67,13 +67,6 @@ class TestInteractions:
         widget.show()
         yield widget.getPlotWidget()
 
-    def waitPendingOperations(self, profile, qapp_utils):
-        for _ in range(10):
-            if not profile.hasPendingOperations():
-                return
-            qapp_utils.qWait(100)
-        _logger.error("The profile manager still have pending operations")
-
     def genericRoiTest(self, plot, roiClass, qapp_utils):
         profileManager = manager.ProfileManager(plot, plot)
         profileManager.setItemType(image=True, scatter=True)
@@ -93,7 +86,7 @@ class TestInteractions:
                 qapp_utils.mouseMove(widget, pos=pos2)
                 qapp_utils.mouseClick(widget, qt.Qt.LeftButton, pos=pos2)
 
-            self.waitPendingOperations(profileManager, qapp_utils)
+            qapp_utils.waitAsLongAs(profileManager.hasPendingOperations)
 
             # Test that something was computed
             if issubclass(roiClass, rois._ProfileCrossROI):
@@ -302,10 +295,7 @@ class TestProfileToolBar:
                         qapp_utils.mouseClick(widget, qt.Qt.LeftButton)
 
                         manager = toolBar.getProfileManager()
-                        for _ in range(20):
-                            qapp_utils.qWait(200)
-                            if not manager.hasPendingOperations():
-                                break
+                        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     def testDiagonalProfile(
         self, plotAndToolBar, subtests: pytest.Subtests, qapp_utils
@@ -339,20 +329,14 @@ class TestProfileToolBar:
 
                 manager = toolBar.getProfileManager()
 
-                for _ in range(20):
-                    qapp_utils.qWait(200)
-                    if not manager.hasPendingOperations():
-                        break
+                qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
                 roi = manager.getCurrentRoi()
                 assert roi is not None
                 roi.setProfileLineWidth(3)
                 roi.setProfileMethod(method)
 
-                for _ in range(20):
-                    qapp_utils.qWait(200)
-                    if not manager.hasPendingOperations():
-                        break
+                qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
                 curveItem = (
                     roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
@@ -404,10 +388,7 @@ class TestProfile3DToolBar:
         roi.setProfileType("2D")
         roi.setProfileLineWidth(3)
 
-        for _ in range(20):
-            qapp_utils.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
         # check 2D 'mean' profile
         profilePlot = roi.getProfileWindow().getCurrentPlotWidget()
@@ -435,10 +416,7 @@ class TestProfile3DToolBar:
         roi.setProfileType("2D")
         roi.setProfileLineWidth(3)
 
-        for _ in range(20):
-            qapp_utils.qWait(200)
-            if not manager.hasPendingOperations():
-                break
+        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
         # check 2D 'sum' profile
         profilePlot = roi.getProfileWindow().getCurrentPlotWidget()
@@ -448,7 +426,7 @@ class TestProfile3DToolBar:
 
 
 @pytest.mark.parametrize("with_mask", (True, False))
-def testProfile1D(qWidgetFactory, with_mask):
+def testProfile1D(qWidgetFactory, with_mask, qapp_utils):
     """Test that the profile plot associated to a Plot2D is a 1D plot and that mask is take into account.
 
     Note: the mask; when applied; is at the center. As we have an od number of elements the expected result remains the same.
@@ -474,10 +452,7 @@ def testProfile1D(qWidgetFactory, with_mask):
     roiManager.addRoi(roi)
     roiManager.setCurrentRoi(roi)
 
-    for _ in range(20):
-        QTest.qWait(200)
-        if not manager.hasPendingOperations():
-            break
+    qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)
@@ -492,7 +467,7 @@ def testProfile1D(qWidgetFactory, with_mask):
 
 
 @pytest.mark.parametrize("with_mask", (True, False))
-def testProfile2D(qWidgetFactory, with_mask):
+def testProfile2D(qWidgetFactory, with_mask, qapp_utils):
     """Test that the profile plot associated to a stack view is either a
     Plot1D or a plot 2D instance.
     Make sure also that the mask is take into account.
@@ -526,10 +501,7 @@ def testProfile2D(qWidgetFactory, with_mask):
     roiManager.addRoi(roi)
     roiManager.setCurrentRoi(roi)
 
-    for _ in range(20):
-        QTest.qWait(200)
-        if not manager.hasPendingOperations():
-            break
+    qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)
@@ -544,10 +516,7 @@ def testProfile2D(qWidgetFactory, with_mask):
 
     roi.setProfileType("1D")
 
-    for _ in range(20):
-        QTest.qWait(200)
-        if not manager.hasPendingOperations():
-            break
+    qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     profileWindow = roi.getProfileWindow()
     assert isinstance(roi.getProfileWindow(), ProfileWindow)

@@ -78,11 +78,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         roiManager.addRoi(roi)
 
         # Wait for async interpolator init
-        for _ in range(20):
-            self.qWait(200)
-            if not self.manager.hasPendingOperations():
-                break
-        self.qapp.processEvents()
+        self.waitAsLongAs(self.manager.hasPendingOperations)
 
         window = roi.getProfileWindow()
         self.assertIsNotNone(window)
@@ -119,10 +115,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         roiManager.addRoi(roi)
 
         # Wait for async interpolator init
-        for _ in range(10):
-            self.qWait(200)
-            if not self.manager.hasPendingOperations():
-                break
+        self.waitAsLongAs(self.manager.hasPendingOperations)
 
         window = roi.getProfileWindow()
         self.assertIsNotNone(window)
@@ -139,10 +132,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.plot.getYAxis().setLimits(yLimits[0] + 1, yLimits[1] + 10)
 
         # Wait for async interpolator init
-        for _ in range(10):
-            self.qWait(200)
-            if not self.manager.hasPendingOperations():
-                break
+        self.waitAsLongAs(self.manager.hasPendingOperations)
 
         yLimits = self.plot.getYAxis().getLimits()
         data = window.getProfile()
@@ -173,10 +163,7 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         roiManager.addRoi(roi)
 
         # Wait for async interpolator init
-        for _ in range(10):
-            self.qWait(200)
-            if not self.manager.hasPendingOperations():
-                break
+        self.waitAsLongAs(self.manager.hasPendingOperations)
 
         window = roi.getProfileWindow()
         self.assertIsNotNone(window)

@@ -113,14 +113,6 @@ class _UtilsMixin:
             self._dialog = None
             self.qWaitForDestroy(ref)
 
-    def qWaitForPendingActions(self, dialog):
-        self.qapp.processEvents()
-        for _ in range(20):
-            if not dialog.hasPendingEvents():
-                return
-            self.qWait(100)
-        raise RuntimeError("Still have pending actions")
-
     def assertSamePath(self, path1, path2):
         self.assertEqual(
             os.path.normcase(os.path.realpath(path1)),
@@ -192,13 +184,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -216,13 +208,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -232,7 +224,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -250,13 +242,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -266,7 +258,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -279,7 +271,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
     def testClickOnBackToParentTool(self):
         dialog = self.createDialog()
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         urlLineEdit = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
@@ -289,23 +281,23 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # init state
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
         )
         self.assertSameUrls(urlLineEdit.text(), url)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         self.assertSameUrls(urlLineEdit.text(), url)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertSamePath(urlLineEdit.text(), _tmpDirectory + "/data")
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
 
     def testClickOnBackToRootTool(self):
@@ -323,12 +315,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
             scheme="silx", file_path=filename, data_path="/group/image"
         )
         dialog.selectUrl(url.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertSameUrls(urlLineEdit.text(), url)
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         self.assertSameUrls(urlLineEdit.text(), url)
         # self.assertFalse(button.isEnabled())
@@ -346,7 +338,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # init state
         url = silx.io.url.DataUrl(file_path=filename, data_path="/group/image")
         dialog.selectUrl(url.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
         )
@@ -354,7 +346,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(button.isEnabled())
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertSamePath(urlLineEdit.text(), _tmpDirectory)
         self.assertFalse(button.isEnabled())
 
@@ -377,32 +369,32 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         dialog.setDirectory(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         # No way to use QTest.mouseDClick with QListView, QListWidget
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         dialog.selectUrl(url.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         url2 = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group"
         )
         dialog.selectUrl(url2.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
 
         button = testutils.getQToolButtonFromAction(backwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertTrue(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
         self.assertSameUrls(urlLineEdit.text(), url)
 
         button = testutils.getQToolButtonFromAction(forwardAction)
         self.mouseClick(button, qt.Qt.LeftButton)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertFalse(forwardAction.isEnabled())
         self.assertTrue(backwardAction.isEnabled())
         self.assertSameUrls(urlLineEdit.text(), url2)
@@ -463,7 +455,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
         uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group")
         dialog.selectUrl(uri.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         # test
         self.assertTrue(silx.io.is_group(dialog._selectedData()))
         self.assertSamePath(dialog.selectedFile(), filename)
@@ -479,7 +471,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
         uri = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         dialog.selectUrl(uri.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         # test
         self.assertTrue(silx.io.is_file(dialog._selectedData()))
         self.assertSamePath(dialog.selectedFile(), filename)
@@ -493,7 +485,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         dialog.selectUrl(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
@@ -502,7 +494,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         browser.selectIndex(index)
         # double click
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         # test
         self.assertSameUrls(dialog.selectedUrl(), url)
 
@@ -513,13 +505,13 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         dialog.selectUrl(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/badformat.h5"
         index = browser.model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         # test
         self.assertSamePath(dialog.selectedUrl(), filename)
 
@@ -539,7 +531,7 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         dialog.show()
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertEqual(
             self._countSelectableItems(browser.model(), browser.rootIndex()), 4
         )
@@ -563,13 +555,13 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -579,7 +571,7 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
@@ -592,13 +584,13 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -608,7 +600,7 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -640,13 +632,13 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -656,7 +648,7 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -676,13 +668,13 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -692,7 +684,7 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
@@ -722,13 +714,13 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -738,7 +730,7 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertFalse(button.isEnabled())
@@ -753,13 +745,13 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         self.assertTrue(dialog.isVisible())
         filename = _tmpDirectory + "/data.h5"
         dialog.selectFile(os.path.dirname(filename))
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = browser.rootIndex().model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         # select, then double click on the file
         index = (
@@ -769,7 +761,7 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         )
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         self.assertTrue(button.isEnabled())
@@ -792,7 +784,7 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
     def testSaveRestoreState(self):
         dialog = self.createDialog()
         dialog.setDirectory(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         state = dialog.saveState()
         dialog = None
 
@@ -907,7 +899,7 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         os.mkdir(directory)
         dialog = self.createDialog()
         dialog.setDirectory(directory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         state = dialog.saveState()
         os.rmdir(directory)
         dialog = None
@@ -935,26 +927,26 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
 
     def testDirectory(self):
         dialog = self.createDialog()
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         dialog.selectUrl(_tmpDirectory)
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertSamePath(dialog.directory(), _tmpDirectory)
 
     def testBadFileFormat(self):
         dialog = self.createDialog()
         dialog.selectUrl(_tmpDirectory + "/badformat.h5")
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertIsNone(dialog._selectedData())
 
     def testBadPath(self):
         dialog = self.createDialog()
         dialog.selectUrl("#$%/#$%")
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertIsNone(dialog._selectedData())
 
     def testBadSubpath(self):
         dialog = self.createDialog()
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
 
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
@@ -963,7 +955,7 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
             scheme="silx", file_path=filename, data_path="/group/foobar"
         )
         dialog.selectUrl(url.path())
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         self.assertIsNotNone(dialog._selectedData())
 
         # an existing node is browsed, but the wrong path is selected
@@ -975,9 +967,9 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
 
     def testUnsupportedSlicingPath(self):
         dialog = self.createDialog()
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         dialog.selectUrl(_tmpDirectory + "/data.h5?path=/cube&slice=0")
-        self.qWaitForPendingActions(dialog)
+        self.waitAsLongAs(dialog.hasPendingEvents)
         data = dialog._selectedData()
         if data is None:
             # Maybe nothing is selected
