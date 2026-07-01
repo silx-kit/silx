@@ -76,9 +76,6 @@ class Axis(qt.QObject):
     sigScaleChanged = qt.Signal(str)
     """Signal emitted when axis scale has changed"""
 
-    _sigLogarithmicChanged = qt.Signal(bool)
-    """Signal emitted when axis scale has changed to or from logarithmic"""
-
     sigAutoScaleChanged = qt.Signal(bool)
     """Signal emitted when axis autoscale has changed"""
 
@@ -229,13 +226,10 @@ class Axis(qt.QObject):
             return
 
         # For the backward compatibility signal
-        emitLog = self._scale == self.LOGARITHMIC or scale == self.LOGARITHMIC
         self._scale = scale
         self._internalSetScale()
 
         self.sigScaleChanged.emit(self._scale)
-        if emitLog:
-            self._sigLogarithmicChanged.emit(self._scale == self.LOGARITHMIC)
 
     def _isLogarithmic(self) -> bool:
         """Return True if this axis scale is logarithmic, False if linear."""
@@ -403,6 +397,7 @@ class XAxis(Axis):
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
+        plot._setDirtyPlot()
 
         if scale == self.LOGARITHMIC:
             self._getBackend().setXAxisScale(scale="log")
@@ -468,6 +463,8 @@ class YAxis(Axis):
         for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
+        plot._setDirtyPlot()
+
         if scale == self.LOGARITHMIC:
             self._getBackend().setYAxisScale(scale="log")
             if vmin <= 0:
@@ -537,7 +534,6 @@ class YRightAxis(Axis):
         self.__mainAxis = mainAxis
         self.__mainAxis.sigInvertedChanged.connect(self.sigInvertedChanged.emit)
         self.__mainAxis.sigScaleChanged.connect(self.sigScaleChanged.emit)
-        self.__mainAxis._sigLogarithmicChanged.connect(self._sigLogarithmicChanged.emit)
         self.__mainAxis.sigAutoScaleChanged.connect(self.sigAutoScaleChanged.emit)
 
     def _internalSetCurrentLabel(self, label):
