@@ -329,6 +329,16 @@ class PlotWindow(PlotWidget):
     def controlButton(self):
         return self.getPlotOptionButton()
 
+    @property
+    @deprecated(since_version="3.0.2", replacement="getXAxisScaleButton")
+    def xAxisScaleButton(self):
+        return self.getXAxisScaleButton()
+
+    @property
+    @deprecated(since_version="3.0.2", replacement="getYAxisScaleButton")
+    def yAxisScaleButton(self):
+        return self.getYAxisScaleButton()
+
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
         gridLayout = qt.QGridLayout()
