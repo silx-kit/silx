@@ -3,11 +3,12 @@ from typing import Sequence
 import numpy
 
 from silx.gui import qt
-from ..plot.items import Curve
-from ..plot.items.axis import AxisScaleType
 
 from ..plot import Plot1D
+from ..plot.items import Curve
+from ..plot.items.axis import AxisScaleType
 from ..utils import blockSignals
+from ._models import Axis, Signal
 from .NumpyAxesSelector import NumpyAxesSelector
 
 
@@ -23,15 +24,9 @@ class NxCurvePlot(qt.QWidget):
     def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
 
-        self.__signals: list[numpy.ndarray] | None = None
-        self.__signals_names: list[str] | None = None
-        self.__signal_errors: list[numpy.ndarray | None] | None = None
-        self.__signal_scale: AxisScaleType = "linear"
+        self.__signals: list[Signal] | None = None
+        self.__axes: list[Axis] | None = None
         self.__signal_curves: list[Curve] = []
-        self.__axes: list[numpy.ndarray] | None = None
-        self.__axes_names: list[str] | None = None
-        self.__axes_errors: list[numpy.ndarray | None] | None = None
-        self.__axes_scales: list[AxisScaleType] | None = None
 
         self._plot = Plot1D(self)
         self._plot.setGraphGrid(True)
@@ -58,45 +53,46 @@ class NxCurvePlot(qt.QWidget):
         axes_errors: Sequence[numpy.ndarray | None] | None = None,
         axes_scales: Sequence[AxisScaleType | None] | None = None,
         title: str | None = None,
-    ):
-        self.__signals = list(signals)
-        if len(signal_names) != len(signals):
-            raise ValueError("Signal names must match the length of signals")
-        self.__signals_names = list(signal_names)
-        if signal_errors:
-            if len(signal_errors) != len(signals):
-                raise ValueError("Signal errors must match the length of signals")
-            self.__signal_errors = list(signal_errors)
-        else:
-            self.__signal_errors = None
-        self.__signal_scale = signal_scale or "linear"
-        self.__axes = list(axes) if axes else None
-        if axes_names:
-            if axes and len(axes) != len(axes_names):
-                raise ValueError("Axis names must match the length of axes")
-            self.__axes_names = list(axes_names)
-        else:
-            self.__axes_names = None
-        if axes_errors:
-            if axes and len(axes) != len(axes_errors):
-                raise ValueError("Axis errors must match the length of axes")
-            self.__axes_errors = list(axes_errors)
-        else:
-            self.__axes_errors = None
-        if axes_scales:
-            if axes and len(axes) != len(axes_scales):
-                raise ValueError("Axis scales must match the length of axes")
-            self.__axes_scales = list(scale or "linear" for scale in axes_scales)
-        else:
-            self.__axes_scales = None
+    ) -> None:
+        self.__signals = []
+        for i in range(len(signals)):
+            try:
+                self.__signals.append(
+                    Signal(
+                        values=signals[i],
+                        name=signal_names[i],
+                        errors=signal_errors[i] if signal_errors else None,
+                        scale=signal_scale,
+                    )
+                )
+            except IndexError as e:
+                raise ValueError(
+                    "Length of signal lists should be equal to the number of signals"
+                ) from e
+
+        self.__axes = []
+        for i in range(signals[0].ndim):
+            try:
+                self.__axes.append(
+                    Axis(
+                        values=axes[i] if axes else None,
+                        name=axes_names[i] if axes_names else None,
+                        errors=axes_errors[i] if axes_errors else None,
+                        scale=axes_scales[i] if axes_scales else None,
+                    )
+                )
+            except IndexError as e:
+                raise ValueError(
+                    "Length of axes lists should be equal to the number of dimensions of the signal"
+                ) from e
 
         with blockSignals(self._axesSelector):
             self._axesSelector.clear()
             self._axesSelector.setAxisNames(["X"])
 
             # Labels need to be set before the data
-            if self.__axes_names:
-                self._axesSelector.setLabels(self.__axes_names)
+            if axes_names:
+                self._axesSelector.setLabels(axes_names)
             self._axesSelector.setData(signals[0])
 
             if len(signals[0].shape) < 2:
@@ -109,68 +105,49 @@ class NxCurvePlot(qt.QWidget):
 
     def _updateCurve(self):
         """Updates X and Y data. Called when the plotted dimension changes"""
-        if self.__signals is None or self.__signals_names is None:
+        if self.__signals is None or self.__axes is None:
             return
 
         axes_selection = self._axesSelector.selection()
-        xIndex = self._axesSelector.getIndicesOfNamedAxes()["X"]
-        if self.__axes:
-            x = self.__axes[xIndex]
+        axis = self.__axes[self._axesSelector.getIndicesOfNamedAxes()["X"]]
+        if axis.values is not None:
+            x = axis.values
         else:
-            signalLength = len(self.__signals[0][axes_selection])
+            signalLength = len(self.__signals[0].values[axes_selection])
             x = numpy.arange(signalLength)
-        if self.__axes_errors is not None:
-            x_errors = self.__axes_errors[xIndex]
-        else:
-            x_errors = None
-
-        if self.__signal_errors is None:
-            y_errors = [None] * len(self.__signals)
-        else:
-            y_errors = self.__signal_errors
 
         self._plot.clear()
         self.__signal_curves.clear()
-        for signal, legend, y_error in zip(
-            self.__signals, self.__signals_names, y_errors
-        ):
+        for signal in self.__signals:
             self.__signal_curves.append(
                 self._plot.addCurve(
                     x,
-                    signal[axes_selection],
-                    legend=legend,
-                    xerror=x_errors,
-                    yerror=y_error[axes_selection] if y_error else None,
+                    signal.values[axes_selection],
+                    legend=signal.name,
+                    xerror=axis.errors,
+                    yerror=signal.get_errors(axes_selection),
                 )
             )
-        self._plot.getYAxis().setScale(self.__signal_scale)
-        self._plot.setActiveCurve(self.__signals_names[0])
+        mainSignal = self.__signals[0]
+        self._plot.getYAxis().setScale(mainSignal.scale)
+        self._plot.setActiveCurve(mainSignal.name)
 
-        if self.__axes_names:
-            self._plot.setGraphXLabel(self.__axes_names[xIndex])
-        if self.__axes_scales:
-            self._plot.getXAxis().setScale(self.__axes_scales[xIndex])
+        self._plot.getXAxis().setScale(axis.scale)
+        self._plot.setGraphXLabel(axis.name)
         self._plot.resetZoom()
 
     def _updateYData(self):
         """Update Y data **only**. Called when the slicing indices change"""
-        if self.__signals is None or self.__signals_names is None:
+        if self.__signals is None:
             return
 
-        if self.__signal_errors is None:
-            y_errors = [None] * len(self.__signals)
-        else:
-            y_errors = self.__signal_errors
-
         axes_selection = self._axesSelector.selection()
-        for curve, signal, y_error in zip(
-            self.__signal_curves, self.__signals, y_errors
-        ):
+        for curve, signal in zip(self.__signal_curves, self.__signals):
             curve.setData(
                 curve.getXData(False),
-                signal[axes_selection],
+                signal.values[axes_selection],
                 xerror=curve.getXErrorData(False),
-                yerror=y_error[axes_selection] if y_error else None,
+                yerror=signal.get_errors(axes_selection),
             )
 
     def clear(self):
