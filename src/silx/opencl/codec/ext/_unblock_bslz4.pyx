@@ -113,10 +113,10 @@ def unblock_bslz4(bytes src, uint8_t item_size=4):
                     logger.error(f"Read ({end}) beyond the end of the stream ({size}) -> invalid")
                 break
             block_size = load32_BE(buffer, pos)
-            if block_size>=block_max_size:
+            if block_size>block_max_size:
                 block_start = block_start[:block_idx]
                 with gil:
-                    logger.error(f"Invalid block size ({block_size}>={block_max_size}) ... since it is larger than the compressed block size")
+                    logger.error(f"Invalid block size ({block_size}>{block_max_size}) ... since it is larger than the compressed block size")
                 break
             block_start[block_idx] = end
             pos = end + block_size
