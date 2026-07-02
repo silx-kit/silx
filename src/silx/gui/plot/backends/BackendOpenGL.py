@@ -322,6 +322,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
+        #  https://github.com/qt/qtbase/blob/120883a028a59864dc7691dd1efa318bd602755d/src/plugins/platforms/xcb/qxcbwindow.cpp#L1955-L1956
+        # qt xcb plugin put angleDelta in x rather than in y when alt modifier is pressed.
+        # matplotlib/matplotlib#25671 marked as 'won't fix'
+        # Fix here as we want to be able to use alt modifier in silx plot.
+        # https://github.com/silx-kit/silx/pull/4631
+        if event.angleDelta().y() == 0:
+            delta = event.angleDelta().x()
         angleInDegrees = delta / 8.0
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseWheel(x, y, angleInDegrees)

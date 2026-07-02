@@ -1695,3 +1695,27 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         else:
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
+
+    def wheelEvent(self, event):
+        #  https://github.com/qt/qtbase/blob/120883a028a59864dc7691dd1efa318bd602755d/src/plugins/platforms/xcb/qxcbwindow.cpp#L1955-L1956
+        # qt xcb plugin put angleDelta in x rather than in y when alt modifier is pressed.
+        # matplotlib/matplotlib#25671 marked as 'won't fix'
+        # Fix here as we want to be able to use alt modifier in silx plot.
+        # https://github.com/silx-kit/silx/pull/4631
+        if event.angleDelta().y() == 0:
+            event = qt.QWheelEvent(
+                event.position(),
+                event.globalPosition(),
+                event.pixelDelta(),
+                qt.QPoint(0, event.angleDelta().x()),
+                event.buttons(),
+                event.modifiers(),
+                event.phase(),
+                event.isInverted(),
+                event.source(),
+                event.pointingDevice(),
+            )
+            super().wheelEvent(event)
+            return
+
+        super().wheelEvent(event)
