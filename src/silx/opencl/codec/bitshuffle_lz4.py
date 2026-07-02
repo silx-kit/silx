@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/06/2026"
+__date__ = "02/07/2026"
 __status__ = "production"
 
 
@@ -198,6 +198,7 @@ class BitshuffleLz4(OpenclProcessing):
                     (1,),
                     cmp_buffer,
                     len_raw,
+                    numpy.uint32(self.dec_dtype.itemsize),
                     self.cl_mem["block_position"].data,
                     num_blocks,
                     self.cl_mem["nb_blocks"].data,
@@ -205,7 +206,7 @@ class BitshuffleLz4(OpenclProcessing):
                 events.append(EventDescription("LZ4 unblock", evt))
             else:
                 # Perform unblock using Cython
-                block_position = unblock_bslz4(raw)
+                block_position = unblock_bslz4(raw, self.dec_dtype.itemsize)
                 size = block_position.size
                 if size > self.num_blocks:
                     self.num_blocks = size

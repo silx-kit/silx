@@ -46,6 +46,10 @@
 #define SWAP_LE 1
 #endif
 
+#define BSHUF_MIN_RECOMMEND_BLOCK 128
+#define BSHUF_BLOCKED_MULT 8
+#define BSHUF_TARGET_BLOCK_SIZE_B LZ4_BLOCK_SIZE
+
 
 #define int8_t char
 #define uint8_t uchar
@@ -178,7 +182,35 @@ uint16_t load16_at(local uint8_t *src,
     return as_ushort(vector);
 }
 
-//Calculate the begining and the end of the block corresponding to the block=gid
+/* ---- bshuf_default_block_size ----
+ *
+ * The default block size as function of element size.
+ *
+ * This is the block size used by the blocked routines (any routine
+ * taking a *block_size* argument) when the block_size is not provided
+ * (zero is passed).
+ *
+ * The results of this routine are guaranteed to be stable such that
+ * shuffled/compressed data can always be decompressed.
+ *
+ * Parameters
+ * ----------
+ *  elem_size : element size of data to be shuffled/compressed.
+ *
+ */
+inline uint32_t bshuf_default_block_size(const uint32_t elem_size) {
+    // This function needs to be absolutely stable between versions.
+    // Otherwise encoded data will not be decodable.
+
+    uint32_t block_size = BSHUF_TARGET_BLOCK_SIZE_B / elem_size;
+    // Ensure it is a required multiple.
+    block_size = (block_size / BSHUF_BLOCKED_MULT) * BSHUF_BLOCKED_MULT;
+    return max(block_size, (uint32_t) BSHUF_MIN_RECOMMEND_BLOCK);
+}
+
+
+//Calculate the beginning and the end of the block corresponding to the block=gid
+//Single threaded kernel !!!
 inline void _lz4_unblock(global uint8_t *src,
                            const uint64_t size,
                            local uint64_t *block_position){
@@ -413,7 +445,7 @@ Param:
 - src: input buffer in global memory
 - size: input buffer size
 - block_position: output buffer in local memory containing the index of the begining of each block
-- max_blocks: allocated memory for block_position array (output)
+- nblocks: allocated memory for block_position array (output)
 - nb_blocks: output buffer with the actual number of blocks in src (output).
 
 Return: Nothing, this is a kernel
@@ -423,31 +455,33 @@ Hint on workgroup size: little kernel ... wg=1, 1 wg is enough.
 
 kernel void lz4_unblock(global uint8_t *src,
                         const  uint64_t size,
+                        const uint32_t item_size,
                         global uint64_t *block_start,
-                               uint32_t max_blocks,
+                               uint32_t nblocks,
                         global uint32_t *nb_blocks){
 
     uint64_t total_nbytes = load64_at(src,0,SWAP_BE); // uncompressed data
     uint32_t block_nbytes = load32_at(src,8,SWAP_BE); // uncompressed
+
     if (block_nbytes == 0){
-            block_nbytes = 1<<13;  // 8k
-            // This is a simplified version. One should take into account the item_size
+            block_nbytes = bshuf_default_block_size(item_size) * item_size;
     }
+
     uint32_t block_max_size = (uint32_t)(ceil(block_nbytes * 1.0046f)); // "compressed"
     uint32_t block_idx;
     uint64_t pos = 12;
     uint64_t end = 16;
     uint32_t block_size;
-    max_blocks = min(max_blocks, (uint32_t)(total_nbytes + block_nbytes - 1) / block_nbytes);
+    nblocks = min(nblocks, (uint32_t)(total_nbytes + block_nbytes - 1) / block_nbytes);
 
-    for (block_idx=0; block_idx<max_blocks; block_idx++){
+    for (block_idx=0; block_idx<nblocks; block_idx++){
         if (end >= size){
-            // This would read beyond the end of the stream -> invalid
+            printf("This would read beyond the end of the stream (%ul>=%ul)-> invalid\n",end, size);
             break;
         }
         block_size = load32_at(src, pos, SWAP_BE);
-        if (block_size>=block_max_size){
-            // This is an invalid block ... since it is larger than the compressed block size
+        if (block_size>block_max_size){
+            printf("This is an invalid block ... since it is larger than the compressed block size (%ul>%ul)\n", block_size, block_max_size);
             break;
         }
         block_start[block_idx] = end;
