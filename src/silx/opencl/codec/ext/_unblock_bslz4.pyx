@@ -10,12 +10,18 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "30/06/2026"
+__date__ = "02/07/2026"
 
 
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.math cimport ceil
 import numpy
+
+# Define some constants for bitshuffle
+cdef:
+    const uint32_t BSHUF_MIN_RECOMMEND_BLOCK = 128
+    const uint32_t BSHUF_BLOCKED_MULT = 8            # Block sizes must be multiple of this.
+    const uint32_t BSHUF_TARGET_BLOCK_SIZE_B 8192
 
 
 cdef inline uint64_t load64_BE(const uint8_t[::1] src,
@@ -52,6 +58,20 @@ cdef inline uint32_t load32_BE(const uint8_t[::1] src,
              (<uint32_t>(src[pos + 2]) <<  8) | \
              (<uint32_t>(src[pos + 3]))
     return result
+
+
+cdef inline  uint32_t bshuf_default_block_size(uint32_t elem_size):
+    """Calculate the proper block size
+
+    This function needs to be absolutely stable between versions.
+    Otherwise encoded data will not be decodable.
+    """
+
+    cdef uint32_t block_size = BSHUF_TARGET_BLOCK_SIZE_B / elem_size
+    # Ensure it is a required multiple.
+    block_size = (block_size // BSHUF_BLOCKED_MULT) * BSHUF_BLOCKED_MULT
+    return max(block_size, BSHUF_MIN_RECOMMEND_BLOCK)
+}
 
 
 def unblock_bslz4(bytes src, uint8_t item_size=4):
