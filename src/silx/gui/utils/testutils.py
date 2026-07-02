@@ -34,6 +34,7 @@ import unittest
 import functools
 import sys
 import os
+from collections.abc import Callable
 
 from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
@@ -408,6 +409,18 @@ class TestCaseQt(unittest.TestCase):
         pixmap = screen.grabWindow(0)
         pixmap.save(filename)
         _logger.log(level, "Screenshot saved at %s", filename)
+
+    def waitUntil(
+        self, callable: Callable[[], bool], msecs: int | None = None, nretries: int = 20
+    ) -> None:
+        if msecs is None:
+            msecs = self.DEFAULT_TIMEOUT_WAIT
+        for _ in range(nretries):
+            if callable():
+                return
+            self.qWait(msecs)
+        else:
+            raise RuntimeError("Still waiting for a pending operation")
 
 
 class SignalListener:
