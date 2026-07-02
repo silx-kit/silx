@@ -44,6 +44,7 @@ from .core import (
     YAxisMixIn,
     ItemChangedType,
 )
+from .types import ItemBounds, AxesInfo
 from ._pick import PickingResult
 from silx._utils import NP_OPTIONAL_COPY
 
@@ -162,8 +163,9 @@ class Histogram(
         # Filter-out values <= 0
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -195,13 +197,14 @@ class Histogram(
             symbolsize=1,
         )
 
-    def _getBounds(self):
-        values, edges, baseline = self.getData(copy=False)
+    def _getBounds(self) -> ItemBounds | None:
+        values, edges, _ = self.getData(copy=False)
 
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
         else:
             xPositive = False
             yPositive = False
@@ -242,6 +245,62 @@ class Histogram(
                 max(0, numpy.nanmax(values)),
             )
 
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        values, edges, _ = self.getData(copy=False)
+
+        # edges: independent variable
+        # values: dependent variable
+        # Fixed edges: autoscale values within the edges limits
+        # Fixed values: autoscale edges within the values limits
+
+        values_mask = numpy.isfinite(values)
+        edges_mask = numpy.isfinite(edges)
+
+        if not axesInfo.x.auto:
+            xmin, xmax = axesInfo.x.limits()
+            edges_mask &= (edges >= xmin) & (edges <= xmax)
+        if not axesInfo.y.auto:
+            ymin, ymax = axesInfo.y.limits()
+            values_mask &= (values >= ymin) & (values <= ymax)
+
+        edges_mask2 = self._valuesToEdgesMask(values_mask, do_or=False)
+        values_mask2 = self._edgesToValuesMask(edges_mask, do_or=False)
+        edges_mask &= edges_mask2
+        values_mask &= values_mask2
+
+        if not numpy.any(edges_mask) or not numpy.any(values_mask):
+            return None
+
+        edges = edges[edges_mask]
+        values = values[values_mask]
+
+        xmin = numpy.nanmin(edges)
+        xmax = numpy.nanmax(edges)
+        ymin = numpy.nanmin(values)
+        ymax = numpy.nanmax(values)
+
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+
+    @staticmethod
+    def _edgesToValuesMask(edges_mask, do_or: bool):
+        if do_or:
+            return edges_mask[:-1] | edges_mask[1:]
+        else:
+            return edges_mask[:-1] & edges_mask[1:]
+
+    @staticmethod
+    def _valuesToEdgesMask(values_mask, do_or: bool):
+        if do_or:
+            edges_mask = numpy.zeros(values_mask.size + 1, dtype=bool)
+            edges_mask[:-1] |= values_mask
+            edges_mask[1:] |= values_mask
+        else:
+            edges_mask = numpy.ones(values_mask.size + 1, dtype=bool)
+            edges_mask[:-1] &= values_mask
+            edges_mask[1:] &= values_mask
+
+        return edges_mask
+
     def __pickFilledHistogram(self, x: float, y: float) -> PickingResult | None:
         """Picking implementation for filled histogram
 
@@ -256,7 +315,10 @@ class Histogram(
             return None
 
         xData, yData = plot.pixelToData(x, y, axis=self.getYAxis())
-        xmin, xmax, ymin, ymax = self.getBounds()
+        bounds = self.getBounds()
+        if bounds is None:
+            return None
+        xmin, xmax, ymin, ymax = bounds
         if not xmin < xData < xmax or not ymin < yData < ymax:
             return None  # Outside bounding box
 

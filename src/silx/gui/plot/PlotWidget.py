@@ -30,14 +30,12 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import logging
-from collections import namedtuple
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager
 import datetime as dt
 import itertools
 from io import BytesIO, StringIO
 import numbers
-import warnings
 from typing import Any, Callable, Generator, Literal
 
 
@@ -60,6 +58,7 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
+from .items.types import PlotDataRange, AxesInfo, ItemBounds
 from .items.core import PickingResult
 from .items.curve import CurveStyle
 from .items.axis import TickMode  # noqa
@@ -73,12 +72,6 @@ from .backends.BackendBase import BackendBase
 _logger = logging.getLogger(__name__)
 if _matplotlib is None:
     _logger.debug("matplotlib not available")
-
-
-"""
-Object returned when requesting the data range.
-"""
-_PlotDataRange = namedtuple("PlotDataRange", ["x", "y", "yright"])
 
 
 class _PlotWidgetSelection(qt.QObject):
@@ -405,7 +398,7 @@ class PlotWidget(qt.QMainWindow):
         self.__itemsToUpdate = []  # Used as an OrderedSet
         self.__activeItems = {"curve": None, "image": None, "scatter": None}
 
-        self._dataRange = None
+        self._dataRange: PlotDataRange | None = None
 
         # line types
         self._defaultColors = None
@@ -835,49 +828,7 @@ class PlotWidget(qt.QMainWindow):
         """
         self._dataRange = None
 
-    def _updateDataRange(self):
-        """
-        Recomputes the range of the data displayed on this PlotWidget.
-        """
-        xMin = yMinLeft = yMinRight = float("nan")
-        xMax = yMaxLeft = yMaxRight = float("nan")
-
-        for item in self.getItems():
-            if item.isVisible():
-                bounds = item.getBounds()
-                if bounds is not None:
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore", category=RuntimeWarning)
-                        # Ignore All-NaN slice encountered
-                        xMin = numpy.nanmin([xMin, bounds[0]])
-                        xMax = numpy.nanmax([xMax, bounds[1]])
-                    # Take care of right axis
-                    if (
-                        isinstance(item, items.YAxisMixIn)
-                        and item.getYAxis() == "right"
-                    ):
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore", category=RuntimeWarning)
-                            # Ignore All-NaN slice encountered
-                            yMinRight = numpy.nanmin([yMinRight, bounds[2]])
-                            yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
-                    else:
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore", category=RuntimeWarning)
-                            # Ignore All-NaN slice encountered
-                            yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
-                            yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
-
-        def lGetRange(x, y):
-            return None if numpy.isnan(x) and numpy.isnan(y) else (x, y)
-
-        xRange = lGetRange(xMin, xMax)
-        yLeftRange = lGetRange(yMinLeft, yMaxLeft)
-        yRightRange = lGetRange(yMinRight, yMaxRight)
-
-        self._dataRange = _PlotDataRange(x=xRange, y=yLeftRange, yright=yRightRange)
-
-    def getDataRange(self) -> _PlotDataRange:
+    def getDataRange(self) -> PlotDataRange:
         """
         Returns this PlotWidget's data range.
 
@@ -886,8 +837,82 @@ class PlotWidget(qt.QMainWindow):
                 or None if no data is associated with the axis.
         """
         if self._dataRange is None:
-            self._updateDataRange()
+            self._dataRange = self._computeDataRange(reset=False)
         return self._dataRange
+
+    def _getResetDataRange(self) -> PlotDataRange:
+        """
+        Returns this PlotWidget's data range for resetting. The current limits
+        of non-autoscaling axes are taking into account when determining the
+        range of autoscaling axes.
+
+        :return: a namedtuple with the following members :
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
+        """
+        if (
+            self._xAxis.isAutoScale()
+            and self._yAxis.isAutoScale()
+            and self._yRightAxis.isAutoScale()
+        ):
+            return self.getDataRange()
+
+        return self._computeDataRange(reset=True)
+
+    def _computeDataRange(self, reset: bool = False) -> PlotDataRange:
+        xMinList = []
+        xMaxList = []
+
+        yMinLeftList = []
+        yMaxLeftList = []
+
+        yMinRightList = []
+        yMaxRightList = []
+
+        for item in self.getItems():
+            if not item.isVisible():
+                continue
+
+            if reset:
+                bounds = self._itemResetBounds(item)
+            else:
+                bounds = item.getBounds()
+            if bounds is None:
+                continue
+
+            xmin, xmax, ymin, ymax = bounds
+
+            xMinList.append(xmin)
+            xMaxList.append(xmax)
+
+            if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
+                yMinRightList.append(ymin)
+                yMaxRightList.append(ymax)
+            else:
+                yMinLeftList.append(ymin)
+                yMaxLeftList.append(ymax)
+
+        def pack(min_list, max_list):
+            min_list = [x for x in min_list if not numpy.isnan(x)]
+            max_list = [x for x in max_list if not numpy.isnan(x)]
+            if not min_list or not max_list:
+                return None
+            return min(min_list), max(max_list)
+
+        return PlotDataRange(
+            x=pack(xMinList, xMaxList),
+            y=pack(yMinLeftList, yMaxLeftList),
+            yright=pack(yMinRightList, yMaxRightList),
+        )
+
+    def _itemResetBounds(self, item: items.Item) -> ItemBounds | None:
+        xAxis = self.getXAxis()
+        if isinstance(item, items.YAxisMixIn):
+            yAxis = self.getYAxis(item.getYAxis())
+        else:
+            yAxis = self.getYAxis()
+        axisInfo = AxesInfo(x=xAxis.getInfo(), y=yAxis.getInfo())
+        return item.getResetBounds(axisInfo)
 
     # Content management
 
@@ -3286,9 +3311,29 @@ class PlotWidget(qt.QMainWindow):
         self,
         dataMargins: tuple[float, float, float, float] | None = None,
     ):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
+        """Force :meth:`resetZoom` without emitting Qt signals."""
+        self.resetZoom(dataMargins=dataMargins, force=True, notify=False)
 
-        This method forces a reset zoom and does not check axis autoscale.
+    def resetZoom(self, dataMargins=None, force=False, notify=True):
+        """Reset the plot limits and redraw the plot.
+
+        The plot limits after a reset depend on whether axes have
+
+        - fixed limits (``autoscale=False``) or
+        - variable limits (``autoscale=True``).
+
+        See :meth:`getXAxis`, :meth:`getYAxis` and :meth:`Axis.setAutoScale`.
+
+        Axes that have fixed limits keep their limits after a reset.
+
+        Axes that have variable limits will have new limits determined by
+
+        - the data range within the limits of the axes with fixed limits or
+        - the full data range if all axes have variable limits.
+
+        Plot limits are not reset when all axes have fixed limits unless ``force=True``.
+
+        Qt signals are emitted when plot limits changed unless ``notify=False``.
 
         Extra margins can be added around the data inside the plot area
         (see :meth:`setDataMargins`).
@@ -3299,80 +3344,83 @@ class PlotWidget(qt.QMainWindow):
         :param dataMargins:
             Ratios of margins to add around the data inside the plot area for each side.
             If None (the default), use margins from :meth:`getDataMargins`.
+        :param force: If True, plot limits are reset even when all axes have fixed limits.
+        :param notify: If True, Qt signals are emitted when plot limits changed.
         """
-        # Get data range
-        ranges = self.getDataRange()
-        xmin, xmax = (1.0, 100.0) if ranges.x is None else ranges.x
-        ymin, ymax = (1.0, 100.0) if ranges.y is None else ranges.y
-        if ranges.yright is None:
-            y2min, y2max = ymin, ymax
-        else:
-            y2min, y2max = ranges.yright
-            if ranges.y is None:
-                ymin, ymax = ranges.yright
+        # Early-return when no resetting is needed nor forced
+        needsReset, xLimits, ylLimits, yrLimits = self.__getAxesLimitState()
 
+        if not force and not needsReset:
+            _logger.debug("No reset required")
+            return
+
+        # Compute plot limits
+        ranges = self._getResetDataRange()
+        xmin, xmax = ranges.x or (1.0, 100.0)
+        if ranges.yright is None:
+            ylmin, ylmax = ranges.y or (1.0, 100.0)
+            yrmin, yrmax = ylmin, ylmax
+        else:
+            ylmin, ylmax = ranges.y or ranges.yright
+            yrmin, yrmax = ranges.yright
+
+        if dataMargins is None:
+            # Use the default margins set with setDataMargins()
+            dataMargins = True
+
+        # Set plot limits to compute values
         self.setLimits(
             xmin,
             xmax,
-            ymin,
-            ymax,
-            y2min,
-            y2max,
-            margins=dataMargins if dataMargins is not None else True,
+            ylmin,
+            ylmax,
+            yrmin,
+            yrmax,
+            margins=dataMargins,
         )
 
-    def resetZoom(self, dataMargins: tuple[float, float, float, float] | None = None):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
+        # Notify plot limit changes
+        if notify:
+            xChanged = xLimits != self._xAxis.getLimits()
+            ylChanged = ylLimits != self._yAxis.getLimits()
+            yrChanged = yrLimits != self._yRightAxis.getLimits()
 
-        It automatically scale limits of axes that are in autoscale mode
-        (see :meth:`getXAxis`, :meth:`getYAxis` and :meth:`Axis.setAutoScale`).
-        It keeps current limits on axes that are not in autoscale mode.
+            if xChanged or ylChanged or yrChanged:
+                self._notifyLimitsChanged()
 
-        Extra margins can be added around the data inside the plot area
-        (see :meth:`setDataMargins`).
-        Margins are given as one ratio of the data range per limit of the
-        data (xMin, xMax, yMin and yMax limits).
-        For log scale, extra margins are applied in log10 of the data.
-
-        :param dataMargins: Ratios of margins to add around the data inside
-                            the plot area for each side (default: no margins).
+    def __getAxesLimitState(
+        self,
+    ) -> tuple[bool, tuple[float, float], tuple[float, float], tuple[float, float]]:
+        """
+        Checks whether axes limits need to be reset and returns
+        the limits as well.
         """
         xLimits = self._xAxis.getLimits()
-        yLimits = self._yAxis.getLimits()
-        y2Limits = self._yRightAxis.getLimits()
+        ylLimits = self._yAxis.getLimits()
+        yrLimits = self._yRightAxis.getLimits()
 
+        # Reset is needed when any of these is True
         xAuto = self._xAxis.isAutoScale()
-        yAuto = self._yAxis.isAutoScale()
+        ylAuto = self._yAxis.isAutoScale()
+        yrAuto = self._yRightAxis.isAutoScale()
 
-        # With log axes, autoscale if limits are <= 0
+        # Reset is needed for log axes with limits are <= 0
         # This avoids issues with toggling log scale with matplotlib 2.1.0
-        if self._xAxis.getScale() == self._xAxis.LOGARITHMIC and xLimits[0] <= 0:
+        # TODO: still needed?
+        xIsLog = self._xAxis.getScale() == self._xAxis.LOGARITHMIC
+        ylIsLog = self._yAxis.getScale() == self._yAxis.LOGARITHMIC
+        yrIsLog = self._yRightAxis.getScale() == self._yAxis.LOGARITHMIC
+
+        if xIsLog and xLimits[0] <= 0:
             xAuto = True
-        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (
-            yLimits[0] <= 0 or y2Limits[0] <= 0
-        ):
-            yAuto = True
+        if ylIsLog and ylLimits[0] <= 0:
+            ylAuto = True
+        if yrIsLog and yrLimits[0] <= 0:
+            yrAuto = True
 
-        if not xAuto and not yAuto:
-            _logger.debug("Nothing to autoscale")
-        else:  # Some axes to autoscale
-            self._forceResetZoom(dataMargins=dataMargins)
+        needsReset = xAuto or ylAuto or yrAuto
 
-            # Restore limits for axis not in autoscale
-            if not xAuto and yAuto:
-                self.setGraphXLimits(*xLimits)
-            elif xAuto and not yAuto:
-                if y2Limits is not None:
-                    self.setGraphYLimits(y2Limits[0], y2Limits[1], axis="right")
-                if yLimits is not None:
-                    self.setGraphYLimits(yLimits[0], yLimits[1], axis="left")
-
-        if (
-            xLimits != self._xAxis.getLimits()
-            or yLimits != self._yAxis.getLimits()
-            or y2Limits != self._yRightAxis.getLimits()
-        ):
-            self._notifyLimitsChanged()
+        return needsReset, xLimits, ylLimits, yrLimits
 
     # Coord conversion
 

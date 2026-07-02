@@ -44,6 +44,8 @@ from .core import (
     AlphaMixIn,
     ItemChangedType,
 )
+from .types import ItemBounds, AxesInfo
+from ._bound_utils import bounds_outside_fixed_limits
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -145,34 +147,47 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
         axes."""
-        linear = plot.getXAxis().LINEAR
-        if plot.getXAxis().getScale() != linear:
-            return False
-        if plot.getYAxis().getScale() != linear:
-            return False
-        return True
+        xAxis, yAxis = self._getAxisInstances(plot)
+        return xAxis.getScale() == xAxis.LINEAR and yAxis.getScale() == yAxis.LINEAR
 
-    def _getBounds(self):
-        if self.getData(copy=False).size == 0:  # Empty data
+    def _getBounds(self) -> ItemBounds | None:
+        plot = self.getPlot()
+        if plot is not None and not self._isPlotLinear(plot):
             return None
+
+        if self.getData(copy=False).size == 0:
+            return None  # Empty data
 
         height, width = self.getData(copy=False).shape[:2]
         origin = self.getOrigin()
         scale = self.getScale()
+
         # Taking care of scale might be < 0
         xmin, xmax = origin[0], origin[0] + width * scale[0]
         if xmin > xmax:
             xmin, xmax = xmax, xmin
+
         # Taking care of scale might be < 0
         ymin, ymax = origin[1], origin[1] + height * scale[1]
         if ymin > ymax:
             ymin, ymax = ymax, ymin
 
-        plot = self.getPlot()
-        if plot is not None and not self._isPlotLinear(plot):
+        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        bounds = self.getBounds()
+        if bounds is None:
             return None
-        else:
-            return xmin, xmax, ymin, ymax
+
+        # x: independent variable
+        # y: independent variable
+        # Fixed x: autoscale y to the full range
+        # Fixed y: autoscale x to the full range
+
+        if bounds_outside_fixed_limits(bounds, axesInfo):
+            return None
+
+        return bounds
 
     @docstring(DraggableMixIn)
     def drag(self, from_, to):

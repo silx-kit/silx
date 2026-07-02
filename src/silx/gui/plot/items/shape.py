@@ -44,6 +44,8 @@ from .core import (
     LineGapColorMixIn,
     YAxisMixIn,
 )
+from .types import ItemBounds, AxesInfo
+from ._bound_utils import bounds_outside_fixed_limits
 from ....utils.deprecation import deprecated
 from ... import colors
 from silx._utils import NP_OPTIONAL_COPY
@@ -181,17 +183,21 @@ class BoundingRect(DataItem, YAxisMixIn):
             assert rect[2] <= rect[3]
 
         if rect != self.__bounds:
-            self.__bounds = rect
+            if rect is None:
+                self.__bounds = None
+            else:
+                self.__bounds = ItemBounds.from_values(*rect)
             self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
-    def _getBounds(self):
+    def _getBounds(self) -> ItemBounds | None:
         if self.__bounds is None:
             return None
         plot = self.getPlot()
         if plot is not None:
-            xPositive = plot.getXAxis()._isLogarithmic()
-            yPositive = plot.getYAxis()._isLogarithmic()
+            xAxis, yAxis = self._getAxisInstances(plot)
+            xPositive = xAxis._isLogarithmic()
+            yPositive = yAxis._isLogarithmic()
             if xPositive or yPositive:
                 bounds = list(self.__bounds)
                 if xPositive and bounds[1] <= 0:
@@ -202,9 +208,24 @@ class BoundingRect(DataItem, YAxisMixIn):
                     return None
                 if yPositive and bounds[2] <= 0:
                     bounds[2] = bounds[3]
-                return tuple(bounds)
+                return ItemBounds.from_values(*bounds)
 
         return self.__bounds
+
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        bounds = self.getBounds()
+        if bounds is None:
+            return None
+
+        # x: independent variable
+        # y: independent variable
+        # Fixed x: autoscale y to the full range
+        # Fixed y: autoscale x to the full range
+
+        if bounds_outside_fixed_limits(bounds, axesInfo):
+            return None
+
+        return bounds
 
 
 class _BaseExtent(DataItem):
@@ -243,12 +264,16 @@ class _BaseExtent(DataItem):
         """
         return self.__range
 
-    def _getBounds(self):
+    def _getBounds(self) -> ItemBounds | None:
         min_, max_ = self.getRange()
 
         plot = self.getPlot()
         if plot is not None:
-            axis = plot.getXAxis() if self.__axis == "x" else plot.getYAxis()
+            if self.__axis == "x":
+                axis = self._getXAxisInstance(plot)
+            else:
+                axis = self._getYAxisInstance(plot)
+
             if axis._isLogarithmic():
                 if max_ <= 0:
                     return None
@@ -256,9 +281,21 @@ class _BaseExtent(DataItem):
                     min_ = max_
 
         if self.__axis == "x":
-            return min_, max_, float("nan"), float("nan")
+            return ItemBounds.from_values(min_, max_, float("nan"), float("nan"))
         else:
-            return float("nan"), float("nan"), min_, max_
+            return ItemBounds.from_values(float("nan"), float("nan"), min_, max_)
+
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        bounds = self.getBounds()
+        if bounds is None:
+            return None
+
+        # only one variable (x or y) so they cannot influence eachother
+
+        if bounds_outside_fixed_limits(bounds, axesInfo):
+            return None
+
+        return bounds
 
 
 class XAxisExtent(_BaseExtent):
@@ -312,8 +349,9 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
         if plot is None or not plot.isVisible():
             return
 
-        xmin, xmax = plot.getXAxis().getLimits()
-        ymin, ymax = plot.getYAxis().getLimits()
+        xAxis, yAxis = self._getAxisInstances(plot)
+        xmin, xmax = xAxis.getLimits()
+        ymin, ymax = yAxis.getLimits()
 
         slope = self.getSlope()
         intercept = self.getIntercept()
