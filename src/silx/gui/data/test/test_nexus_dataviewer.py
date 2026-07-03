@@ -1,5 +1,8 @@
 import h5py
 import numpy
+import pytest
+import sys
+
 
 from silx.gui.data import DataViews
 from silx.gui.data.DataViewer import DataViewer
@@ -62,6 +65,10 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
         assert isinstance(plot.getImage("rgb"), ImageRgba)
 
 
+@pytest.mark.skipif(
+    sys.version_info.major == 3 and sys.version_info.minor == 14,
+    reason="Triggers segfault on Python 3.14. To be fixed",
+)
 def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
     widget: DataViewer = qWidgetFactory(DataViewer)
 
