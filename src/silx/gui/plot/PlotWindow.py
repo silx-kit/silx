@@ -97,9 +97,10 @@ class PlotWindow(PlotWidget):
                      It also supports a list of (name, funct(x, y)->value)
                      to customize the displayed values.
                      See :class:`~silx.gui.plot.tools.PositionInfo`.
-    :param bool roi: Toggle visibilty of ROI action.
-    :param bool mask: Toggle visibilty of mask action.
-    :param bool fit: Toggle visibilty of fit action.
+    :param bool roi: Toggle visibility of ROI action.
+    :param bool mask: Toggle visibility of mask action.
+    :param bool fit: Toggle visibility of fit action.
+    :param bool axisScales: Toggle visibility of axes scale selection actions.
     """
 
     def __init__(
@@ -109,7 +110,6 @@ class PlotWindow(PlotWidget):
         resetzoom=True,
         autoScale=True,
         logScale=True,
-        chooseScale=False,
         grid=True,
         curveStyle=True,
         colormap=True,
@@ -123,6 +123,7 @@ class PlotWindow(PlotWidget):
         roi=True,
         mask=True,
         fit=False,
+        axisScales=False,
     ):
         super().__init__(parent=parent, backend=backend)
         if parent is None:
@@ -186,14 +187,14 @@ class PlotWindow(PlotWidget):
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
 
-        self.xAxisScaleButton = PlotToolButtons.XAxisScaleToolButton(
+        self._xAxisScaleButton = PlotToolButtons.XAxisScaleToolButton(
             parent=self, plot=self
         )
-        self.xAxisScaleButton.setVisible(chooseScale)
-        self.yAxisScaleButton = PlotToolButtons.YAxisScaleToolButton(
+        self._xAxisScaleButton.setVisible(axisScales)
+        self._yAxisScaleButton = PlotToolButtons.YAxisScaleToolButton(
             parent=self, plot=self
         )
-        self.yAxisScaleButton.setVisible(chooseScale)
+        self._yAxisScaleButton.setVisible(axisScales)
 
         self.gridAction = self.group.addAction(
             actions.control.GridAction(self, gridMode="both", parent=self)
@@ -327,6 +328,16 @@ class PlotWindow(PlotWidget):
     @deprecated(since_version="3.0.0", replacement="getPlotOptionButton")
     def controlButton(self):
         return self.getPlotOptionButton()
+
+    @property
+    @deprecated(since_version="3.0.2", replacement="getXAxisScaleButton")
+    def xAxisScaleButton(self):
+        return self.getXAxisScaleButton()
+
+    @property
+    @deprecated(since_version="3.0.2", replacement="getYAxisScaleButton")
+    def yAxisScaleButton(self):
+        return self.getYAxisScaleButton()
 
     def __setCentralWidget(self):
         """Set central widget to host plot backend, colorbar, and bottom bar"""
@@ -487,12 +498,8 @@ class PlotWindow(PlotWidget):
         self.yAxisInvertedAction = toolbar.insertWidget(
             self.colorbarAction, self.yAxisInvertedButton
         )
-        self.xAxisScaleAction = toolbar.insertWidget(
-            self.colorbarAction, self.xAxisScaleButton
-        )
-        self.yAxisScaleAction = toolbar.insertWidget(
-            self.colorbarAction, self.yAxisScaleButton
-        )
+        toolbar.insertWidget(self.gridAction, self._xAxisScaleButton)
+        toolbar.insertWidget(self.gridAction, self._yAxisScaleButton)
         return toolbar
 
     def saveGraph(
@@ -782,6 +789,12 @@ class PlotWindow(PlotWidget):
         """
         return self.yAxisLogarithmicAction
 
+    def getXAxisScaleButton(self) -> PlotToolButtons.XAxisScaleToolButton:
+        return self._xAxisScaleButton
+
+    def getYAxisScaleButton(self) -> PlotToolButtons.YAxisScaleToolButton:
+        return self._yAxisScaleButton
+
     def getGridAction(self):
         """Action to toggle the grid visibility in the plot
 
@@ -923,7 +936,7 @@ class Plot1D(PlotWindow):
             resetzoom=True,
             autoScale=True,
             logScale=False,
-            chooseScale=True,
+            axisScales=True,
             grid=True,
             curveStyle=True,
             colormap=False,
@@ -975,7 +988,7 @@ class Plot2D(PlotWindow):
             resetzoom=True,
             autoScale=False,
             logScale=False,
-            chooseScale=False,
+            axisScales=False,
             grid=False,
             curveStyle=False,
             colormap=True,
