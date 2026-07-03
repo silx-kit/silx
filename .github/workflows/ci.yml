@@ -37,21 +37,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            python-version: "3.12"
-            QT_API: PySide6
-            with_opencl: true
-
-          - os: macos-latest
-            python-version: "3.14"
-            QT_API: PyQt6
-            with_opencl: false
-
-          - os: windows-latest
-            python-version: "3.10"
-            QT_API: PyQt5
-            with_opencl: false
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.14", "3.13", "3.12"]
+        QT_API: [PyQt6, PySide6]
 
     steps:
       - uses: actions/checkout@v5
@@ -82,6 +70,6 @@ jobs:
       - name: Test
         env:
           QT_API: ${{ matrix.QT_API }}
-          SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
+          SILX_OPENCL: ${{ runner.os != 'macOS' && 'True' || 'False' }}
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
