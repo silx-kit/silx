@@ -539,8 +539,9 @@ def testLineStyle(qapp_utils, plotWidget, linestyle):
     curve = plotWidget.addCurve((0, 1), (0, 1), linestyle=linestyle)
     assert curve.getLineStyle() == linestyle
 
-    histogram = plotWidget.addHistogram((0.25, 0.75, 0.25), (0.0, 0.33, 0.66, 1.0))
-    histogram.setLineStyle(linestyle)
+    histogram = plotWidget.addHistogram(
+        (0.25, 0.75, 0.25), (0.0, 0.33, 0.66, 1.0), linestyle=linestyle
+    )
     assert histogram.getLineStyle() == linestyle
 
     polylines = plotWidget.addShape(
