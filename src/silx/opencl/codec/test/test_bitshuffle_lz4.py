@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2022 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/06/2026"
+__date__ = "30/06/2026"
 
 import struct
 import numpy
@@ -59,7 +59,6 @@ TESTCASES = (  # dtype, shape
 )
 
 
-@pytest.mark.skipif(True, reason="Failing test")  # Remove once test is fixed
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
     reason="PyOpenCl or bitshuffle is missing",
