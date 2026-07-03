@@ -1123,17 +1123,7 @@ class PlotWidget(qt.QMainWindow):
                                 (Default: True)
         :param fill: True to fill the curve, False otherwise (default).
         :param resetzoom: True (the default) to reset the zoom.
-        :param histogram: if not None then the curve will be draw as an
-            histogram. The step for each values of the curve can be set to the
-            left, center or right of the original x curve values.
-            If histogram is not None and len(x) == len(y)+1 then x is directly
-            take as edges of the histogram.
-            Type of histogram::
-
-            - None (default)
-            - 'left'
-            - 'right'
-            - 'center'
+        :param histogram: DEPRECATED, use `addHistogram` with `align` instead.
         :param copy: True make a copy of the data (default),
                           False to use provided arrays.
         :param baseline: curve baseline
@@ -1141,6 +1131,13 @@ class PlotWidget(qt.QMainWindow):
         """
         # This is an histogram, use addHistogram
         if histogram is not None:
+            deprecated_warning(
+                type_="Argument",
+                name="histogram",
+                reason="histogram arg is deprecated. Use `addHistogram` to produce an histogram, setting the `align` argument instead.",
+                replacement="addHistogram",
+                since_version="3.0.2",
+            )
             histo = self.addHistogram(
                 histogram=y,
                 edges=x,
@@ -1149,21 +1146,16 @@ class PlotWidget(qt.QMainWindow):
                 fill=fill,
                 align=histogram,
                 copy=copy,
+                z=z,
+                info=info,
+                linewidth=linewidth,
+                linestyle=linestyle,
+                yaxis=yaxis,
             )
-
-            histo.setInfo(info)
-            if linewidth is not None:
-                histo.setLineWidth(linewidth)
-            if linestyle is not None:
-                histo.setLineStyle(linestyle)
             if xlabel is not None:
                 _logger.warning("addCurve: Histogram does not support xlabel argument")
             if ylabel is not None:
                 _logger.warning("addCurve: Histogram does not support ylabel argument")
-            if yaxis is not None:
-                histo.setYAxis(yaxis)
-            if z is not None:
-                histo.setZValue(z)
             if selectable is not None:
                 _logger.warning(
                     "addCurve: Histogram does not support selectable argument"
@@ -1279,6 +1271,10 @@ class PlotWidget(qt.QMainWindow):
         copy: bool = True,
         z: int | None = None,
         baseline: float | numpy.ndarray | None = None,
+        info: Any = None,
+        linewidth: float | None = None,
+        linestyle: str | None = None,
+        yaxis: Literal["left", "right"] | None = None,
     ) -> items.Histogram:
         """Add an histogram to the graph.
 
@@ -1312,6 +1308,18 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :param z: Layer on which to draw the histogram
         :param baseline: histogram baseline
+        :param info: User-defined information associated to the histogram
+        :param linewidth: The width of the histogram lines in pixels (Default: 1).
+        :param linestyle: Type of line::
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+            - None (the default) to use default line style
+        :param yaxis: The Y axis this histogram is attached to.
+                      Either 'left' (the default) or 'right'
         :returns: The histogram item
         """
         legend = "Unnamed histogram" if legend is None else str(legend)
@@ -1354,6 +1362,15 @@ class PlotWidget(qt.QMainWindow):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
+
+        if linewidth is not None:
+            histo.setLineWidth(linewidth)
+        if linestyle is not None:
+            histo.setLineStyle(linestyle)
+        if yaxis is not None:
+            histo.setYAxis(yaxis)
+        if info is not None:
+            histo.setInfo(info)
 
         return histo
 

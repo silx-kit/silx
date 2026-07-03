@@ -679,12 +679,12 @@ class TestPlotHistogram(PlotWidgetTestCase):
             edges=self.edges,
             legend="histogram1",
             color="blue",
+            linestyle=":",
         )
         histogram = self.plot.getItems()[0]
         assert histogram.getLineGapColor() is None
         histogram.setLineGapColor("red")
         assert histogram.getLineGapColor() == (1.0, 0.0, 0.0, 1.0)
-        histogram.setLineStyle(":")
 
 
 class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
