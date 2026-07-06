@@ -3,7 +3,7 @@ from .types import ItemBounds, AxesInfo, AxisInfo
 
 def bounds_outside_fixed_limits(bounds: ItemBounds, axesInfo: AxesInfo) -> bool:
     """
-    Exlude when at least one axis has fixed limits and
+    Exclude when at least one axis has fixed limits and
     bound [min,max] falls outside these limits.
     """
     xmin, xmax, ymin, ymax = bounds
