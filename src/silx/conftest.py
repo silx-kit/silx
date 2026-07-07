@@ -87,6 +87,9 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:matplotlib._fontconfig_pattern",
     "ignore::DeprecationWarning:matplotlib._mathtext",
     "ignore::DeprecationWarning:pyparsing.util",
+    # pygfx sets ndarray.shape in-place (pygfx.resources._texture/_buffer),
+    # deprecated in NumPy 2.5. Remove once pygfx no longer does.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:pygfx",
 )
 
 
