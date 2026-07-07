@@ -28,6 +28,7 @@ from __future__ import annotations
 __authors__ = ["S. Kim"]
 __license__ = "MIT"
 
+import functools
 import logging
 import math
 import re
@@ -47,6 +48,12 @@ from .utils import findDimToKeep, ensureAspectRatio
 from silx.gui.colors import RGBAColorType
 
 _logger = logging.getLogger(__name__)
+
+
+@functools.cache
+def _logDpiOnce(message: str) -> None:
+    _logger.error(message)
+
 
 _MATHDEFAULT_RE = re.compile(r"\$\\mathdefault\{([^}]*)\}\$")
 
@@ -1034,9 +1041,26 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def getDotsPerInch(self):
         screen = self.screen()
-        if screen is not None:
-            return screen.logicalDotsPerInch() * self.getDevicePixelRatio()
-        return 92
+        if screen is None:
+            return 96.0 * self.getDevicePixelRatio()
+
+        # Qt sometimes reports a bogus screen DPI, clamp it to a sane range
+        # (see silx.gui._glutils.OpenGLWidget.getDotsPerInch).
+        physicalDPI = screen.physicalDotsPerInch()
+        if physicalDPI < 55.0:
+            defaultDPI = 72.0
+            _logDpiOnce(
+                f"Reported screen DPI too low: {int(physicalDPI)}, using {defaultDPI} instead"
+            )
+            physicalDPI = defaultDPI
+        elif physicalDPI > 1000.0:
+            defaultDPI = 96.0
+            _logDpiOnce(
+                f"Reported screen DPI too high: {int(physicalDPI)}, using {defaultDPI} instead"
+            )
+            physicalDPI = defaultDPI
+
+        return physicalDPI * self.getDevicePixelRatio()
 
     # Drawing ###############################################################
 
