@@ -35,6 +35,8 @@ import logging
 import os
 import re
 import weakref
+from functools import cached_property
+from pathlib import Path
 from . import qt
 import silx.resources
 from silx.utils import weakref as silxweakref
@@ -76,7 +78,8 @@ class _SvgIconEngine(qt.QIconEngine):
 
     def __init__(self, name: str):
         super().__init__()
-        self._lightSvgPath = self._readSVGPath(name)
+        self._name = name
+        self._lightSvgPath = self._readSVGPath(self._name)
         self._isDarkColorScheme = None
         self._renderer = qt.QSvgRenderer(self._lightSvgPath)
 
@@ -85,18 +88,9 @@ class _SvgIconEngine(qt.QIconEngine):
         filename = silx.resources._resource_filename(
             f"{name}.svg", default_directory="gui/icons"
         )
-        qfile = qt.QFile(filename)
-        if not qfile.exists():
-            raise ValueError(f"SVG icon resource not found: {name}")
+        return Path(filename).read_bytes()
 
-        if not qfile.open(qt.QIODevice.ReadOnly | qt.QIODevice.Text):
-            raise ValueError(f"Cannot open SVG icon resource: {name}")
-
-        svgpath = bytes(qfile.readAll())
-        qfile.close()
-        return svgpath
-
-    @property
+    @cached_property
     def _darkSvgPath(self) -> bytes:
         svgpath = self._lightSvgPath.replace(b"<svg", b'<svg fill="#fff"')
         svgpath = re.sub(b'stroke="(#000000|#000)"', b'stroke="#fff"', svgpath)
@@ -125,9 +119,11 @@ class _SvgIconEngine(qt.QIconEngine):
     ):
         renderer = self._currentRenderer()
         if renderer.isValid():
-            renderer.render(painter, rect)
+            renderer.render(painter, qt.QRectF(rect))
 
-    def pixmap(self, size: qt.QSize, mode: qt.QIcon.Mode, state: qt.QIcon.State):
+    def pixmap(
+        self, size: qt.QSize, mode: qt.QIcon.Mode, state: qt.QIcon.State
+    ) -> qt.QPixmap:
         pixmap = qt.QPixmap(size)
         pixmap.fill(qt.Qt.transparent)
 
@@ -136,8 +132,8 @@ class _SvgIconEngine(qt.QIconEngine):
         painter.end()
         return pixmap
 
-    def clone(self):
-        return _SvgIconEngine(self._lightSvgPath)
+    def clone(self) -> "_SvgIconEngine":
+        return _SvgIconEngine(self._name)
 
 
 class AbstractAnimatedIcon(qt.QObject):
