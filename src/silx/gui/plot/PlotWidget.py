@@ -3328,10 +3328,25 @@ class PlotWidget(qt.QMainWindow):
         self,
         dataMargins: tuple[float, float, float, float] | None = None,
     ):
-        """Force :meth:`resetZoom` without emitting Qt signals."""
-        self.resetZoom(dataMargins=dataMargins, force=True, notify=False)
+        """Force :meth:`_resetZoom` without emitting Qt signals."""
+        self._resetZoom(dataMargins=dataMargins, force=True, notify=False)
 
-    def resetZoom(self, dataMargins=None, force=False, notify=True):
+    def resetZoom(self, dataMargins=None):
+        """Reset the plot limits and redraw the plot.
+
+        Extra margins can be added around the data inside the plot area
+        (see :meth:`setDataMargins`).
+        Margins are given as one ratio of the data range per limit of the
+        data (xMin, xMax, yMin and yMax limits).
+        For log scale, extra margins are applied in log10 of the data.
+
+        :param dataMargins:
+            Ratios of margins to add around the data inside the plot area for each side.
+            If None (the default), use margins from :meth:`getDataMargins`.
+        """
+        self._resetZoom(dataMargins=dataMargins)
+
+    def _resetZoom(self, dataMargins=None, force=False, notify=True):
         """Reset the plot limits and redraw the plot.
 
         The plot limits after a reset depend on whether axes have
