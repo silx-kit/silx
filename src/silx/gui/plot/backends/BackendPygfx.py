@@ -1,6 +1,7 @@
 # /*##########################################################################
 #
-# Copyright (c) 2024 European Synchrotron Radiation Facility
+# Copyright (c) 2026 European Synchrotron Radiation Facility
+# Copyright (c) 2026 Pohang Accelerator Laboratory
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +26,7 @@
 
 from __future__ import annotations
 
-__authors__ = ["S. Kim"]
+__authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
 import functools
