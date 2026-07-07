@@ -33,7 +33,6 @@ __date__ = "07/01/2019"
 
 import logging
 import os
-import re
 import weakref
 from functools import cached_property
 from pathlib import Path
@@ -92,8 +91,7 @@ class _SvgIconEngine(qt.QIconEngine):
 
     @cached_property
     def _darkSVG(self) -> bytes:
-        svg = self._lightSVG.replace(b"<svg", b'<svg fill="#fff"')
-        svg = re.sub(b'stroke="(#000000|#000)"', b'stroke="#fff"', svg)
+        svg = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
         return svg
 
     def _currentRenderer(self) -> qt.QSvgRenderer:
