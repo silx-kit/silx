@@ -336,7 +336,7 @@ class Axis(qt.QObject):
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
 
-    def getInfo(self) -> AxisInfo:
+    def _getInfo(self) -> AxisInfo:
         vmin, vmax = self.getLimits()
         log = self.getScale() == self.LOGARITHMIC
         if log:
