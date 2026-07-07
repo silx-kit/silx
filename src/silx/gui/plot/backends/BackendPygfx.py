@@ -684,8 +684,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     to unlock frame rates beyond the monitor refresh rate."""
 
     PRESENT_METHOD = "screen"
-    """Present method for rendering. "screen" uses direct GPU rendering
-    (~3x faster), "bitmap" uses CPU readback (works with remote desktops).
+    """Present method for rendering. "screen" uses direct GPU rendering,
+    "bitmap" uses CPU readback (works with remote desktops).
     Automatically forced to "bitmap" on native Wayland (see __init__).
     Set before creating the plot."""
 
