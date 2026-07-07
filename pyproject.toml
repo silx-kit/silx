@@ -132,11 +132,6 @@ skip = ["*-win32", "*-manylinux_i686", "pp*", "*musllinux*"]
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = ["src/silx"]
-# pytest-xvfb defaults to a 16-bit virtual display, on which lavapipe's Vulkan
-# surface advertises no supported formats and the pygfx/wgpu "screen" swapchain
-# aborts the process (wgpuSurfaceConfigure fatal panic). Use 24-bit like real
-# desktops so BGRA8 is available. See silx.gui.plot.backends.BackendPygfx.
-xvfb_colordepth = "24"
 
 [tool.uv]
 managed = false
