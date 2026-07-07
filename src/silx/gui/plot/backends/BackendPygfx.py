@@ -46,10 +46,15 @@ from ... import colors
 from ... import qt
 from ._PlotFrameCore import PlotFrame2DCore
 from .glutils.PlotImageFile import saveImageToFile
-from .utils import findDimToKeep, ensureAspectRatio
+from .utils import findDimToKeep, ensureAspectRatio, restrictWgpuToPrimaryBackends
 from silx.gui.colors import RGBAColorType
 
 _logger = logging.getLogger(__name__)
+
+# Keep wgpu off its fragile GL/EGL backend before it creates the adapter.
+# Importing this module is the first product-path touch of wgpu (the instance
+# is created lazily when the renderer is built in __init__).
+restrictWgpuToPrimaryBackends()
 
 
 @functools.cache
