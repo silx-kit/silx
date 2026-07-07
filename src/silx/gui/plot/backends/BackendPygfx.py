@@ -44,6 +44,7 @@ from . import BackendBase
 from ... import colors
 from ... import qt
 from ._PlotFrameCore import PlotFrame2DCore
+from .glutils.PlotImageFile import saveImageToFile
 from .utils import findDimToKeep, ensureAspectRatio
 from silx.gui.colors import RGBAColorType
 
@@ -2017,20 +2018,12 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # Force a synchronous render
         self._draw()
-        snapshot = self._renderer.snapshot()
+        snapshot = self._renderer.snapshot()  # (H, W, 4) RGBA uint8
 
-        # snapshot is (H, W, 4) RGBA uint8
-        from PIL import Image as PILImage
-
-        img = PILImage.fromarray(snapshot)
-        if fileFormat in ("tif", "tiff"):
-            img.save(fileName, format="TIFF")
-        elif fileFormat == "ppm":
-            img.convert("RGB").save(fileName, format="PPM")
-        elif fileFormat == "svg":
-            raise NotImplementedError("SVG export not supported by pygfx backend")
-        else:
-            img.save(fileName, format=fileFormat.upper())
+        # Drop the alpha channel: saveImageToFile expects (H, W, 3) RGB
+        data = numpy.ascontiguousarray(snapshot[:, :, :3])
+        # fileName is either a file-like object or a str
+        saveImageToFile(data, fileName, fileFormat)
 
     # Backend API: Labels ####################################################
 
