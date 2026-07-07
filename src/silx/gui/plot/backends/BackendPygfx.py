@@ -554,30 +554,6 @@ class _PygfxImageItem:
         self._imageObj.local.position = (ox, oy, 0)
         self._imageObj.local.scale = (sx, sy, 1)
 
-    def updateData(self, data, clim=None):
-        """Fast path: update only the texture data (no item system overhead).
-
-        Requires the image object to already exist and data shape to match.
-
-        :param data: New image data (2D array)
-        :param clim: (vmin, vmax) tuple for color limits, or None to compute from data
-        """
-        if self._imageObj is None:
-            return
-        if data.dtype == numpy.float32 and data.flags["C_CONTIGUOUS"]:
-            scalarData = data
-        else:
-            scalarData = numpy.ascontiguousarray(data, dtype=numpy.float32)
-        self._imageObj.geometry.grid.set_data(scalarData)
-        if clim is None:
-            dmin = float(numpy.nanmin(data))
-            dmax = float(numpy.nanmax(data))
-            if dmin >= dmax:
-                dmax = dmin + 1.0
-            clim = (dmin, dmax)
-
-        self._imageObj.material.clim = clim
-
     def _buildRGBA(self, data, origin, scale, alpha):
         self._scalarShape = None
 
