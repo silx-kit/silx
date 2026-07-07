@@ -343,150 +343,6 @@ class _PygfxCurveItem:
         return gfx.Mesh(geom, mat)
 
 
-def _fastColormapRange(data, colormap):
-    """Fast colormap range for common cases (avoids slow normalizer pipeline)."""
-    vmin = colormap.getVMin()
-    vmax = colormap.getVMax()
-    if vmin is not None and vmax is not None:
-        return float(vmin), float(vmax)
-
-    # Fast path for linear + minmax (most common streaming case)
-    norm = colormap.getNormalization()
-    mode = colormap.getAutoscaleMode()
-    if norm == "linear" and mode == "minmax":
-        if vmin is None:
-            vmin = float(numpy.nanmin(data))
-        if vmax is None:
-            vmax = float(numpy.nanmax(data))
-        if vmin >= vmax:
-            vmax = vmin + 1.0
-        return vmin, vmax
-
-    # Fallback to full pipeline (log, sqrt, percentile, etc.)
-    return colormap.getColormapRange(data)
-
-
-# GPU colormap helpers ########################################################
-
-
-def _colormapToLUT(colormap):
-    """Extract a 256x4 float32 LUT from a silx Colormap.
-
-    :param colormap: silx Colormap object
-    :returns: (lut, nanColor) where lut is (256, 4) float32 in [0, 1]
-        and nanColor is (4,) float32 RGBA
-    """
-    lut_u8 = colormap.getNColors(nbColors=256)  # (256, 4) uint8
-    lut = lut_u8.astype(numpy.float32) / 255.0
-
-    qNanColor = colormap.getNaNColor()
-    nanColor = numpy.array(
-        [qNanColor.redF(), qNanColor.greenF(), qNanColor.blueF(), qNanColor.alphaF()],
-        dtype=numpy.float32,
-    )
-    return lut, nanColor
-
-
-def _prepareScalarForGPU(data, normalization, vmin, vmax, gamma):
-    """Apply normalization pre-processing on CPU for GPU colormap path.
-
-    For linear and gamma, no pre-processing is needed — pygfx handles them
-    natively via clim and gamma material parameters.
-    For log/sqrt/arcsinh, apply the transform to both data and clim bounds
-    so that pygfx's linear clim mapping produces the correct result.
-
-    :param data: 2D numpy array (scalar image data)
-    :param normalization: one of "linear", "log", "sqrt", "gamma", "arcsinh"
-    :param vmin: colormap lower bound
-    :param vmax: colormap upper bound
-    :param gamma: gamma parameter (used only for "gamma" normalization)
-    :returns: (scalar_data, clim, use_gamma) ready for GPU
-        scalar_data: float32 2D array
-        clim: (float, float) for ImageBasicMaterial
-        use_gamma: float for ImageBasicMaterial.gamma
-    """
-    scalar = numpy.asarray(data, dtype=numpy.float32)
-
-    if normalization == "linear":
-        return scalar, (float(vmin), float(vmax)), 1.0
-
-    elif normalization == "gamma":
-        # pygfx gamma: pow(normalized, 1/gamma), but silx gamma means
-        # pow(normalized, gamma). So pass 1/gamma to pygfx.
-        return scalar, (float(vmin), float(vmax)), 1.0 / gamma
-
-    elif normalization == "log":
-        minPos = max(vmin, FLOAT32_MINPOS) if vmin > 0 else FLOAT32_MINPOS
-        scalar = numpy.log10(numpy.clip(scalar, minPos, None))
-        clim = (
-            float(numpy.log10(max(vmin, minPos))),
-            float(numpy.log10(max(vmax, minPos))),
-        )
-        return scalar, clim, 1.0
-
-    elif normalization == "sqrt":
-        scalar = numpy.sqrt(numpy.clip(scalar, 0, None))
-        clim = (float(numpy.sqrt(max(vmin, 0))), float(numpy.sqrt(max(vmax, 0))))
-        return scalar, clim, 1.0
-
-    elif normalization == "arcsinh":
-        scalar = numpy.arcsinh(scalar)
-        clim = (float(numpy.arcsinh(vmin)), float(numpy.arcsinh(vmax)))
-        return scalar, clim, 1.0
-
-    else:
-        _logger.warning("Unknown normalization %r, using linear", normalization)
-        return scalar, (float(vmin), float(vmax)), 1.0
-
-
-def _handleNaN(scalar_data, clim, lut, nanColor):
-    """Replace NaN pixels with a sentinel value and set LUT[0] to nanColor.
-
-    The sentinel is placed below clim[0] so it maps to LUT index 0.
-    With wrap='clamp', values below clim[0] also map to LUT[0].
-
-    :param scalar_data: float32 2D array (may be modified in-place)
-    :param clim: (vmin, vmax) tuple
-    :param lut: (256, 4) float32 array (modified in-place)
-    :param nanColor: (4,) float32 RGBA
-    :returns: (scalar_data, clim) with sentinel applied
-    """
-    hasNan = numpy.any(numpy.isnan(scalar_data))
-    if not hasNan:
-        return scalar_data, clim
-
-    scalar_data = scalar_data.copy()
-    vmin, vmax = clim
-
-    # Sentinel: well below vmin so it maps to LUT[0]
-    rng = vmax - vmin if vmax != vmin else 1.0
-    sentinel = vmin - rng * 0.01
-
-    # Replace NaN with sentinel
-    nanMask = numpy.isnan(scalar_data)
-    scalar_data[nanMask] = sentinel
-
-    # Adjust clim so sentinel maps to ~index 0 and vmin maps to ~index 1+
-    # LUT[0] = nanColor, LUT[1..255] = original LUT[0..254]
-    newLut = numpy.empty_like(lut)
-    newLut[0] = nanColor
-    # Remap: compress original 256 entries into indices 1..255
-    indices = numpy.linspace(0, 255, 255).astype(numpy.int32)
-    newLut[1:] = lut[indices]
-
-    lut[:] = newLut
-
-    # Expand clim so sentinel→0, vmin→~1/256, vmax→255/256
-    newVmin = sentinel
-    # vmin should map to index ~1 out of 256
-    # index = (val - newVmin) / (newVmax - newVmin) * 255
-    # For val=vmin, index=1: 1 = (vmin - sentinel) / (newVmax - sentinel) * 255
-    # newVmax = sentinel + (vmin - sentinel) * 255
-    newVmax = sentinel + (vmax - sentinel) * 256.0 / 255.0
-
-    return scalar_data, (float(newVmin), float(newVmax))
-
-
 # Image item ##################################################################
 
 
@@ -498,9 +354,6 @@ class _PygfxImageItem:
         self.yaxis = "left"
         self._imageObj = None
         self._scalarShape = None
-        self._cmapName = None
-        self._cmapTexture = None
-        self._gpuColormapInfo = None  # Set when using GPU colormap path
         self._origin = origin
         self._scale = scale
         self._dataShape = numpy.asarray(data).shape[:2]
@@ -523,145 +376,53 @@ class _PygfxImageItem:
     def _buildScalar(self, data, origin, scale, colormap, alpha):
         self._scalarShape = data.shape
 
-        # Data: upload scalar float32 directly (no CPU colormap)
-        if data.dtype == numpy.float32 and data.flags["C_CONTIGUOUS"]:
-            scalarData = data
-        else:
-            scalarData = numpy.ascontiguousarray(data, dtype=numpy.float32)
-
-        # Range: fast path for linear+minmax
         if colormap is not None:
-            vmin, vmax = _fastColormapRange(data, colormap)
-            cmapTex = self._getOrCreateCmapTexture(colormap, alpha)
+            rgba = colormap.applyToData(data)  # (H, W, 4) uint8
         else:
-            vmin = float(numpy.nanmin(data))
-            vmax = float(numpy.nanmax(data))
-            if vmin == vmax:
+            # No colormap: autoscale to grayscale
+            finite = data[numpy.isfinite(data)]
+            vmin = float(finite.min()) if finite.size else 0.0
+            vmax = float(finite.max()) if finite.size else 1.0
+            if vmin >= vmax:
                 vmax = vmin + 1.0
-            cmapTex = None
-
-        if self._imageObj is None:
-            # First time: create GPU objects
-            tex = gfx.Texture(scalarData, dim=2)
-            geom = gfx.Geometry(grid=tex)
-            mat = gfx.ImageBasicMaterial(
-                clim=(vmin, vmax),
-                map=cmapTex,
-                interpolation="nearest",
+            gray = (numpy.clip((data - vmin) / (vmax - vmin), 0.0, 1.0) * 255).astype(
+                numpy.uint8
             )
-            self._imageObj = gfx.Image(geom, mat)
-            self.group.add(self._imageObj)
-        else:
-            # Reuse: update texture data + clim (no GPU object creation)
-            self._imageObj.geometry.grid.set_data(scalarData)
-            self._imageObj.material.clim = (vmin, vmax)
-            if cmapTex is not None:
-                self._imageObj.material.map = cmapTex
+            rgba = numpy.dstack([gray, gray, gray, numpy.full_like(gray, 255)])
 
-        ox, oy = origin
-        sx, sy = scale
-        self._imageObj.local.position = (ox, oy, 0)
-        self._imageObj.local.scale = (sx, sy, 1)
+        self._uploadRGBA(rgba, origin, scale, alpha)
 
     def _buildRGBA(self, data, origin, scale, alpha):
         self._scalarShape = None
 
-        if data.dtype == numpy.float64:
-            data = data.astype(numpy.float32)
         if data.dtype in (numpy.float32, numpy.float64):
-            rgbaData = (numpy.clip(data, 0, 1) * 255).astype(numpy.uint8)
+            rgba = (numpy.clip(data, 0, 1) * 255).astype(numpy.uint8)
         else:
-            rgbaData = numpy.asarray(data, dtype=numpy.uint8)
-        if rgbaData.shape[2] == 3:
-            alphaChannel = numpy.full(rgbaData.shape[:2] + (1,), 255, dtype=numpy.uint8)
-            rgbaData = numpy.concatenate([rgbaData, alphaChannel], axis=-1)
+            rgba = numpy.asarray(data, dtype=numpy.uint8)
+        if rgba.shape[2] == 3:
+            alphaChannel = numpy.full(rgba.shape[:2] + (1,), 255, dtype=numpy.uint8)
+            rgba = numpy.concatenate([rgba, alphaChannel], axis=-1)
 
-        rgbaFloat = rgbaData.astype(numpy.float32) / 255.0
+        self._uploadRGBA(rgba, origin, scale, alpha)
+
+    def _uploadRGBA(self, rgba, origin, scale, alpha):
+        """Upload a (H, W, 4) uint8 RGBA array, creating or updating the image."""
+        rgbaFloat = numpy.ascontiguousarray(rgba, dtype=numpy.float32) / 255.0
         if alpha < 1.0:
-            rgbaFloat = rgbaFloat.copy()
             rgbaFloat[:, :, 3] *= alpha
-        rgbaFloat = numpy.ascontiguousarray(rgbaFloat)
 
-        geom = gfx.Geometry(grid=gfx.Texture(rgbaFloat, dim=2))
-        mat = gfx.ImageBasicMaterial(interpolation="nearest")
-        self._imageObj = gfx.Image(geom, mat)
-        self.group.add(self._imageObj)
+        if self._imageObj is None:
+            geom = gfx.Geometry(grid=gfx.Texture(rgbaFloat, dim=2))
+            mat = gfx.ImageBasicMaterial(interpolation="nearest")
+            self._imageObj = gfx.Image(geom, mat)
+            self.group.add(self._imageObj)
+        else:
+            self._imageObj.geometry.grid.set_data(rgbaFloat)
 
         ox, oy = origin
         sx, sy = scale
         self._imageObj.local.position = (ox, oy, 0)
         self._imageObj.local.scale = (sx, sy, 1)
-
-    def _getOrCreateCmapTexture(self, colormap, alpha):
-        """Cache colormap LUT texture, recreate only when colormap changes."""
-        name = colormap.getName()
-        if name == self._cmapName and self._cmapTexture is not None:
-            return self._cmapTexture
-
-        lut = colormap.getNColors()  # (256, 4) uint8 RGBA
-        lutFloat = lut.astype(numpy.float32) / 255.0
-        if alpha < 1.0:
-            lutFloat = lutFloat.copy()
-            lutFloat[:, 3] *= alpha
-        self._cmapTexture = gfx.Texture(lutFloat, dim=1)
-        self._cmapName = name
-        return self._cmapTexture
-
-    def _initGPUColormap(self, data, origin, scale, colormap, alpha):
-        """Initialize image using GPU-native colormap rendering.
-
-        Uploads scalar data as a 1-channel texture and uses pygfx's
-        ImageBasicMaterial.map for GPU-side colormap application.
-        """
-        normalization = colormap.getNormalization()
-        cmapRange = colormap.getColormapRange(data)
-        vmin, vmax = cmapRange
-        gamma = colormap.getGammaNormalizationParameter()
-
-        # 1. Normalization pre-processing
-        scalar_data, clim, use_gamma = _prepareScalarForGPU(
-            data, normalization, vmin, vmax, gamma
-        )
-
-        # 2. Build LUT and handle NaN
-        lut, nanColor = _colormapToLUT(colormap)
-        scalar_data, clim = _handleNaN(scalar_data, clim, lut, nanColor)
-
-        # 3. Apply alpha to LUT
-        if alpha < 1.0:
-            lut = lut.copy()
-            lut[:, 3] *= alpha
-
-        # 4. Create GPU objects
-        scalar_data = numpy.ascontiguousarray(scalar_data)
-        lut_tex = gfx.Texture(lut, dim=1)
-        cmap_map = gfx.TextureMap(lut_tex, filter="nearest", wrap="clamp")
-
-        geom = gfx.Geometry(grid=gfx.Texture(scalar_data, dim=2))
-        mat = gfx.ImageBasicMaterial(
-            map=cmap_map,
-            clim=clim,
-            gamma=use_gamma,
-            interpolation="nearest",
-        )
-        self._imageObj = gfx.Image(geom, mat)
-
-        # Position and scale
-        ox, oy = origin
-        sx, sy = scale
-        self._imageObj.local.position = (ox, oy, 0)
-        self._imageObj.local.scale = (sx, sy, 1)
-
-        self.group.add(self._imageObj)
-
-        # Store info for dynamic updates (clim/LUT changes without re-upload)
-        self._gpuColormapInfo = {
-            "material": mat,
-            "lut_texture": lut_tex,
-            "normalization": normalization,
-            "vmin": vmin,
-            "vmax": vmax,
-        }
 
 
 class _PygfxTrianglesItem:
