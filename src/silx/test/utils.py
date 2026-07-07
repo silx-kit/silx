@@ -142,6 +142,14 @@ class _TestOptions:
                 try:
                     import pygfx as gfx
 
+                    # This probe is the first test-path touch of wgpu; keep it
+                    # off the fragile GL/EGL backend so a later gl->pygfx switch
+                    # (testSwitchBackend) does not abort the process.
+                    from silx.gui.plot.backends.utils import (
+                        restrictWgpuToPrimaryBackends,
+                    )
+
+                    restrictWgpuToPrimaryBackends()
                     gfx.renderers.wgpu.get_shared().device
                 except Exception:
                     self.WITH_PYGFX_TEST = False
