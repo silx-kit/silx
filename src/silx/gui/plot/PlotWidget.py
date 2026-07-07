@@ -531,7 +531,7 @@ class PlotWidget(qt.QMainWindow):
                     _logger.debug("Backtrace", exc_info=True)
                     raise RuntimeError("OpenGL backend is not available")
 
-            elif backend in ("pygfx", "wgpu"):
+            elif backend == "pygfx":
                 import os
                 import sys
 
@@ -586,12 +586,12 @@ class PlotWidget(qt.QMainWindow):
 
         - 'matplotlib' and 'mpl': Matplotlib with Qt.
         - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
-        - 'pygfx' and 'wgpu': pygfx/WGPU backend (requires pygfx and rendercanvas)
+        - 'pygfx': pygfx/WGPU backend (requires pygfx and rendercanvas)
         - 'none': No backend, to run headless for testing purpose.
 
         :param backend:
             The backend to use, in:
-            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'pygfx', 'wgpu', 'none',
+            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'pygfx', 'none',
             a :class:`BackendBase.BackendBase` class.
             If multiple backends are provided, the first available one is used.
         :raises ValueError: Unsupported backend descriptor
