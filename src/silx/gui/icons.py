@@ -79,22 +79,22 @@ class _SvgIconEngine(qt.QIconEngine):
     def __init__(self, name: str):
         super().__init__()
         self._name = name
-        self._lightSvgPath = self._readSVGPath(self._name)
+        self._lightSVG = self._readSVG(self._name)
         self._isDarkColorScheme = None
-        self._renderer = qt.QSvgRenderer(self._lightSvgPath)
+        self._renderer = qt.QSvgRenderer(self._lightSVG)
 
     @staticmethod
-    def _readSVGPath(name: str) -> bytes:
+    def _readSVG(name: str) -> bytes:
         filename = silx.resources._resource_filename(
             f"{name}.svg", default_directory="gui/icons"
         )
         return Path(filename).read_bytes()
 
     @cached_property
-    def _darkSvgPath(self) -> bytes:
-        svgpath = self._lightSvgPath.replace(b"<svg", b'<svg fill="#fff"')
-        svgpath = re.sub(b'stroke="(#000000|#000)"', b'stroke="#fff"', svgpath)
-        return svgpath
+    def _darkSVG(self) -> bytes:
+        svg = self._lightSVG.replace(b"<svg", b'<svg fill="#fff"')
+        svg = re.sub(b'stroke="(#000000|#000)"', b'stroke="#fff"', svg)
+        return svg
 
     def _currentRenderer(self) -> qt.QSvgRenderer:
         if qt.BINDING != "PyQt5":
@@ -105,7 +105,7 @@ class _SvgIconEngine(qt.QIconEngine):
             isDark = False
 
         if isDark != self._isDarkColorScheme:
-            self._renderer.load(self._darkSvgPath if isDark else self._lightSvgPath)
+            self._renderer.load(self._darkSVG if isDark else self._lightSVG)
             self._isDarkColorScheme = isDark
 
         return self._renderer
