@@ -43,18 +43,21 @@ jobs:
             QT_API: PySide6
             with_opencl: true
             with_gl_test: true
+            with_pygfx_test: true
 
           - os: macos-latest
             python-version: "3.14"
             QT_API: PyQt6
             with_opencl: false
             with_gl_test: false
+            with_pygfx_test: true
 
           - os: windows-latest
             python-version: "3.10"
             QT_API: PyQt5
             with_opencl: false
             with_gl_test: true
+            with_pygfx_test: false  # No Vulkan/DX12 software driver on Windows CI
 
     steps:
       - uses: actions/checkout@v5
@@ -87,6 +90,7 @@ jobs:
           QT_API: ${{ matrix.QT_API }}
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
           WITH_GL_TEST: ${{ matrix.with_gl_test && 'True' || 'False' }}
+          WITH_PYGFX_TEST: ${{ matrix.with_pygfx_test && 'True' || 'False' }}
           # run_tests() runs pytest against the installed silx, so the source
           # pyproject.toml is not the pytest configfile and its ini options are
           # ignored. Pass the xvfb color depth as a pytest ini override here so
