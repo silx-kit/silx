@@ -87,5 +87,13 @@ jobs:
           QT_API: ${{ matrix.QT_API }}
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
           WITH_GL_TEST: ${{ matrix.with_gl_test && 'True' || 'False' }}
+          # run_tests() runs pytest against the installed silx, so the source
+          # pyproject.toml is not the pytest configfile and its ini options are
+          # ignored. Pass the xvfb color depth as a pytest ini override here so
+          # it actually reaches the run: pytest-xvfb defaults to a 16-bit
+          # display, on which lavapipe advertises no Vulkan surface formats and
+          # the pygfx/wgpu swapchain aborts (wgpuSurfaceConfigure fatal panic).
+          # 24-bit (like real desktops / the macOS runner) exposes BGRA8.
+          PYTEST_ADDOPTS: "-o xvfb_colordepth=24"
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
