@@ -36,7 +36,7 @@ import dateutil.tz
 from ....utils.proxy import docstring
 from ... import qt
 from .. import _utils
-from .types import AxisInfo
+from .types import AxisInfo, AxisScaleType
 
 
 class TickMode(enum.Enum):
@@ -44,9 +44,6 @@ class TickMode(enum.Enum):
 
     DEFAULT = 0  # Ticks are regular numbers
     TIME_SERIES = 1  # Ticks are datetime objects
-
-
-AxisScaleType = typing.Literal["linear", "log", "asinh"]
 
 
 class Axis(qt.QObject):

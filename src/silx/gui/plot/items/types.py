@@ -1,6 +1,8 @@
-from typing import NamedTuple
+from typing import NamedTuple, Literal
 
 import numpy
+
+AxisScaleType = Literal["linear", "log", "asinh"]
 
 
 class PlotDataRange(NamedTuple):
@@ -58,13 +60,17 @@ class AxisInfo(NamedTuple):
     vmin: float
     vmax: float
     auto: bool
-    log: bool
+    log: AxisScaleType
 
     def limits(self) -> tuple[float, float]:
         return self.vmin, self.vmax
 
     def has_limits(self) -> bool:
         return not self.isnan(self.vmin) and not self.isnan(self.vmax)
+
+    @property
+    def is_logarithmic(self) -> bool:
+        return self.log == "log"
 
 
 class AxesInfo(NamedTuple):

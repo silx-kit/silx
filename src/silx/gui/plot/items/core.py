@@ -1767,9 +1767,13 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
             return None
 
         if axesInfo.x.auto:
-            xmin, xmax = self.__minMaxDataWithError(x, xerror, axesInfo.x.log)
+            xmin, xmax = self.__minMaxDataWithError(
+                x, xerror, axesInfo.x.is_logarithmic
+            )
         if axesInfo.y.auto:
-            ymin, ymax = self.__minMaxDataWithError(y, yerror, axesInfo.y.log)
+            ymin, ymax = self.__minMaxDataWithError(
+                y, yerror, axesInfo.y.is_logarithmic
+            )
 
         return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
