@@ -87,5 +87,10 @@ jobs:
           QT_API: ${{ matrix.QT_API }}
           SILX_OPENCL: ${{ matrix.with_opencl && 'True' || 'False' }}
           WITH_GL_TEST: ${{ matrix.with_gl_test && 'True' || 'False' }}
+          # DIAGNOSTIC (temporary): surface the cause of the pygfx/lavapipe SIGABRT
+          PYTHONFAULTHANDLER: "1"
+          PYTHONUNBUFFERED: "1"
+          RUST_BACKTRACE: "full"
+          RUST_LOG: "wgpu_core=info,wgpu_hal=info"
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
