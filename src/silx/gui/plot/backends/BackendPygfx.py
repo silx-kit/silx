@@ -43,6 +43,7 @@ from . import BackendBase
 from ... import colors
 from ... import qt
 from ._PlotFrameCore import PlotFrame2DCore
+from .utils import findDimToKeep, ensureAspectRatio
 from silx.gui.colors import RGBAColorType
 
 _logger = logging.getLogger(__name__)
@@ -2027,43 +2028,24 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._plotFrame.setDataRanges(xlim, ylim, y2lim)
 
     def _ensureAspectRatio(self, keepDim=None):
-        plotWidth, plotHeight = self._plotFrame.plotSize
-        if plotWidth <= 2 or plotHeight <= 2:
-            return
+        """Update plot bounds in order to keep aspect ratio.
 
+        Warning: keepDim on right Y axis is not implemented !
+
+        :param str keepDim: The dimension to maintain: 'x', 'y' or None.
+            If None (the default), the dimension with the largest range.
+        """
+        plotWidth, plotHeight = self._plotFrame.plotSize
+        xRange, yRange, y2Range = self._plotFrame.dataRanges
         if keepDim is None:
             ranges = self._plot.getDataRange()
-            if (
-                ranges.y is not None
-                and ranges.x is not None
-                and (ranges.y[1] - ranges.y[0]) != 0.0
-            ):
-                dataRatio = (ranges.x[1] - ranges.x[0]) / float(
-                    ranges.y[1] - ranges.y[0]
-                )
-                plotRatio = plotWidth / float(plotHeight)
-                keepDim = "x" if dataRatio > plotRatio else "y"
-            else:
-                keepDim = "x"
+            keepDim = findDimToKeep(plotWidth, plotHeight, ranges.x, ranges.y)
+        newXRange, newYRange, newY2Range = ensureAspectRatio(
+            plotWidth, plotHeight, xRange, yRange, y2Range, keepDim
+        )
 
-        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self._plotFrame.dataRanges
-        if keepDim == "y":
-            dataW = (yMax - yMin) * plotWidth / float(plotHeight)
-            xCenter = 0.5 * (xMin + xMax)
-            xMin = xCenter - 0.5 * dataW
-            xMax = xCenter + 0.5 * dataW
-        elif keepDim == "x":
-            dataH = (xMax - xMin) * plotHeight / float(plotWidth)
-            yCenter = 0.5 * (yMin + yMax)
-            yMin = yCenter - 0.5 * dataH
-            yMax = yCenter + 0.5 * dataH
-            y2Center = 0.5 * (y2Min + y2Max)
-            y2Min = y2Center - 0.5 * dataH
-            y2Max = y2Center + 0.5 * dataH
-        else:
-            raise RuntimeError("Unsupported dimension to keep: %s" % keepDim)
-
-        self._setDataRanges(xlim=(xMin, xMax), ylim=(yMin, yMax), y2lim=(y2Min, y2Max))
+        # Update plot frame bounds
+        self._setDataRanges(xlim=newXRange, ylim=newYRange, y2lim=newY2Range)
 
     def _setPlotBounds(self, xRange=None, yRange=None, y2Range=None, keepDim=None):
         self._setDataRanges(xlim=xRange, ylim=yRange, y2lim=y2Range)
