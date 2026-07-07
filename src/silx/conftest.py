@@ -89,6 +89,9 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:pyparsing.util",
     # fabio<2025.10 sets ndarray.shape in-place, deprecated since numpy 2.5.0
     "ignore::DeprecationWarning:fabio.fit2dmaskimage",
+    # pygfx sets ndarray.shape in-place (pygfx.resources._texture/_buffer),
+    # deprecated in NumPy 2.5. Remove once pygfx no longer does.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:pygfx",
 )
 
 
