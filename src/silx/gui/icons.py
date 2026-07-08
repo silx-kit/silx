@@ -34,7 +34,6 @@ __date__ = "07/01/2019"
 import logging
 import os
 import weakref
-from functools import cached_property
 from pathlib import Path
 from . import qt
 import silx.resources
@@ -79,7 +78,8 @@ class _SvgIconEngine(qt.QIconEngine):
         super().__init__()
         self._name = name
         self._lightSVG = self._readSVG(self._name)
-        self._isDarkColorScheme = None
+        self._darkSVG = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
+        self._hasDarkColorScheme = None
         self._renderer = qt.QSvgRenderer(self._lightSVG)
 
     @staticmethod
@@ -89,11 +89,6 @@ class _SvgIconEngine(qt.QIconEngine):
         )
         return Path(filename).read_bytes()
 
-    @cached_property
-    def _darkSVG(self) -> bytes:
-        svg = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
-        return svg
-
     def _currentRenderer(self) -> qt.QSvgRenderer:
         if qt.BINDING != "PyQt5":
             isDark = (
@@ -102,9 +97,9 @@ class _SvgIconEngine(qt.QIconEngine):
         else:
             isDark = False
 
-        if isDark != self._isDarkColorScheme:
+        if isDark != self._hasDarkColorScheme:
             self._renderer.load(self._darkSVG if isDark else self._lightSVG)
-            self._isDarkColorScheme = isDark
+            self._hasDarkColorScheme = isDark
 
         return self._renderer
 
