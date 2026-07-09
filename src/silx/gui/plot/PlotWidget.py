@@ -532,22 +532,6 @@ class PlotWidget(qt.QMainWindow):
                     raise RuntimeError("OpenGL backend is not available")
 
             elif backend == "pygfx":
-                import os
-                import sys
-
-                if sys.platform.startswith("linux"):
-                    if not os.environ.get("DISPLAY", "") and not os.environ.get(
-                        "WAYLAND_DISPLAY", ""
-                    ):
-                        raise RuntimeError(
-                            "pygfx backend is not available: "
-                            "neither DISPLAY nor WAYLAND_DISPLAY is set"
-                        )
-                    # Both XWayland (xcb) and the native "wayland" Qt platform are
-                    # supported: BackendPygfx uses the fast "screen" present on
-                    # X11/XWayland and falls back to "bitmap" present on native
-                    # Wayland, where "screen" would conflict with Qt's compositing.
-
                 try:
                     from .backends.BackendPygfx import BackendPygfx as backendClass
                 except ImportError:
