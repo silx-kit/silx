@@ -79,8 +79,6 @@ class _SvgIconEngine(qt.QIconEngine):
         self._name = name
         self._lightSVG = self._readSVG(self._name)
         self._darkSVG = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
-        self._hasDarkColorScheme = None
-        self._renderer = qt.QSvgRenderer(self._lightSVG)
 
     @staticmethod
     def _readSVG(name: str) -> bytes:
@@ -89,20 +87,6 @@ class _SvgIconEngine(qt.QIconEngine):
         )
         return Path(filename).read_bytes()
 
-    def _currentRenderer(self) -> qt.QSvgRenderer:
-        if qt.BINDING != "PyQt5":
-            isDark = (
-                qt.QApplication.styleHints().colorScheme() == qt.Qt.ColorScheme.Dark
-            )
-        else:
-            isDark = False
-
-        if isDark != self._hasDarkColorScheme:
-            self._renderer.load(self._darkSVG if isDark else self._lightSVG)
-            self._hasDarkColorScheme = isDark
-
-        return self._renderer
-
     def paint(
         self,
         painter: qt.QPainter,
@@ -110,19 +94,67 @@ class _SvgIconEngine(qt.QIconEngine):
         mode: qt.QIcon.Mode,
         state: qt.QIcon.State,
     ):
-        renderer = self._currentRenderer()
-        if renderer.isValid():
-            renderer.render(painter, qt.QRectF(rect))
+        # Adapated from QSvgIconEngine::paint
+        pixmapSize = rect.size()
+        if painter.device():
+            pixmapSize *= painter.device().devicePixelRatio()
+        painter.drawPixmap(rect, self.pixmap(pixmapSize, mode, state))
+
+    @staticmethod
+    def _applyQIconStyleHelper(mode: qt.QIcon.Mode, pixmap: qt.QPixmap) -> qt.QPixmap:
+        # Adpated from QApplicationPrivate::applyQIconStyleHelper
+        application = qt.QGuiApplication.instance()
+        if not isinstance(application, qt.QApplication):
+            # QIconEngine can be instantiated with a QGuiApplication instead of a QApplication
+            # QApplication.style() is required for styling the pixmap with mode
+            return pixmap
+
+        styleOptions = qt.QStyleOption()
+        styleOptions.palette = application.palette()
+        style = application.style()
+        return style.generatedIconPixmap(mode, pixmap, styleOptions)
 
     def pixmap(
         self, size: qt.QSize, mode: qt.QIcon.Mode, state: qt.QIcon.State
     ) -> qt.QPixmap:
-        pixmap = qt.QPixmap(size)
-        pixmap.fill(qt.Qt.transparent)
+        # state does not seem to be handled by Qt default icon engines
+        if qt.QGuiApplication.instance() is None:
+            isDark = False
+        elif qt.BINDING != "PyQt5":
+            isDark = (
+                qt.QApplication.styleHints().colorScheme() == qt.Qt.ColorScheme.Dark
+            )
+        else:
+            isDark = False
 
+        # Adapted from QSvgIconEngine::scaledPixmap
+        key = f"silx_svgicon_{self._name}_{'dark' if isDark else 'light'}_{size.width()}_{size.height()}_{mode}"
+        pixmap = qt.QPixmapCache.find(key)
+        if pixmap is not None:
+            return pixmap
+
+        renderer = qt.QSvgRenderer(self._darkSVG if isDark else self._lightSVG)
+        if not renderer.isValid():
+            return qt.QPixmap()
+
+        actualSize = renderer.defaultSize()
+        if not actualSize.isNull():
+            actualSize.scale(size, qt.Qt.KeepAspectRatio)
+        if actualSize.isEmpty():
+            return qt.QPixmap()
+
+        pixmap = qt.QPixmap(actualSize)
+        pixmap.fill(qt.Qt.transparent)
         painter = qt.QPainter(pixmap)
-        self.paint(painter, qt.QRect(0, 0, size.width(), size.height()), mode, state)
+        renderer.render(painter)
         painter.end()
+
+        if mode != qt.QIcon.Mode.Normal:
+            generated = self._applyQIconStyleHelper(mode, pixmap)
+            if not generated.isNull():
+                pixmap = generated
+
+        qt.QPixmapCache.insert(key, pixmap)
         return pixmap
 
     def clone(self) -> "_SvgIconEngine":
