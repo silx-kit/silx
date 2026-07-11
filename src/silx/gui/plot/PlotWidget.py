@@ -58,7 +58,8 @@ from .LimitsHistory import LimitsHistory
 from . import _utils
 
 from . import items
-from .items.types import PlotDataRange, AxesInfo, ItemBounds
+from .items import types
+from .items import _types
 from .items.core import PickingResult
 from .items.curve import CurveStyle
 from .items.axis import TickMode  # noqa
@@ -398,7 +399,7 @@ class PlotWidget(qt.QMainWindow):
         self.__itemsToUpdate = []  # Used as an OrderedSet
         self.__activeItems = {"curve": None, "image": None, "scatter": None}
 
-        self._dataRange: PlotDataRange | None = None
+        self._dataRange: types.PlotDataRange | None = None
 
         # line types
         self._defaultColors = None
@@ -828,7 +829,7 @@ class PlotWidget(qt.QMainWindow):
         """
         self._dataRange = None
 
-    def getDataRange(self) -> PlotDataRange:
+    def getDataRange(self) -> types.PlotDataRange:
         """
         Returns this PlotWidget's data range.
 
@@ -840,7 +841,7 @@ class PlotWidget(qt.QMainWindow):
             self._dataRange = self._computeDataRange(reset=False)
         return self._dataRange
 
-    def _getResetDataRange(self) -> PlotDataRange:
+    def _getResetDataRange(self) -> types.PlotDataRange:
         """
         Returns this PlotWidget's data range for resetting. The current limits
         of non-autoscaling axes are taking into account when determining the
@@ -859,7 +860,7 @@ class PlotWidget(qt.QMainWindow):
 
         return self._computeDataRange(reset=True)
 
-    def _computeDataRange(self, reset: bool = False) -> PlotDataRange:
+    def _computeDataRange(self, reset: bool = False) -> types.PlotDataRange:
         xMinList = []
         xMaxList = []
 
@@ -899,19 +900,19 @@ class PlotWidget(qt.QMainWindow):
                 return None
             return min(min_list), max(max_list)
 
-        return PlotDataRange(
+        return types.PlotDataRange(
             x=pack(xMinList, xMaxList),
             y=pack(yMinLeftList, yMaxLeftList),
             yright=pack(yMinRightList, yMaxRightList),
         )
 
-    def _itemResetBounds(self, item: items.Item) -> ItemBounds | None:
+    def _itemResetBounds(self, item: items.Item) -> types.ItemBounds | None:
         xAxis = self.getXAxis()
         if isinstance(item, items.YAxisMixIn):
             yAxis = self.getYAxis(item.getYAxis())
         else:
             yAxis = self.getYAxis()
-        axisInfo = AxesInfo(x=xAxis._getInfo(), y=yAxis._getInfo())
+        axisInfo = _types.AxesInfo(x=xAxis._getInfo(), y=yAxis._getInfo())
         return item._getResetBounds(axisInfo)
 
     # Content management

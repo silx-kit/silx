@@ -2,14 +2,14 @@ from dataclasses import dataclass
 
 import numpy
 
-from ..plot.items.axis import AxisScaleType
+from ..plot.items import types
 
 
 @dataclass(kw_only=True)
 class _BaseNxField:
     errors: numpy.ndarray | None
     name: str
-    scale: AxisScaleType = "linear"
+    scale: types.AxisScaleType = "linear"
 
     def __post_init__(self):
         self.name = "" if self.name is None else self.name

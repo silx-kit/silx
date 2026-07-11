@@ -1,7 +1,10 @@
-from .types import ItemBounds, AxesInfo, AxisInfo
+from . import _types
+from . import types
 
 
-def bounds_outside_fixed_limits(bounds: ItemBounds, axesInfo: AxesInfo) -> bool:
+def bounds_outside_fixed_limits(
+    bounds: types.ItemBounds, axesInfo: _types.AxesInfo
+) -> bool:
     """
     Exclude when at least one axis has fixed limits and
     bound [min,max] falls outside these limits.
@@ -12,7 +15,7 @@ def bounds_outside_fixed_limits(bounds: ItemBounds, axesInfo: AxesInfo) -> bool:
     )
 
 
-def _outside_fixed_limits(vmin: float, vmax: float, axis: AxisInfo) -> bool:
+def _outside_fixed_limits(vmin: float, vmax: float, axis: _types.AxisInfo) -> bool:
     """
     Exlude when the axis limits has fixed limits and
     bound [vmin,vmax] falls outside these limits.

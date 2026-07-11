@@ -6,10 +6,6 @@ AxisScaleType = Literal["linear", "log", "asinh"]
 
 
 class PlotDataRange(NamedTuple):
-    """
-    Object returned when requesting the data range.
-    """
-
     x: tuple[float, float] | None
     y: tuple[float, float] | None
     yright: tuple[float, float] | None
@@ -54,25 +50,3 @@ class ItemBounds(NamedTuple):
             return None
 
         return cls(*values)
-
-
-class AxisInfo(NamedTuple):
-    vmin: float
-    vmax: float
-    auto: bool
-    log: AxisScaleType
-
-    def limits(self) -> tuple[float, float]:
-        return self.vmin, self.vmax
-
-    def has_limits(self) -> bool:
-        return not self.isnan(self.vmin) and not self.isnan(self.vmax)
-
-    @property
-    def is_logarithmic(self) -> bool:
-        return self.log == "log"
-
-
-class AxesInfo(NamedTuple):
-    x: AxisInfo
-    y: AxisInfo

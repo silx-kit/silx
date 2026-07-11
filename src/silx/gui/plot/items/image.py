@@ -44,7 +44,8 @@ from .core import (
     AlphaMixIn,
     ItemChangedType,
 )
-from .types import ItemBounds, AxesInfo
+from . import _types
+from . import types
 from ._bound_utils import bounds_outside_fixed_limits
 from silx._utils import NP_OPTIONAL_COPY
 
@@ -150,7 +151,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         xAxis, yAxis = self._getAxisInstances(plot)
         return xAxis.getScale() == xAxis.LINEAR and yAxis.getScale() == yAxis.LINEAR
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         plot = self.getPlot()
         if plot is not None and not self._isPlotLinear(plot):
             return None
@@ -172,9 +173,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if ymin > ymax:
             ymin, ymax = ymax, ymin
 
-        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        return types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None

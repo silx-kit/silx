@@ -36,7 +36,8 @@ import dateutil.tz
 from ....utils.proxy import docstring
 from ... import qt
 from .. import _utils
-from .types import AxisInfo, AxisScaleType
+from . import types
+from . import _types
 
 
 class TickMode(enum.Enum):
@@ -213,11 +214,11 @@ class Axis(qt.QObject):
         self._currentLabel = label
         self._internalSetCurrentLabel(label)
 
-    def getScale(self) -> AxisScaleType:
+    def getScale(self) -> types.AxisScaleType:
         """Return the name of the scale used by this axis."""
         return self._scale
 
-    def setScale(self, scale: AxisScaleType):
+    def setScale(self, scale: types.AxisScaleType):
         """Set the scale to be used by this axis."""
         assert scale in self._SCALES
         if self._scale == scale:
@@ -333,14 +334,14 @@ class Axis(qt.QObject):
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
 
-    def _getInfo(self) -> AxisInfo:
+    def _getInfo(self) -> _types.AxisInfo:
         vmin, vmax = self.getLimits()
         log = self.getScale() == self.LOGARITHMIC
         if log:
             vmin = max(0, vmin)
             vmax = max(0, vmax)
         auto = self.isAutoScale()
-        return AxisInfo(vmin=vmin, vmax=vmax, auto=auto, log=log)
+        return _types.AxisInfo(vmin=vmin, vmax=vmax, auto=auto, log=log)
 
 
 class XAxis(Axis):
@@ -568,11 +569,11 @@ class YRightAxis(Axis):
         """Returns whether the axis is displayed or not"""
         return self._getBackend().isYRightAxisVisible()
 
-    def getScale(self) -> AxisScaleType:
+    def getScale(self) -> types.AxisScaleType:
         """Return the name of the scale used by this axis."""
         return self.__mainAxis.getScale()
 
-    def setScale(self, scale: AxisScaleType):
+    def setScale(self, scale: types.AxisScaleType):
         """Set the scale to be used by this axis."""
         self.__mainAxis.setScale(scale)
 

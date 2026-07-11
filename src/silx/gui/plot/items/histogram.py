@@ -44,7 +44,8 @@ from .core import (
     YAxisMixIn,
     ItemChangedType,
 )
-from .types import ItemBounds, AxesInfo
+from . import _types
+from . import types
 from ._pick import PickingResult
 from silx._utils import NP_OPTIONAL_COPY
 
@@ -197,7 +198,7 @@ class Histogram(
             symbolsize=1,
         )
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         values, edges, _ = self.getData(copy=False)
 
         plot = self.getPlot()
@@ -245,7 +246,7 @@ class Histogram(
                 max(0, numpy.nanmax(values)),
             )
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         values, edges, _ = self.getData(copy=False)
 
         # edges: independent variable
@@ -279,7 +280,7 @@ class Histogram(
         ymin = numpy.nanmin(values)
         ymax = numpy.nanmax(values)
 
-        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        return types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     @staticmethod
     def _edgesToValuesMask(edges_mask, do_or: bool):

@@ -46,7 +46,8 @@ from ... import colors
 from ...colors import Colormap, _Colormappable
 from ._cache import LRUCache
 from ._pick import PickingResult
-from .types import ItemBounds, AxesInfo
+from . import types
+from . import _types
 
 from silx import config
 from silx._utils import NP_OPTIONAL_COPY
@@ -222,7 +223,7 @@ class Item(qt.QObject):
         self.__connectToPlotWidget()
         self._updated()
 
-    def getBounds(self) -> ItemBounds | None:
+    def getBounds(self) -> types.ItemBounds | None:
         """Returns the bounding box of this item in data coordinates
 
         :returns: (xmin, xmax, ymin, ymax) or None
@@ -230,11 +231,11 @@ class Item(qt.QObject):
         """
         return self._getBounds()
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         """:meth:`getBounds` implementation to override by sub-class"""
         return None
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _getResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         """Returns the bounds of this item used for resetting the axis ranges.
 
         This is equivalent to :meth:`getBounds` when all axes are autoscaling.
@@ -262,9 +263,9 @@ class Item(qt.QObject):
         if not axesInfo.y.auto:
             ymin, ymax = axesInfo.y.limits()
 
-        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        return types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         """:meth:`_getResetBounds` implementation to override by sub-class."""
         return self.getBounds()
 
@@ -354,7 +355,7 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> ItemBounds | None:
+    def getVisibleBounds(self) -> types.ItemBounds | None:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
@@ -379,7 +380,7 @@ class Item(qt.QObject):
         if xmin == xmax or ymin == ymax:  # Outside the plot area
             return None
         else:
-            return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+            return types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     def _isVisibleBoundsTracking(self) -> bool:
         """Returns True if visible bounds changes are tracked.
@@ -1710,7 +1711,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
 
         return min_, max_
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         if self.getXData(copy=False).size == 0:  # Empty data
             return None
 
@@ -1732,11 +1733,11 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
         ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
 
-        bounds = ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        bounds = types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
         self._boundsCache[key] = bounds
         return bounds
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
 
@@ -1775,7 +1776,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
                 y, yerror, axesInfo.y.is_logarithmic
             )
 
-        return ItemBounds.from_values(xmin, xmax, ymin, ymax)
+        return types.ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
     def __getRawDataBoundsData(self, mask=None):
         # use the getData class method because instance method can be

@@ -44,7 +44,8 @@ from .core import (
     LineGapColorMixIn,
     YAxisMixIn,
 )
-from .types import ItemBounds, AxesInfo
+from . import _types
+from . import types
 from ._bound_utils import bounds_outside_fixed_limits
 from ....utils.deprecation import deprecated
 from ... import colors
@@ -186,11 +187,11 @@ class BoundingRect(DataItem, YAxisMixIn):
             if rect is None:
                 self.__bounds = None
             else:
-                self.__bounds = ItemBounds.from_values(*rect)
+                self.__bounds = types.ItemBounds.from_values(*rect)
             self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         if self.__bounds is None:
             return None
         plot = self.getPlot()
@@ -208,11 +209,11 @@ class BoundingRect(DataItem, YAxisMixIn):
                     return None
                 if yPositive and bounds[2] <= 0:
                     bounds[2] = bounds[3]
-                return ItemBounds.from_values(*bounds)
+                return types.ItemBounds.from_values(*bounds)
 
         return self.__bounds
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None
@@ -264,7 +265,7 @@ class _BaseExtent(DataItem):
         """
         return self.__range
 
-    def _getBounds(self) -> ItemBounds | None:
+    def _getBounds(self) -> types.ItemBounds | None:
         min_, max_ = self.getRange()
 
         plot = self.getPlot()
@@ -281,11 +282,11 @@ class _BaseExtent(DataItem):
                     min_ = max_
 
         if self.__axis == "x":
-            return ItemBounds.from_values(min_, max_, float("nan"), float("nan"))
+            return types.ItemBounds.from_values(min_, max_, float("nan"), float("nan"))
         else:
-            return ItemBounds.from_values(float("nan"), float("nan"), min_, max_)
+            return types.ItemBounds.from_values(float("nan"), float("nan"), min_, max_)
 
-    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: _types.AxesInfo) -> types.ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None
