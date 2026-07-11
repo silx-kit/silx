@@ -443,7 +443,7 @@ def _assert_reset_bounds(
     rtol=1e-5,
     atol=1e-8,
 ):
-    """Validate Item.getResetBounds()."""
+    """Validate Item._getResetBounds()."""
     for x, y, item in items:
         expected = _expected_reset_bounds(
             x,

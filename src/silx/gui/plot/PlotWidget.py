@@ -912,7 +912,7 @@ class PlotWidget(qt.QMainWindow):
         else:
             yAxis = self.getYAxis()
         axisInfo = AxesInfo(x=xAxis._getInfo(), y=yAxis._getInfo())
-        return item.getResetBounds(axisInfo)
+        return item._getResetBounds(axisInfo)
 
     # Content management
 

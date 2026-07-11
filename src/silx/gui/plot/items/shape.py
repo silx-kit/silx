@@ -212,7 +212,7 @@ class BoundingRect(DataItem, YAxisMixIn):
 
         return self.__bounds
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None
@@ -285,7 +285,7 @@ class _BaseExtent(DataItem):
         else:
             return ItemBounds.from_values(float("nan"), float("nan"), min_, max_)
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None

@@ -245,7 +245,7 @@ class Histogram(
                 max(0, numpy.nanmax(values)),
             )
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         values, edges, _ = self.getData(copy=False)
 
         # edges: independent variable

@@ -174,7 +174,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         bounds = self.getBounds()
         if bounds is None:
             return None

@@ -234,7 +234,7 @@ class Item(qt.QObject):
         """:meth:`getBounds` implementation to override by sub-class"""
         return None
 
-    def getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         """Returns the bounds of this item used for resetting the axis ranges.
 
         This is equivalent to :meth:`getBounds` when all axes are autoscaling.
@@ -250,7 +250,7 @@ class Item(qt.QObject):
         :returns: (xmin, xmax, ymin, ymax) or None
         :rtype: Union[ItemBounds, None]
         """
-        bounds = self._getResetBounds(axesInfo)
+        bounds = self._computeResetBounds(axesInfo)
         if bounds is None:
             return None
 
@@ -264,8 +264,8 @@ class Item(qt.QObject):
 
         return ItemBounds.from_values(xmin, xmax, ymin, ymax)
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
-        """:meth:`getResetBounds` implementation to override by sub-class."""
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+        """:meth:`_getResetBounds` implementation to override by sub-class."""
         return self.getBounds()
 
     def isVisible(self):
@@ -1736,7 +1736,7 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
         self._boundsCache[key] = bounds
         return bounds
 
-    def _getResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
+    def _computeResetBounds(self, axesInfo: AxesInfo) -> ItemBounds | None:
         x = self.getXData(copy=False)
         y = self.getYData(copy=False)
 
