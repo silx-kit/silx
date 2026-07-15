@@ -7,7 +7,7 @@ class AxisInfo(NamedTuple):
     vmin: float
     vmax: float
     auto: bool
-    log: AxisScaleType
+    scale: AxisScaleType
 
     def limits(self) -> tuple[float, float]:
         return self.vmin, self.vmax
@@ -17,7 +17,7 @@ class AxisInfo(NamedTuple):
 
     @property
     def is_logarithmic(self) -> bool:
-        return self.log == "log"
+        return self.scale == "log"
 
 
 class AxesInfo(NamedTuple):

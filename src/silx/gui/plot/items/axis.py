@@ -336,12 +336,12 @@ class Axis(qt.QObject):
 
     def _getInfo(self) -> _types.AxisInfo:
         vmin, vmax = self.getLimits()
-        log = self.getScale() == self.LOGARITHMIC
-        if log:
+        scale = self.getScale()
+        if scale == self.LOGARITHMIC:
             vmin = max(0, vmin)
             vmax = max(0, vmax)
         auto = self.isAutoScale()
-        return _types.AxisInfo(vmin=vmin, vmax=vmax, auto=auto, log=log)
+        return _types.AxisInfo(vmin=vmin, vmax=vmax, auto=auto, scale=scale)
 
 
 class XAxis(Axis):
