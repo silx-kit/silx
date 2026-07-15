@@ -425,11 +425,13 @@ def getQIcon(name):
     cached_icons = getIconCache()
     if name not in cached_icons:
         try:
-            icon = qt.QIcon(_SvgIconEngine(name))
-        except ValueError:
+            engine = _SvgIconEngine(name)
+        except (FileNotFoundError, IsADirectoryError, PermissionError):
             _logger.warning("Failed to load SVG icon")
             qfile = getQFile(name)
             icon = qt.QIcon(qfile.fileName())
+        else:
+            icon = qt.QIcon(engine)
         cached_icons[name] = icon
     else:
         icon = cached_icons[name]
