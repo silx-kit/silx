@@ -6,10 +6,12 @@ from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent
 from silx.utils.enum import Enum
 
 
+@pytest.mark.parametrize("error_ndim", [None, 1, 2])
 @pytest.mark.parametrize("free_axis", ["yleft", "yright", "x"])
-def test_curve_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
+def test_curve_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis, error_ndim):
     """
-    Test that resetting the zoom takes a fixed axis range into account.
+    Test that resetting the zoom takes a fixed axis range into account,
+    for curves without errors, with 1D errors and with 2D errors.
     """
     plot = qWidgetFactory(PlotWindow)
     items = []
@@ -22,6 +24,21 @@ def test_curve_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
     x_in = x_out = numpy.linspace(0, 100, 5001)
     y_in = numpy.sin(x_in * 0.2) + 2.0 * numpy.exp(-0.5 * ((x_in - 50) / 0.3) ** 2)
     y_out = numpy.sin(x_out * 0.2) + 20.0 * numpy.exp(-0.5 * ((x_out - 85) / 0.2) ** 2)
+
+    if error_ndim is None:
+        xerror = yerror = None
+    elif error_ndim == 1:
+        xerror = numpy.full(x_in.size, 0.5)
+        yerror = numpy.full(y_in.size, 1.0)
+    elif error_ndim == 2:
+        xerror = numpy.empty((2, x_in.size))
+        xerror[0] = 0.5
+        xerror[1] = 1.0
+        yerror = numpy.empty((2, y_in.size))
+        yerror[0] = 1.0
+        yerror[1] = 2.0
+    else:
+        raise ValueError(error_ndim)
 
     if free_axis == "yleft":
         fixed_axis = plot.getXAxis()
@@ -40,28 +57,46 @@ def test_curve_bounds_vs_reset_zoom(qapp, qWidgetFactory, free_axis):
         yaxisarg = "left"
         x_in, y_in = y_in, x_in
         x_out, y_out = y_out, x_out
+        xerror, yerror = yerror, xerror
     else:
         raise ValueError(free_axis)
 
     # Curves
-    item = plot.addCurve(x_in, y_in, legend="IN", yaxis=yaxisarg)
+    item = plot.addCurve(
+        x_in, y_in, xerror=xerror, yerror=yerror, legend="IN", yaxis=yaxisarg
+    )
     items.append((x_in, y_in, item))
 
-    item = plot.addCurve(x_out, y_out, legend="OUT", yaxis=yaxisarg)
+    item = plot.addCurve(
+        x_out, y_out, xerror=xerror, yerror=yerror, legend="OUT", yaxis=yaxisarg
+    )
     items.append((x_out, y_out, item))
 
     # Validate full bounds after resetting zoom
     _reset_zoom(qapp, plot)
 
-    _assert_full_bounds(items)
+    _assert_full_bounds(items, xerror=xerror, yerror=yerror)
 
     # Validate autoscale bounds after resetting zoom with fixed limits
     _fix_axis_limits(qapp, fixed_axis, fixed_min, fixed_max)
     _reset_zoom(qapp, plot)
 
-    _assert_reset_bounds(plot, items, item_type=_TestItemType.POINTS, **fixed_args)
+    _assert_reset_bounds(
+        plot,
+        items,
+        item_type=_TestItemType.POINTS,
+        xerror=xerror,
+        yerror=yerror,
+        **fixed_args,
+    )
     _assert_limits(
-        plot, items, item_type=_TestItemType.POINTS, yaxisarg=yaxisarg, **fixed_args
+        plot,
+        items,
+        item_type=_TestItemType.POINTS,
+        yaxisarg=yaxisarg,
+        xerror=xerror,
+        yerror=yerror,
+        **fixed_args,
     )
 
 
@@ -412,10 +447,10 @@ def _reset_zoom(qapp, plot):
     qapp.processEvents()
 
 
-def _assert_full_bounds(items, rtol=1e-5, atol=1e-8):
+def _assert_full_bounds(items, rtol=1e-5, atol=1e-8, xerror=None, yerror=None):
     """Validate Item.getBounds()."""
     for x, y, item in items:
-        expected = _expected_full_bounds(x, y)
+        expected = _expected_full_bounds(x, y, xerror=xerror, yerror=yerror)
         actual = item.getBounds()
         assert actual is not None, item.getName()
         numpy.testing.assert_allclose(
@@ -442,6 +477,8 @@ def _assert_reset_bounds(
     fixed_ymax=None,
     rtol=1e-5,
     atol=1e-8,
+    xerror=None,
+    yerror=None,
 ):
     """Validate Item._getResetBounds()."""
     for x, y, item in items:
@@ -453,6 +490,8 @@ def _assert_reset_bounds(
             fixed_xmax=fixed_xmax,
             fixed_ymin=fixed_ymin,
             fixed_ymax=fixed_ymax,
+            xerror=xerror,
+            yerror=yerror,
         )
         actual = plot._itemResetBounds(item)
 
@@ -485,6 +524,8 @@ def _assert_limits(
     rtol=1e-5,
     atol=1e-8,
     yaxisarg="left",
+    xerror=None,
+    yerror=None,
 ):
     """Validate Axis.getLimits() after resetting zoom."""
     xaxis = plot.getXAxis()
@@ -500,6 +541,8 @@ def _assert_limits(
             fixed_xmax=fixed_xmax,
             fixed_ymin=fixed_ymin,
             fixed_ymax=fixed_ymax,
+            xerror=xerror,
+            yerror=yerror,
         )
         if ibounds is None:
             continue
@@ -528,6 +571,8 @@ def _expected_reset_bounds(
     fixed_xmax=None,
     fixed_ymin=None,
     fixed_ymax=None,
+    xerror=None,
+    yerror=None,
 ):
     """
     Expected reset bounds from data, taking into account the fixed limits
@@ -576,19 +621,39 @@ def _expected_reset_bounds(
         # Fixed limits on X affect Y and vice versa
         xmasked = x[mask]
         ymasked = y[mask]
+        if xerror is not None:
+            xerror = xerror[..., mask]
+        if yerror is not None:
+            yerror = yerror[..., mask]
+
+    exmin, exmax = _nanmin_max_with_error(xmasked, xerror)
+    eymin, eymax = _nanmin_max_with_error(ymasked, yerror)
 
     # Autoscale or keep fixed limits
-    xmin = _nanmin(xmasked) if fixed_xmin is None else fixed_xmin
-    xmax = _nanmax(xmasked) if fixed_xmax is None else fixed_xmax
-    ymin = _nanmin(ymasked) if fixed_ymin is None else fixed_ymin
-    ymax = _nanmax(ymasked) if fixed_ymax is None else fixed_ymax
+    xmin = exmin if fixed_xmin is None else fixed_xmin
+    xmax = exmax if fixed_xmax is None else fixed_xmax
+    ymin = eymin if fixed_ymin is None else fixed_ymin
+    ymax = eymax if fixed_ymax is None else fixed_ymax
 
     return xmin, xmax, ymin, ymax
 
 
-def _expected_full_bounds(x, y):
-    """Extract full bounds from data."""
-    return _nanmin(x), _nanmax(x), _nanmin(y), _nanmax(y)
+def _expected_full_bounds(x, y, xerror=None, yerror=None):
+    """Extract full bounds from data, expanded with errors."""
+    xmin, xmax = _nanmin_max_with_error(x, xerror)
+    ymin, ymax = _nanmin_max_with_error(y, yerror)
+    return xmin, xmax, ymin, ymax
+
+
+def _nanmin_max_with_error(data, error=None):
+    """Return (nanmin, nanmax) of the data expanded with errors."""
+    if error is None:
+        return _nanmin(data), _nanmax(data)
+    if error.ndim == 1:
+        error_min = error_max = error
+    else:
+        error_min, error_max = error
+    return _nanmin(data - error_min), _nanmax(data + error_max)
 
 
 def _nanmin(arr):

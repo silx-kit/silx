@@ -1796,9 +1796,9 @@ class PointsBase(DataItem, SymbolSingleSizeMixIn, AlphaMixIn):
             y = y[mask]
 
             if xerror is not None and numpy.size(xerror) > 1:
-                xerror = xerror[mask]
+                xerror = xerror[..., mask]
             if yerror is not None and numpy.size(yerror) > 1:
-                yerror = yerror[mask]
+                yerror = yerror[..., mask]
 
         return x, y, xerror, yerror
 
