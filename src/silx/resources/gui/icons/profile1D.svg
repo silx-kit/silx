@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+
  <g transform="translate(-35.201 -492.37)" fill="none">
   <path d="m64.793 513.73-25.771-.0252" stroke="#f7941e" stroke-linecap="round" stroke-miterlimit="0" stroke-opacity=".81569" stroke-width="1.3908"/>
-  <rect x="38.145" y="494.84" width="27.563" height="26.906" ry="0" color="#000000" stroke="#000" stroke-miterlimit="2" stroke-width="1.0776"/>
+  <rect x="38.145" y="494.84" width="27.563" height="26.906" ry="0" color="#000000" stroke="currentColor" stroke-miterlimit="2" stroke-width="1.0776"/>
  </g>
 </svg>

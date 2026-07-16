@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg id="svg1" version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
- <path id="path1" transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 1 1-25.6 0 12.8 12.8 0 1 1 25.6 0z" color="#000000" fill="#f6941d" fill-opacity=".81569" stroke="#000" stroke-miterlimit="2" stroke-width="1.4"/>
- <path id="text1" transform="scale(.95955 1.0422)" d="m7.289 10.531h2.7505l3.4733 6.55v-6.55h2.3347v9.55h-2.7505l-3.4733-6.55v6.55h-2.3347zm16.285 4.6758 3.3134 4.8741h-2.565l-2.2324-3.2622-2.2132 3.2622h-2.5778l3.3134-4.8741-3.1854-4.6758h2.5714l2.0917 3.0767 2.0853-3.0767h2.5842z" aria-label="NX"/>
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+
+ <path id="path1" transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 1 1-25.6 0 12.8 12.8 0 1 1 25.6 0z" color="#000000" fill="#f6941d" fill-opacity=".81569" stroke="currentColor" stroke-miterlimit="2" stroke-width="1.4"/>
+ <path id="text1" transform="scale(.95955 1.0422)" d="m7.289 10.531h2.7505l3.4733 6.55v-6.55h2.3347v9.55h-2.7505l-3.4733-6.55v6.55h-2.3347zm16.285 4.6758 3.3134 4.8741h-2.565l-2.2324-3.2622-2.2132 3.2622h-2.5778l3.3134-4.8741-3.1854-4.6758h2.5714l2.0917 3.0767 2.0853-3.0767h2.5842z" fill="currentColor" aria-label="NX"/>
 </svg>

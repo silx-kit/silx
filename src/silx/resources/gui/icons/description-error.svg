@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
- <path transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 11-25.6 0 12.8 12.8 0 1125.6 0z" color="#000000" fill="#b50000" fill-opacity=".81569" stroke="#000" stroke-miterlimit="2" stroke-width="1.4"/>
- <path transform="scale(.95953 1.0422)" d="m14.738 7.1483h3.9342v6.2619l-.55734 4.568h-2.8195l-.55734-4.568zm0 12.425h3.9342v3.8904h-3.9342z" stroke-width="1.7085" aria-label="!"/>
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+
+ <path transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 11-25.6 0 12.8 12.8 0 1125.6 0z" fill="#b50000" fill-opacity=".81569" stroke="currentColor" stroke-miterlimit="2" stroke-width="1.4"/>
+ <path transform="scale(.95953 1.0422)" d="m14.738 7.1483h3.9342v6.2619l-.55734 4.568h-2.8195l-.55734-4.568zm0 12.425h3.9342v3.8904h-3.9342z" fill="currentColor" stroke-width="1.7085" aria-label="!"/>
 </svg>

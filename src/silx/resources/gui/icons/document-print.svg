@@ -1,2 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><path d="m4.9805 10.959c-1.108 0-2 .892-2 2v8.2695c0 1.108.892 2 2 2h3.5449l.74414-3.3066h13.154l.85938 3.3066h3.7363c1.108 0 2-.892 2-2v-8.2695c0-1.108-.892-2-2-2h-22.039zm21.322 1.2773a1.2762 1.2762 0 011.3633 1.2734 1.2764 1.2764 0 01-2.5527 0 1.2762 1.2762 0 011.1895-1.2734z"/><path d="m8.8691 19.422-2.1875 9.7305h18.658l-2.5293-9.7305zm.80078 1h12.367l2.0098 7.7305h-16.115z" enable-background="accumulate" stop-color="#000000" stroke-linecap="round"/><path d="m9.2891 2.0371v9.9219h13.422v-9.9219zm1 1h11.422v7.9219h-11.422z" enable-background="accumulate" stop-color="#000000"/><path d="m10.885 22.624h10.231" fill="none" stroke="#000" stroke-width="1px"/><path d="m9.761 26.11h12.478" fill="none" stroke="#000" stroke-width="1px"/></svg>
+<svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+<path d="m4.9805 10.959c-1.108 0-2 .892-2 2v8.2695c0 1.108.892 2 2 2h3.5449l.74414-3.3066h13.154l.85938 3.3066h3.7363c1.108 0 2-.892 2-2v-8.2695c0-1.108-.892-2-2-2h-22.039zm21.322 1.2773a1.2762 1.2762 0 011.3633 1.2734 1.2764 1.2764 0 01-2.5527 0 1.2762 1.2762 0 011.1895-1.2734z" fill="currentColor"/>
+<path d="m8.8691 19.422-2.1875 9.7305h18.658l-2.5293-9.7305zm.80078 1h12.367l2.0098 7.7305h-16.115z" fill="currentColor"/>
+<path d="m9.2891 2.0371v9.9219h13.422v-9.9219zm1 1h11.422v7.9219h-11.422z" fill="currentColor" stroke-width="1px"/>
+<path d="m10.885 22.624h10.231" fill="none" stroke="currentColor" stroke-width="1px"/>
+<path d="m9.761 26.11h12.478" fill="none" stroke="currentColor" stroke-width="1px"/>
+</svg>

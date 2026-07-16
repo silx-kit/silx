@@ -4,7 +4,7 @@
     stroke: #ffffff;
 }
 </style>
-<rect x="4.2759" y="4.2462" width="23.381" height="23.236" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="1.912"/>
-<path d="m7.9205 16.397h15.555" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="3.9434"/>
-<path d="m15.697 8.6682v15.459" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="3.9434"/>
+<rect x="4.2759" y="4.2462" width="23.381" height="23.236" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.912"/>
+<path d="m7.9205 16.397h15.555" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3.9434"/>
+<path d="m15.697 8.6682v15.459" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="3.9434"/>
 </svg>

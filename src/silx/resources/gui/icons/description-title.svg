@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
- <path transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 11-25.6 0 12.8 12.8 0 1125.6 0z" color="#000000" fill="none" fill-opacity=".81569" stroke="#000" stroke-miterlimit="2" stroke-width="1.4"/>
- <path transform="scale(.95952 1.0422)" d="m10.257 8.2358h13.118v2.7743h-4.7192v11.459h-3.6705v-11.459h-4.7287z" stroke-width="1.4905" aria-label="T"/>
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+
+ <path transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 11-25.6 0 12.8 12.8 0 1125.6 0z" fill="none" fill-opacity=".81569" stroke="currentColor" stroke-miterlimit="2" stroke-width="1.4"/>
+ <path transform="scale(.95952 1.0422)" d="m10.257 8.2358h13.118v2.7743h-4.7192v11.459h-3.6705v-11.459h-4.7287z" fill="currentColor" stroke-width="1.4905" aria-label="T"/>
 </svg>
