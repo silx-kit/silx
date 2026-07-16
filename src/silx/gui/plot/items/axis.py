@@ -36,6 +36,8 @@ import dateutil.tz
 from ....utils.proxy import docstring
 from ... import qt
 from .. import _utils
+from . import types
+from . import _types
 
 
 class TickMode(enum.Enum):
@@ -43,9 +45,6 @@ class TickMode(enum.Enum):
 
     DEFAULT = 0  # Ticks are regular numbers
     TIME_SERIES = 1  # Ticks are datetime objects
-
-
-AxisScaleType = typing.Literal["linear", "log", "asinh"]
 
 
 class Axis(qt.QObject):
@@ -215,11 +214,11 @@ class Axis(qt.QObject):
         self._currentLabel = label
         self._internalSetCurrentLabel(label)
 
-    def getScale(self) -> AxisScaleType:
+    def getScale(self) -> types.AxisScaleType:
         """Return the name of the scale used by this axis."""
         return self._scale
 
-    def setScale(self, scale: AxisScaleType):
+    def setScale(self, scale: types.AxisScaleType):
         """Set the scale to be used by this axis."""
         assert scale in self._SCALES
         if self._scale == scale:
@@ -334,6 +333,15 @@ class Axis(qt.QObject):
             y2Min, y2Max = plot.getYAxis("right").getLimits()
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
+
+    def _getInfo(self) -> _types.AxisInfo:
+        vmin, vmax = self.getLimits()
+        scale = self.getScale()
+        if scale == self.LOGARITHMIC:
+            vmin = max(0, vmin)
+            vmax = max(0, vmax)
+        auto = self.isAutoScale()
+        return _types.AxisInfo(vmin=vmin, vmax=vmax, auto=auto, scale=scale)
 
 
 class XAxis(Axis):
@@ -561,11 +569,11 @@ class YRightAxis(Axis):
         """Returns whether the axis is displayed or not"""
         return self._getBackend().isYRightAxisVisible()
 
-    def getScale(self) -> AxisScaleType:
+    def getScale(self) -> types.AxisScaleType:
         """Return the name of the scale used by this axis."""
         return self.__mainAxis.getScale()
 
-    def setScale(self, scale: AxisScaleType):
+    def setScale(self, scale: types.AxisScaleType):
         """Set the scale to be used by this axis."""
         self.__mainAxis.setScale(scale)
 
@@ -595,4 +603,4 @@ class YRightAxis(Axis):
     @docstring(Axis)
     def _getDataRange(self) -> tuple[float, float] | None:
         ranges = self._getPlot().getDataRange()
-        return ranges.y2
+        return ranges.yright

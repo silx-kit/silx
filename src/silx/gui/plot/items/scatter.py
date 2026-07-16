@@ -554,11 +554,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         if visualization is self.Visualization.BINNED_STATISTIC:
             plot = self.getPlot()
-            if (
-                plot is None
-                or plot.getXAxis().getScale() != Axis.LINEAR
-                or plot.getYAxis().getScale() != Axis.LINEAR
-            ):
+            if plot is None:
+                return None
+
+            xAxis, yAxis = self._getAxisInstances(plot)
+            if xAxis.getScale() != Axis.LINEAR or yAxis.getScale() != Axis.LINEAR:
                 # Those visualizations are not available with log scaled axes
                 return None
 
@@ -601,11 +601,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         else:
             plot = self.getPlot()
-            if (
-                plot is None
-                or plot.getXAxis().getScale() != Axis.LINEAR
-                or plot.getYAxis().getScale() != Axis.LINEAR
-            ):
+            if plot is None:
+                return None
+
+            xAxis, yAxis = self._getAxisInstances(plot)
+            if xAxis.getScale() != Axis.LINEAR or yAxis.getScale() != Axis.LINEAR:
                 # Those visualizations are not available with log scaled axes
                 return None
 

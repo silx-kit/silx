@@ -6,7 +6,7 @@ from silx.gui import qt
 
 from ..plot import Plot1D
 from ..plot.items import Curve
-from ..plot.items.axis import AxisScaleType
+from ..plot.items import types
 from ..utils import blockSignals
 from ._models import Axis, Signal
 from .NumpyAxesSelector import NumpyAxesSelector
@@ -47,11 +47,11 @@ class NxCurvePlot(qt.QWidget):
         signals: Sequence[numpy.ndarray],
         signal_names: Sequence[str],
         signal_errors: Sequence[numpy.ndarray | None] | None = None,
-        signal_scale: AxisScaleType | None = None,
+        signal_scale: types.AxisScaleType | None = None,
         axes: Sequence[numpy.ndarray] | None = None,
         axes_names: Sequence[str] | None = None,
         axes_errors: Sequence[numpy.ndarray | None] | None = None,
-        axes_scales: Sequence[AxisScaleType | None] | None = None,
+        axes_scales: Sequence[types.AxisScaleType | None] | None = None,
         title: str | None = None,
     ) -> None:
         # Clear everything to avoid stale data if one of the operations below raises an error
