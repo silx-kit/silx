@@ -51,6 +51,8 @@ Create a SVG icon
        <rect x="3" y="3" width="26" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="2px"/>
        </svg>
 
+Look at SVG icons in ``src/silx/resources/gui/icons/`` for more examples.
+
 Export it as a PNG
 ------------------
 
