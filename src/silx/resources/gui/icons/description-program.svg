@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="svg8" version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
- <metadata id="metadata14">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <path id="path2" transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 1 1-25.6 0 12.8 12.8 0 1 1 25.6 0z" color="#000000" fill="none" fill-opacity=".81569" stroke="#000" stroke-miterlimit="2" stroke-width="1.4"/>
- <text id="text6" transform="scale(.95952 1.0422)" x="9.3110971" y="22.859962" fill="#000000" font-family="Sans" font-size="20.596px" letter-spacing="0px" stroke-width="1.5722" word-spacing="0px" style="line-height:125%" xml:space="preserve"><tspan id="tspan4" x="9.3110971" y="22.859962" font-weight="bold" stroke-width="1.5722">P</tspan></text>
+<svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<style>
+.dark * {
+    color: #ffffff;
+}
+</style>
+
+ <path transform="translate(9.9117 -.3238)" d="m18.888 16.324a12.8 12.8 0 11-25.6 0 12.8 12.8 0 1125.6 0z" fill="none" fill-opacity=".81569" stroke="currentColor" stroke-miterlimit="2" stroke-width="1.4"/>
+ <path transform="scale(.95952 1.0422)" d="m11.202 7.8454h6.4262q2.8661 0 4.3948 1.2772 1.5387 1.2671 1.5387 3.6204 0 2.3633-1.5387 3.6405-1.5286 1.2671-4.3948 1.2671h-2.5544v5.2093h-3.8718zm3.8718 2.8058v4.1936h2.1421q1.1263 0 1.7398-.54306.61346-.55312.61346-1.5588t-.61346-1.5487-1.7398-.54306z" fill="currentColor" stroke-width="1.5722" aria-label="P"/>
 </svg>

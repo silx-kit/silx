@@ -31,9 +31,10 @@ __license__ = "MIT"
 __date__ = "07/01/2019"
 
 
-import os
 import logging
+import os
 import weakref
+from pathlib import Path
 from . import qt
 import silx.resources
 from silx.utils import weakref as silxweakref
@@ -68,6 +69,96 @@ def cleanIconCache():
 
 _supported_formats = None
 """Order of file format extension to check"""
+
+
+class _SvgIconEngine(qt.QIconEngine):
+    """Icon engine for SVG icons which tweaks color according to color scheme."""
+
+    def __init__(self, name: str):
+        super().__init__()
+        self._name = name
+        self._lightSVG = self._readSVG(self._name)
+        self._darkSVG = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
+
+    @staticmethod
+    def _readSVG(name: str) -> bytes:
+        filename = silx.resources._resource_filename(
+            f"{name}.svg", default_directory="gui/icons"
+        )
+        return Path(filename).read_bytes()
+
+    def paint(
+        self,
+        painter: qt.QPainter,
+        rect: qt.QRect,
+        mode: qt.QIcon.Mode,
+        state: qt.QIcon.State,
+    ):
+        # Adapated from QSvgIconEngine::paint
+        pixmapSize = rect.size()
+        if painter.device():
+            pixmapSize *= painter.device().devicePixelRatio()
+        painter.drawPixmap(rect, self.pixmap(pixmapSize, mode, state))
+
+    @staticmethod
+    def _applyQIconStyleHelper(mode: qt.QIcon.Mode, pixmap: qt.QPixmap) -> qt.QPixmap:
+        # Adpated from QApplicationPrivate::applyQIconStyleHelper
+        application = qt.QGuiApplication.instance()
+        if not isinstance(application, qt.QApplication):
+            # QIconEngine can be instantiated with a QGuiApplication instead of a QApplication
+            # QApplication.style() is required for styling the pixmap with mode
+            return pixmap
+
+        styleOptions = qt.QStyleOption()
+        styleOptions.palette = application.palette()
+        style = application.style()
+        return style.generatedIconPixmap(mode, pixmap, styleOptions)
+
+    def pixmap(
+        self, size: qt.QSize, mode: qt.QIcon.Mode, state: qt.QIcon.State
+    ) -> qt.QPixmap:
+        # state does not seem to be handled by Qt default icon engines
+        if qt.QGuiApplication.instance() is None:
+            isDark = False
+        elif qt.BINDING != "PyQt5":
+            isDark = (
+                qt.QApplication.styleHints().colorScheme() == qt.Qt.ColorScheme.Dark
+            )
+        else:
+            isDark = False
+
+        # Adapted from QSvgIconEngine::scaledPixmap
+        key = f"silx_svgicon_{self._name}_{'dark' if isDark else 'light'}_{size.width()}_{size.height()}_{mode}"
+        pixmap = qt.QPixmapCache.find(key)
+        if pixmap is not None:
+            return pixmap
+
+        renderer = qt.QSvgRenderer(self._darkSVG if isDark else self._lightSVG)
+        if not renderer.isValid():
+            return qt.QPixmap()
+
+        actualSize = renderer.defaultSize()
+        if not actualSize.isNull():
+            actualSize.scale(size, qt.Qt.KeepAspectRatio)
+        if actualSize.isEmpty():
+            return qt.QPixmap()
+
+        pixmap = qt.QPixmap(actualSize)
+        pixmap.fill(qt.Qt.transparent)
+        painter = qt.QPainter(pixmap)
+        renderer.render(painter)
+        painter.end()
+
+        if mode != qt.QIcon.Mode.Normal:
+            generated = self._applyQIconStyleHelper(mode, pixmap)
+            if not generated.isNull():
+                pixmap = generated
+
+        qt.QPixmapCache.insert(key, pixmap)
+        return pixmap
+
+    def clone(self) -> "_SvgIconEngine":
+        return _SvgIconEngine(self._name)
 
 
 class AbstractAnimatedIcon(qt.QObject):
@@ -333,8 +424,14 @@ def getQIcon(name):
     """
     cached_icons = getIconCache()
     if name not in cached_icons:
-        qfile = getQFile(name)
-        icon = qt.QIcon(qfile.fileName())
+        try:
+            engine = _SvgIconEngine(name)
+        except (FileNotFoundError, IsADirectoryError, PermissionError):
+            _logger.warning("Failed to load SVG icon")
+            qfile = getQFile(name)
+            icon = qt.QIcon(qfile.fileName())
+        else:
+            icon = qt.QIcon(engine)
         cached_icons[name] = icon
     else:
         icon = cached_icons[name]

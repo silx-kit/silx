@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+<style>
+.dark * {
+    fill: #ffffff;
+}
+</style>
+
  <g transform="translate(0 -1020.4)">
   <g transform="translate(-.25 -.037824)">
    <rect x="3.5" y="1030.4" width="16" height="12" rx="2"/>
