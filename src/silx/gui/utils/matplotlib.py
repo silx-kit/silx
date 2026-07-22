@@ -35,7 +35,6 @@ __license__ = "MIT"
 __date__ = "02/05/2018"
 
 
-import io
 import matplotlib
 import numpy
 
@@ -54,6 +53,7 @@ from matplotlib.font_manager import FontProperties
 from matplotlib.mathtext import MathTextParser
 from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 from matplotlib import figure, font_manager
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
 class DefaultTickFormatter(_ScalarFormatter):
@@ -147,13 +147,12 @@ def rasterMathText(
         verticalalignment="top",
     )
     text.set_linespacing(linespacing)
-    with io.BytesIO() as buffer:
-        fig.savefig(buffer, dpi=dotsPerInch, format="raw")
-        canvas_width, canvas_height = fig.get_window_extent().max
-        buffer.seek(0)
-        image = numpy.frombuffer(buffer.read(), dtype=numpy.uint8).reshape(
-            int(canvas_height), int(canvas_width), 4
-        )
+
+    canvas = FigureCanvasAgg(fig)
+    buffer, (canvas_width, canvas_height) = canvas.print_to_buffer()
+    image = numpy.frombuffer(buffer, dtype=numpy.uint8).reshape(
+        canvas_height, canvas_width, 4
+    )
 
     # RGB to inverted R channel
     array = 255 - image[:, :, 0]
