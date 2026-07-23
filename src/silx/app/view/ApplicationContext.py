@@ -40,7 +40,7 @@ _logger = logging.getLogger(__name__)
 
 class ApplicationContext(DataViewHooks):
     """
-    Store the conmtext of the application
+    Store the context of the application
 
     It overwrites the DataViewHooks to custom the use of the DataViewer for
     the silx view application.
