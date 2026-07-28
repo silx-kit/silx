@@ -1,34 +1,45 @@
-# /*##########################################################################
-#
-# Copyright (c) 2019 European Synchrotron Radiation Facility
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# ###########################################################################*/
-"""Utils function relative to files"""
-
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "19/09/2016"
-
+import logging
 import os.path
 import glob
+
+try:
+    from fabio.utils.cli import relax_ulimit as _relax_ulimit
+except ImportError:
+    try:
+        import resource
+    except ImportError:
+        resource = None
+
+    _logger = logging.getLogger(__name__)
+
+    def _relax_ulimit():
+        if resource is None:
+            _logger.debug("No resource module available")
+        else:
+            if hasattr(resource, "RLIMIT_NOFILE"):
+                try:
+                    hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+                    resource.setrlimit(
+                        resource.RLIMIT_NOFILE, (hard_nofile, hard_nofile)
+                    )
+                except (ValueError, OSError):
+                    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+                    while 2 * soft < hard:
+                        try:
+                            resource.setrlimit(resource.RLIMIT_NOFILE, (2 * soft, hard))
+                        except (ValueError, OSError):
+                            _logger.warning(
+                                f"Set the max opened files limit to ({soft}, {hard})"
+                            )
+                            return
+                        else:
+                            soft *= 2
+                    _logger.warning(
+                        "Failed to retrieve and set the max opened files limit"
+                    )
+
+                else:
+                    _logger.debug("Set max opened files to %d", hard_nofile)
 
 
 def expand_filenames(filenames):
@@ -53,3 +64,8 @@ def expand_filenames(filenames):
         else:
             result.append(filename)
     return result
+
+
+def increase_opened_files_limit():
+    """Increases the soft limit on number of opened files. Only works on Unix."""
+    _relax_ulimit()
