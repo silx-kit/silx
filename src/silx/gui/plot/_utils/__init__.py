@@ -28,19 +28,47 @@ __license__ = "MIT"
 __date__ = "21/03/2017"
 
 
-import numpy
-
-from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX  # noqa: F401
+from .axis_scale import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX  # noqa: F401
+from . import axis_scale
 from .panzoom import (  # noqa: F401
     applyZoomToPlot,
     applyPan,
     checkAxisLimits,
     EnabledAxes,
 )
+from ..items.types import AxisScaleType
+
+
+def _addMargins(
+    scale: AxisScaleType,
+    minMargin: float,
+    maxMargin: float,
+    minLimit: float,
+    maxLimit: float,
+):
+    if not axis_scale.isValid(scale, minLimit) or not axis_scale.isValid(
+        scale, maxLimit
+    ):
+        return minLimit, maxLimit
+
+    minScaled = axis_scale.apply(scale, minLimit)
+    maxScaled = axis_scale.apply(scale, maxLimit)
+    rangeLimit = maxScaled - minScaled
+    min_ = axis_scale.revert(scale, minScaled - minMargin * rangeLimit)
+    max_ = axis_scale.revert(scale, maxScaled + maxMargin * rangeLimit)
+    return min_, max_
 
 
 def addMarginsToLimits(
-    margins, isXLog, isYLog, xMin, xMax, yMin, yMax, y2Min=None, y2Max=None
+    margins,
+    xScale: AxisScaleType,
+    yScale: AxisScaleType,
+    xMin,
+    xMax,
+    yMin,
+    yMax,
+    y2Min=None,
+    y2Max=None,
 ):
     """Returns updated limits by extending them with margins.
 
@@ -56,46 +84,16 @@ def addMarginsToLimits(
     if margins is not None:
         xMinMargin, xMaxMargin, yMinMargin, yMaxMargin = margins
 
-        if not isXLog:
-            xRange = xMax - xMin
-            xMin -= xMinMargin * xRange
-            xMax += xMaxMargin * xRange
-
-        elif xMin > 0.0 and xMax > 0.0:  # Log scale
-            # Do not apply margins if limits < 0
-            xMinLog, xMaxLog = numpy.log10(xMin), numpy.log10(xMax)
-            xRangeLog = xMaxLog - xMinLog
-            xMin = pow(10.0, xMinLog - xMinMargin * xRangeLog)
-            xMax = pow(10.0, xMaxLog + xMaxMargin * xRangeLog)
-
-        if not isYLog:
-            yRange = yMax - yMin
-            yMin -= yMinMargin * yRange
-            yMax += yMaxMargin * yRange
-        elif yMin > 0.0 and yMax > 0.0:  # Log scale
-            # Do not apply margins if limits < 0
-            yMinLog, yMaxLog = numpy.log10(yMin), numpy.log10(yMax)
-            yRangeLog = yMaxLog - yMinLog
-            yMin = pow(10.0, yMinLog - yMinMargin * yRangeLog)
-            yMax = pow(10.0, yMaxLog + yMaxMargin * yRangeLog)
-
+        xMin, xMax = _addMargins(xScale, xMinMargin, xMaxMargin, xMin, xMax)
+        yMin, yMax = _addMargins(yScale, yMinMargin, yMaxMargin, yMin, yMax)
         if y2Min is not None and y2Max is not None:
-            if not isYLog:
-                yRange = y2Max - y2Min
-                y2Min -= yMinMargin * yRange
-                y2Max += yMaxMargin * yRange
-            elif y2Min > 0.0 and y2Max > 0.0:  # Log scale
-                # Do not apply margins if limits < 0
-                yMinLog, yMaxLog = numpy.log10(y2Min), numpy.log10(y2Max)
-                yRangeLog = yMaxLog - yMinLog
-                y2Min = pow(10.0, yMinLog - yMinMargin * yRangeLog)
-                y2Max = pow(10.0, yMaxLog + yMaxMargin * yRangeLog)
+            y2Min, y2Max = _addMargins(yScale, yMinMargin, yMaxMargin, y2Min, y2Max)
 
-    xMin, xMax = checkAxisLimits(xMin, xMax, "log" if isXLog else "linear")
-    yMin, yMax = checkAxisLimits(yMin, yMax, "log" if isYLog else "linear")
+    xMin, xMax = checkAxisLimits(xScale, xMin, xMax)
+    yMin, yMax = checkAxisLimits(yScale, yMin, yMax)
 
     if y2Min is None or y2Max is None:
         return xMin, xMax, yMin, yMax
     else:
-        y2Min, y2Max = checkAxisLimits(y2Min, y2Max, "log" if isYLog else "linear")
+        y2Min, y2Max = checkAxisLimits(yScale, y2Min, y2Max)
         return xMin, xMax, yMin, yMax, y2Min, y2Max
