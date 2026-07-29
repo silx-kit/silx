@@ -28,7 +28,7 @@ __license__ = "MIT"
 __date__ = "12/11/2018"
 
 import logging
-from typing import Literal
+from typing import Sequence
 
 import h5py
 import numpy
@@ -46,6 +46,7 @@ from silx.io.commonh5 import Dataset
 from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
 
 from ._utils import getAxesCalib, setImageCoords
+from ..plot.items.types import AxisScaleType
 from ..utils import blockSignals
 from ...utils.deprecation import deprecated, deprecated_warning
 from .ArrayCurvePlot import ArrayCurvePlot as _ArrayCurvePlot
@@ -129,34 +130,34 @@ class XYVScatterPlot(qt.QWidget):
 
     def setScattersData(
         self,
-        y,
-        x,
-        values,
-        yerror=None,
-        xerror=None,
-        ylabel=None,
-        xlabel=None,
-        title="",
-        scatter_titles=None,
-        xscale=None,
-        yscale=None,
+        y: numpy.ndarray,
+        x: numpy.ndarray,
+        values: Sequence[numpy.ndarray],
+        yerror: numpy.ndarray | None = None,
+        xerror: numpy.ndarray | None = None,
+        ylabel: numpy.ndarray | None = None,
+        xlabel: numpy.ndarray | None = None,
+        title: str = "",
+        scatter_titles: Sequence[str] | None = None,
+        xscale: AxisScaleType | None = None,
+        yscale: AxisScaleType | None = None,
     ):
         """
 
-        :param ndarray y: 1D array for y (vertical) coordinates.
-        :param ndarray x: 1D array for x coordinates.
-        :param List[ndarray] values: List of 1D arrays of values.
+        :param y: 1D array for y (vertical) coordinates.
+        :param x: 1D array for x coordinates.
+        :param values: List of 1D arrays of values.
             This will be used to compute the color map and assign colors
             to the points. There should be as many arrays in the list as
             scatters to be represented.
-        :param ndarray yerror: 1D array of errors for y (same shape), or None.
-        :param ndarray xerror: 1D array of errors for x, or None
-        :param str ylabel: Label for Y axis
-        :param str xlabel: Label for X axis
-        :param str title: Main graph title
-        :param List[str] scatter_titles:  Subtitles (one per scatter)
-        :param str xscale: Scale of X axis in (None, 'linear', 'log')
-        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
+        :param yerror: 1D array of errors for y (same shape), or None.
+        :param xerror: 1D array of errors for x, or None
+        :param ylabel: Label for Y axis
+        :param xlabel: Label for X axis
+        :param title: Main graph title
+        :param scatter_titles:  Subtitles (one per scatter)
+        :param xscale: Scale of X axis
+        :param yscale: Scale of Y axis
         """
         self.__y_axis = y
         self.__x_axis = x
@@ -179,9 +180,9 @@ class XYVScatterPlot(qt.QWidget):
         self._signalSelector.selectionChanged.connect(self._signalChanges)
 
         if xscale is not None:
-            self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
+            self._plot.getXAxis().setScale(xscale)
         if yscale is not None:
-            self._plot.getYAxis().setScale("log" if yscale == "log" else "linear")
+            self._plot.getYAxis().setScale(yscale)
 
         self._updateScatter()
 
@@ -273,7 +274,7 @@ class ArrayImagePlot(BaseImagePlot):
         axes: list[h5py.Dataset | Dataset] | None = None,
         signals_names: list[str] | None = None,
         axes_names: list[str] | None = None,
-        axes_scales: list[Literal["linear", "log"] | None] | None = None,
+        axes_scales: list[AxisScaleType | None] | None = None,
         title: str | None = None,
     ):
         """
@@ -283,7 +284,7 @@ class ArrayImagePlot(BaseImagePlot):
         :param axes: list of 1D datasets to be used as axes
         :param signals_names: Names for each image, used as subtitle and legend.
         :param axes_names: Names for each axis, used as graph label.
-        :param axes_scales: Scale of axes in (None, 'linear', 'log')
+        :param axes_scales: Scale of axes
         :param title: Graph title
         :param isRgba: True if data is a 3D RGBA image
         """
@@ -356,8 +357,8 @@ class ArrayImagePlot(BaseImagePlot):
                 xAxisScale = None
                 yAxisScale = None
 
-            self._plot.setXAxisLogarithmic(xAxisScale == "log")
-            self._plot.setYAxisLogarithmic(yAxisScale == "log")
+            self._plot.getXAxis().setScale(xAxisScale)
+            self._plot.getYAxis().setScale(yAxisScale)
 
             xScatter, yScatter = numpy.meshgrid(xAxis, yAxis)
             self._plot.addScatter(
