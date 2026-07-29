@@ -60,9 +60,7 @@ def _addMargins(
     except (ValueError, OverflowError):
         return minLimit, maxLimit
     else:
-        if axis_scale.inSafeRange(axisScale, min_) and axis_scale.inSafeRange(
-            axisScale, max_
-        ):
+        if axis_scale.inSafeRange(scale, min_) and axis_scale.inSafeRange(scale, max_):
             return min_, max_
         return min_, max_
 
