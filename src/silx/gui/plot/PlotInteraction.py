@@ -266,20 +266,24 @@ class Pan(_PlotInteractionWithClickEvents):
         previous: float,
     ) -> tuple[float, float]:
         axisScale = axis.getScale()
-        # TODO handle apply/revert errors
         currentScaled = axis_scale.apply(axisScale, current)
         previousScaled = axis_scale.apply(axisScale, previous)
         delta = currentScaled - previousScaled
 
         axisMin, axisMax = axis.getLimits()
-        newMin = axis_scale.revert(
-            axisScale, axis_scale.apply(axisScale, axisMin) - delta
-        )
-        newMax = axis_scale.revert(
-            axisScale, axis_scale.apply(axisScale, axisMax) - delta
-        )
+        try:
+            newMin = axis_scale.revert(
+                axisScale, axis_scale.apply(axisScale, axisMin) - delta
+            )
+            newMax = axis_scale.revert(
+                axisScale, axis_scale.apply(axisScale, axisMax) - delta
+            )
+        except (ValueError, OverflowError):
+            return newMin, newMax
 
-        if axis_scale.inSafeRange(newMin) and axis_scale.inSafeRange(newMax):
+        if axis_scale.inSafeRange(axisScale, newMin) and axis_scale.inSafeRange(
+            axisScale, newMax
+        ):
             return newMin, newMax
         else:
             return axisMin, axisMax

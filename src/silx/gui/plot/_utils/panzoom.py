@@ -100,9 +100,14 @@ def scale1DRange(
     range_ = (scaledMax - scaledMin) / scale
     newScaledMin = scaledCenter - offset * range_
     newScaledMax = scaledCenter + (1.0 - offset) * range_
+    try:
+        newMin = clipToSafeRange(axisScale, revert(axisScale, newScaledMin))
+        newMax = clipToSafeRange(axisScale, revert(axisScale, newScaledMax))
+    except (ValueError, OverflowError):
+        # There should be no overflow as exponent is log10 of a float32
+        # but better safe than sorry
+        return scaledMin, scaledMax
 
-    newMin = clipToSafeRange(axisScale, revert(axisScale, newScaledMin))
-    newMax = clipToSafeRange(axisScale, revert(axisScale, newScaledMax))
     return newMin, newMax
 
 
@@ -182,10 +187,14 @@ def applyPan(
     scaledMin = apply(axisScale, min_)
     scaledMax = apply(axisScale, max_)
     scaledOffset = panFactor * (scaledMax - scaledMin)
-    newMin = revert(axisScale, scaledMin + scaledOffset)
-    newMax = revert(axisScale, scaledMax + scaledOffset)
+    try:
+        newMin = revert(axisScale, scaledMin + scaledOffset)
+        newMax = revert(axisScale, scaledMax + scaledOffset)
+    except (ValueError, OverflowError):
+        return min_, max_
+
     if isValid(axisScale, newMin) and isValid(axisScale, newMax):
-        return newMin, newMax
+        return clipToSafeRange(axisScale, newMin), clipToSafeRange(axisScale, newMax)
     else:
         return min_, max_
 

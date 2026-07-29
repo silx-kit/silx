@@ -1,4 +1,7 @@
+from math import sinh, asinh
+
 import numpy
+
 from ..items.types import AxisScaleType
 
 
@@ -25,7 +28,6 @@ def isValid(axisScale: AxisScaleType, value: float) -> bool:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
 
-# TODO valueerror, overflowerror, warnings, safe range?
 def apply(axisScale: AxisScaleType, value: float) -> float:
     if axisScale == "linear":
         return value
@@ -35,19 +37,18 @@ def apply(axisScale: AxisScaleType, value: float) -> float:
         else:
             return float("nan")
     elif axisScale == "asinh":
-        return numpy.asinh(value)
+        return asinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
 
-# TODO valueerror, overflowerror, warnings, safe range?
 def revert(axisScale: AxisScaleType, value: float) -> float:
     if axisScale == "linear":
         return value
     elif axisScale == "log":
         return pow(10.0, value)
     elif axisScale == "asinh":
-        return numpy.sinh(value)
+        return sinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
