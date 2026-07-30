@@ -1,6 +1,7 @@
 import math
-import pytest
+import numpy
 
+from numpy.testing import assert_allclose, assert_array_equal
 from pytest import approx
 
 from silx.gui.plot._utils import axis_scale
@@ -49,6 +50,26 @@ def test_apply_asinh():
     assert axis_scale.apply("asinh", -1.0) == approx(math.asinh(-1.0))
 
 
+def test_apply_linear_array():
+    array = numpy.array([0.0, -5.0, 1e34])
+    result = axis_scale.apply("linear", array)
+    assert assert_array_equal(result, array)
+
+
+def test_apply_log_array():
+    array = numpy.array([1.0, 100.0, 0.0, -1.0])
+    result = axis_scale.apply("log", array)
+    assert isinstance(result, numpy.ndarray)
+    assert_allclose(result, [0.0, 2.0, numpy.nan, numpy.nan])
+
+
+def test_apply_asinh_array():
+    array = numpy.array([0.0, 1.0, -1.0])
+    result = axis_scale.apply("asinh", array)
+    assert isinstance(result, numpy.ndarray)
+    assert_allclose(result, [0.0, math.asinh(1.0), math.asinh(-1.0)])
+
+
 def test_revert_linear():
     assert axis_scale.revert("linear", 0.0) == approx(0.0)
     assert axis_scale.revert("linear", -5.0) == approx(-5.0)
@@ -57,19 +78,44 @@ def test_revert_linear():
 def test_revert_log():
     assert axis_scale.revert("log", 0.0) == approx(1.0)
     assert axis_scale.revert("log", 2.0) == approx(100.0)
-    with pytest.raises(OverflowError):
-        axis_scale.revert("log", 310)
+    assert axis_scale.revert("log", 310) == float("nan")
 
 
 def test_revert_asinh():
     assert axis_scale.revert("asinh", 0.0) == approx(0.0)
     assert axis_scale.revert("asinh", 1.0) == approx(math.sinh(1.0))
     assert axis_scale.revert("asinh", -1.0) == approx(math.sinh(-1.0))
-    with pytest.raises(OverflowError):
-        axis_scale.revert("asinh", 750)
+    assert axis_scale.revert("asinh", 750) == float("nan")
+
+
+def test_revert_linear_array():
+    array = numpy.array([0.0, -5.0])
+    result = axis_scale.revert("linear", array)
+    assert_array_equal(result, array)
+
+
+def test_revert_log_array():
+    array = numpy.array([0.0, 2.0, 310.0])
+    result = axis_scale.revert("log", array)
+    assert isinstance(result, numpy.ndarray)
+    assert_allclose(result, [1.0, 100.0, numpy.inf])
+
+
+def test_revert_asinh_array():
+    array = numpy.array([0.0, 1.0, -1.0, 750.0])
+    result = axis_scale.revert("asinh", array)
+    assert isinstance(result, numpy.ndarray)
+    assert_allclose(result, [0.0, math.sinh(1.0), math.sinh(-1.0), numpy.inf])
 
 
 def test_revert_nan():
     assert math.isnan(axis_scale.revert("linear", float("nan")))
     assert math.isnan(axis_scale.revert("log", float("nan")))
     assert math.isnan(axis_scale.revert("asinh", float("nan")))
+
+
+def test_revert_nan_array():
+    array = numpy.array([float("nan")])
+    assert math.isnan(axis_scale.revert("linear", array)[0])
+    assert math.isnan(axis_scale.revert("log", array)[0])
+    assert math.isnan(axis_scale.revert("asinh", array)[0])

@@ -54,15 +54,12 @@ def _addMargins(
     minScaled = axis_scale.apply(scale, minLimit)
     maxScaled = axis_scale.apply(scale, maxLimit)
     rangeLimit = maxScaled - minScaled
-    try:
-        min_ = axis_scale.revert(scale, minScaled - minMargin * rangeLimit)
-        max_ = axis_scale.revert(scale, maxScaled + maxMargin * rangeLimit)
-    except (ValueError, OverflowError):
-        return minLimit, maxLimit
-    else:
-        if axis_scale.inSafeRange(scale, min_) and axis_scale.inSafeRange(scale, max_):
-            return min_, max_
-        return minLimit, maxLimit
+
+    min_ = axis_scale.revert(scale, minScaled - minMargin * rangeLimit)
+    max_ = axis_scale.revert(scale, maxScaled + maxMargin * rangeLimit)
+    if all(axis_scale.inSafeRange(scale, (min_, max_))):
+        return min_, max_
+    return minLimit, maxLimit
 
 
 def addMarginsToLimits(

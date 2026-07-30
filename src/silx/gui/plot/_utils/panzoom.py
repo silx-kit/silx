@@ -30,6 +30,9 @@ __date__ = "08/08/2017"
 
 import logging
 from typing import NamedTuple
+
+import numpy
+
 from .axis_scale import (
     FLOAT32_MINPOS,
     isValid,
@@ -100,15 +103,16 @@ def scale1DRange(
     range_ = (scaledMax - scaledMin) / scale
     newScaledMin = scaledCenter - offset * range_
     newScaledMax = scaledCenter + (1.0 - offset) * range_
-    try:
-        newMin = clipToSafeRange(axisScale, revert(axisScale, newScaledMin))
-        newMax = clipToSafeRange(axisScale, revert(axisScale, newScaledMax))
-    except (ValueError, OverflowError):
+
+    newRange = clipToSafeRange(
+        axisScale, revert(axisScale, (newScaledMin, newScaledMax))
+    )
+    if not all(numpy.isfinite(newRange)):
         # There should be no overflow as exponent is log10 of a float32
         # but better safe than sorry
         return scaledMin, scaledMax
 
-    return newMin, newMax
+    return tuple(newRange)
 
 
 class EnabledAxes(NamedTuple):
@@ -187,14 +191,11 @@ def applyPan(
     scaledMin = apply(axisScale, min_)
     scaledMax = apply(axisScale, max_)
     scaledOffset = panFactor * (scaledMax - scaledMin)
-    try:
-        newMin = revert(axisScale, scaledMin + scaledOffset)
-        newMax = revert(axisScale, scaledMax + scaledOffset)
-    except (ValueError, OverflowError):
-        return min_, max_
 
-    if isValid(axisScale, newMin) and isValid(axisScale, newMax):
-        return clipToSafeRange(axisScale, newMin), clipToSafeRange(axisScale, newMax)
+    newMin = revert(axisScale, scaledMin + scaledOffset)
+    newMax = revert(axisScale, scaledMax + scaledOffset)
+    if isValid(newMin) and isValid(newMax):
+        return tuple(clipToSafeRange(axisScale, (newMin, newMax)))
     else:
         return min_, max_
 

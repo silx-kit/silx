@@ -1,6 +1,7 @@
-from math import sinh, asinh
+import numbers
 
 import numpy
+from numpy.typing import ArrayLike
 
 from ..items.types import AxisScaleType
 
@@ -28,27 +29,38 @@ def isValid(axisScale: AxisScaleType, value: float) -> bool:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
 
-def apply(axisScale: AxisScaleType, value: float) -> float:
+def apply(axisScale: AxisScaleType, value: float | ArrayLike) -> float | numpy.ndarray:
+    if not isinstance(value, numbers.Real):
+        value = numpy.asarray(value)
+
     if axisScale == "linear":
         return value
     elif axisScale == "log":
-        if value > 0.0:
-            return numpy.log10(value)
+        if isinstance(value, numbers.Real):
+            return numpy.log10(value) if value > 0.0 else float("nan")
         else:
-            return float("nan")
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                scaled = numpy.log10(value)
+            scaled[~numpy.isfinite(scaled)] = numpy.nan
+            return scaled
     elif axisScale == "asinh":
-        return asinh(value)
+        return numpy.asinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
 
-def revert(axisScale: AxisScaleType, value: float) -> float:
+def revert(axisScale: AxisScaleType, value: float | ArrayLike) -> float | numpy.ndarray:
+    if not isinstance(value, numbers.Real):
+        value = numpy.asarray(value)
+
     if axisScale == "linear":
         return value
     elif axisScale == "log":
-        return pow(10.0, value)
+        with numpy.errstate(over="ignore"):
+            return numpy.pow(10.0, value)
     elif axisScale == "asinh":
-        return sinh(value)
+        with numpy.errstate(over="ignore"):
+            return numpy.sinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
@@ -65,11 +77,21 @@ def safeRange(axisScale: AxisScaleType) -> tuple[float, float]:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
 
-def inSafeRange(axisScale: AxisScaleType, value: float) -> bool:
+def inSafeRange(
+    axisScale: AxisScaleType, value: float | ArrayLike
+) -> bool | numpy.ndarray:
+    if not isinstance(value, numbers.Real):
+        value = numpy.asarray(value)
+
     min_, max_ = safeRange(axisScale)
-    return min_ <= value <= max_
+    return (min_ <= value) & (value <= max_)
 
 
-def clipToSafeRange(axisScale: AxisScaleType, value: float) -> float:
+def clipToSafeRange(
+    axisScale: AxisScaleType, value: float | ArrayLike
+) -> float | numpy.ndarray:
+    if not isinstance(value, numbers.Real):
+        value = numpy.asarray(value)
+
     axisMin, axisMax = safeRange(axisScale)
     return numpy.clip(value, axisMin, axisMax)

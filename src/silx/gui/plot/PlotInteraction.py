@@ -270,23 +270,14 @@ class Pan(_PlotInteractionWithClickEvents):
         previousScaled = axis_scale.apply(axisScale, previous)
         delta = currentScaled - previousScaled
 
-        axisMin, axisMax = axis.getLimits()
-        try:
-            newMin = axis_scale.revert(
-                axisScale, axis_scale.apply(axisScale, axisMin) - delta
-            )
-            newMax = axis_scale.revert(
-                axisScale, axis_scale.apply(axisScale, axisMax) - delta
-            )
-        except (ValueError, OverflowError):
-            return axisMin, axisMax
-
-        if axis_scale.inSafeRange(axisScale, newMin) and axis_scale.inSafeRange(
-            axisScale, newMax
-        ):
-            return newMin, newMax
+        axisLimits = axis.getLimits()
+        newRange = axis_scale.revert(
+            axisScale, axis_scale.apply(axisScale, axisLimits) - delta
+        )
+        if all(axis_scale.inSafeRange(axisScale, newRange)):
+            return tuple(newRange)
         else:
-            return axisMin, axisMax
+            return axisLimits
 
     def drag(self, x, y, btn):
         xData, yLeftData, yRightData = self._pixelToData(x, y)
