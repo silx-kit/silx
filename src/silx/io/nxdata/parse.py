@@ -1,30 +1,7 @@
-# /*##########################################################################
-#
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# ###########################################################################*/
 """This package provides a collection of functions to work with h5py-like
 groups following the NeXus *NXdata* specification.
 
-See http://download.nexusformat.org/sphinx/classes/base_classes/NXdata.html
+See https://manual.nexusformat.org/classes/base_classes/NXdata.html
 
 The main class is :class:`NXdata`.
 You can also fetch the default NXdata in a NXroot or a NXentry with function
@@ -41,7 +18,7 @@ Other public functions:
 """
 
 import json
-from typing import Any
+from typing import Any, get_args
 
 import h5py
 import numpy
@@ -51,6 +28,7 @@ from silx.utils.deprecation import deprecated
 
 from ._utils import (
     Interpretation,
+    ScaleType,
     get_attr_as_unicode,
     INTERPDIM,
     get_dataset_name,
@@ -62,9 +40,7 @@ from ._utils import (
     validate_number_of_axes,
 )
 
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "24/03/2020"
+_SCALES = get_args(ScaleType)
 
 
 class InvalidNXdataError(Exception):
@@ -80,8 +56,8 @@ class _SilxStyle:
 
     def __init__(self, nxdata):
         naxes = len(nxdata.axes)
-        self._axes_scale_types = [None] * naxes
-        self._signal_scale_type = None
+        self._axes_scale_types: tuple[ScaleType | None, ...] = tuple([None] * naxes)
+        self._signal_scale_type: ScaleType | None = None
 
         stylestr = get_attr_as_unicode(nxdata.group, "SILX_style")
         if stylestr is None:
@@ -107,10 +83,9 @@ class _SilxStyle:
                 nxdata_logger.error("Ignoring SILX_style:axes_scale_types, not a list")
             else:
                 for scale_type in axes_scale_types:
-                    if scale_type not in ("linear", "log"):
+                    if scale_type not in _SCALES:
                         nxdata_logger.error(
-                            "Ignoring SILX_style:axes_scale_types, invalid value: %s",
-                            str(scale_type),
+                            f"Ignoring SILX_style:axes_scale_types, invalid value: {scale_type} (supported values: {_SCALES})",
                         )
                         break
                 else:  # All values are valid
@@ -128,23 +103,20 @@ class _SilxStyle:
 
         if "signal_scale_type" in style:
             scale_type = style["signal_scale_type"]
-            if scale_type not in ("linear", "log"):
+            if scale_type not in _SCALES:
                 nxdata_logger.error(
-                    "Ignoring SILX_style:signal_scale_type, invalid value: %s",
-                    str(scale_type),
+                    f"Ignoring SILX_style:signal_scale_type, invalid value: {scale_type} (supported values: {_SCALES})",
                 )
             else:
                 self._signal_scale_type = scale_type
 
-    axes_scale_types = property(
-        lambda self: self._axes_scale_types,
-        doc="Tuple of NXdata axes scale types (None, 'linear' or 'log'). List[str]",
-    )
+    @property
+    def axes_scale_types(self) -> tuple[ScaleType | None, ...]:
+        return self._axes_scale_types
 
-    signal_scale_type = property(
-        lambda self: self._signal_scale_type,
-        doc="NXdata signal scale type (None, 'linear' or 'log'). str",
-    )
+    @property
+    def signal_scale_type(self) -> ScaleType | None:
+        return self._signal_scale_type
 
 
 class NXdata:
