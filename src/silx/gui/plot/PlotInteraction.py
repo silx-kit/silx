@@ -279,7 +279,7 @@ class Pan(_PlotInteractionWithClickEvents):
                 axisScale, axis_scale.apply(axisScale, axisMax) - delta
             )
         except (ValueError, OverflowError):
-            return newMin, newMax
+            return axisMin, axisMax
 
         if axis_scale.inSafeRange(axisScale, newMin) and axis_scale.inSafeRange(
             axisScale, newMax

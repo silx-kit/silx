@@ -62,7 +62,7 @@ def _addMargins(
     else:
         if axis_scale.inSafeRange(scale, min_) and axis_scale.inSafeRange(scale, max_):
             return min_, max_
-        return min_, max_
+        return minLimit, maxLimit
 
 
 def addMarginsToLimits(

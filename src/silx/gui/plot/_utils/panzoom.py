@@ -177,11 +177,11 @@ def applyPan(
 
     Moves the range according to panFactor after applying axis scale.
 
+    :param axisScale:
     :param min_: Min value of the data range to pan.
     :param max_: Max value of the data range to pan.
                  Must be >= min.
     :param panFactor: Signed proportion of the range to use for pan.
-    :param axisScale:
     :return: New min and max value with pan applied.
     """
     scaledMin = apply(axisScale, min_)
