@@ -60,14 +60,8 @@ from .backends.BackendBase import (
     CURSOR_SIZE_VER,
     CURSOR_SIZE_ALL,
 )
-
-from ._utils import (
-    FLOAT32_SAFE_MIN,
-    FLOAT32_MINPOS,
-    FLOAT32_SAFE_MAX,
-    applyZoomToPlot,
-    EnabledAxes,
-)
+from ._utils import applyZoomToPlot, EnabledAxes
+from ._utils import axis_scale
 
 # Base class ##################################################################
 
@@ -265,72 +259,49 @@ class Pan(_PlotInteractionWithClickEvents):
     def beginDrag(self, x, y, btn):
         self._previousDataPos = self._pixelToData(x, y)
 
+    def _axisDrag(
+        self,
+        axis,
+        current: float,
+        previous: float,
+    ) -> tuple[float, float]:
+        axisScale = axis.getScale()
+        currentScaled = axis_scale.apply(axisScale, current)
+        previousScaled = axis_scale.apply(axisScale, previous)
+        delta = currentScaled - previousScaled
+
+        axisMin, axisMax = axis.getLimits()
+        try:
+            newMin = axis_scale.revert(
+                axisScale, axis_scale.apply(axisScale, axisMin) - delta
+            )
+            newMax = axis_scale.revert(
+                axisScale, axis_scale.apply(axisScale, axisMax) - delta
+            )
+        except (ValueError, OverflowError):
+            return axisMin, axisMax
+
+        if axis_scale.inSafeRange(axisScale, newMin) and axis_scale.inSafeRange(
+            axisScale, newMax
+        ):
+            return newMin, newMax
+        else:
+            return axisMin, axisMax
+
     def drag(self, x, y, btn):
-        xData, yData, y2Data = self._pixelToData(x, y)
-        lastX, lastY, lastY2 = self._previousDataPos
+        xData, yLeftData, yRightData = self._pixelToData(x, y)
+        lastX, lastYLeft, lastYRight = self._previousDataPos
 
-        xMin, xMax = self.plot.getXAxis().getLimits()
-        yMin, yMax = self.plot.getYAxis().getLimits()
-        y2Min, y2Max = self.plot.getYAxis(axis="right").getLimits()
-
-        if self.plot.getXAxis()._isLogarithmic():
-            try:
-                dx = math.log10(xData) - math.log10(lastX)
-                newXMin = pow(10.0, (math.log10(xMin) - dx))
-                newXMax = pow(10.0, (math.log10(xMax) - dx))
-            except (ValueError, OverflowError):
-                newXMin, newXMax = xMin, xMax
-
-            # Makes sure both values stays in positive float32 range
-            if newXMin < FLOAT32_MINPOS or newXMax > FLOAT32_SAFE_MAX:
-                newXMin, newXMax = xMin, xMax
-        else:
-            dx = xData - lastX
-            newXMin, newXMax = xMin - dx, xMax - dx
-
-            # Makes sure both values stays in float32 range
-            if newXMin < FLOAT32_SAFE_MIN or newXMax > FLOAT32_SAFE_MAX:
-                newXMin, newXMax = xMin, xMax
-
-        if self.plot.getYAxis()._isLogarithmic():
-            try:
-                dy = math.log10(yData) - math.log10(lastY)
-                newYMin = pow(10.0, math.log10(yMin) - dy)
-                newYMax = pow(10.0, math.log10(yMax) - dy)
-
-                dy2 = math.log10(y2Data) - math.log10(lastY2)
-                newY2Min = pow(10.0, math.log10(y2Min) - dy2)
-                newY2Max = pow(10.0, math.log10(y2Max) - dy2)
-            except (ValueError, OverflowError):
-                newYMin, newYMax = yMin, yMax
-                newY2Min, newY2Max = y2Min, y2Max
-
-            # Makes sure y and y2 stays in positive float32 range
-            if (
-                newYMin < FLOAT32_MINPOS
-                or newYMax > FLOAT32_SAFE_MAX
-                or newY2Min < FLOAT32_MINPOS
-                or newY2Max > FLOAT32_SAFE_MAX
-            ):
-                newYMin, newYMax = yMin, yMax
-                newY2Min, newY2Max = y2Min, y2Max
-        else:
-            dy = yData - lastY
-            dy2 = y2Data - lastY2
-            newYMin, newYMax = yMin - dy, yMax - dy
-            newY2Min, newY2Max = y2Min - dy2, y2Max - dy2
-
-            # Makes sure y and y2 stays in float32 range
-            if (
-                newYMin < FLOAT32_SAFE_MIN
-                or newYMax > FLOAT32_SAFE_MAX
-                or newY2Min < FLOAT32_SAFE_MIN
-                or newY2Max > FLOAT32_SAFE_MAX
-            ):
-                newYMin, newYMax = yMin, yMax
-                newY2Min, newY2Max = y2Min, y2Max
-
-        self.plot.setLimits(newXMin, newXMax, newYMin, newYMax, newY2Min, newY2Max)
+        newXMin, newXMax = self._axisDrag(self.plot.getXAxis(), xData, lastX)
+        newYLeftMin, newYLeftMax = self._axisDrag(
+            self.plot.getYAxis("left"), yLeftData, lastYLeft
+        )
+        newYRightMin, newYRightMax = self._axisDrag(
+            self.plot.getYAxis("right"), yRightData, lastYRight
+        )
+        self.plot.setLimits(
+            newXMin, newXMax, newYLeftMin, newYLeftMax, newYRightMin, newYRightMax
+        )
 
         self._previousDataPos = self._pixelToData(x, y)
 

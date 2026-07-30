@@ -35,6 +35,7 @@ import numpy
 
 from .. import items
 from .._utils import FLOAT32_MINPOS
+from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
 from ... import qt
@@ -1558,7 +1559,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setXAxisTimeSeries(self, isTimeSeries):
         self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
-    def setXAxisScale(self, scale):
+    def setXAxisScale(self, scale: AxisScaleType):
         if scale == "asinh":
             raise NotImplementedError(
                 f"Plot OpenGL backend does not support {scale} X axis"
@@ -1571,7 +1572,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             self._plotFrame.xAxis.isLog = is_log
 
-    def setYAxisScale(self, scale):
+    def setYAxisScale(self, scale: AxisScaleType):
         if scale == "asinh":
             raise NotImplementedError(
                 f"Plot OpenGL backend does not support {scale} Y axis"

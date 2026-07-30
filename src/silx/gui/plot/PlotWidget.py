@@ -2218,23 +2218,21 @@ class PlotWidget(qt.QMainWindow):
             xFactor = factor if direction == "right" else -factor
             xMin, xMax = self._xAxis.getLimits()
 
-            xMin, xMax = _utils.applyPan(
-                xMin, xMax, xFactor, self._xAxis.getScale() == self._xAxis.LOGARITHMIC
-            )
+            xMin, xMax = _utils.applyPan(self._xAxis.getScale(), xMin, xMax, xFactor)
             self._xAxis.setLimits(xMin, xMax)
 
         else:  # direction in ('up', 'down')
             sign = -1.0 if self._yAxis.isInverted() else 1.0
             yFactor = sign * (factor if direction == "up" else -factor)
-            yMin, yMax = self._yAxis.getLimits()
-            yIsLog = self._yAxis.getScale() == self._yAxis.LOGARITHMIC
 
-            yMin, yMax = _utils.applyPan(yMin, yMax, yFactor, yIsLog)
+            yMin, yMax = self._yAxis.getLimits()
+            yMin, yMax = _utils.applyPan(self._yAxis.getScale(), yMin, yMax, yFactor)
             self._yAxis.setLimits(yMin, yMax)
 
             y2Min, y2Max = self._yRightAxis.getLimits()
-
-            y2Min, y2Max = _utils.applyPan(y2Min, y2Max, yFactor, yIsLog)
+            y2Min, y2Max = _utils.applyPan(
+                self._yRightAxis.getScale(), y2Min, y2Max, yFactor
+            )
             self._yRightAxis.setLimits(y2Min, y2Max)
 
     # Active Curve/Image
@@ -2735,8 +2733,8 @@ class PlotWidget(qt.QMainWindow):
             limits = list(
                 _utils.addMarginsToLimits(
                     self.getDataMargins() if margins is True else margins,
-                    self.getXAxis()._isLogarithmic(),
-                    self.getYAxis()._isLogarithmic(),
+                    self.getXAxis().getScale(),
+                    self.getYAxis().getScale(),
                     *limits,
                 )
             )

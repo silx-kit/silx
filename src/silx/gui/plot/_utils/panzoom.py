@@ -29,34 +29,28 @@ __date__ = "08/08/2017"
 
 
 import logging
-import math
 from typing import NamedTuple
-import numpy
+from .axis_scale import (
+    FLOAT32_MINPOS,
+    isValid,
+    apply,
+    revert,
+    clipToSafeRange,
+)
+from ..items.types import AxisScaleType
 
 _logger = logging.getLogger(__name__)
 
 
-# Float 32 info ###############################################################
-# Using min/max value below limits of float32
-# so operation with such value (e.g., max - min) do not overflow
-
-FLOAT32_SAFE_MIN = -1e37
-FLOAT32_MINPOS = numpy.finfo(numpy.float32).tiny
-FLOAT32_SAFE_MAX = 1e37
-# TODO double support
-
-
-def checkAxisLimits(vmin: float, vmax: float, isLog: bool = False, name: str = ""):
+def checkAxisLimits(
+    axisScale: AxisScaleType, vmin: float, vmax: float, name: str = ""
+) -> tuple[float, float]:
     """Makes sure axis range is not empty and within supported range.
 
-    :param vmin: Min axis value
-    :param vmax: Max axis value
     :return: (min, max) making sure min < max
-    :rtype: 2-tuple of float
     """
-    min_ = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
-    vmax = numpy.clip(vmax, min_, FLOAT32_SAFE_MAX)
-    vmin = numpy.clip(vmin, min_, FLOAT32_SAFE_MAX)
+    vmax = clipToSafeRange(axisScale, vmax)
+    vmin = clipToSafeRange(axisScale, vmin)
 
     if vmax < vmin:
         _logger.debug("%s axis: max < min, inverting limits.", name)
@@ -67,53 +61,53 @@ def checkAxisLimits(vmin: float, vmax: float, isLog: bool = False, name: str = "
             vmin, vmax = -0.1, 0.1
         elif vmin < 0:
             vmax *= 0.9
-            vmin = max(vmin * 1.1, FLOAT32_SAFE_MIN)  # Clip to range
+            vmin = clipToSafeRange(axisScale, vmin * 1.1)
         else:  # vmin > 0
-            vmax = min(vmin * 1.1, FLOAT32_SAFE_MAX)  # Clip to range
+            vmax = clipToSafeRange(axisScale, vmin * 1.1)
             vmin *= 0.9
 
     return vmin, vmax
 
 
 def scale1DRange(
-    min_: float, max_: float, center: float, scale: float, isLog: bool
+    axisScale: AxisScaleType, min_: float, max_: float, center: float, scale: float
 ) -> tuple[float, float]:
     """Scale a 1D range given a scale factor and an center point.
 
     Keeps the values in a smaller range than float32.
 
+    :param axisScale:
     :param min_: The current min value of the range.
     :param max_: The current max value of the range.
     :param center: The center of the zoom (i.e., invariant point).
-    :param scale: The scale to use for zoom
-    :param isLog: Whether using log scale or not.
+    :param scale: The scaling factor to apply for zoom
     :return: The zoomed range (min, max)
     """
-    if isLog:
-        # Min and center can be < 0 when
-        # autoscale is off and switch to log scale
-        # max_ < 0 should not happen
-        min_ = numpy.log10(min_) if min_ > 0.0 else FLOAT32_MINPOS
-        center = numpy.log10(center) if center > 0.0 else FLOAT32_MINPOS
-        max_ = numpy.log10(max_) if max_ > 0.0 else FLOAT32_MINPOS
+    # Min and center can be < 0 when
+    # autoscale is off and switch to log scale
+    # max_ < 0 should not happen
+    # TODO better and weird previous behavior
+    scaledMin = apply(axisScale, min_) if isValid(axisScale, min_) else FLOAT32_MINPOS
+    scaledCenter = (
+        apply(axisScale, center) if isValid(axisScale, center) else FLOAT32_MINPOS
+    )
+    scaledMax = apply(axisScale, max_) if isValid(axisScale, max_) else FLOAT32_MINPOS
 
-    if min_ == max_:
-        return min_, max_
+    if scaledMin == scaledMax:
+        return scaledMin, scaledMax
 
-    offset = (center - min_) / (max_ - min_)
-    range_ = (max_ - min_) / scale
-    newMin = center - offset * range_
-    newMax = center + (1.0 - offset) * range_
+    offset = (scaledCenter - scaledMin) / (scaledMax - scaledMin)
+    range_ = (scaledMax - scaledMin) / scale
+    newScaledMin = scaledCenter - offset * range_
+    newScaledMax = scaledCenter + (1.0 - offset) * range_
+    try:
+        newMin = clipToSafeRange(axisScale, revert(axisScale, newScaledMin))
+        newMax = clipToSafeRange(axisScale, revert(axisScale, newScaledMax))
+    except (ValueError, OverflowError):
+        # There should be no overflow as exponent is log10 of a float32
+        # but better safe than sorry
+        return scaledMin, scaledMax
 
-    if isLog:
-        # No overflow as exponent is log10 of a float32
-        newMin = pow(10.0, newMin)
-        newMax = pow(10.0, newMax)
-        newMin = numpy.clip(newMin, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-    else:
-        newMin = numpy.clip(newMin, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
     return newMin, newMax
 
 
@@ -157,12 +151,12 @@ def applyZoomToPlot(
 
     if enabled.xaxis:
         xMin, xMax = scale1DRange(
-            xMin, xMax, dataCenterPos[0], scale, plot.getXAxis()._isLogarithmic()
+            plot.getXAxis().getScale(), xMin, xMax, dataCenterPos[0], scale
         )
 
     if enabled.yaxis:
         yMin, yMax = scale1DRange(
-            yMin, yMax, dataCenterPos[1], scale, plot.getYAxis()._isLogarithmic()
+            plot.getYAxis("left").getScale(), yMin, yMax, dataCenterPos[1], scale
         )
 
     if enabled.y2axis:
@@ -170,45 +164,39 @@ def applyZoomToPlot(
         assert dataPos is not None
         y2Center = dataPos[1]
         y2Min, y2Max = scale1DRange(
-            y2Min, y2Max, y2Center, scale, plot.getYAxis()._isLogarithmic()
+            plot.getYAxis("right").getScale(), y2Min, y2Max, y2Center, scale
         )
 
     plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
 
-def applyPan(min_, max_, panFactor, isLog10):
+def applyPan(
+    axisScale: AxisScaleType, min_: float, max_: float, panFactor: float
+) -> tuple[float, float]:
     """Returns a new range with applied panning.
 
-    Moves the range according to panFactor.
-    If isLog10 is True, converts to log10 before moving.
+    Moves the range according to panFactor after applying axis scale.
 
-    :param float min_: Min value of the data range to pan.
-    :param float max_: Max value of the data range to pan.
-                       Must be >= min.
-    :param float panFactor: Signed proportion of the range to use for pan.
-    :param bool isLog10: True if log10 scale, False if linear scale.
+    :param axisScale:
+    :param min_: Min value of the data range to pan.
+    :param max_: Max value of the data range to pan.
+                 Must be >= min.
+    :param panFactor: Signed proportion of the range to use for pan.
     :return: New min and max value with pan applied.
-    :rtype: 2-tuple of float.
     """
-    if isLog10 and min_ > 0.0:
-        # Negative range and log scale can happen with matplotlib
-        logMin, logMax = math.log10(min_), math.log10(max_)
-        logOffset = panFactor * (logMax - logMin)
-        newMin = pow(10.0, logMin + logOffset)
-        newMax = pow(10.0, logMax + logOffset)
+    scaledMin = apply(axisScale, min_)
+    scaledMax = apply(axisScale, max_)
+    scaledOffset = panFactor * (scaledMax - scaledMin)
+    try:
+        newMin = revert(axisScale, scaledMin + scaledOffset)
+        newMax = revert(axisScale, scaledMax + scaledOffset)
+    except (ValueError, OverflowError):
+        return min_, max_
 
-        # Takes care of out-of-range values
-        if newMin > 0.0 and newMax < float("inf"):
-            min_, max_ = newMin, newMax
-
+    if isValid(axisScale, newMin) and isValid(axisScale, newMax):
+        return clipToSafeRange(axisScale, newMin), clipToSafeRange(axisScale, newMax)
     else:
-        offset = panFactor * (max_ - min_)
-        newMin, newMax = min_ + offset, max_ + offset
-
-        # Takes care of out-of-range values
-        if newMin > -float("inf") and newMax < float("inf"):
-            min_, max_ = newMin, newMax
-    return min_, max_
+        return min_, max_
 
 
 class _Unset:

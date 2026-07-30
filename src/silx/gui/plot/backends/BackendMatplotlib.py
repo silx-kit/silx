@@ -57,6 +57,7 @@ from matplotlib import path as mpath
 
 from . import BackendBase
 from .. import items
+from ..items.types import AxisScaleType
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import (
     calcTicks,
@@ -1303,7 +1304,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._isXAxisTimeSeries = isTimeSeries
         self.__initXAxisFormatterAndLocator()
 
-    def setXAxisScale(self, scale):
+    def setXAxisScale(self, scale: AxisScaleType):
         if scale == "log":
             # Workaround for matplotlib 2.1.0 when one tries to set an axis
             # to log scale with both limits <= 0
@@ -1316,7 +1317,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_xscale(scale)
         self.__initXAxisFormatterAndLocator()
 
-    def setYAxisScale(self, scale):
+    def setYAxisScale(self, scale: AxisScaleType):
         if scale == "log":
             # Workaround for matplotlib 2.0 issue with negative bounds
             # before switching to log scale
