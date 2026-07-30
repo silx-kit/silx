@@ -7,6 +7,7 @@
     array_like.rst
     decorators.rst
     enum.rst
+    files.rst
     testutils.rst
     weakref.rst
     retry.rst
