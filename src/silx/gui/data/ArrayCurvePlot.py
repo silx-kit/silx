@@ -1,8 +1,10 @@
+from typing import Sequence
 import numpy
 
 from silx.gui import qt
 from .NumpyAxesSelector import NumpyAxesSelector
 from ..plot import Plot1D, items
+from ..plot.items.types import AxisScaleType
 
 
 class ArrayCurvePlot(qt.QWidget):
@@ -60,33 +62,33 @@ class ArrayCurvePlot(qt.QWidget):
 
     def setCurvesData(
         self,
-        ys,
-        x=None,
-        yerror=None,
-        xerror=None,
-        ylabels=None,
-        xlabel=None,
-        title=None,
-        xscale=None,
-        yscale=None,
+        ys: Sequence[numpy.ndarray],
+        x: numpy.ndarray | None = None,
+        yerror: numpy.ndarray | None = None,
+        xerror: numpy.ndarray | None = None,
+        ylabels: Sequence[str] | None = None,
+        xlabel: str | None = None,
+        title: str | None = None,
+        xscale: AxisScaleType | None = None,
+        yscale: AxisScaleType | None = None,
     ):
         """
 
-        :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
+        :param ys: List of arrays to be represented by the y (vertical) axis.
             It can be multiple n-D array whose last dimension must
             have the same length as x (and values must be None)
-        :param ndarray x: 1-D dataset used as the curve's x values. If provided,
+        :param x: 1-D dataset used as the curve's x values. If provided,
             its lengths must be equal to the length of the last dimension of
             ``y`` (and equal to the length of ``value``, for a scatter plot).
-        :param ndarray yerror: Single array of errors for y (same shape), or None.
+        :param yerror: Single array of errors for y (same shape), or None.
             There can only be one array, and it applies to the first/main y
             (no y errors for auxiliary_signals curves).
-        :param ndarray xerror: 1-D dataset of errors for x, or None
-        :param str ylabels: Labels for each curve's Y axis
-        :param str xlabel: Label for X axis
-        :param str title: Graph title
-        :param str xscale: Scale of X axis in (None, 'linear', 'log')
-        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
+        :param xerror: 1-D dataset of errors for x, or None
+        :param ylabels: Labels for each curve's Y axis
+        :param xlabel: Label for X axis
+        :param title: Graph title
+        :param xscale: Scale of X axis
+        :param yscale: Scale of Y axis
         """
         self.__signals = ys
         self.__signals_names = ylabels or (["Y"] * len(ys))
@@ -108,9 +110,9 @@ class ArrayCurvePlot(qt.QWidget):
 
         self._plot.setGraphTitle(title or "")
         if xscale is not None:
-            self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
+            self._plot.getXAxis().setScale(xscale)
         if yscale is not None:
-            self._plot.getYAxis().setScale("log" if yscale == "log" else "linear")
+            self._plot.getYAxis().setScale(yscale)
         self._updateCurve()
 
         if not self.__axes_selector_is_connected:

@@ -38,9 +38,8 @@ class RgbaImagePlot(BaseImagePlot):
 
         :param signals: list of n-D datasets or list of 3D datasets interpreted as RGBA image.
         :param axes: list of 1D datasets to be used as axes
-        :param signals_names: Names for each image, used as subtitle and legend.
-        :param axes_names: Names for each axis, used as graph label.
-        :param axes_scales: Scale of axes in (None, 'linear', 'log')
+        :param signalsNames: Names for each image, used as subtitle and legend.
+        :param axesNames: Names for each axis, used as graph label.
         :param title: Graph title
         """
         if len(signals) == 0:
