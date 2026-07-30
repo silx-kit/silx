@@ -53,7 +53,7 @@ def test_apply_asinh():
 def test_apply_linear_array():
     array = numpy.array([0.0, -5.0, 1e34])
     result = axis_scale.apply("linear", array)
-    assert assert_array_equal(result, array)
+    assert_array_equal(result, array)
 
 
 def test_apply_log_array():
@@ -78,14 +78,14 @@ def test_revert_linear():
 def test_revert_log():
     assert axis_scale.revert("log", 0.0) == approx(1.0)
     assert axis_scale.revert("log", 2.0) == approx(100.0)
-    assert axis_scale.revert("log", 310) == float("nan")
+    assert axis_scale.revert("log", 310) == float("inf")
 
 
 def test_revert_asinh():
     assert axis_scale.revert("asinh", 0.0) == approx(0.0)
     assert axis_scale.revert("asinh", 1.0) == approx(math.sinh(1.0))
     assert axis_scale.revert("asinh", -1.0) == approx(math.sinh(-1.0))
-    assert axis_scale.revert("asinh", 750) == float("nan")
+    assert axis_scale.revert("asinh", 750) == float("inf")
 
 
 def test_revert_linear_array():
