@@ -39,6 +39,7 @@ from silx.math.combo import min_max
 
 from ...._glutils import gl
 from ...._glutils import Program, vertexBuffer, VertexBufferAttrib
+from ..._utils import axis_scale
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 from .GLPlotImage import GLPlotItem
 
@@ -1184,7 +1185,7 @@ class GLPlotCurve2D(GLPlotItem):
         markerSize=7,
         fillColor=None,
         baseline=None,
-        isYLog=False,
+        yScale="linear",
     ):
         super().__init__()
         self._ratio = None
@@ -1238,11 +1239,11 @@ class GLPlotCurve2D(GLPlotItem):
                     _baseline = baseline
                 if not isinstance(_baseline, numpy.ndarray):
                     _baseline = numpy.repeat(_baseline, len(self.xData))
-                if isYLog is True:
-                    with numpy.errstate(divide="ignore", invalid="ignore"):
-                        log_val = numpy.log10(_baseline)
-                        _baseline = numpy.where(_baseline > 0.0, log_val, -38)
-                return _baseline
+
+                scaledBaseline = axis_scale.apply(yScale, _baseline)
+                if yScale == "log":
+                    scaledBaseline[_baseline <= 0.0] = -38
+                return scaledBaseline
 
             _baseline = deduce_baseline(baseline)
 
