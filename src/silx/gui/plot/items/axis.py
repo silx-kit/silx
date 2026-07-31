@@ -220,7 +220,10 @@ class Axis(qt.QObject):
 
     def setScale(self, scale: types.AxisScaleType):
         """Set the scale to be used by this axis."""
-        assert scale in self._SCALES
+        if scale not in self._SCALES:
+            raise ValueError(
+                f"{scale} is not one of the supported scales: {self._SCALES}"
+            )
         if self._scale == scale:
             return
 
