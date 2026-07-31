@@ -1609,7 +1609,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setKeepDataAspectRatio(self, flag: bool):
         if flag and self._hasNonLinearScales():
-            _logger.warning("KeepDataAspectRatio is ignored with log axes")
+            _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
         self._keepDataAspectRatio = flag
 

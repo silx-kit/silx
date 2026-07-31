@@ -147,12 +147,12 @@ class PlotAxis:
 
     @property
     def timeZone(self):
-        """Returnss datetime.tzinfo that is used if this axis plots date times."""
+        """Returns datetime.tzinfo that is used if this axis plots date times."""
         return self._timeZone
 
     @timeZone.setter
     def timeZone(self, tz):
-        """Sets dateetime.tzinfo that is used if this axis plots date times."""
+        """Sets datetime.tzinfo that is used if this axis plots date times."""
         self._timeZone = tz
         self._dirtyTicks()
 

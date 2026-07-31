@@ -33,14 +33,16 @@ __date__ = "03/04/2017"
 import math
 import numpy
 
+
 from ...._glutils import gl, Program, Texture
+from ...items.types import AxisScaleType
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
 from .GLPlotItem import GLPlotItem
 
 
-_SHADER_AXIS_SCALES: dict[str, int] = {"linear": 0, "log": 1, "asinh": 2}
+_SHADER_AXIS_SCALES: dict[AxisScaleType, int] = {"linear": 0, "log": 1, "asinh": 2}
 
 
 class _GLPlotData2D(GLPlotItem):
@@ -119,7 +121,7 @@ class GLPlotColormap(_GLPlotData2D):
 
     const float oneOverLog10 = 0.43429448190325176;
 
-    /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+    /* asinh = log(x + sqrt(x*x + 1)) for compatibility with GLSL 1.20 */
     float asinh(float value) {
         return log(value + sqrt(value*value + 1.0));
     }
@@ -592,7 +594,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     const float oneOverLog10 = 0.43429448190325176;
 
-    /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+    /* asinh = log(x + sqrt(x*x + 1)) for compatibility with GLSL 1.20 */
     float asinh(float value) {
         return log(value + sqrt(value*value + 1.0));
     }

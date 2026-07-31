@@ -35,6 +35,8 @@ import logging
 
 import numpy
 
+from silx.gui.colors import RGBAColorType
+from silx.gui.plot.items.types import AxisScaleType
 from silx.math.combo import min_max
 
 from ...._glutils import gl
@@ -1170,22 +1172,22 @@ def _proxyProperty(*componentsAttributes):
 class GLPlotCurve2D(GLPlotItem):
     def __init__(
         self,
-        xData,
-        yData,
-        colorData=None,
-        xError=None,
-        yError=None,
-        lineColor=(0.0, 0.0, 0.0, 1.0),
-        lineGapColor=None,
-        lineWidth=1,
-        lineDashOffset=0.0,
-        lineDashPattern=(),
-        marker=SQUARE,
-        markerColor=(0.0, 0.0, 0.0, 1.0),
-        markerSize=7,
-        fillColor=None,
-        baseline=None,
-        yScale="linear",
+        xData: numpy.ndarray,
+        yData: numpy.ndarray,
+        colorData: numpy.ndarray | None = None,
+        xError: numpy.ndarray | None = None,
+        yError: numpy.ndarray | None = None,
+        lineColor: RGBAColorType = (0.0, 0.0, 0.0, 1.0),
+        lineGapColor: RGBAColorType | None = None,
+        lineWidth: int = 1,
+        lineDashOffset: float = 0.0,
+        lineDashPattern: tuple = (),
+        marker: str = SQUARE,
+        markerColor: RGBAColorType = (0.0, 0.0, 0.0, 1.0),
+        markerSize: int = 7,
+        fillColor: RGBAColorType | None = None,
+        baseline: numpy.ndarray | float | None = None,
+        yScale: AxisScaleType = "linear",
     ):
         super().__init__()
         self._ratio = None
@@ -1241,6 +1243,7 @@ class GLPlotCurve2D(GLPlotItem):
                     _baseline = numpy.repeat(_baseline, len(self.xData))
 
                 scaledBaseline = axis_scale.apply(yScale, _baseline)
+                assert isinstance(scaledBaseline, numpy.ndarray)
                 if yScale == "log":
                     scaledBaseline[_baseline <= 0.0] = -38
                 return scaledBaseline
