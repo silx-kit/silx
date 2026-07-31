@@ -1129,11 +1129,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise RuntimeError(f"Unsupported data shape {data.shape}")
 
-        if not axis_scale.isValid(self._plotFrame.xAxis.scale, image.xMin):
+        if numpy.isfinite(image.xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, image.xMin
+        ):
             raise RuntimeError(
                 "Cannot add image with coordinate outside X axis valid range"
             )
-        if not axis_scale.isValid(self._plotFrame.yAxis.scale, image.yMin):
+        if numpy.isfinite(image.yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, image.yMin
+        ):
             raise RuntimeError(
                 "Cannot add image with coordinate outside Y axis valid range"
             )
@@ -1151,11 +1155,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         x = numpy.asarray(x)
         y = numpy.asarray(y)
 
-        if not axis_scale.isValid(self._plotFrame.xAxis.scale, x.min()):
+        xMin = x.min()
+        if numpy.isfinite(xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, xMin
+        ):
             raise RuntimeError(
                 "Cannot add item with coordinate outside X axis valid range"
             )
-        if not axis_scale.isValid(self._plotFrame.yAxis.scale, y.min()):
+        yMin = y.min()
+        if numpy.isfinite(yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, yMin
+        ):
             raise RuntimeError(
                 "Cannot add item with coordinate outside Y axis valid range"
             )
