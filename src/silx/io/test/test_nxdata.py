@@ -1,7 +1,8 @@
 import h5py
 import numpy
 import pytest
-
+import json
+import logging
 
 from .. import nxdata
 from ..dictdump import dicttoh5, dicttonx
@@ -847,3 +848,60 @@ def test_get_axis_errors(tmp_path):
         assert nxd.get_axis_errors("Y") == y_errors
         # Check good indices are applied
         numpy.testing.assert_equal(nxd.get_axis_errors("z"), z_dset_errors[1:3])
+
+
+def test_valid_scale_types(tmp_path):
+    nx_dict = {
+        "NXdata": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": numpy.linspace(0, 100, 100).reshape(10, 10),
+            "x": numpy.linspace(0, 1, 10),
+            "y": numpy.linspace(1, 10, 10),
+            "@axes": ["y", "x"],
+            "@SILX_style": json.dumps(
+                {"axes_scale_types": ["log", "asinh"], "signal_scale_type": "linear"}
+            ),
+        }
+    }
+
+    dicttonx(nx_dict, tmp_path / "nx.h5")
+
+    with h5py.File(tmp_path / "nx.h5", "r") as h5file:
+        nxdata_grp = h5file["NXdata"]
+        nxd = nxdata.NXdata(nxdata_grp)
+        assert nxd.plot_style is not None
+        assert nxd.plot_style.axes_scale_types == ("log", "asinh")
+        assert nxd.plot_style.signal_scale_type == "linear"
+
+
+def test_invalid_scale_types(tmp_path, caplog):
+    nx_dict = {
+        "NXdata": {
+            "@NX_class": "NXdata",
+            "@signal": "signal",
+            "signal": numpy.linspace(0, 100, 100).reshape(10, 10),
+            "x": numpy.linspace(0, 1, 10),
+            "y": numpy.linspace(0, 1, 10),
+            "@axes": ["y", "x"],
+            "@SILX_style": json.dumps(
+                {
+                    "axes_scale_types": ["not_a_scale", "log"],
+                    "signal_scale_type": "not_a_scale",
+                }
+            ),
+        }
+    }
+
+    dicttonx(nx_dict, tmp_path / "nx.h5")
+
+    caplog.set_level(level=logging.ERROR, logger="silx.io.nxdata")
+    with h5py.File(tmp_path / "nx.h5", "r") as h5file:
+        nxdata_grp = h5file["NXdata"]
+        nxd = nxdata.NXdata(nxdata_grp)
+        assert nxd.plot_style is not None
+        assert nxd.plot_style.axes_scale_types == (None, None)
+        assert nxd.plot_style.signal_scale_type is None
+    assert len(caplog.messages) == 2
+    assert "Ignoring SILX_style:axes_scale_types" in caplog.messages[0]
+    assert "Ignoring SILX_style:signal_scale_type" in caplog.messages[1]
