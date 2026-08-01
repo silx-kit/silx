@@ -40,6 +40,7 @@ import weakref
 import logging
 import numbers
 from collections import namedtuple
+from typing import Sequence
 
 import numpy
 
@@ -368,6 +369,15 @@ class PlotAxis:
             yield start
             start += step
 
+    def _defaultFormatTicks(
+        self, min_: float, max_: float, tickValues: Sequence[float]
+    ) -> tuple[str, list[str]]:
+        """Returns offset/order text and list of tick labels"""
+        self._tickFormatter.axis.set_view_interval(min_, max_)
+        self._tickFormatter.axis.set_data_interval(min_, max_)
+        tickLabels = self._tickFormatter.format_ticks(tickValues)
+        return self._tickFormatter.get_offset(), tickLabels
+
     def _ticksGenerator(self):
         """Generator of ticks as tuples:
         ((x, y) in display, dataPos, textLabel).
@@ -386,9 +396,75 @@ class PlotAxis:
         if dataMin != dataMax:  # data range is not null
             (x0, y0), (x1, y1) = self.displayCoords
 
-            if self.scale in ("asinh", "log"):
+            if self.scale == "asinh":
                 if self.isTimeSeries:
-                    _logger.warning("Time series not implemented for non-linear axes")
+                    _logger.warning("Time series not implemented for asinh axes")
+
+                axisLengthInches = (
+                    numpy.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2) / self.dotsPerInch
+                )
+                # ~1.3 tick per inch
+                nTicks = max(3, 2 * int(round(1.3 * axisLengthInches)) // 2 + 1)
+
+                scaledMin, scaledMax = self.applyScale((dataMin, dataMax))
+                scaledTentativeTicks = numpy.linspace(scaledMin, scaledMax, nTicks)
+                tentativeTicks = self.revertScale(scaledTentativeTicks)
+                with numpy.errstate(divide="ignore"):
+                    log10Ticks = numpy.sign(tentativeTicks) * 10 ** numpy.floor(
+                        numpy.log10(abs(tentativeTicks))
+                    )
+                uniqueLog10Ticks = set(
+                    pos
+                    for pos in log10Ticks
+                    if numpy.isfinite(pos) and dataMin <= pos <= dataMax
+                )
+                if dataMin * dataMax < 0:  # crossing zero: ensure 0
+                    uniqueLog10Ticks.add(0.0)
+
+                tickPositions = numpy.array(sorted(uniqueLog10Ticks))
+
+                if dataMin * dataMax < 0:
+                    # Remove ticks too close to 0
+                    scaledTicks = self.applyScale(tickPositions)
+                    distanceToZero = axisLengthInches * abs(
+                        scaledTicks / (scaledMax - scaledMin)
+                    )
+                    tickPositions = tickPositions[
+                        numpy.logical_or(distanceToZero == 0, distanceToZero >= 0.5)
+                    ]
+
+                xScale = (x1 - x0) / (scaledMax - scaledMin)
+                yScale = (y1 - y0) / (scaledMax - scaledMin)
+
+                if len(tickPositions) >= 2:
+                    for dataPos in tickPositions:
+                        scaledPos = self.applyScale(dataPos)
+                        xPixel = x0 + (scaledPos - scaledMin) * xScale
+                        yPixel = y0 + (scaledPos - scaledMin) * yScale
+                        if dataPos != 0:
+                            sign = "" if dataPos >= 0 else "-"
+                            exp = int(numpy.floor(numpy.log10(abs(dataPos))))
+                            text = f"{sign}1e{exp}"
+                        else:
+                            text = "0"
+                        yield ((xPixel, yPixel), dataPos, text)
+                else:  # Not enough ticks: Fallback to linear ticks in scaled space
+                    tickPositions = self.revertScale(
+                        numpy.linspace(scaledMin, scaledMax, nTicks)
+                    )
+                    offsetText, tickLabels = self._defaultFormatTicks(
+                        dataMin, dataMax, tickPositions
+                    )
+                    self._orderAndOffsetText = offsetText
+
+                    for dataPos, text in zip(tickPositions, tickLabels):
+                        xPixel = x0 + (self.applyScale(dataPos) - scaledMin) * xScale
+                        yPixel = y0 + (self.applyScale(dataPos) - scaledMin) * yScale
+                        yield ((xPixel, yPixel), dataPos, text)
+
+            elif self.scale == "log":
+                if self.isTimeSeries:
+                    _logger.warning("Time series not implemented for log-scale")
 
                 scaledMin, scaledMax = self.applyScale((dataMin, dataMax))
                 tickMin, tickMax, step, _ = niceNumbersForLog10(scaledMin, scaledMax)
@@ -438,12 +514,12 @@ class PlotAxis:
                         for pos in self._frange(tickMin, tickMax, step)
                         if dataMin <= pos <= dataMax
                     ]
-                    self._tickFormatter.axis.set_view_interval(dataMin, dataMax)
-                    self._tickFormatter.axis.set_data_interval(dataMin, dataMax)
-                    texts = self._tickFormatter.format_ticks(visibleTickPositions)
-                    self._orderAndOffsetText = self._tickFormatter.get_offset()
+                    offsetText, tickLabels = self._defaultFormatTicks(
+                        dataMin, dataMax, visibleTickPositions
+                    )
+                    self._orderAndOffsetText = offsetText
 
-                    for dataPos, text in zip(visibleTickPositions, texts):
+                    for dataPos, text in zip(visibleTickPositions, tickLabels):
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
                         yield ((xPixel, yPixel), dataPos, text)
