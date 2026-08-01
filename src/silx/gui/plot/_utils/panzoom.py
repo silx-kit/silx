@@ -194,7 +194,7 @@ def applyPan(
 
     newMin = revert(axisScale, scaledMin + scaledOffset)
     newMax = revert(axisScale, scaledMax + scaledOffset)
-    if isValid(newMin) and isValid(newMax):
+    if isValid(axisScale, newMin) and isValid(axisScale, newMax):
         return tuple(clipToSafeRange(axisScale, (newMin, newMax)))
     else:
         return min_, max_
