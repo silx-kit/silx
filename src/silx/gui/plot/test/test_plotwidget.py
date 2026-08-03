@@ -2054,6 +2054,66 @@ class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
     backend = "gl"
 
 
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotWidget_Pygfx(TestPlotWidget):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotImage_Pygfx(TestPlotImage):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotCurve_Pygfx(TestPlotCurve):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotHistogram_Pygfx(TestPlotHistogram):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotScatter_Pygfx(TestPlotScatter):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotMarker_Pygfx(TestPlotMarker):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotItem_Pygfx(TestPlotItem):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotAxes_Pygfx(TestPlotAxes):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotEmptyLog_Pygfx(TestPlotEmptyLog):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotCurveLog_Pygfx(TestPlotCurveLog):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotImageLog_Pygfx(TestPlotImageLog):
+    backend = "pygfx"
+
+
+@pytest.mark.usefixtures("use_pygfx")
+class TestPlotMarkerLog_Pygfx(TestPlotMarkerLog):
+    backend = "pygfx"
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 
@@ -2061,7 +2121,7 @@ class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered:RuntimeWarning")
 @pytest.mark.filterwarnings("ignore:.* converting a masked element to nan.:UserWarning")
 @pytest.mark.filterwarnings("ignore:All-NaN axis encountered:RuntimeWarning")
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 @pytest.mark.parametrize(
     "xerror,yerror",
     [
