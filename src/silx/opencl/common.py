@@ -302,7 +302,7 @@ class Platform:
                 if a_dev.name == key:
                     out = a_dev
         else:
-            if len(self.devices) > devid > 0:
+            if len(self.devices) > devid >= 0:
                 out = self.devices[devid]
         return out
 
@@ -555,7 +555,7 @@ class OpenCL:
                 if a_plat.name == key:
                     out = a_plat
         else:
-            if len(self.platforms) > platid > 0:
+            if len(self.platforms) > platid >= 0:
                 out = self.platforms[platid]
         return out
 
