@@ -1704,18 +1704,31 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         # Fix here as we want to be able to use alt modifier in silx plot.
         # https://github.com/silx-kit/silx/pull/4631
         if event.angleDelta().y() == 0:
-            event = qt.QWheelEvent(
-                event.position(),
-                event.globalPosition(),
-                event.pixelDelta(),
-                qt.QPoint(0, event.angleDelta().x()),
-                event.buttons(),
-                event.modifiers(),
-                event.phase(),
-                event.isInverted(),
-                event.source(),
-                event.pointingDevice(),
-            )
+            if qt.BINDING == "PyQt5":
+                event = qt.QWheelEvent(
+                    event.position(),
+                    event.globalPosition(),
+                    event.pixelDelta(),
+                    qt.QPoint(0, event.angleDelta().x()),
+                    event.buttons(),
+                    event.modifiers(),
+                    event.phase(),
+                    event.inverted(),
+                    qt.Qt.MouseEventSynthesizedByApplication,
+                )
+            else:
+                event = qt.QWheelEvent(
+                    event.position(),
+                    event.globalPosition(),
+                    event.pixelDelta(),
+                    qt.QPoint(0, event.angleDelta().x()),
+                    event.buttons(),
+                    event.modifiers(),
+                    event.phase(),
+                    event.inverted(),
+                    qt.Qt.MouseEventSynthesizedByApplication,
+                    event.pointingDevice(),
+                )
             super().wheelEvent(event)
             return
 
