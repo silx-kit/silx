@@ -1345,8 +1345,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         )
         return item.pick(
             self._plotFrame.xAxis.applyScale(xPickMin),
-            self._plotFrame.xAxis.applyScale(xPickMax),
             yAxis.applyScale(yPickMin),
+            self._plotFrame.xAxis.applyScale(xPickMax),
             yAxis.applyScale(yPickMax),
         )
 
