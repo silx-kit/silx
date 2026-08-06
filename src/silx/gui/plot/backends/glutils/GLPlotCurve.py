@@ -31,10 +31,11 @@ __date__ = "03/04/2017"
 
 
 import math
-import logging
 
 import numpy
 
+from silx.gui.colors import RGBAColorType
+from silx.gui.plot.items.types import AxisScaleType
 from silx.math.combo import min_max
 
 from ...._glutils import gl
@@ -43,34 +44,9 @@ from ..._utils import axis_scale
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 from .GLPlotImage import GLPlotItem
 
-_logger = logging.getLogger(__name__)
-
 
 _MPL_NONES = None, "None", "", " "
 """Possible values for None"""
-
-
-def _notNaNSlices(array, length=1):
-    """Returns slices of none NaN values in the array.
-
-    :param numpy.ndarray array: 1D array from which to get slices
-    :param int length: Slices shorter than length gets discarded
-    :return: Array of (start, end) slice indices
-    :rtype: numpy.ndarray
-    """
-    isnan = numpy.isnan(numpy.asarray(array).ravel())
-    notnan = numpy.logical_not(isnan)
-    start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
-    if notnan[0]:
-        start = numpy.append(0, start)
-    end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
-    if notnan[-1]:
-        end = numpy.append(end, len(array))
-    slices = numpy.transpose((start, end))
-    if length > 1:
-        # discard slices with less than length values
-        slices = slices[numpy.diff(slices, axis=1).ravel() >= length]
-    return slices
 
 
 # fill ########################################################################
@@ -1170,22 +1146,22 @@ def _proxyProperty(*componentsAttributes):
 class GLPlotCurve2D(GLPlotItem):
     def __init__(
         self,
-        xData,
-        yData,
-        colorData=None,
-        xError=None,
-        yError=None,
-        lineColor=(0.0, 0.0, 0.0, 1.0),
-        lineGapColor=None,
-        lineWidth=1,
-        lineDashOffset=0.0,
-        lineDashPattern=(),
-        marker=SQUARE,
-        markerColor=(0.0, 0.0, 0.0, 1.0),
-        markerSize=7,
-        fillColor=None,
-        baseline=None,
-        yScale="linear",
+        xData: numpy.ndarray,
+        yData: numpy.ndarray,
+        colorData: numpy.ndarray | None = None,
+        xError: numpy.ndarray | None = None,
+        yError: numpy.ndarray | None = None,
+        lineColor: RGBAColorType = (0.0, 0.0, 0.0, 1.0),
+        lineGapColor: RGBAColorType | None = None,
+        lineWidth: int = 1,
+        lineDashOffset: float = 0.0,
+        lineDashPattern: tuple = (),
+        marker: str = SQUARE,
+        markerColor: RGBAColorType = (0.0, 0.0, 0.0, 1.0),
+        markerSize: int = 7,
+        fillColor: RGBAColorType | None = None,
+        baseline: numpy.ndarray | float | None = None,
+        yScale: AxisScaleType = "linear",
     ):
         super().__init__()
         self._ratio = None

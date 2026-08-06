@@ -1129,11 +1129,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise RuntimeError(f"Unsupported data shape {data.shape}")
 
-        if not axis_scale.isValid(self._plotFrame.xAxis.scale, image.xMin):
+        if numpy.isfinite(image.xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, image.xMin
+        ):
             raise RuntimeError(
                 "Cannot add image with coordinate outside X axis valid range"
             )
-        if not axis_scale.isValid(self._plotFrame.yAxis.scale, image.yMin):
+        if numpy.isfinite(image.yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, image.yMin
+        ):
             raise RuntimeError(
                 "Cannot add image with coordinate outside Y axis valid range"
             )
@@ -1151,11 +1155,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         x = numpy.asarray(x)
         y = numpy.asarray(y)
 
-        if not axis_scale.isValid(self._plotFrame.xAxis.scale, x.min()):
+        xMin = x.min()
+        if numpy.isfinite(xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, xMin
+        ):
             raise RuntimeError(
                 "Cannot add item with coordinate outside X axis valid range"
             )
-        if not axis_scale.isValid(self._plotFrame.yAxis.scale, y.min()):
+        yMin = y.min()
+        if numpy.isfinite(yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, yMin
+        ):
             raise RuntimeError(
                 "Cannot add item with coordinate outside Y axis valid range"
             )
@@ -1293,14 +1303,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             numpy.clip(y, top, top + height - 1),
         )
 
-    def __pickCurves(self, item, x, y):
+    def __pickCurves(
+        self, item: glutils.GLPlotCurve2D, x: float, y: float
+    ) -> tuple[int, ...] | None:
         """Perform picking on a curve item.
 
-        :param GLPlotCurve2D item:
-        :param float x: X position of the mouse in widget coordinates
-        :param float y: Y position of the mouse in widget coordinates
+        :param item:
+        :param x: X position of the mouse in widget coordinates
+        :param y: Y position of the mouse in widget coordinates
         :return: List of indices of picked points or None if not picked
-        :rtype: Union[List[int],None]
         """
         offset = self._PICK_OFFSET
         if item.marker is not None:
@@ -1344,10 +1355,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
         )
         return item.pick(
-            self._plotFrame.xAxis.applyScale(xPickMin),
-            self._plotFrame.xAxis.applyScale(xPickMax),
-            yAxis.applyScale(yPickMin),
-            yAxis.applyScale(yPickMax),
+            xPickMin=self._plotFrame.xAxis.applyScale(xPickMin),
+            yPickMin=yAxis.applyScale(yPickMin),
+            xPickMax=self._plotFrame.xAxis.applyScale(xPickMax),
+            yPickMax=yAxis.applyScale(yPickMax),
         )
 
     def pickItem(self, x, y, item):
@@ -1609,7 +1620,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setKeepDataAspectRatio(self, flag: bool):
         if flag and self._hasNonLinearScales():
-            _logger.warning("KeepDataAspectRatio is ignored with log axes")
+            _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
         self._keepDataAspectRatio = flag
 
