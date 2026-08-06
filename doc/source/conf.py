@@ -82,6 +82,9 @@ if importlib.util.find_spec("sphinx_autodoc_typehints"):
 
     always_document_param_types = True
 
+# Ignore warnings about type hints that numpy's stubs can't resolve (e.g. trapezoid's ScalarT).
+suppress_warnings = ["sphinx_autodoc_typehints.forward_reference"]
+
 autodoc_member_order = "bysource"
 
 # Add any paths that contain templates here, relative to this directory.
