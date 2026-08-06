@@ -1303,14 +1303,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             numpy.clip(y, top, top + height - 1),
         )
 
-    def __pickCurves(self, item, x, y):
+    def __pickCurves(
+        self, item: glutils.GLPlotCurve2D, x: float, y: float
+    ) -> tuple[int, ...] | None:
         """Perform picking on a curve item.
 
-        :param GLPlotCurve2D item:
-        :param float x: X position of the mouse in widget coordinates
-        :param float y: Y position of the mouse in widget coordinates
+        :param item:
+        :param x: X position of the mouse in widget coordinates
+        :param y: Y position of the mouse in widget coordinates
         :return: List of indices of picked points or None if not picked
-        :rtype: Union[List[int],None]
         """
         offset = self._PICK_OFFSET
         if item.marker is not None:
@@ -1354,10 +1355,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
         )
         return item.pick(
-            self._plotFrame.xAxis.applyScale(xPickMin),
-            yAxis.applyScale(yPickMin),
-            self._plotFrame.xAxis.applyScale(xPickMax),
-            yAxis.applyScale(yPickMax),
+            xPickMin=self._plotFrame.xAxis.applyScale(xPickMin),
+            yPickMin=yAxis.applyScale(yPickMin),
+            xPickMax=self._plotFrame.xAxis.applyScale(xPickMax),
+            yPickMax=yAxis.applyScale(yPickMax),
         )
 
     def pickItem(self, x, y, item):
