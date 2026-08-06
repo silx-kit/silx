@@ -80,6 +80,8 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:matplotlib._fontconfig_pattern",
     "ignore::DeprecationWarning:matplotlib._mathtext",
     "ignore::DeprecationWarning:pyparsing.util",
+    # fabio<2025.10 sets ndarray.shape in-place, deprecated since numpy 2.5.0
+    "ignore::DeprecationWarning:fabio.fit2dmaskimage",
 )
 
 

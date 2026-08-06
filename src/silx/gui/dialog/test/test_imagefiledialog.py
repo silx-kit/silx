@@ -1,72 +1,45 @@
-# /*##########################################################################
-#
-# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# ###########################################################################*/
-"""Test for silx.gui.hdf5 module"""
-
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "08/03/2019"
-
-
-import tempfile
-import numpy
-import shutil
+from contextlib import contextmanager
 import os
 import weakref
+
 import fabio
 import h5py
+import numpy
+import pytest
+
 import silx.io.url
 from silx.gui import qt
-from silx.gui.utils import testutils
-from ..ImageFileDialog import ImageFileDialog
 from silx.gui.colors import Colormap
 from silx.gui.hdf5 import Hdf5TreeModel
+from silx.gui.qt.inspect import isValid
+from silx.gui.utils import testutils
 
-_tmpDirectory = None
+from ..ImageFileDialog import ImageFileDialog
 
 
-def setUpModule():
-    global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
+@pytest.fixture(scope="module")
+def tmp_directory(tmp_path_factory) -> str:
+    """Create the files used by every test of this module, once."""
+    directory = tmp_path_factory.mktemp("test_imagefiledialog")
 
     data = numpy.arange(100 * 100)
     data = data.reshape(100, 100)
 
-    filename = _tmpDirectory + "/singleimage.edf"
+    filename = directory / "singleimage.edf"
     image = fabio.edfimage.EdfImage(data=data)
-    image.write(filename)
+    image.write(str(filename))
 
-    filename = _tmpDirectory + "/multiframe.edf"
+    filename = directory / "multiframe.edf"
     image = fabio.edfimage.EdfImage(data=data)
     image.append_frame(data=data + 1)
     image.append_frame(data=data + 2)
-    image.write(filename)
+    image.write(str(filename))
 
-    filename = _tmpDirectory + "/singleimage.msk"
+    filename = directory / "singleimage.msk"
     image = fabio.fit2dmaskimage.Fit2dMaskImage(data=data % 2 == 1)
-    image.write(filename)
+    image.write(str(filename))
 
-    filename = _tmpDirectory + "/data.h5"
+    filename = directory / "data.h5"
     with h5py.File(filename, "w") as f:
         f["scalar"] = 10
         f["image"] = data
@@ -75,9 +48,9 @@ def setUpModule():
         f["complex_image"] = data * 1j
         f["group/image"] = data
 
-    directory = os.path.join(_tmpDirectory, "data")
-    os.mkdir(directory)
-    filename = os.path.join(directory, "data.h5")
+    sub_directory = directory / "data"
+    os.mkdir(sub_directory)
+    filename = sub_directory / "data.h5"
     with h5py.File(filename, "w") as f:
         f["scalar"] = 10
         f["image"] = data
@@ -86,272 +59,247 @@ def setUpModule():
         f["complex_image"] = data * 1j
         f["group/image"] = data
 
-    filename = _tmpDirectory + "/badformat.edf"
+    filename = directory / "badformat.edf"
     with open(filename, "wb") as f:
         f.write(b"{\nHello Nurse!")
 
-
-def tearDownModule():
-    global _tmpDirectory
-    for _ in range(10):
-        try:
-            shutil.rmtree(_tmpDirectory)
-        except PermissionError:  # Might fail on Windows
-            testutils.TestCaseQt.qWait(500)
-        else:
-            break
-    _tmpDirectory = None
+    return str(directory)
 
 
-class _UtilsMixin:
-    def createDialog(self):
-        self._deleteDialog()
-        self._dialog = self._createDialog()
-        return self._dialog
-
-    def _createDialog(self):
-        return ImageFileDialog()
-
-    def _deleteDialog(self):
-        if not hasattr(self, "_dialog"):
-            return
-        if self._dialog is not None:
-            ref = weakref.ref(self._dialog)
-            self._dialog = None
-            self.qWaitForDestroy(ref)
-
-    def assertSamePath(self, path1, path2):
-        self.assertEqual(
-            os.path.normcase(os.path.realpath(path1)),
-            os.path.normcase(os.path.realpath(path2)),
-            msg=f"Paths differs: {path1} != {path2}",
-        )
-
-    def assertNotSamePath(self, path1, path2):
-        self.assertNotEqual(
-            os.path.normcase(os.path.realpath(path1)),
-            os.path.normcase(os.path.realpath(path2)),
-            msg=f"Paths are equals: {path1} == {path2}",
-        )
-
-    def assertSameUrls(
-        self,
-        url1: silx.io.url.DataUrl | str,
-        url2: silx.io.url.DataUrl | str,
-    ):
-        """Check that both DataUrls are equivalent"""
-        if isinstance(url1, str):
-            url1 = silx.io.url.DataUrl(url1)
-        if isinstance(url2, str):
-            url2 = silx.io.url.DataUrl(url2)
-
-        self.assertEqual(url1.scheme(), url2.scheme())
-        self.assertSamePath(url1.file_path(), url2.file_path())
-        self.assertEqual(url1.data_path(), url2.data_path())
-        self.assertEqual(url1.data_slice(), url2.data_slice())
+@pytest.fixture
+def dialog(qWidgetFactory):
+    return qWidgetFactory(ImageFileDialog)
 
 
-class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
-    def tearDown(self):
-        self._deleteDialog()
-        testutils.TestCaseQt.tearDown(self)
+def assert_same_path(path1, path2):
+    assert os.path.normcase(os.path.realpath(path1)) == os.path.normcase(
+        os.path.realpath(path2)
+    ), f"Paths differ: {path1} != {path2}"
 
-    def testDisplayAndKeyEscape(self):
-        dialog = self.createDialog()
+
+def assert_not_same_path(path1, path2):
+    assert os.path.normcase(os.path.realpath(path1)) != os.path.normcase(
+        os.path.realpath(path2)
+    ), f"Paths are equal: {path1} == {path2}"
+
+
+def assert_same_urls(
+    url1: silx.io.url.DataUrl | str,
+    url2: silx.io.url.DataUrl | str,
+):
+    """Check that both DataUrls are equivalent"""
+    if isinstance(url1, str):
+        url1 = silx.io.url.DataUrl(url1)
+    if isinstance(url2, str):
+        url2 = silx.io.url.DataUrl(url2)
+
+    assert url1.scheme() == url2.scheme()
+    assert_same_path(url1.file_path(), url2.file_path())
+    assert url1.data_path() == url2.data_path()
+    assert url1.data_slice() == url2.data_slice()
+
+
+def count_selectable_items(model, root_index):
+    selectable = 0
+    for i in range(model.rowCount(root_index)):
+        index = model.index(i, 0, root_index)
+        flags = model.flags(index)
+        is_enabled = flags & qt.Qt.ItemIsEnabled == qt.Qt.ItemIsEnabled
+        if is_enabled:
+            selectable += 1
+    return selectable
+
+
+@contextmanager
+def assert_closed_with_result(dialog, expected_result):
+    # qWidgetFactory sets WA_DeleteOnClose: the C++ object is gone as
+    # soon as the dialog closes, so the result has to be caught on the
+    # fly instead of read back from the (now invalid) dialog.
+    listener = testutils.SignalListener()
+    dialog.finished.connect(listener)
+    yield
+    assert not isValid(dialog)
+    assert listener.arguments(callIndex=0, argumentIndex=0) == expected_result
+
+
+class TestImageFileDialogInteraction:
+    def testDisplayAndKeyEscape(self, dialog, qapp_utils):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
-        self.assertTrue(dialog.isVisible())
+        qapp_utils.qWaitForWindowExposed(dialog)
+        assert dialog.isVisible()
 
-        self.keyClick(dialog, qt.Qt.Key_Escape)
-        self.assertFalse(dialog.isVisible())
-        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
+        with assert_closed_with_result(dialog, qt.QDialog.Rejected):
+            qapp_utils.keyClick(dialog, qt.Qt.Key_Escape)
 
-    def testDisplayAndClickCancel(self):
-        dialog = self.createDialog()
+    def testDisplayAndClickCancel(self, dialog, qapp_utils):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
-        self.assertTrue(dialog.isVisible())
+        qapp_utils.qWaitForWindowExposed(dialog)
+        assert dialog.isVisible()
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.assertFalse(dialog.isVisible())
-        self.assertFalse(dialog.isVisible())
-        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
+        with assert_closed_with_result(dialog, qt.QDialog.Rejected):
+            qapp_utils.mouseClick(button, qt.Qt.LeftButton)
 
-    def testDisplayAndClickLockedOpen(self):
-        dialog = self.createDialog()
+    def testDisplayAndClickLockedOpen(self, dialog, qapp_utils):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
-        self.assertTrue(dialog.isVisible())
+        qapp_utils.qWaitForWindowExposed(dialog)
+        assert dialog.isVisible()
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
-        self.mouseClick(button, qt.Qt.LeftButton)
+        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
         # open button locked, dialog is not closed
-        self.assertTrue(dialog.isVisible())
-        self.assertEqual(dialog.result(), qt.QDialog.Rejected)
+        assert dialog.isVisible()
+        assert dialog.result() == qt.QDialog.Rejected
 
-    def testDisplayAndClickOpen(self):
-        dialog = self.createDialog()
+    def testDisplayAndClickOpen(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
-        self.assertTrue(dialog.isVisible())
-        filename = _tmpDirectory + "/singleimage.edf"
+        qapp_utils.qWaitForWindowExposed(dialog)
+        assert dialog.isVisible()
+        filename = tmp_directory + "/singleimage.edf"
         dialog.selectFile(filename)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
-        self.assertTrue(button.isEnabled())
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.assertFalse(dialog.isVisible())
-        self.assertEqual(dialog.result(), qt.QDialog.Accepted)
+        assert button.isEnabled()
+        with assert_closed_with_result(dialog, qt.QDialog.Accepted):
+            qapp_utils.mouseClick(button, qt.Qt.LeftButton)
 
-    def testClickOnShortcut(self):
+    def testClickOnShortcut(self, dialog, qapp_utils, tmp_directory):
         if qt.BINDING == "PySide6":
-            self.skipTest("Avoid segmentation fault with PySide6")
+            pytest.skip("Avoid segmentation fault with PySide6")
 
-        dialog = self.createDialog()
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         sidebar = testutils.findChildren(dialog, qt.QListView, name="sidebar")[0]
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        dialog.setDirectory(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.setDirectory(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
 
-        self.assertSamePath(url.text(), _tmpDirectory)
+        assert_same_path(url.text(), tmp_directory)
 
         urls = sidebar.urls()
         if len(urls) == 0:
-            self.skipTest("No sidebar path")
+            pytest.skip("No sidebar path")
         path = urls[0].path()
         if path != "" and not os.path.exists(path):
-            self.skipTest("Sidebar path do not exists")
+            pytest.skip("Sidebar path do not exists")
 
         index = sidebar.model().index(0, 0)
         # rect = sidebar.visualRect(index)
-        # self.mouseClick(sidebar, qt.Qt.LeftButton, pos=rect.center())
+        # qapp_utils.mouseClick(sidebar, qt.Qt.LeftButton, pos=rect.center())
         # Using mouse click is not working, let's use the selection API
         sidebar.selectionModel().select(index, qt.QItemSelectionModel.ClearAndSelect)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
 
         index = browser.rootIndex()
         if not index.isValid():
             path = ""
         else:
             path = index.model().filePath(index)
-        self.assertNotSamePath(_tmpDirectory, path)
-        self.assertNotSamePath(url.text(), _tmpDirectory)
+        assert_not_same_path(tmp_directory, path)
+        assert_not_same_path(url.text(), tmp_directory)
 
-    def testClickOnDetailView(self):
-        dialog = self.createDialog()
+    def testClickOnDetailView(self, dialog, qapp_utils):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         action = testutils.findChildren(dialog, qt.QAction, name="detailModeAction")[0]
         detailModeButton = testutils.getQToolButtonFromAction(action)
-        self.mouseClick(detailModeButton, qt.Qt.LeftButton)
-        self.assertEqual(dialog.viewMode(), qt.QFileDialog.Detail)
+        qapp_utils.mouseClick(detailModeButton, qt.Qt.LeftButton)
+        assert dialog.viewMode() == qt.QFileDialog.Detail
 
         action = testutils.findChildren(dialog, qt.QAction, name="listModeAction")[0]
         listModeButton = testutils.getQToolButtonFromAction(action)
-        self.mouseClick(listModeButton, qt.Qt.LeftButton)
-        self.assertEqual(dialog.viewMode(), qt.QFileDialog.List)
+        qapp_utils.mouseClick(listModeButton, qt.Qt.LeftButton)
+        assert dialog.viewMode() == qt.QFileDialog.List
 
-    def testClickOnBackToParentTool(self):
-        dialog = self.createDialog()
+    def testClickOnBackToParentTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         toParentButton = testutils.getQToolButtonFromAction(action)
-        filename = _tmpDirectory + "/data/data.h5"
+        filename = tmp_directory + "/data/data.h5"
 
         # init state
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
         ).path()
-        self.assertSamePath(url.text(), path)
+        assert_same_path(url.text(), path)
         # test
-        self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.mouseClick(toParentButton, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/"
         ).path()
-        self.assertSamePath(url.text(), path)
+        assert_same_path(url.text(), path)
 
-        self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertSamePath(url.text(), _tmpDirectory + "/data")
+        qapp_utils.mouseClick(toParentButton, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), tmp_directory + "/data")
 
-        self.mouseClick(toParentButton, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertSamePath(url.text(), _tmpDirectory)
+        qapp_utils.mouseClick(toParentButton, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), tmp_directory)
 
-    def testClickOnBackToRootTool(self):
-        dialog = self.createDialog()
+    def testClickOnBackToRootTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toRootFileAction")[0]
         button = testutils.getQToolButtonFromAction(action)
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
 
         # init state
         path = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
         ).path()
         dialog.selectUrl(path)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertSamePath(url.text(), path)
-        self.assertTrue(button.isEnabled())
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), path)
+        assert button.isEnabled()
         # test
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/"
         ).path()
-        self.assertSamePath(url.text(), path)
-        # self.assertFalse(button.isEnabled())
+        assert_same_path(url.text(), path)
 
-    def testClickOnBackToDirectoryTool(self):
-        dialog = self.createDialog()
+    def testClickOnBackToDirectoryTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         action = testutils.findChildren(dialog, qt.QAction, name="toDirectoryAction")[0]
         button = testutils.getQToolButtonFromAction(action)
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
 
         # init state
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/image"
         ).path()
-        self.assertSamePath(url.text(), path)
-        self.assertTrue(button.isEnabled())
+        assert_same_path(url.text(), path)
+        assert button.isEnabled()
         # test
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertSamePath(url.text(), _tmpDirectory)
-        self.assertFalse(button.isEnabled())
+        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), tmp_directory)
+        assert not button.isEnabled()
 
-        # FIXME: There is an unreleased qt.QWidget without nameObject
-        # No idea where it come from.
-        self.allowedLeakingWidgets = 1
-
-    def testClickOnHistoryTools(self):
-        dialog = self.createDialog()
+    def testClickOnHistoryTools(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
         forwardAction = testutils.findChildren(
@@ -360,164 +308,156 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         backwardAction = testutils.findChildren(
             dialog, qt.QAction, name="backwardAction"
         )[0]
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
 
-        dialog.setDirectory(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.setDirectory(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         # No way to use QTest.mouseDClick with QListView, QListWidget
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path2 = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/"
         ).path()
         dialog.selectUrl(path2)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         path3 = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group"
         ).path()
         dialog.selectUrl(path3)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertFalse(forwardAction.isEnabled())
-        self.assertTrue(backwardAction.isEnabled())
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert not forwardAction.isEnabled()
+        assert backwardAction.isEnabled()
 
         button = testutils.getQToolButtonFromAction(backwardAction)
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertTrue(forwardAction.isEnabled())
-        self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path2)
+        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert forwardAction.isEnabled()
+        assert backwardAction.isEnabled()
+        assert_same_path(url.text(), path2)
 
         button = testutils.getQToolButtonFromAction(forwardAction)
-        self.mouseClick(button, qt.Qt.LeftButton)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertFalse(forwardAction.isEnabled())
-        self.assertTrue(backwardAction.isEnabled())
-        self.assertSamePath(url.text(), path3)
+        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert not forwardAction.isEnabled()
+        assert backwardAction.isEnabled()
+        assert_same_path(url.text(), path3)
 
-    def testSelectImageFromEdf(self):
-        dialog = self.createDialog()
+    def testSelectImageFromEdf(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/singleimage.edf"
+        filename = tmp_directory + "/singleimage.edf"
         dialog.selectUrl(filename)
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert_same_path(dialog.selectedFile(), filename)
         url = silx.io.url.DataUrl(scheme="fabio", file_path=filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectImageFromEdf_Activate(self):
-        dialog = self.createDialog()
+    def testSelectImageFromEdf_Activate(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        dialog.selectUrl(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.selectUrl(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filename = _tmpDirectory + "/singleimage.edf"
+        filename = tmp_directory + "/singleimage.edf"
         url = silx.io.url.DataUrl(scheme="fabio", file_path=filename).path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
         # double click
         browser.activated.emit(index)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         # test
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectFrameFromEdf(self):
-        dialog = self.createDialog()
+    def testSelectFrameFromEdf(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/multiframe.edf"
+        filename = tmp_directory + "/multiframe.edf"
         url = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,))
         dialog.selectUrl(url.path())
         # test
         image = dialog.selectedImage()
-        self.assertEqual(image.shape, (100, 100))
-        self.assertEqual(image[0, 0], 1)
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert image.shape == (100, 100)
+        assert image[0, 0] == 1
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectImageFromMsk(self):
-        dialog = self.createDialog()
+    def testSelectImageFromMsk(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/singleimage.msk"
+        filename = tmp_directory + "/singleimage.msk"
         url = silx.io.url.DataUrl(scheme="fabio", file_path=filename)
         dialog.selectUrl(url.path())
         # test
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectImageFromH5(self):
-        dialog = self.createDialog()
+    def testSelectImageFromH5(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image")
         dialog.selectUrl(url.path())
         # test
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectH5_Activate(self):
-        dialog = self.createDialog()
+    def testSelectH5_Activate(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        dialog.selectUrl(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.selectUrl(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
         url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/")
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
         # double click
         browser.activated.emit(index)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         # test
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectFrameFromH5(self):
-        dialog = self.createDialog()
+    def testSelectFrameFromH5(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
         url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/cube", data_slice=(1,)
         )
         dialog.selectUrl(url.path())
         # test
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertEqual(dialog.selectedImage()[0, 0], 1)
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert dialog.selectedImage()[0, 0] == 1
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectSingleFrameFromH5(self):
-        dialog = self.createDialog()
+    def testSelectSingleFrameFromH5(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
         url = silx.io.url.DataUrl(
             scheme="silx",
             file_path=filename,
@@ -526,97 +466,73 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         )
         dialog.selectUrl(url.path())
         # test
-        self.assertEqual(dialog.selectedImage().shape, (100, 100))
-        self.assertEqual(dialog.selectedImage()[0, 0], 5)
-        self.assertSamePath(dialog.selectedFile(), filename)
-        self.assertSameUrls(dialog.selectedUrl(), url)
+        assert dialog.selectedImage().shape == (100, 100)
+        assert dialog.selectedImage()[0, 0] == 5
+        assert_same_path(dialog.selectedFile(), filename)
+        assert_same_urls(dialog.selectedUrl(), url)
 
-    def testSelectBadFileFormat_Activate(self):
-        dialog = self.createDialog()
+    def testSelectBadFileFormat_Activate(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
+        qapp_utils.qWaitForWindowExposed(dialog)
 
         # init state
-        dialog.selectUrl(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.selectUrl(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
-        filename = _tmpDirectory + "/badformat.edf"
+        filename = tmp_directory + "/badformat.edf"
         index = browser.model().index(filename)
         browser.selectIndex(index)
         browser.activated.emit(index)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         # test
-        self.assertSameUrls(dialog.selectedUrl(), filename)
+        assert_same_urls(dialog.selectedUrl(), filename)
 
-    def _countSelectableItems(self, model, rootIndex):
-        selectable = 0
-        for i in range(model.rowCount(rootIndex)):
-            index = model.index(i, 0, rootIndex)
-            flags = model.flags(index)
-            isEnabled = flags & qt.Qt.ItemIsEnabled == qt.Qt.ItemIsEnabled
-            if isEnabled:
-                selectable += 1
-        return selectable
-
-    def testFilterExtensions(self):
-        dialog = self.createDialog()
+    def testFilterExtensions(self, dialog, qapp_utils, tmp_directory):
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filters = testutils.findChildren(dialog, qt.QWidget, name="fileTypeCombo")[0]
         dialog.show()
-        self.qWaitForWindowExposed(dialog)
-        dialog.selectUrl(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertEqual(
-            self._countSelectableItems(browser.model(), browser.rootIndex()), 6
-        )
+        qapp_utils.qWaitForWindowExposed(dialog)
+        dialog.selectUrl(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert count_selectable_items(browser.model(), browser.rootIndex()) == 6
 
         codecName = fabio.edfimage.EdfImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
-        self.qWait(50)
-        self.assertEqual(
-            self._countSelectableItems(browser.model(), browser.rootIndex()), 4
-        )
+        qapp_utils.qWait(50)
+        assert count_selectable_items(browser.model(), browser.rootIndex()) == 4
 
         codecName = fabio.fit2dmaskimage.Fit2dMaskImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
-        self.qWait(50)
-        self.assertEqual(
-            self._countSelectableItems(browser.model(), browser.rootIndex()), 2
-        )
+        qapp_utils.qWait(50)
+        assert count_selectable_items(browser.model(), browser.rootIndex()) == 2
 
 
-class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
-    def tearDown(self):
-        self._deleteDialog()
-        testutils.TestCaseQt.tearDown(self)
-
-    def testSaveRestoreState(self):
-        dialog = self.createDialog()
-        dialog.setDirectory(_tmpDirectory)
+class TestImageFileDialogApi:
+    def testSaveRestoreState(self, qWidgetFactory, qapp_utils, tmp_directory):
+        dialog = qWidgetFactory(ImageFileDialog)
+        dialog.setDirectory(tmp_directory)
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setColormap(colormap)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         state = dialog.saveState()
-        dialog = None
 
-        dialog2 = self.createDialog()
+        dialog2 = qWidgetFactory(ImageFileDialog)
         result = dialog2.restoreState(state)
-        self.waitAsLongAs(dialog2.hasPendingEvents)
-        self.assertTrue(result)
-        self.assertEqual(dialog2.colormap().getNormalization(), "log")
+        qapp_utils.waitAsLongAs(dialog2.hasPendingEvents)
+        assert result
+        assert dialog2.colormap().getNormalization() == "log"
 
-    def printState(self):
+    def printState(self, dialog):
         """
         Print state of the ImageFileDialog.
 
         Can be used to add or regenerate `STATE_VERSION1_QT4` or
         `STATE_VERSION1_QT5`.
         """
-        dialog = self.createDialog()
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setDirectory("")
         dialog.setHistory([])
@@ -692,127 +608,128 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
     )
     """Serialized state on Qt5. Generated using :meth:`printState`"""
 
-    def testAvoidRestoreRegression_Version1(self):
+    def testAvoidRestoreRegression_Version1(self, dialog):
         version = qt.qVersion().split(".")[0]
         if version == "4":
             state = self.STATE_VERSION1_QT4
         elif version == "5":
             state = self.STATE_VERSION1_QT5
         else:
-            self.skipTest("Resource not available")
+            pytest.skip("Resource not available")
 
         state = qt.QByteArray(state)
-        dialog = self.createDialog()
         result = dialog.restoreState(state)
-        self.assertTrue(result)
+        assert result
         colormap = dialog.colormap()
-        self.assertEqual(colormap.getNormalization(), "log")
+        assert colormap.getNormalization() == "log"
 
-    def testRestoreRobusness(self):
+    def testRestoreRobusness(self, qWidgetFactory):
         """What's happen if you try to open a config file with a different
         binding."""
         state = qt.QByteArray(self.STATE_VERSION1_QT4)
-        dialog = self.createDialog()
+        dialog = qWidgetFactory(ImageFileDialog)
         dialog.restoreState(state)
         state = qt.QByteArray(self.STATE_VERSION1_QT5)
-        dialog = None
-        dialog = self.createDialog()
-        dialog.restoreState(state)
+        dialog2 = qWidgetFactory(ImageFileDialog)
+        dialog2.restoreState(state)
 
-    def testRestoreNonExistingDirectory(self):
-        directory = os.path.join(_tmpDirectory, "dir")
+    def testRestoreNonExistingDirectory(self, qapp_utils, tmp_directory):
+        directory = os.path.join(tmp_directory, "dir")
         os.mkdir(directory)
-        dialog = self.createDialog()
+        # We can't use qWidgetFactory here since we need to completely delete
+        # the first dialog before the second dialog restores its state,
+        # else Windows raises FileNotFoundError.
+        dialog = ImageFileDialog()
         dialog.setDirectory(directory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         state = dialog.saveState()
         os.rmdir(directory)
+
+        # The first dialog must release its watch on `directory` before
+        # the second dialog restores its state, or Windows raises
+        # FileNotFoundError.
+        ref = weakref.ref(dialog)
         dialog = None
+        qapp_utils.qWaitForDestroy(ref)
 
-        dialog2 = self.createDialog()
+        dialog2 = ImageFileDialog()
         result = dialog2.restoreState(state)
-        self.assertTrue(result)
-        self.assertNotEqual(dialog2.directory(), directory)
+        assert result
+        assert dialog2.directory() != directory
 
-    def testHistory(self):
-        dialog = self.createDialog()
+        ref = weakref.ref(dialog2)
+        dialog2 = None
+        qapp_utils.qWaitForDestroy(ref)
+
+    def testHistory(self, dialog):
         history = dialog.history()
         dialog.setHistory([])
-        self.assertEqual(dialog.history(), [])
+        assert dialog.history() == []
         dialog.setHistory(history)
-        self.assertEqual(dialog.history(), history)
+        assert dialog.history() == history
 
-    def testSidebarUrls(self):
-        dialog = self.createDialog()
+    def testSidebarUrls(self, dialog):
         urls = dialog.sidebarUrls()
         dialog.setSidebarUrls([])
-        self.assertEqual(dialog.sidebarUrls(), [])
+        assert dialog.sidebarUrls() == []
         dialog.setSidebarUrls(urls)
-        self.assertEqual(dialog.sidebarUrls(), urls)
+        assert dialog.sidebarUrls() == urls
 
-    def testColomap(self):
-        dialog = self.createDialog()
+    def testColomap(self, dialog):
         colormap = dialog.colormap()
-        self.assertEqual(colormap.getNormalization(), "linear")
+        assert colormap.getNormalization() == "linear"
         colormap = Colormap(normalization=Colormap.LOGARITHM)
         dialog.setColormap(colormap)
-        self.assertEqual(colormap.getNormalization(), "log")
+        assert colormap.getNormalization() == "log"
 
-    def testDirectory(self):
-        dialog = self.createDialog()
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        dialog.selectUrl(_tmpDirectory)
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertSamePath(dialog.directory(), _tmpDirectory)
+    def testDirectory(self, dialog, qapp_utils, tmp_directory):
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.selectUrl(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(dialog.directory(), tmp_directory)
 
-    def testBadDataType(self):
-        dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/complex_image")
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+    def testBadDataType(self, dialog, qapp_utils, tmp_directory):
+        dialog.selectUrl(tmp_directory + "/data.h5::/complex_image")
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
 
-    def testBadDataShape(self):
-        dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/unknown")
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+    def testBadDataShape(self, dialog, qapp_utils, tmp_directory):
+        dialog.selectUrl(tmp_directory + "/data.h5::/unknown")
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
 
-    def testBadDataFormat(self):
-        dialog = self.createDialog()
-        dialog.selectUrl(_tmpDirectory + "/badformat.edf")
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+    def testBadDataFormat(self, dialog, qapp_utils, tmp_directory):
+        dialog.selectUrl(tmp_directory + "/badformat.edf")
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
 
-    def testBadPath(self):
-        dialog = self.createDialog()
+    def testBadPath(self, dialog, qapp_utils):
         dialog.selectUrl("#$%/#$%")
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
 
-    def testBadSubpath(self):
-        dialog = self.createDialog()
-        self.waitAsLongAs(dialog.hasPendingEvents)
+    def testBadSubpath(self, dialog, qapp_utils, tmp_directory):
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
 
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
-        filename = _tmpDirectory + "/data.h5"
+        filename = tmp_directory + "/data.h5"
         url = silx.io.url.DataUrl(
             scheme="silx", file_path=filename, data_path="/group/foobar"
         )
         dialog.selectUrl(url.path())
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
 
         # an existing node is browsed, but the wrong path is selected
         index = browser.rootIndex()
         obj = index.model().data(index, role=Hdf5TreeModel.H5PY_OBJECT_ROLE)
-        self.assertEqual(obj.name, "/group")
+        assert obj.name == "/group"
         url = silx.io.url.DataUrl(dialog.selectedUrl())
-        self.assertEqual(url.data_path(), "/group")
+        assert url.data_path() == "/group"
 
-    def testBadSlicingPath(self):
-        dialog = self.createDialog()
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        dialog.selectUrl(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
-        self.waitAsLongAs(dialog.hasPendingEvents)
-        self.assertIsNone(dialog._selectedData())
+    def testBadSlicingPath(self, dialog, qapp_utils, tmp_directory):
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        dialog.selectUrl(tmp_directory + "/data.h5::/cube[a;45,-90]")
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert dialog._selectedData() is None
