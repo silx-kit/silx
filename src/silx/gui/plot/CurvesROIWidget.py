@@ -39,10 +39,12 @@ import functools
 import numpy
 from typing import Union
 
+# `sphinx-autodoc-typehints` can't parse the trapezoid signature for recent numpy versions (2.5+)
+# So don't expose it so it is not picked up by `sphinx-autodoc-typehints`
 try:
-    from numpy import trapezoid
+    from numpy import trapezoid as _trapezoid
 except ImportError:  # numpy v1 compatibility
-    from numpy import trapz as trapezoid
+    from numpy import trapz as _trapezoid
 from numpy.typing import ArrayLike
 
 from silx.io import dictdump
@@ -1243,13 +1245,13 @@ class ROI(_RegionOfInterestBase):
         if x.size == 0:
             return 0.0, 0.0
 
-        rawArea = trapezoid(y, x=x)
+        rawArea = _trapezoid(y, x=x)
         # to speed up and avoid an intersection calculation we are taking the
         # closest index to the ROI
         closestXLeftIndex = (numpy.abs(x - self.getFrom())).argmin()
         closestXRightIndex = (numpy.abs(x - self.getTo())).argmin()
         yBackground = y[closestXLeftIndex], y[closestXRightIndex]
-        background = trapezoid(yBackground, x=x)
+        background = _trapezoid(yBackground, x=x)
         netArea = rawArea - background
         return rawArea, netArea
 
