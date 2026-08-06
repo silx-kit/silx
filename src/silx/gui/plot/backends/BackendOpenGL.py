@@ -34,7 +34,6 @@ from typing import Literal
 import numpy
 
 from .. import items
-from .._utils import FLOAT32_MINPOS
 from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
@@ -42,6 +41,7 @@ from ... import qt
 
 from ..._glutils import gl
 from ... import _glutils as glu
+from .._utils import axis_scale
 from . import glutils
 from .glutils.PlotImageFile import saveImageToFile
 from silx.gui.colors import RGBAColorType
@@ -482,8 +482,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         """
         # Values that are often used
         plotWidth, plotHeight = self._plotFrame.plotSize
-        isXLog = self._plotFrame.xAxis.isLog
-        isYLog = self._plotFrame.yAxis.isLog
+        xAxisScale = self._plotFrame.xAxis.scale
+        yAxisScale = self._plotFrame.yAxis.scale
         isYInverted = self._plotFrame.isYAxisInverted
 
         # Used by marker rendering
@@ -491,8 +491,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         pixelOffset = 3
 
         context = glutils.RenderContext(
-            isXLog=isXLog,
-            isYLog=isYLog,
+            xAxisScale=xAxisScale,
+            yAxisScale=yAxisScale,
             dpi=self.getDotsPerInch(),
             plotFrame=self._plotFrame,
         )
@@ -522,11 +522,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                if (isXLog and numpy.min(item["x"]) < FLOAT32_MINPOS) or (
-                    isYLog and numpy.min(item["y"]) < FLOAT32_MINPOS
-                ):
-                    # Ignore items <= 0. on log axes
-                    continue
+                if not axis_scale.isValid(
+                    xAxisScale, numpy.min(item["x"])
+                ) or not axis_scale.isValid(yAxisScale, numpy.min(item["y"])):
+                    continue  # Ignore items out of axes supported range
 
                 if item["shape"] == "hline":
                     width = self._plotFrame.size[0]
@@ -624,8 +623,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 xCoord, yCoord, yAxis = item["x"], item["y"], item["yaxis"]
 
-                if (isXLog and xCoord is not None and xCoord <= 0) or (
-                    isYLog and yCoord is not None and yCoord <= 0
+                if (
+                    xCoord is not None and not axis_scale.isValid(xAxisScale, xCoord)
+                ) or (
+                    yCoord is not None and not axis_scale.isValid(yAxisScale, yCoord)
                 ):
                     # Do not render markers with negative coords on log axis
                     continue
@@ -977,45 +978,47 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Handle axes log scale: convert data
 
-        if self._plotFrame.xAxis.isLog:
-            logX = numpy.log10(x)
+        if self._plotFrame.xAxis.scale != "linear":
+            xScaled = self._plotFrame.xAxis.applyScale(x)
 
             if xerror is not None:
                 # Transform xerror so that
-                # log10(x) +/- xerror' = log10(x +/- xerror)
+                # xScaled +/- xerrorScaled = scaled(x +/- xerror)
                 if hasattr(xerror, "shape") and len(xerror.shape) == 2:
                     xErrorMinus, xErrorPlus = xerror[0], xerror[1]
                 else:
                     xErrorMinus, xErrorPlus = xerror, xerror
-                with numpy.errstate(divide="ignore", invalid="ignore"):
-                    # Ignore divide by zero, invalid value encountered in log10
-                    xErrorMinus = logX - numpy.log10(x - xErrorMinus)
-                xErrorPlus = numpy.log10(x + xErrorPlus) - logX
-                xerror = numpy.array((xErrorMinus, xErrorPlus), dtype=numpy.float32)
+                xerror = numpy.array(
+                    (
+                        xScaled - self._plotFrame.xAxis.applyScale(x - xErrorMinus),
+                        self._plotFrame.xAxis.applyScale(x + xErrorPlus) - xScaled,
+                    ),
+                    dtype=numpy.float32,
+                )
 
-            x = logX
+            x = xScaled
 
-        isYLog = (yaxis == "left" and self._plotFrame.yAxis.isLog) or (
-            yaxis == "right" and self._plotFrame.y2Axis.isLog
-        )
+        yAxis = self._plotFrame.y2Axis if yaxis == "right" else self._plotFrame.yAxis
 
-        if isYLog:
-            logY = numpy.log10(y)
+        if yAxis.scale != "linear":
+            yScaled = yAxis.applyScale(y)
 
             if yerror is not None:
                 # Transform yerror so that
-                # log10(y) +/- yerror' = log10(y +/- yerror)
+                # yScaled +/- yerrorScaled = scaled(y +/- yerror)
                 if hasattr(yerror, "shape") and len(yerror.shape) == 2:
                     yErrorMinus, yErrorPlus = yerror[0], yerror[1]
                 else:
                     yErrorMinus, yErrorPlus = yerror, yerror
-                with numpy.errstate(divide="ignore", invalid="ignore"):
-                    # Ignore divide by zero, invalid value encountered in log10
-                    yErrorMinus = logY - numpy.log10(y - yErrorMinus)
-                yErrorPlus = numpy.log10(y + yErrorPlus) - logY
-                yerror = numpy.array((yErrorMinus, yErrorPlus), dtype=numpy.float32)
+                yerror = numpy.array(
+                    (
+                        yScaled - yAxis.applyScale(y - yErrorMinus),
+                        yAxis.applyScale(y + yErrorPlus) - yScaled,
+                    ),
+                    dtype=numpy.float32,
+                )
 
-            y = logY
+            y = yScaled
 
         # TODO check if need more filtering of error (e.g., clip to positive)
 
@@ -1058,7 +1061,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             markerSize=symbolsize,
             fillColor=fillColor,
             baseline=baseline,
-            isYLog=isYLog,
+            yScale=yAxis.scale,
         )
         curve.yaxis = "left" if yaxis is None else yaxis
 
@@ -1126,24 +1129,25 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise RuntimeError(f"Unsupported data shape {data.shape}")
 
-        # TODO is this needed?
-        if self._plotFrame.xAxis.isLog and image.xMin <= 0.0:
-            raise RuntimeError("Cannot add image with X <= 0 with X axis log scale")
-        if self._plotFrame.yAxis.isLog and image.yMin <= 0.0:
-            raise RuntimeError("Cannot add image with Y <= 0 with Y axis log scale")
+        if numpy.isfinite(image.xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, image.xMin
+        ):
+            raise RuntimeError(
+                "Cannot add image with coordinate outside X axis valid range"
+            )
+        if numpy.isfinite(image.yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, image.yMin
+        ):
+            raise RuntimeError(
+                "Cannot add image with coordinate outside Y axis valid range"
+            )
 
         return image
 
     def addTriangles(self, x, y, triangles, color, alpha):
-        # Handle axes log scale: convert data
-        if self._plotFrame.xAxis.isLog:
-            x = numpy.log10(x)
-        if self._plotFrame.yAxis.isLog:
-            y = numpy.log10(y)
-
-        triangles = glutils.GLPlotTriangles(x, y, color, triangles, alpha)
-
-        return triangles
+        xScaled = self._plotFrame.xAxis.applyScale(x)
+        yScaled = self._plotFrame.yAxis.applyScale(y)
+        return glutils.GLPlotTriangles(xScaled, yScaled, color, triangles, alpha)
 
     def addShape(
         self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
@@ -1151,11 +1155,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         x = numpy.asarray(x)
         y = numpy.asarray(y)
 
-        # TODO is this needed?
-        if self._plotFrame.xAxis.isLog and x.min() <= 0.0:
-            raise RuntimeError("Cannot add item with X <= 0 with X axis log scale")
-        if self._plotFrame.yAxis.isLog and y.min() <= 0.0:
-            raise RuntimeError("Cannot add item with Y <= 0 with Y axis log scale")
+        xMin = x.min()
+        if numpy.isfinite(xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, xMin
+        ):
+            raise RuntimeError(
+                "Cannot add item with coordinate outside X axis valid range"
+            )
+        yMin = y.min()
+        if numpy.isfinite(yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, yMin
+        ):
+            raise RuntimeError(
+                "Cannot add item with coordinate outside Y axis valid range"
+            )
 
         dashoffset, dashpattern = self._lineStyleToDashOffsetPattern(linestyle)
         return _ShapeItem(
@@ -1290,14 +1303,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             numpy.clip(y, top, top + height - 1),
         )
 
-    def __pickCurves(self, item, x, y):
+    def __pickCurves(
+        self, item: glutils.GLPlotCurve2D, x: float, y: float
+    ) -> tuple[int, ...] | None:
         """Perform picking on a curve item.
 
-        :param GLPlotCurve2D item:
-        :param float x: X position of the mouse in widget coordinates
-        :param float y: Y position of the mouse in widget coordinates
+        :param item:
+        :param x: X position of the mouse in widget coordinates
+        :param y: Y position of the mouse in widget coordinates
         :return: List of indices of picked points or None if not picked
-        :rtype: Union[List[int],None]
         """
         offset = self._PICK_OFFSET
         if item.marker is not None:
@@ -1337,18 +1351,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             yPickMin, yPickMax = yPick1, yPick0
 
-        # Apply log scale if axis is log
-        if self._plotFrame.xAxis.isLog:
-            xPickMin = numpy.log10(xPickMin)
-            xPickMax = numpy.log10(xPickMax)
-
-        if (item.yaxis == "left" and self._plotFrame.yAxis.isLog) or (
-            item.yaxis == "right" and self._plotFrame.y2Axis.isLog
-        ):
-            yPickMin = numpy.log10(yPickMin)
-            yPickMax = numpy.log10(yPickMax)
-
-        return item.pick(xPickMin, yPickMin, xPickMax, yPickMax)
+        yAxis = (
+            self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
+        )
+        return item.pick(
+            xPickMin=self._plotFrame.xAxis.applyScale(xPickMin),
+            yPickMin=yAxis.applyScale(yPickMin),
+            xPickMax=self._plotFrame.xAxis.applyScale(xPickMax),
+            yPickMax=yAxis.applyScale(yPickMax),
+        )
 
     def pickItem(self, x, y, item):
         # Picking is performed in Qt widget pixels not device pixels
@@ -1560,34 +1571,22 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
     def setXAxisScale(self, scale: AxisScaleType):
-        if scale == "asinh":
-            raise NotImplementedError(
-                f"Plot OpenGL backend does not support {scale} X axis"
-            )
+        if scale != self._plotFrame.xAxis.scale:
+            if scale != "linear" and self._keepDataAspectRatio:
+                _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
-        is_log = True if scale == "log" else False
-        if is_log != self._plotFrame.xAxis.isLog:
-            if is_log and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with log axes")
-
-            self._plotFrame.xAxis.isLog = is_log
+            self._plotFrame.xAxis.scale = scale
 
     def setYAxisScale(self, scale: AxisScaleType):
-        if scale == "asinh":
-            raise NotImplementedError(
-                f"Plot OpenGL backend does not support {scale} Y axis"
-            )
-
-        is_log = True if scale == "log" else False
         if (
-            is_log != self._plotFrame.yAxis.isLog
-            or is_log != self._plotFrame.y2Axis.isLog
+            scale != self._plotFrame.yAxis.scale
+            or scale != self._plotFrame.y2Axis.scale
         ):
-            if is_log and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with log axes")
+            if scale != "linear" and self._keepDataAspectRatio:
+                _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
-            self._plotFrame.yAxis.isLog = is_log
-            self._plotFrame.y2Axis.isLog = is_log
+            self._plotFrame.yAxis.scale = scale
+            self._plotFrame.y2Axis.scale = scale
 
     def setYAxisInverted(self, flag: bool):
         self._plotFrame.isYAxisInverted = flag
@@ -1604,15 +1603,24 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def isYRightAxisVisible(self):
         return self._plotFrame.isY2Axis
 
+    def _hasNonLinearScales(self) -> bool:
+        nonLinearScales = [
+            scale
+            for scale in (
+                self._plotFrame.xAxis.scale,
+                self._plotFrame.yAxis.scale,
+                self._plotFrame.y2Axis.scale,
+            )
+            if scale != "linear"
+        ]
+        return len(nonLinearScales) != 0
+
     def isKeepDataAspectRatio(self):
-        if self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog:
-            return False
-        else:
-            return self._keepDataAspectRatio
+        return False if self._hasNonLinearScales() else self._keepDataAspectRatio
 
     def setKeepDataAspectRatio(self, flag: bool):
-        if flag and (self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog):
-            _logger.warning("KeepDataAspectRatio is ignored with log axes")
+        if flag and self._hasNonLinearScales():
+            _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
         self._keepDataAspectRatio = flag
 

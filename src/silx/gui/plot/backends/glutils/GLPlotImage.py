@@ -33,11 +33,16 @@ __date__ = "03/04/2017"
 import math
 import numpy
 
+
 from ...._glutils import gl, Program, Texture
+from ...items.types import AxisScaleType
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
 from .GLPlotItem import GLPlotItem
+
+
+_SHADER_AXIS_SCALES: dict[AxisScaleType, int] = {"linear": 0, "log": 1, "asinh": 2}
 
 
 class _GLPlotData2D(GLPlotItem):
@@ -103,43 +108,61 @@ class GLPlotColormap(_GLPlotData2D):
     }
     """,
         },
-        "log": {
+        "non_linear": {
             "vertex": """
     #version 120
 
     attribute vec2 position;
     uniform mat4 matrix;
     uniform mat4 matOffset;
-    uniform bvec2 isLog;
+    uniform ivec2 axisScale;
 
     varying vec2 coords;
 
     const float oneOverLog10 = 0.43429448190325176;
 
+    /* asinh = log(x + sqrt(x*x + 1)) for compatibility with GLSL 1.20 */
+    float asinh(float value) {
+        return log(value + sqrt(value*value + 1.0));
+    }
+
     void main(void) {
         vec4 dataPos = matOffset * vec4(position, 0.0, 1.0);
-        if (isLog.x) {
+        if (axisScale.x == 1) {  /* log scale */
             dataPos.x = oneOverLog10 * log(dataPos.x);
+        } else if (axisScale.x == 2) {  /* asinh scale */
+            dataPos.x = asinh(dataPos.x);
         }
-        if (isLog.y) {
+        if (axisScale.y == 1) {  /* log scale */
             dataPos.y = oneOverLog10 * log(dataPos.y);
+        } else if (axisScale.y == 2) {  /* asinh scale */
+            dataPos.y = asinh(dataPos.y);
         }
         coords = dataPos.xy;
         gl_Position = matrix * dataPos;
     }
     """,
             "fragTransform": """
-    uniform bvec2 isLog;
+    uniform ivec2 axisScale;
     uniform vec2 bounds_oneOverRange;
     uniform vec2 bounds_originOverRange;
 
+    /* sinh = (e^x - e^-x)/2 for compatibility with GLSL 1.20 */
+    float sinh(float value) {
+        return (exp(value) - exp(-value)) / 2.0;
+    }
+
     vec2 textureCoords(void) {
         vec2 pos = coords;
-        if (isLog.x) {
+        if (axisScale.x == 1) {  /* log scale */
             pos.x = pow(10., coords.x);
+        } else if (axisScale.x == 2) {  /* asinh scale */
+            pos.x = sinh(coords.x);
         }
-        if (isLog.y) {
+        if (axisScale.y == 1) {  /* log scale */
             pos.y = pow(10., coords.y);
+        } else if (axisScale.y == 2) {  /* asinh scale */
+            pos.y = sinh(coords.y);
         }
         return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
@@ -226,9 +249,9 @@ class GLPlotColormap(_GLPlotData2D):
         attrib0="position",
     )
 
-    _logProgram = Program(
-        _SHADERS["log"]["vertex"],
-        _SHADERS["fragment"] % _SHADERS["log"]["fragTransform"],
+    _nonLinearProgram = Program(
+        _SHADERS["non_linear"]["vertex"],
+        _SHADERS["fragment"] % _SHADERS["non_linear"]["fragTransform"],
         attrib0="position",
     )
 
@@ -434,21 +457,21 @@ class GLPlotColormap(_GLPlotData2D):
             self._DATA_TEX_UNIT,
         )
 
-    def _renderLog10(self, context):
-        """Perform rendering when one axis has log scale
+    def _renderNonLinear(self, context):
+        """Perform rendering when one axis is non linear
 
         :param RenderContext context: Rendering information
         """
         xMin, yMin = self.xMin, self.yMin
-        if (context.isXLog and xMin < FLOAT32_MINPOS) or (
-            context.isYLog and yMin < FLOAT32_MINPOS
+        if (context.xAxisScale == "log" and xMin < FLOAT32_MINPOS) or (
+            context.yAxisScale == "log" and yMin < FLOAT32_MINPOS
         ):
             # Do not render images that are partly or totally <= 0
             return
 
         self.prepare()
 
-        prog = self._logProgram
+        prog = self._nonLinearProgram
         prog.use()
 
         ox, oy = self.origin
@@ -463,7 +486,11 @@ class GLPlotColormap(_GLPlotData2D):
             prog.uniforms["matOffset"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
         )
 
-        gl.glUniform2i(prog.uniforms["isLog"], context.isXLog, context.isYLog)
+        gl.glUniform2i(
+            prog.uniforms["axisScale"],
+            _SHADER_AXIS_SCALES[context.xAxisScale],
+            _SHADER_AXIS_SCALES[context.yAxisScale],
+        )
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
@@ -510,8 +537,8 @@ class GLPlotColormap(_GLPlotData2D):
 
         :param RenderContext context: Rendering information
         """
-        if any((context.isXLog, context.isYLog)):
-            self._renderLog10(context)
+        if any((context.xAxisScale != "linear", context.yAxisScale != "linear")):
+            self._renderNonLinear(context)
         else:
             self._renderLinear(context)
 
@@ -554,26 +581,35 @@ class GLPlotRGBAImage(_GLPlotData2D):
     }
     """,
         },
-        "log": {
+        "non_linear": {
             "vertex": """
     #version 120
 
     attribute vec2 position;
     uniform mat4 matrix;
     uniform mat4 matOffset;
-    uniform bvec2 isLog;
+    uniform ivec2 axisScale;
 
     varying vec2 coords;
 
     const float oneOverLog10 = 0.43429448190325176;
 
+    /* asinh = log(x + sqrt(x*x + 1)) for compatibility with GLSL 1.20 */
+    float asinh(float value) {
+        return log(value + sqrt(value*value + 1.0));
+    }
+
     void main(void) {
         vec4 dataPos = matOffset * vec4(position, 0.0, 1.0);
-        if (isLog.x) {
+        if (axisScale.x == 1) {  /* log scale */
             dataPos.x = oneOverLog10 * log(dataPos.x);
+        } else if (axisScale.x == 2) {  /* asinh scale */
+            dataPos.x = asinh(dataPos.x);
         }
-        if (isLog.y) {
+        if (axisScale.y == 1) {  /* log scale */
             dataPos.y = oneOverLog10 * log(dataPos.y);
+        } else if (axisScale.y == 2) {  /* asinh scale */
+            dataPos.y = asinh(dataPos.y);
         }
         coords = dataPos.xy;
         gl_Position = matrix * dataPos;
@@ -583,20 +619,29 @@ class GLPlotRGBAImage(_GLPlotData2D):
     #version 120
 
     uniform sampler2D tex;
-    uniform bvec2 isLog;
+    uniform ivec2 axisScale;
     uniform vec2 bounds_oneOverRange;
     uniform vec2 bounds_originOverRange;
     uniform float alpha;
 
     varying vec2 coords;
 
+    /* sinh = (e^x - e^-x)/2 for compatibility with GLSL 1.20 */
+    float sinh(float value) {
+        return (exp(value) - exp(-value)) / 2.0;
+    }
+
     vec2 textureCoords(void) {
         vec2 pos = coords;
-        if (isLog.x) {
+        if (axisScale.x == 1) {  /* log scale */
             pos.x = pow(10., coords.x);
+        } else if (axisScale.x == 2) {  /* asinh scale */
+            pos.x = sinh(coords.x);
         }
-        if (isLog.y) {
+        if (axisScale.y == 1) {  /* log scale */
             pos.y = pow(10., coords.y);
+        } else if (axisScale.y == 2) {  /* asinh scale */
+            pos.y = sinh(coords.y);
         }
         return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
@@ -622,8 +667,10 @@ class GLPlotRGBAImage(_GLPlotData2D):
         _SHADERS["linear"]["vertex"], _SHADERS["linear"]["fragment"], attrib0="position"
     )
 
-    _logProgram = Program(
-        _SHADERS["log"]["vertex"], _SHADERS["log"]["fragment"], attrib0="position"
+    _nonLinearProgram = Program(
+        _SHADERS["non_linear"]["vertex"],
+        _SHADERS["non_linear"]["fragment"],
+        attrib0="position",
     )
 
     def __init__(self, data, origin, scale, alpha):
@@ -716,14 +763,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
             self._DATA_TEX_UNIT,
         )
 
-    def _renderLog(self, context):
-        """Perform rendering with axes having log scale
+    def _renderNonLinear(self, context):
+        """Perform rendering with non linear axes
 
         :param RenderContext context: Rendering information
         """
         self.prepare()
 
-        prog = self._logProgram
+        prog = self._nonLinearProgram
         prog.use()
 
         ox, oy = self.origin
@@ -738,7 +785,11 @@ class GLPlotRGBAImage(_GLPlotData2D):
             prog.uniforms["matOffset"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
         )
 
-        gl.glUniform2i(prog.uniforms["isLog"], context.isXLog, context.isYLog)
+        gl.glUniform2i(
+            prog.uniforms["axisScale"],
+            _SHADER_AXIS_SCALES[context.xAxisScale],
+            _SHADER_AXIS_SCALES[context.yAxisScale],
+        )
 
         gl.glUniform1f(prog.uniforms["alpha"], self.alpha)
 
@@ -783,7 +834,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         :param RenderContext context: Rendering information
         """
-        if any((context.isXLog, context.isYLog)):
-            self._renderLog(context)
+        if any((context.xAxisScale != "linear", context.yAxisScale != "linear")):
+            self._renderNonLinear(context)
         else:
             self._renderLinear(context)

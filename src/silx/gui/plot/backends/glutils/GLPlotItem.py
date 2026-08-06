@@ -29,39 +29,45 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "02/07/2020"
 
+import numpy
+from ...items.types import AxisScaleType
+
 
 class RenderContext:
     """Context with which to perform OpenGL rendering.
 
-    :param numpy.ndarray matrix: 4x4 transform matrix to use for rendering
-    :param bool isXLog: Whether X axis is log scale or not
-    :param bool isYLog: Whether Y axis is log scale or not
-    :param float dpi: Number of device pixels per inch
+    :param matrix: 4x4 transform matrix to use for rendering
+    :param xAxisScale:
+    :param yAxisScale:
+    :param dpi: Number of device pixels per inch
     """
 
     def __init__(
-        self, matrix=None, isXLog=False, isYLog=False, dpi=96.0, plotFrame=None
+        self,
+        matrix: numpy.ndarray | None = None,
+        xAxisScale: AxisScaleType = "linear",
+        yAxisScale: AxisScaleType = "linear",
+        dpi: float = 96.0,
+        plotFrame=None,
     ):
         self.matrix = matrix
         """Current transformation matrix"""
 
-        self.__isXLog = isXLog
-        self.__isYLog = isYLog
+        self.__xAxisScale = xAxisScale
+        self.__yAxisScale = yAxisScale
         self.__dpi = dpi
         self.__plotFrame = plotFrame
 
     @property
-    def isXLog(self):
-        """True if X axis is using log scale"""
-        return self.__isXLog
+    def xAxisScale(self) -> AxisScaleType:
+        return self.__xAxisScale
 
     @property
-    def isYLog(self):
-        """True if Y axis is using log scale"""
-        return self.__isYLog
+    def yAxisScale(self) -> AxisScaleType:
+        return self.__yAxisScale
 
     @property
-    def dpi(self):
+    def dpi(self) -> float:
         """Number of device pixels per inch"""
         return self.__dpi
 

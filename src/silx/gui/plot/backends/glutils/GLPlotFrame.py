@@ -34,439 +34,31 @@ __date__ = "03/04/2017"
 # keep aspect ratio managed here?
 # smarter dirty flag handling?
 
-import datetime as dt
-import math
-import weakref
 import logging
 import numbers
 from collections import namedtuple
 
 import numpy
 
+
+from .....utils.deprecation import deprecated_warning
 from .... import qt
 from ...._glutils import gl, Program
-from ....utils.matplotlib import DefaultTickFormatter
-from ..._utils import checkAxisLimits, FLOAT32_MINPOS
+from ..._utils import checkAxisLimits
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
-from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-from ..._utils.dtime_ticklayout import (
-    DtUnit,
-    bestUnit,
-    calcTicksAdaptive,
-    formatDatetimes,
-)
-
-_logger = logging.getLogger(__name__)
+from ._PlotAxis import PlotAxis as _PlotAxis
 
 
-# PlotAxis ####################################################################
-
-
-class PlotAxis:
-    """Represents a 1D axis of the plot.
-    This class is intended to be used with :class:`GLPlotFrame`.
-    """
-
-    def __init__(
-        self,
-        plotFrame,
-        tickLength=(0.0, 0.0),
-        foregroundColor=(0.0, 0.0, 0.0, 1.0),
-        labelAlign=CENTER,
-        labelVAlign=CENTER,
-        titleAlign=CENTER,
-        titleVAlign=CENTER,
-        orderOffsetAlign=CENTER,
-        orderOffsetVAlign=CENTER,
-        titleRotate=0,
-        titleOffset=(0.0, 0.0),
-        font: qt.QFont | None = None,
-    ):
-        self._tickFormatter = DefaultTickFormatter()
-        self._ticks = None
-        self._orderAndOffsetText = ""
-
-        self._plotFrameRef = weakref.ref(plotFrame)
-
-        self._isDateTime = False
-        self._timeZone = None
-        self._isLog = False
-        self._dataRange = 1.0, 100.0
-        self._displayCoords = (0.0, 0.0), (1.0, 0.0)
-        self._title = ""
-
-        self._tickLength = tickLength
-        self._foregroundColor = foregroundColor
-        self._labelAlign = labelAlign
-        self._labelVAlign = labelVAlign
-        self._orderOffsetAnchor = (1.0, 0.0)
-        self._orderOffsetAlign = orderOffsetAlign
-        self._orderOffsetVAlign = orderOffsetVAlign
-        self._titleAlign = titleAlign
-        self._titleVAlign = titleVAlign
-        self._titleRotate = titleRotate
-        self._titleOffset = titleOffset
-        self._font = font
-
-    @property
-    def dataRange(self):
-        """The range of the data represented on the axis as a tuple
-        of 2 floats: (min, max)."""
-        return self._dataRange
-
-    @property
-    def font(self) -> qt.QFont:
-        if self._font is None:
-            return qt.QApplication.instance().font()
-        return self._font
-
-    @dataRange.setter
-    def dataRange(self, dataRange):
-        assert len(dataRange) == 2
-        assert dataRange[0] <= dataRange[1]
-        dataRange = float(dataRange[0]), float(dataRange[1])
-
-        if dataRange != self._dataRange:
-            self._dataRange = dataRange
-            self._dirtyTicks()
-
-    @property
-    def isLog(self):
-        """Whether the axis is using a log10 scale or not as a bool."""
-        return self._isLog
-
-    @isLog.setter
-    def isLog(self, isLog):
-        isLog = bool(isLog)
-        if isLog != self._isLog:
-            self._isLog = isLog
-            self._dirtyTicks()
-
-    @property
-    def timeZone(self):
-        """Returnss datetime.tzinfo that is used if this axis plots date times."""
-        return self._timeZone
-
-    @timeZone.setter
-    def timeZone(self, tz):
-        """Sets dateetime.tzinfo that is used if this axis plots date times."""
-        self._timeZone = tz
-        self._dirtyTicks()
-
-    @property
-    def isTimeSeries(self):
-        """Whether the axis is showing floats as datetime objects"""
-        return self._isDateTime
-
-    @isTimeSeries.setter
-    def isTimeSeries(self, isTimeSeries):
-        isTimeSeries = bool(isTimeSeries)
-        if isTimeSeries != self._isDateTime:
-            self._isDateTime = isTimeSeries
-            self._dirtyTicks()
-
-    @property
-    def displayCoords(self):
-        """The coordinates of the start and end points of the axis
-        in display space (i.e., in pixels) as a tuple of 2 tuples of
-        2 floats: ((x0, y0), (x1, y1)).
-        """
-        return self._displayCoords
-
-    @displayCoords.setter
-    def displayCoords(self, displayCoords):
-        assert len(displayCoords) == 2
-        assert len(displayCoords[0]) == 2
-        assert len(displayCoords[1]) == 2
-        displayCoords = tuple(displayCoords[0]), tuple(displayCoords[1])
-        if displayCoords != self._displayCoords:
-            self._displayCoords = displayCoords
-            self._dirtyTicks()
-
-    @property
-    def devicePixelRatio(self):
-        """Returns the ratio between qt pixels and device pixels."""
-        plotFrame = self._plotFrameRef()
-        return plotFrame.devicePixelRatio if plotFrame is not None else 1.0
-
-    @property
-    def dotsPerInch(self):
-        """Returns the screen DPI"""
-        plotFrame = self._plotFrameRef()
-        return plotFrame.dotsPerInch if plotFrame is not None else 92
-
-    @property
-    def title(self):
-        """The text label associated with this axis as a str in latin-1."""
-        return self._title
-
-    @title.setter
-    def title(self, title):
-        if title != self._title:
-            self._title = title
-            self._dirtyPlotFrame()
-
-    @property
-    def orderOffsetAnchor(self) -> tuple[float, float]:
-        """Anchor position for the tick order&offset text"""
-        return self._orderOffsetAnchor
-
-    @orderOffsetAnchor.setter
-    def orderOffsetAnchor(self, position: tuple[float, float]):
-        if position != self._orderOffsetAnchor:
-            self._orderOffsetAnchor = position
-            self._dirtyTicks()
-
-    @property
-    def titleOffset(self):
-        """Title offset in pixels (x: int, y: int)"""
-        return self._titleOffset
-
-    @titleOffset.setter
-    def titleOffset(self, offset):
-        if offset != self._titleOffset:
-            self._titleOffset = offset
-            self._dirtyTicks()
-
-    @property
-    def foregroundColor(self):
-        """Color used for frame and labels"""
-        return self._foregroundColor
-
-    @foregroundColor.setter
-    def foregroundColor(self, color):
-        """Color used for frame and labels"""
-        assert len(color) == 4, (
-            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
+class PlotAxis(_PlotAxis):
+    def __init__(self, *args, **kwargs):
+        deprecated_warning(
+            type_="Class",
+            name="PlotAxis",
+            reason="PlotAxis will be removed from the public API.",
+            since_version="3.1.0",
         )
-        if self._foregroundColor != color:
-            self._foregroundColor = color
-            self._dirtyTicks()
-
-    @property
-    def ticks(self):
-        """Ticks as tuples: ((x, y) in display, dataPos, textLabel)."""
-        if self._ticks is None:
-            self._ticks = tuple(self._ticksGenerator())
-        return self._ticks
-
-    def getVerticesAndLabels(self):
-        """Create the list of vertices for axis and associated text labels.
-
-        :returns: A tuple: List of 2D line vertices, List of Text2D labels.
-        """
-        vertices = list(self.displayCoords)  # Add start and end points
-        labels = []
-
-        xTickLength, yTickLength = self._tickLength
-        xTickLength *= self.devicePixelRatio
-        yTickLength *= self.devicePixelRatio
-        for (xPixel, yPixel), dataPos, text in self.ticks:
-            if text is None:
-                tickScale = 0.5
-            else:
-                tickScale = 1.0
-
-                label = Text2D(
-                    text=text,
-                    font=self.font,
-                    color=self._foregroundColor,
-                    x=xPixel - xTickLength,
-                    y=yPixel - yTickLength,
-                    align=self._labelAlign,
-                    valign=self._labelVAlign,
-                    devicePixelRatio=self.devicePixelRatio,
-                )
-                labels.append(label)
-
-            vertices.append((xPixel, yPixel))
-            vertices.append(
-                (xPixel + tickScale * xTickLength, yPixel + tickScale * yTickLength)
-            )
-
-        (x0, y0), (x1, y1) = self.displayCoords
-        xAxisCenter = 0.5 * (x0 + x1)
-        yAxisCenter = 0.5 * (y0 + y1)
-
-        xOffset, yOffset = self.titleOffset
-
-        # Adaptative title positioning:
-        # tickNorm = math.sqrt(xTickLength ** 2 + yTickLength ** 2)
-        # xOffset = -tickLabelsSize[0] * xTickLength / tickNorm
-        # xOffset -= 3 * xTickLength
-        # yOffset = -tickLabelsSize[1] * yTickLength / tickNorm
-        # yOffset -= 3 * yTickLength
-
-        axisTitle = Text2D(
-            text=self.title,
-            font=self.font,
-            color=self._foregroundColor,
-            x=xAxisCenter + xOffset,
-            y=yAxisCenter + yOffset,
-            align=self._titleAlign,
-            valign=self._titleVAlign,
-            rotate=self._titleRotate,
-            devicePixelRatio=self.devicePixelRatio,
-        )
-        labels.append(axisTitle)
-
-        if self._orderAndOffsetText:
-            orderAndOffsetFont = self._orderAndOffsetFont(self.font)
-
-            xOrderOffset, yOrderOffset = self.orderOffsetAnchor
-            labels.append(
-                Text2D(
-                    text=self._orderAndOffsetText,
-                    font=orderAndOffsetFont,
-                    color=self._foregroundColor,
-                    x=xOrderOffset,
-                    y=yOrderOffset,
-                    align=self._orderOffsetAlign,
-                    valign=self._orderOffsetVAlign,
-                    devicePixelRatio=self.devicePixelRatio,
-                )
-            )
-        return vertices, labels
-
-    @staticmethod
-    def _orderAndOffsetFont(font: qt.QFont) -> qt.QFont:
-        """Returns a larger bold font"""
-        boldBiggerFont = qt.QFont(font)
-        boldBiggerFont.setWeight(qt.QFont.ExtraBold)
-        # Increase font size which is either in pixel or in points
-        pointSize = boldBiggerFont.pointSizeF()
-        if pointSize > 0:
-            boldBiggerFont.setPointSizeF(1.1 * pointSize)
-        pixelSize = boldBiggerFont.pixelSize()
-        if pixelSize > 0:
-            boldBiggerFont.setPixelSize(int(1.1 * pixelSize))
-        return boldBiggerFont
-
-    def _dirtyPlotFrame(self):
-        """Dirty parent GLPlotFrame"""
-        plotFrame = self._plotFrameRef()
-        if plotFrame is not None:
-            plotFrame._dirty()
-
-    def _dirtyTicks(self):
-        """Mark ticks as dirty and notify listener (i.e., background)."""
-        self._ticks = None
-        self._dirtyPlotFrame()
-
-    @staticmethod
-    def _frange(start, stop, step):
-        """range for float (including stop)."""
-        while start <= stop:
-            yield start
-            start += step
-
-    def _ticksGenerator(self):
-        """Generator of ticks as tuples:
-        ((x, y) in display, dataPos, textLabel).
-        """
-        self._orderAndOffsetText = ""
-
-        dataMin, dataMax = self.dataRange
-        if self.isLog and dataMin <= 0.0:
-            _logger.warning("Getting ticks while isLog=True and dataRange[0]<=0.")
-            dataMin = 1.0
-            if dataMax < dataMin:
-                dataMax = 1.0
-
-        if dataMin != dataMax:  # data range is not null
-            (x0, y0), (x1, y1) = self.displayCoords
-
-            if self.isLog:
-                if self.isTimeSeries:
-                    _logger.warning("Time series not implemented for log-scale")
-
-                logMin, logMax = math.log10(dataMin), math.log10(dataMax)
-                tickMin, tickMax, step, _ = niceNumbersForLog10(logMin, logMax)
-
-                xScale = (x1 - x0) / (logMax - logMin)
-                yScale = (y1 - y0) / (logMax - logMin)
-
-                for logPos in self._frange(tickMin, tickMax, step):
-                    if logMin <= logPos <= logMax:
-                        dataPos = 10**logPos
-                        xPixel = x0 + (logPos - logMin) * xScale
-                        yPixel = y0 + (logPos - logMin) * yScale
-                        text = "1e%+03d" % logPos
-                        yield ((xPixel, yPixel), dataPos, text)
-
-                if step == 1:
-                    ticks = list(self._frange(tickMin, tickMax, step))[:-1]
-                    for logPos in ticks:
-                        dataOrigPos = 10**logPos
-                        for index in range(2, 10):
-                            dataPos = dataOrigPos * index
-                            if dataMin <= dataPos <= dataMax:
-                                logSubPos = math.log10(dataPos)
-                                xPixel = x0 + (logSubPos - logMin) * xScale
-                                yPixel = y0 + (logSubPos - logMin) * yScale
-                                yield ((xPixel, yPixel), dataPos, None)
-
-            else:
-                xScale = (x1 - x0) / (dataMax - dataMin)
-                yScale = (y1 - y0) / (dataMax - dataMin)
-
-                nbPixels = (
-                    math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2)) / self.devicePixelRatio
-                )
-
-                # Density of 1.3 label per 92 pixels
-                # i.e., 1.3 label per inch on a 92 dpi screen
-                tickDensity = 1.3 * self.devicePixelRatio / self.dotsPerInch
-
-                if not self.isTimeSeries:
-                    tickMin, tickMax, step, _ = niceNumbersAdaptative(
-                        dataMin, dataMax, nbPixels, tickDensity
-                    )
-
-                    visibleTickPositions = [
-                        pos
-                        for pos in self._frange(tickMin, tickMax, step)
-                        if dataMin <= pos <= dataMax
-                    ]
-                    self._tickFormatter.axis.set_view_interval(dataMin, dataMax)
-                    self._tickFormatter.axis.set_data_interval(dataMin, dataMax)
-                    texts = self._tickFormatter.format_ticks(visibleTickPositions)
-                    self._orderAndOffsetText = self._tickFormatter.get_offset()
-
-                    for dataPos, text in zip(visibleTickPositions, texts):
-                        xPixel = x0 + (dataPos - dataMin) * xScale
-                        yPixel = y0 + (dataPos - dataMin) * yScale
-                        yield ((xPixel, yPixel), dataPos, text)
-
-                else:
-                    # Time series
-                    try:
-                        dtMin = dt.datetime.fromtimestamp(dataMin, tz=self.timeZone)
-                        dtMax = dt.datetime.fromtimestamp(dataMax, tz=self.timeZone)
-                    except ValueError:
-                        _logger.warning("Data range cannot be displayed with time axis")
-                        return  # Range is out of bound of the datetime
-
-                    if bestUnit(
-                        (dtMax - dtMin).total_seconds() == DtUnit.MICRO_SECONDS
-                    ):
-                        # Special case for micro seconds: Reduce tick density
-                        tickDensity = 1.0 * self.devicePixelRatio / self.dotsPerInch
-
-                    tickDateTimes, spacing, unit = calcTicksAdaptive(
-                        dtMin, dtMax, nbPixels, tickDensity
-                    )
-                    visibleDatetimes = tuple(
-                        dt for dt in tickDateTimes if dtMin <= dt <= dtMax
-                    )
-                    ticks = formatDatetimes(visibleDatetimes, spacing, unit)
-
-                    for tickDateTime, text in ticks.items():
-                        dataPos = tickDateTime.timestamp()
-                        xPixel = x0 + (dataPos - dataMin) * xScale
-                        yPixel = y0 + (dataPos - dataMin) * yScale
-                        yield ((xPixel, yPixel), dataPos, text)
+        super().__init__(*args, **kwargs)
 
 
 # GLPlotFrame #################################################################
@@ -1039,17 +631,17 @@ class GLPlotFrame2D(GLPlotFrame):
         """
         if x is not None:
             self._dataRanges["x"] = checkAxisLimits(
-                "log" if self.xAxis.isLog else "linear", x[0], x[1], name="x"
+                self.xAxis.scale, x[0], x[1], name="x"
             )
 
         if y is not None:
             self._dataRanges["y"] = checkAxisLimits(
-                "log" if self.yAxis.isLog else "linear", y[0], y[1], name="y"
+                self.xAxis.scale, y[0], y[1], name="y"
             )
 
         if y2 is not None:
             self._dataRanges["y2"] = checkAxisLimits(
-                "log" if self.y2Axis.isLog else "linear", y2[0], y2[1], name="y2"
+                self.xAxis.scale, y2[0], y2[1], name="y2"
             )
 
         self.xAxis.dataRange = self._dataRanges["x"]
@@ -1066,46 +658,18 @@ class GLPlotFrame2D(GLPlotFrame):
         3-tuple of 2-tuple (min, max) for each axis: x, y, y2.
         """
         if self._transformedDataRanges is None:
-            (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self.dataRanges
+            xRange, yRange, y2Range = self.dataRanges
+            scaledRanges = []
+            for range_, axis in [
+                (xRange, self.xAxis),
+                (yRange, self.yAxis),
+                (y2Range, self.y2Axis),
+            ]:
+                scaledRange = axis.applyScale(range_)
+                scaledRange[~numpy.isfinite(scaledRange)] = 0.0
+                scaledRanges.append(tuple(scaledRange))
 
-            if self.xAxis.isLog:
-                try:
-                    xMin = math.log10(xMin)
-                except ValueError:
-                    _logger.info("xMin: warning log10(%f)", xMin)
-                    xMin = 0.0
-                try:
-                    xMax = math.log10(xMax)
-                except ValueError:
-                    _logger.info("xMax: warning log10(%f)", xMax)
-                    xMax = 0.0
-
-            if self.yAxis.isLog:
-                try:
-                    yMin = math.log10(yMin)
-                except ValueError:
-                    _logger.info("yMin: warning log10(%f)", yMin)
-                    yMin = 0.0
-                try:
-                    yMax = math.log10(yMax)
-                except ValueError:
-                    _logger.info("yMax: warning log10(%f)", yMax)
-                    yMax = 0.0
-
-                try:
-                    y2Min = math.log10(y2Min)
-                except ValueError:
-                    _logger.info("yMin: warning log10(%f)", y2Min)
-                    y2Min = 0.0
-                try:
-                    y2Max = math.log10(y2Max)
-                except ValueError:
-                    _logger.info("yMax: warning log10(%f)", y2Max)
-                    y2Max = 0.0
-
-            self._transformedDataRanges = self._DataRanges(
-                (xMin, xMax), (yMin, yMax), (y2Min, y2Max)
-            )
+            self._transformedDataRanges = self._DataRanges(*scaledRanges)
 
         return self._transformedDataRanges
 
@@ -1150,37 +714,18 @@ class GLPlotFrame2D(GLPlotFrame):
 
         return self._transformedDataY2ProjMat
 
-    @staticmethod
-    def __applyLog(
-        data: float | numpy.ndarray, isLog: bool
-    ) -> float | numpy.ndarray | None:
-        """Apply log to data filtering out"""
-        if not isLog:
-            return data
-
-        if isinstance(data, numbers.Real):
-            return None if data < FLOAT32_MINPOS else math.log10(data)
-
-        isBelowMin = data < FLOAT32_MINPOS
-        if numpy.any(isBelowMin):
-            data = numpy.array(data, copy=True, dtype=numpy.float64)
-            data[isBelowMin] = numpy.nan
-
-        with numpy.errstate(divide="ignore"):
-            return numpy.log10(data)
-
     def dataToPixel(self, x, y, axis="left"):
         """Convert data coordinate to widget pixel coordinate."""
         assert axis in ("left", "right")
 
         trBounds = self.transformedDataRanges
 
-        xDataTr = self.__applyLog(x, self.xAxis.isLog)
-        if xDataTr is None:
+        xDataTr = self.xAxis.applyScale(x)
+        if isinstance(xDataTr, numbers.Real) and not numpy.isfinite(xDataTr):
             return None
 
-        yDataTr = self.__applyLog(y, self.yAxis.isLog)
-        if yDataTr is None:
+        yDataTr = self.yAxis.applyScale(y)
+        if isinstance(yDataTr, numbers.Real) and not numpy.isfinite(yDataTr):
             return None
 
         # Non-orthogonal axes
@@ -1237,19 +782,19 @@ class GLPlotFrame2D(GLPlotFrame):
         trBounds = self.transformedDataRanges
 
         if self.isXAxisInverted:
-            unscaledXData = self.size[0] - self.margins.right - x - 0.5
+            xPlotPixel = self.size[0] - self.margins.right - x - 0.5
         else:
-            unscaledXData = x - self.margins.left + 0.5
-        xData = trBounds.x[0] + unscaledXData / float(plotWidth) * (
+            xPlotPixel = x - self.margins.left + 0.5
+        xScaledData = trBounds.x[0] + xPlotPixel / float(plotWidth) * (
             trBounds.x[1] - trBounds.x[0]
         )
 
         if self.isYAxisInverted:
-            unscaledYData = y - self.margins.top + 0.5
+            yPlotPixel = y - self.margins.top + 0.5
         else:
-            unscaledYData = self.size[1] - self.margins.bottom - y - 0.5
+            yPlotPixel = self.size[1] - self.margins.bottom - y - 0.5
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
-        yData = usedAxis[0] + unscaledYData / float(plotHeight) * (
+        yScaledData = usedAxis[0] + yPlotPixel / float(plotHeight) * (
             usedAxis[1] - usedAxis[0]
         )
 
@@ -1259,14 +804,11 @@ class GLPlotFrame2D(GLPlotFrame):
             skew_mat = numpy.array(((xx, yx), (xy, yy)))
             skew_mat = numpy.linalg.inv(skew_mat)
 
-            coords = numpy.dot(skew_mat, numpy.array((xData, yData)))
-            xData, yData = coords
+            coords = numpy.dot(skew_mat, numpy.array((xScaledData, yScaledData)))
+            xScaledData, yScaledData = coords
 
-        if self.xAxis.isLog:
-            xData = pow(10, xData)
-        if self.yAxis.isLog:
-            yData = pow(10, yData)
-
+        xData = self.xAxis.revertScale(xScaledData)
+        yData = self.yAxis.revertScale(yScaledData)
         return xData, yData
 
     def _buildGridVerticesWithTest(self, test):

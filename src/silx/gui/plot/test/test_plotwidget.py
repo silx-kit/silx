@@ -2088,3 +2088,13 @@ def testCurveErrors(qapp, plotWidget, xerror, yerror):
     qapp.processEvents()
     plotWidget.getXAxis().setScale("log")
     plotWidget.getYAxis().setScale("log")
+
+
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testDataToPixelOutsideValidRange(qapp, plotWidget: PlotWidget):
+    plotWidget.addCurve(x=(0, 1, 2, 3), y=(0, 1, 4, 9))
+
+    assert plotWidget.dataToPixel(0, 0) is not None
+
+    plotWidget.getXAxis().setScale("log")
+    assert plotWidget.dataToPixel(0, 0) is None
