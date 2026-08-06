@@ -40,12 +40,25 @@ from collections import namedtuple
 
 import numpy
 
+
+from .....utils.deprecation import deprecated_warning
 from .... import qt
 from ...._glutils import gl, Program
 from ..._utils import checkAxisLimits
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
-from ._PlotAxis import PlotAxis
+from ._PlotAxis import PlotAxis as _PlotAxis
+
+
+class PlotAxis(_PlotAxis):
+    def __init__(self, *args, **kwargs):
+        deprecated_warning(
+            type_="Class",
+            name="PlotAxis",
+            reason="PlotAxis will be removed from the public API.",
+            since_version="3.1.0",
+        )
+        super().__init__(*args, **kwargs)
 
 
 # GLPlotFrame #################################################################
