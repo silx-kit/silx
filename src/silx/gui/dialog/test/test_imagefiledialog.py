@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import os
 import weakref
 
@@ -109,20 +110,26 @@ def count_selectable_items(model, root_index):
     return selectable
 
 
+@contextmanager
+def assert_closed_with_result(dialog, expected_result):
+    # qWidgetFactory sets WA_DeleteOnClose: the C++ object is gone as
+    # soon as the dialog closes, so the result has to be caught on the
+    # fly instead of read back from the (now invalid) dialog.
+    listener = testutils.SignalListener()
+    dialog.finished.connect(listener)
+    yield
+    assert not isValid(dialog)
+    assert listener.arguments(callIndex=0, argumentIndex=0) == expected_result
+
+
 class TestImageFileDialogInteraction:
     def testDisplayAndKeyEscape(self, dialog, qapp_utils):
         dialog.show()
         qapp_utils.qWaitForWindowExposed(dialog)
         assert dialog.isVisible()
 
-        # qWidgetFactory sets WA_DeleteOnClose: the C++ object is gone as
-        # soon as the dialog closes, so the result has to be caught on the
-        # fly instead of read back from the (now invalid) dialog.
-        listener = testutils.SignalListener()
-        dialog.finished.connect(listener)
-        qapp_utils.keyClick(dialog, qt.Qt.Key_Escape)
-        assert not isValid(dialog)
-        assert listener.arguments(callIndex=0, argumentIndex=0) == qt.QDialog.Rejected
+        with assert_closed_with_result(dialog, qt.QDialog.Rejected):
+            qapp_utils.keyClick(dialog, qt.Qt.Key_Escape)
 
     def testDisplayAndClickCancel(self, dialog, qapp_utils):
         dialog.show()
@@ -130,11 +137,8 @@ class TestImageFileDialogInteraction:
         assert dialog.isVisible()
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="cancel")[0]
-        listener = testutils.SignalListener()
-        dialog.finished.connect(listener)
-        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
-        assert not isValid(dialog)
-        assert listener.arguments(callIndex=0, argumentIndex=0) == qt.QDialog.Rejected
+        with assert_closed_with_result(dialog, qt.QDialog.Rejected):
+            qapp_utils.mouseClick(button, qt.Qt.LeftButton)
 
     def testDisplayAndClickLockedOpen(self, dialog, qapp_utils):
         dialog.show()
@@ -157,11 +161,8 @@ class TestImageFileDialogInteraction:
 
         button = testutils.findChildren(dialog, qt.QPushButton, name="open")[0]
         assert button.isEnabled()
-        listener = testutils.SignalListener()
-        dialog.finished.connect(listener)
-        qapp_utils.mouseClick(button, qt.Qt.LeftButton)
-        assert not isValid(dialog)
-        assert listener.arguments(callIndex=0, argumentIndex=0) == qt.QDialog.Accepted
+        with assert_closed_with_result(dialog, qt.QDialog.Accepted):
+            qapp_utils.mouseClick(button, qt.Qt.LeftButton)
 
     def testClickOnShortcut(self, dialog, qapp_utils, tmp_directory):
         if qt.BINDING == "PySide6":
