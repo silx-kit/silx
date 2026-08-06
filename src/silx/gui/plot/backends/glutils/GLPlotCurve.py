@@ -31,7 +31,6 @@ __date__ = "03/04/2017"
 
 
 import math
-import logging
 
 import numpy
 
@@ -45,34 +44,9 @@ from ..._utils import axis_scale
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
 from .GLPlotImage import GLPlotItem
 
-_logger = logging.getLogger(__name__)
-
 
 _MPL_NONES = None, "None", "", " "
 """Possible values for None"""
-
-
-def _notNaNSlices(array, length=1):
-    """Returns slices of none NaN values in the array.
-
-    :param numpy.ndarray array: 1D array from which to get slices
-    :param int length: Slices shorter than length gets discarded
-    :return: Array of (start, end) slice indices
-    :rtype: numpy.ndarray
-    """
-    isnan = numpy.isnan(numpy.asarray(array).ravel())
-    notnan = numpy.logical_not(isnan)
-    start = numpy.where(numpy.logical_and(isnan[:-1], notnan[1:]))[0] + 1
-    if notnan[0]:
-        start = numpy.append(0, start)
-    end = numpy.where(numpy.logical_and(notnan[:-1], isnan[1:]))[0] + 1
-    if notnan[-1]:
-        end = numpy.append(end, len(array))
-    slices = numpy.transpose((start, end))
-    if length > 1:
-        # discard slices with less than length values
-        slices = slices[numpy.diff(slices, axis=1).ravel() >= length]
-    return slices
 
 
 # fill ########################################################################
@@ -1243,7 +1217,6 @@ class GLPlotCurve2D(GLPlotItem):
                     _baseline = numpy.repeat(_baseline, len(self.xData))
 
                 scaledBaseline = axis_scale.apply(yScale, _baseline)
-                assert isinstance(scaledBaseline, numpy.ndarray)
                 if yScale == "log":
                     scaledBaseline[_baseline <= 0.0] = -38
                 return scaledBaseline
