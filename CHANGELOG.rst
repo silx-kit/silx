@@ -1,10 +1,105 @@
 Release Notes
 =============
 
-This is a bug fix release fixing `silx view` v3.0.0 not disabling hdf5 file locking.
+3.1.0: 2026/08/07
+-----------------
+
+* `silx view`:
+
+  * Fixed copy name to clipboard for objects in sidebar (`PR #4678 <https://github.com/silx-kit/silx/pull/4678>`_)
+  * Fixed exception when viewing a dataset as `NXCurve` and changing dimension to an axis without data while there are axes with data (`Issue #4657 <https://github.com/silx-kit/silx/issues/4657>`_)
+
+* `silx.gui.colors`: Added `twilight` and `twilight_shifted` colormaps from matplotlib (`Issue #2227 <https://github.com/silx-kit/silx/issues/2227>`_)
+
+* `silx.gui.data`:
+
+  * Added support of asinh axis scale (`PR #4682 <https://github.com/silx-kit/silx/pull/4682>`_)
+  * `DataViews`: Added the possibility to change the X axis when viewing NXdata as curves and added support for auxiliary signal errors (`Issue #4428 <https://github.com/silx-kit/silx/issues/4428>`_)
+  * `NXdataWidgets`: Deprecated import of `ArrayCurvePlot` from this module. It should be imported from `silx.gui.data.ArrayCurvePlot`.
+
+* `silx.gui.dialog.AbstractDataFileDialog`: Fixed models not being released (`deleteLater`) (`pyFAI Issue #2422 <https://github.com/silx-kit/pyFAI/issues/2422>`_)
+
+* `silx.gui.hdf5.Hdf5TreeModel`: Fixed segfault on `destroyed` signal for Python >= 3.13 (`PR #4616 <https://github.com/silx-kit/silx/pull/4616>`_)
+
+* `silx.gui.icons`: Improved silx icons to support dark color theme (`Issue #4486 <https://github.com/silx-kit/silx/issues/4486>`_)
+
+* `silx.gui.plot`:
+
+  * Fixed axis scales (`PR #4643 <https://github.com/silx-kit/silx/pull/4643>`_)
+  * Fixed `PlotWidget` user interaction and limits for asinh scaled axes (`Issue #4233 <https://github.com/silx-kit/silx/issues/4233>`_)
+  * Fixed support of matplotlib 3.11.1 (also affects `silx.gui.plot3d`) (`PR #4677 <https://github.com/silx-kit/silx/pull/4677>`_)
+
+  * `ImageStack`:
+
+    * Fixed call to `setNPrefetch` (`PR #4640 <https://github.com/silx-kit/silx/pull/4640>`_)
+
+  * `ImageView`:
+
+    * Fixed histograms not being cleared when the image is cleared (`PR #4634 <https://github.com/silx-kit/silx/pull/4634>`_)
+
+  * `MaskTools`:
+
+    * Added signals when the mask file is loaded and saved (`Issue #649 <https://github.com/silx-kit/silx/issues/649>`_)
+
+  * `PlotWidget`:
+
+    * Added `asinh` scale for axes, including OpenGL backend support (`Issue #4233 <https://github.com/silx-kit/silx/issues/4233>`_)
+    * Added directive zoom with ALT and SHIFT shortcuts, like h5web (`PR #4631 <https://github.com/silx-kit/silx/pull/4631>`_)
+    * Deprecated `histogram` argument of `addCurve` in favor of new arguments on `addHistogram` (`PR #4669 <https://github.com/silx-kit/silx/pull/4669>`_)
+    * Fixed zoom reset for curves/scatters to take the visible data in the X-range into account (`Issue #179 <https://github.com/silx-kit/silx/issues/179>`_)
+    * Fixed matplotlib backend wheel support (`PR #4686 <https://github.com/silx-kit/silx/pull/4686>`_)
+
+  * `StackView`:
+
+    * Deprecated `getStack` and `getCurrentView` (`Issue #627 <https://github.com/silx-kit/silx/issues/627>`_)
+
+  * `actions.io`:
+
+    * Added an option to save a plot with the colorbar (`Issue #4231 <https://github.com/silx-kit/silx/issues/4231>`_)
+
+  * `backends.BackendMatplotlib`:
+
+    * Fixed aspect ratio handling (`Issue #4588 <https://github.com/silx-kit/silx/issues/4588>`_)
+
+  * `glutils.GLPlotFrame`:
+
+    * Deprecated `PlotAxis`.
+
+  * `items.Axis`:
+
+    * Changed: now raises `ValueError` if the scale is invalid (`PR #4684 <https://github.com/silx-kit/silx/pull/4684>`_)
+
+  * `tools.profile`:
+
+    * Fixed profile to properly take the mask into account (`Issue #4493 <https://github.com/silx-kit/silx/issues/4493>`_, `Issue #3920 <https://github.com/silx-kit/silx/issues/3920>`_)
+
+* `silx.gui.plot3d`: Changed: symbol sizes now scale with array sizes (`PR #4539 <https://github.com/silx-kit/silx/pull/4539>`_)
+
+* `silx.gui.widgets.ThreadPoolPushButton`: Fixed exception raised while closing the application (`Issue #647 <https://github.com/silx-kit/silx/issues/647>`_)
+
+* `silx.io.nxdata`:
+
+  * Fixed error when an attribute item is an empty array/list (`Issue #4649 <https://github.com/silx-kit/silx/issues/4649>`_)
+  * `NXdata`: Added `auxiliary_signal_errors` property (`PR #4652 <https://github.com/silx-kit/silx/pull/4652>`_)
+  * `NXdata`: Added support for asinh scale type in `SILX_style` (`PR #4685 <https://github.com/silx-kit/silx/pull/4685>`_)
+
+* `silx.math.fit.FitManager`: Changed: uncertainty now triggers the use of weighted fit (`Issue #4590 <https://github.com/silx-kit/silx/issues/4590>`_)
+
+* `silx.opencl.codec`:
+
+  * Fixed segfault on certain image shapes (`Issue #4621 <https://github.com/silx-kit/silx/issues/4621>`_)
+  * Fixed out of buffer read in bitshuffle-LZ4 (`Issue #4648 <https://github.com/silx-kit/silx/issues/4648>`_)
+  * Fixed unblocking of compressed stream using Cython code when input data is on the CPU (`Issue #4598 <https://github.com/silx-kit/silx/issues/4598>`_)
+
+* `silx.opencl.common`: Fixed `get_platform()` and `get_device()` to allow 0 (`PR #4687 <https://github.com/silx-kit/silx/pull/4687>`_)
+
+* `silx.utils.files`: Added helper `increase_opened_files_limit` (only works on Unix-like systems) (`Issue #4608 <https://github.com/silx-kit/silx/issues/4608>`_)
+
 
 3.0.1: 2026/05/07
 -----------------
+
+This is a bug fix release fixing `silx view` v3.0.0 not disabling hdf5 file locking.
 
 * `silx view`:
 
