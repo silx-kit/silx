@@ -434,14 +434,14 @@ main()
             process.terminate()
 
 
-def testSilxViewHdf5FileLockingDisabled(data_h5):
+def testSilxViewHdf5FileLockingDisabled(data_h5, use_gui):
     """Test that silx view does NOT locks hdf5 files when opening them"""
     with runSilxViewInSubprocess(str(pathlib.Path(data_h5).resolve())):
         with h5py.File(str(data_h5), mode="a"):
             pass
 
 
-def testSilxViewHdf5FileLockingEnabled(data_h5):
+def testSilxViewHdf5FileLockingEnabled(data_h5, use_gui):
     """Test that silx view --hdf5-file-locking locks hdf5 files when opening them"""
     with runSilxViewInSubprocess(
         "--hdf5-file-locking", str(pathlib.Path(data_h5).resolve())
