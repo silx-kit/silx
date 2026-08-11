@@ -599,9 +599,9 @@ class FitWidget(qt.QWidget):
                 "Select python module with your function(s)",
                 "",
                 "Python Files (*.py);;All Files (*)",
-            )
+            )[0]
 
-            if len(functionsfile):
+            if functionsfile:
                 try:
                     self.fitmanager.loadbgtheories(functionsfile)
                 except ImportError:
@@ -640,9 +640,9 @@ class FitWidget(qt.QWidget):
                 "Select python module with your function(s)",
                 "",
                 "Python Files (*.py);;All Files (*)",
-            )
+            )[0]
 
-            if len(functionsfile):
+            if functionsfile:
                 try:
                     self.fitmanager.loadtheories(functionsfile)
                 except ImportError:
