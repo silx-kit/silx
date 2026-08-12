@@ -594,14 +594,14 @@ class FitWidget(qt.QWidget):
         if bgtheory in self.fitmanager.bgtheories:
             self.fitmanager.setbackground(bgtheory)
         else:
-            functionsfile = qt.QFileDialog.getOpenFileName(
+            functionsfile, _ = qt.QFileDialog.getOpenFileName(
                 self,
                 "Select python module with your function(s)",
                 "",
                 "Python Files (*.py);;All Files (*)",
             )
 
-            if len(functionsfile):
+            if functionsfile != "":
                 try:
                     self.fitmanager.loadbgtheories(functionsfile)
                 except ImportError:
@@ -635,14 +635,14 @@ class FitWidget(qt.QWidget):
             self.fitmanager.settheory(theoryname)
         else:
             # open a load file dialog
-            functionsfile = qt.QFileDialog.getOpenFileName(
+            functionsfile, _ = qt.QFileDialog.getOpenFileName(
                 self,
                 "Select python module with your function(s)",
                 "",
                 "Python Files (*.py);;All Files (*)",
             )
 
-            if len(functionsfile):
+            if functionsfile != "":
                 try:
                     self.fitmanager.loadtheories(functionsfile)
                 except ImportError:
