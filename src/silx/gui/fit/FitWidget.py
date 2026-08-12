@@ -645,7 +645,12 @@ self,
                 "Select python module with your function(s)",
                 "",
                 "Python Files (*.py);;All Files (*)",
-            )[0]
+functionsfile, _ = qt.QFileDialog.getOpenFileName(
+self,
+"Select python module with your function(s)",
+"",
+"Python Files (*.py);;All Files (*)",
+            )
 
             if functionsfile:
                 try:
