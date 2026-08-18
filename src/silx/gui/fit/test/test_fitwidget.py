@@ -23,6 +23,10 @@
 # ###########################################################################*/
 """Basic tests for :class:`FitWidget`"""
 
+import os
+import tempfile
+from unittest import mock
+
 from silx.gui.utils.testutils import TestCaseQt
 
 from ... import qt
@@ -115,3 +119,41 @@ class TestFitWidget(TestCaseQt):
         # clove dialog
         # self.mouseClick(fw.configdialogs["foo"].ok, qt.Qt.LeftButton)
         # self.qapp.processEvents()
+
+    def testBkgEventFileDialogCancelled(self):
+        """Cancelling the file dialog must not attempt to import anything"""
+        bgtheories_before = set(self.fit_widget.fitmanager.bgtheories)
+        with mock.patch.object(
+            qt.QFileDialog, "getOpenFileName", return_value=("", "")
+        ):
+            self.fit_widget.bkgEvent("not_an_existing_bg_theory")
+
+        self.assertEqual(set(self.fit_widget.fitmanager.bgtheories), bgtheories_before)
+
+    def testBkgEventLoadCustomBackground(self):
+        """Selecting a valid python module must add its theories to bgtheories"""
+        module_content = (
+            "from silx.math.fit.fittheory import FitTheory\n"
+            "\n"
+            "def custom_bg_function(x, y0, a):\n"
+            "    return y0 + a\n"
+            "\n"
+            "THEORY = {\n"
+            "    'custom_bg': FitTheory(function=custom_bg_function, parameters=['a']),\n"
+            "}\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            module_path = os.path.join(tmp_dir, "custom_bg_theory_module.py")
+            with open(module_path, "w") as f:
+                f.write(module_content)
+
+            with (
+                mock.patch.object(
+                    qt.QFileDialog,
+                    "getOpenFileName",
+                    return_value=(module_path, "Python Files (*.py)"),
+                ),
+            ):
+                self.fit_widget.bkgEvent("custom_bg")
+
+            self.assertIn("custom_bg", self.fit_widget.fitmanager.bgtheories)
