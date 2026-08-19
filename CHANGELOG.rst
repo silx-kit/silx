@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+3.1.1: 2026/08/19
+-----------------
+
+* `FitWidget`:
+
+  * Fixed loading fit function from file.
+
 3.1.0: 2026/08/07
 -----------------
 
