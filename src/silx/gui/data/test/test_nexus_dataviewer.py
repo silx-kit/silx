@@ -65,6 +65,26 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
         assert isinstance(plot.getImage("rgb"), ImageRgba)
 
 
+def test_image_with_non_affine_axis_becomes_scatter(qapp, qWidgetFactory, tmp_path):
+    widget: DataViewer = qWidgetFactory(DataViewer)
+    with h5py.File(tmp_path / "test.h5", "w") as h5file:
+        h5file.attrs["NX_class"] = "NXdata"
+        h5file.attrs["signal"] = "signal"
+        h5file.create_dataset(name="signal", data=numpy.random.random((10, 10)))
+        h5file.create_dataset(name="non_affine_x", data=numpy.logspace(0, 1, 10))
+        h5file.create_dataset(name="y", data=numpy.arange(10))
+        h5file.attrs["axes"] = ["y", "non_affine_x"]
+
+        widget.setData(h5file["/"])
+
+        qapp.processEvents()
+
+        imageView = widget.currentAvailableViews()[0]
+        plot: Plot2D = imageView.getWidget().getPlot()
+        assert plot.getImage() is None
+        assert plot.getScatter() is not None
+
+
 @pytest.mark.skipif(
     sys.version_info.major == 3 and sys.version_info.minor == 14,
     reason="Triggers segfault on Python 3.14. To be fixed",
