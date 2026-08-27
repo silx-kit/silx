@@ -352,13 +352,11 @@ class ArrayImagePlot(BaseImagePlot):
             if self._axesScales:
                 xAxisIndex, yAxisIndex = self._getXYIndices()
                 xAxisScale = self._axesScales[xAxisIndex]
+                if xAxisScale is not None:
+                    self._plot.getXAxis().setScale(xAxisScale)
                 yAxisScale = self._axesScales[yAxisIndex]
-            else:
-                xAxisScale = None
-                yAxisScale = None
-
-            self._plot.getXAxis().setScale(xAxisScale)
-            self._plot.getYAxis().setScale(yAxisScale)
+                if yAxisScale is not None:
+                    self._plot.getYAxis().setScale(yAxisScale)
 
             xScatter, yScatter = numpy.meshgrid(xAxis, yAxis)
             self._plot.addScatter(
