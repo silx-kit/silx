@@ -1464,7 +1464,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
         return data
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayVolumePlot
+        from silx.gui.data.ArrayVolumePlot import ArrayVolumePlot
 
         widget = ArrayVolumePlot(parent)
         return widget
