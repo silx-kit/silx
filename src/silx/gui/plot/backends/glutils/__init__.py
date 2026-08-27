@@ -34,7 +34,7 @@ _logger = logging.getLogger(__name__)
 
 
 from .GLPlotCurve import *  # noqa
-from .GLPlotFrame import *  # noqa
+from .GLPlotFrame import GLPlotFrame, GLPlotFrame2D  # noqa
 from .GLPlotImage import *  # noqa
 from .GLPlotItem import GLPlotItem, RenderContext  # noqa
 from .GLPlotTriangles import GLPlotTriangles  # noqa

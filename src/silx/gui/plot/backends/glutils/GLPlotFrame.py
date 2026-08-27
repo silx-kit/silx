@@ -437,7 +437,7 @@ class GLPlotFrame2D(GLPlotFrame):
         self._font = font
 
         self.axes.append(
-            PlotAxis(
+            _PlotAxis(
                 self,
                 tickLength=(0.0, -5.0),
                 foregroundColor=self._foregroundColor,
@@ -455,7 +455,7 @@ class GLPlotFrame2D(GLPlotFrame):
         self._x2AxisCoords = ()
 
         self.axes.append(
-            PlotAxis(
+            _PlotAxis(
                 self,
                 tickLength=(5.0, 0.0),
                 foregroundColor=self._foregroundColor,
@@ -470,7 +470,7 @@ class GLPlotFrame2D(GLPlotFrame):
             )
         )
 
-        self._y2Axis = PlotAxis(
+        self._y2Axis = _PlotAxis(
             self,
             tickLength=(-5.0, 0.0),
             foregroundColor=self._foregroundColor,
