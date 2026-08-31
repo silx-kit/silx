@@ -119,10 +119,13 @@ def deprecated_warning(
     if since_version is not None:
         msg += " since silx version %s" % since_version
     msg += "."
+
     if reason is not None:
-        msg += " Reason: %s." % reason
+        msg += " Reason: %s%s" % (reason, _sentence_suffix(reason))
+
     if replacement is not None:
         msg += " Use '%s' instead." % replacement
+
     msg += "\n%s"
     limit = 2 + skip_backtrace_count
     backtrace = "".join(traceback.format_stack(limit=limit)[0])
@@ -134,3 +137,9 @@ def deprecated_warning(
         else:
             deprecache.add(data)
     depreclog.warning(msg, type_, name, backtrace)
+
+
+def _sentence_suffix(text):
+    if text.endswith((".", "!", "?")):
+        return ""
+    return "."
