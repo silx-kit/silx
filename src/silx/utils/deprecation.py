@@ -124,10 +124,7 @@ def deprecated_warning(
         msg += " Reason: %s%s" % (reason, _sentence_suffix(reason))
 
     if replacement is not None:
-        msg += " Use '%s' instead%s" % (
-            replacement,
-            _sentence_suffix(replacement),
-        )
+        msg += " Use '%s' instead." % replacement
 
     msg += "\n%s"
     limit = 2 + skip_backtrace_count
