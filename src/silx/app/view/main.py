@@ -33,6 +33,7 @@ import signal
 import sys
 import traceback
 
+from packaging.version import Version
 from silx.app.utils import parseutils
 
 _logger = logging.getLogger(__name__)
@@ -140,7 +141,7 @@ def mainQt(options):
     if app is None:
         app = qt.QApplication([])
     app.setDesktopFileName("org.silx.SilxView")
-    if qt.BINDING != "PyQt5":
+    if Version(qt.qVersion()) >= Version("6.8.0"):
         app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
     qt.QLocale.setDefault(qt.QLocale.c())
 

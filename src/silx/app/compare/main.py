@@ -28,6 +28,7 @@ import sys
 import logging
 import argparse
 import silx
+from packaging.version import Version
 from silx.gui import qt
 from silx.app.utils import parseutils
 from silx.app.compare.CompareImagesWindow import CompareImagesWindow
@@ -84,7 +85,7 @@ def mainQt(options):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     app = qt.QApplication([])
-    if qt.BINDING != "PyQt5":
+    if Version(qt.qVersion()) >= Version("6.8.0"):
         app.styleHints().setColorScheme(qt.Qt.ColorScheme.Light)
 
     window = CompareImagesWindow(backend=backend, settings=settings)
