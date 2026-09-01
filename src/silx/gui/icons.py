@@ -39,6 +39,10 @@ from . import qt
 import silx.resources
 from silx.utils import weakref as silxweakref
 
+from packaging.version import Version
+
+_QT_HAS_COLOR_SCHEME = Version(qt.qVersion()) >= Version("6.5.0")
+
 _logger = logging.getLogger(__name__)
 """Module logger"""
 
@@ -120,7 +124,7 @@ class _SvgIconEngine(qt.QIconEngine):
         # state does not seem to be handled by Qt default icon engines
         if qt.QGuiApplication.instance() is None:
             isDark = False
-        elif qt.BINDING != "PyQt5":
+        elif _QT_HAS_COLOR_SCHEME:
             isDark = (
                 qt.QApplication.styleHints().colorScheme() == qt.Qt.ColorScheme.Dark
             )
