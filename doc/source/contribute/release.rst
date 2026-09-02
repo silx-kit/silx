@@ -21,8 +21,11 @@ Follow this release process.
 Bug fix releases
 ................
 
+Check the commits on the `main` branch since the last release. If all commits are bugfixes, follow this release process normally (with ``main`` being the release branch)
+
+If some commits are **not** bugfixes or if in doubt:
 - For ``vM.m.1``, first create a ``M.m`` branch from the ``vM.m.0`` tag when not already done.
-- Merge relevant pull requests on the ``M.m`` branch.
+- Merge relevant pull requests on the ``M.m`` branch, backporting them to ``main`` if needed.
 - Follow this release process, but with release branch ``M.m`` instead of ``main``.
 
 Pre-release testing
@@ -84,29 +87,12 @@ Create the release
   If any step in the release process (such as creating wheels or building documentation) fails, you can cancel the github workflow, delete the github release and the associated tag.
   Then add new PR(s) and repeat the release operation.
 
-Publish Windows "fat binaries"
-..............................
 
-Once Windows "fat binaries" are built and tested, the release workflow requests the approval from a reviewer of the "assets" `deployment environment`_.
-Upon approval, the following files are added to the github release assets:
+Approve deployments
+...................
 
-- ``silx-<release_version>-windows-application.zip``
-- ``silx-<release_version>-windows-installer-x86_64.exe``
+Once the release workflow requests it, approve the "assets" and "pypi" `deployment environment`_ to publish the release artifacts (Windows fat binaries and `PyPI`_ packages).
 
-Publish to pypi
-...............
-
-Once build and tests are completed, the release workflow requests the approval from a reviewer of the "pypi" `deployment environment`_.
-Upon approval, the release artifacts are published to `pypi`_.
-
-Deploy the documentation
-........................
-
-Skip this step for **release candidates**.
-
-- Download the ``documentation`` artifact from the release workflow run web page.
-- Unzip it in the ``doc/silx/M.m.p`` folder on www.silx.org/doc/silx.
-- Update the ``doc/silx/latest`` symbolic link.
 
 Publish on conda-forge
 ......................
@@ -121,5 +107,10 @@ Once this PR is merged, the new version is published on conda-forge.
 .. _github new release page: https://github.com/silx-kit/silx/releases/new
 .. _github automatically generated release notes: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes#creating-automatically-generated-release-notes-for-a-new-release
 .. _deployment environment: https://github.com/silx-kit/silx/settings/environments
-.. _pypi: https://pypi.org/project/silx/
+.. _PyPI: https://pypi.org/project/silx/
 .. _silx feedstock: https://github.com/conda-forge/silx-feedstock
+
+Final steps
+...........
+
+After the release is done, don't forget to update consumer packages (such as apptainer/docker images).
