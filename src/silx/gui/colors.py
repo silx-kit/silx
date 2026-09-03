@@ -47,11 +47,10 @@ from silx.utils.deprecation import deprecated_warning
 _logger = logging.getLogger(__name__)
 
 try:
-    import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
-    from matplotlib import colormaps as _matplotlib_colormaps
+    import matplotlib as _matplotlib
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
-    _matplotlib_colormaps = None
+    _matplotlib = None
 
 
 _COLORDICT = {}
@@ -224,7 +223,7 @@ def _registerColormapFromMatplotlib(
     cursor_color: str = "black",
     preferred: bool = False,
 ):
-    colormap = _matplotlib_colormaps[name]
+    colormap = _matplotlib.colormaps[name]
     lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
     colors = _colormap.array_to_rgba8888(lut)
     registerLUT(name, colors, cursor_color, preferred)
@@ -943,8 +942,8 @@ class Colormap(qt.QObject):
         """
         registered_colormaps = _colormap.get_registered_colormaps()
         colormaps = set(registered_colormaps)
-        if _matplotlib_colormaps is not None:
-            colormaps.update(_matplotlib_colormaps())
+        if _matplotlib is not None:
+            colormaps.update(_matplotlib.colormaps())
 
         # Put registered_colormaps first
         colormaps = tuple(
