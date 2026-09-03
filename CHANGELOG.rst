@@ -6,7 +6,7 @@ Release Notes
 
 * `FitWidget`:
 
-  * Fixed loading fit function from file.
+  * Fixed loading fit function from file  (`PR #4696 <https://github.com/silx-kit/silx/pull/4696>`_)
 
 3.1.0: 2026/08/07
 -----------------
