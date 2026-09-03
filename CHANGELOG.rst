@@ -7,6 +7,7 @@ Release Notes
 * `silx.gui.colors`: Fixed headless usage of matplotlib being broken (`Issue #4697 <https://github.com/silx-kit/silx/issues/4697>`_)
 * `silx.gui.data.NXdataWidgets.ArrayImagePlot`: Fixed `ValueError` for images with irregular axes (`Issue #4701 <https://github.com/silx-kit/silx/issues/4701>`_)
 * `silx.gui.icons` / `silx view` / `silx compare`: Fixed support of Qt6 < 6.5 (`Issue #4709 <https://github.com/silx-kit/silx/issues/4709>`_)
+* `silx.io`: Fixed test with h5pyd v1 (`PR #4716 <https://github.com/silx-kit/silx/pull/4716>`_)
 * `silx.utils.deprecation`: Fixed double punctuation in deprecation warning messages (`Issue #4706 <https://github.com/silx-kit/silx/issues/4706>`_)
 
 3.1.1: 2026/08/19
