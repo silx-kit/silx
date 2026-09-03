@@ -4,6 +4,7 @@ subdir('specfile')
 py.install_sources([
     '__init__.py',
     '_sliceh5.py',
+    'blissdatah5.py',
     'commonh5.py',
     'configdict.py',
     'convert.py',
