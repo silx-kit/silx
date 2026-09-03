@@ -1143,24 +1143,25 @@ def test_recursive_match_commonh5():
 
 def test_open_h5pyd(httpserver):
     httpserver.check_assertions()
+    httpserver.expect_request("/about", query_string=None).respond_with_json({})
     httpserver.expect_request("/", query_string=None).respond_with_json(
         {
             "created": 1771620465.190004,
             "lastModified": 1771620465.1900046,
-            "root": "g-h5dict-2F",
+            "root": "g-314d61b8-9954-11e6-a733-3c15c2da029e",
             "owner": "admin",
             "class": "domain",
         }
     )
 
     httpserver.expect_request(
-        "/groups/g-h5dict-2F", query_string=None
+        "/groups/g-314d61b8-9954-11e6-a733-3c15c2da029e", query_string=None
     ).respond_with_json(
         {
             "created": 1771621135.0002592,
             "lastModified": 1771621135.0002594,
-            "root": "g-h5dict-2F",
-            "id": "g-h5dict-2F",
+            "root": "g-314d61b8-9954-11e6-a733-3c15c2da029e",
+            "id": "g-314d61b8-9954-11e6-a733-3c15c2da029e",
             "linkCount": 0,
             "attributeCount": 0,
         }
