@@ -182,7 +182,7 @@ def _docstring(dest, origin):
         except AttributeError:
             raise ValueError("origin class has no %s method" % dest.__name__)
 
-    dest.__doc__ = origin.__doc__
+    functools.update_wrapper(dest, origin)
     return dest
 
 
