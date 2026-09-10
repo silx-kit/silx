@@ -1464,9 +1464,9 @@ class _NXdataVolumeView(_NXdataBaseDataView):
         return data
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayVolumePlot
+        from silx.gui.data._NxVolumePlot import NxVolumePlot
 
-        widget = ArrayVolumePlot(parent)
+        widget = NxVolumePlot(parent)
         return widget
 
     def axesNames(self, data, info):
@@ -1479,22 +1479,13 @@ class _NXdataVolumeView(_NXdataBaseDataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_default(data, validate=False)
-        signal_name = nxd.signal_name
-        z_axis, y_axis, x_axis = nxd.axes[-3:]
-        z_label, y_label, x_label = nxd.axes_names[-3:]
-        title = nxd.title or signal_name
 
         widget = self.getWidget()
-        widget.setData(
-            nxd.signal,
-            x_axis=x_axis,
-            y_axis=y_axis,
-            z_axis=z_axis,
-            signal_name=signal_name,
-            xlabel=x_label,
-            ylabel=y_label,
-            zlabel=z_label,
-            title=title,
+        widget.setVolumeData(
+            signal=nxd.signal,
+            signal_name=nxd.signal_name,
+            axes=nxd.axes,
+            axes_names=nxd.axes_names,
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
