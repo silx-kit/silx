@@ -29,6 +29,8 @@ import shutil
 import tempfile
 import unittest
 
+import pytest
+
 from .. import utils
 from ..._version import calc_hexversion
 import silx.io.url
@@ -1142,6 +1144,8 @@ def test_recursive_match_commonh5():
 
 
 def test_open_h5pyd(httpserver):
+    pytest.importorskip("h5pyd")
+
     httpserver.check_assertions()
     httpserver.expect_request("/about", query_string=None).respond_with_json({})
     httpserver.expect_request("/", query_string=None).respond_with_json(
