@@ -216,7 +216,7 @@ def np_mean_std(img, mask=None, dummy=None, delta_dummy=None):
     fimg = img.astype(numpy.float64)
     fimg[mask] = numpy.nan
     mean = numpy.nanmean(fimg)
-    std = numpy.nanstd(fimg, mean=mean)
+    std = numpy.nanstd(fimg)
     return mean, std
 
 

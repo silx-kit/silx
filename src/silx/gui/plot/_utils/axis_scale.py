@@ -44,7 +44,7 @@ def apply(axisScale: AxisScaleType, value: float | ArrayLike) -> float | numpy.n
             scaled[~numpy.isfinite(scaled)] = numpy.nan
             return scaled
     elif axisScale == "asinh":
-        return numpy.asinh(value)
+        return numpy.arcsinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
