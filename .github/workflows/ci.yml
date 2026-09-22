@@ -80,11 +80,12 @@ jobs:
       - name: Install
         run: |
           pip install -r ci/requirements-pinned.txt
-          if [ -n "${{ matrix.numpy_version }}" ]; then
-            pip install "${{ matrix.numpy_version }}"
-          fi
           pip install --pre "${{ matrix.QT_API }}"
           pip install --pre "$(ls dist/silx*.whl)[full,test]"
+          if [ -n "${{ matrix.numpy_version }}" ]; then
+            pip uninstall -y h5pyd;
+            pip install "${{ matrix.numpy_version }}";
+          fi
           python ./ci/info_platform.py
           pip list
 
