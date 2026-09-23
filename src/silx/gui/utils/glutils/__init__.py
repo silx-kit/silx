@@ -221,7 +221,7 @@ if __name__ == "__main__":
         qt.QCoreApplication.setAttribute(qt.Qt.AA_ShareOpenGLContexts)
     app = qt.QApplication([])
     window = qt.QMainWindow(
-        flags=qt.Qt.Window
+        flags=qt.Qt.Tool
         | qt.Qt.FramelessWindowHint
         | qt.Qt.NoDropShadowWindowHint
         | qt.Qt.WindowStaysOnTopHint
