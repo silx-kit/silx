@@ -219,7 +219,7 @@ jobs:
         if: runner.os == 'Linux'
         with:
           platforms: all
-      - uses: pypa/cibuildwheel@v3.3.1
+      - uses: pypa/cibuildwheel@v4.2.1
         env:
           # Configure silx tests
           WITH_QT_TEST: "False"
@@ -229,7 +229,7 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: WITH_QT_TEST WITH_GL_TEST SILX_OPENCL
 
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-* cp315-*
           CIBW_SKIP: cp310-win_arm64 *-musllinux_*
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
           CIBW_BUILD_FRONTEND: "build; args: -C setup-args=-Duse_openmp=disabled"
@@ -243,7 +243,8 @@ jobs:
           # - ARM64 windows: Wheels missing for some dependencies
           # - Windows python 3.14: PyOpencl wheel missing
           # - Linux python 3.14: PySide6 wheel requires a too recent manylinux version
-          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-win_arm64 cp314-win_amd64 cp314-manylinux_x86_64"
+          # - Python 3.15 until all dependencies are available
+          CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x} *-win_arm64 cp314-win_amd64 cp314-manylinux_x86_64 cp315-*"
 
       - uses: actions/upload-artifact@v6
         with:
