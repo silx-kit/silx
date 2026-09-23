@@ -136,10 +136,7 @@ def isOpenGLAvailable(
         return _IsOpenGLAvailableResult(
             "Cannot import OpenGL: pyopengl is not installed"
         )
-    try:
-        from silx.gui._glutils import gl
-    except ImportError:
-        return _IsOpenGLAvailableResult("Failed to import OpenGL wrapper")
+    from silx.gui._glutils import gl
 
     # Pre checks for Qt < 5.4
     if not hasattr(qt, "QOpenGLWidget"):
