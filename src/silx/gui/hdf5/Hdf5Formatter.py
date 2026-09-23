@@ -102,8 +102,8 @@ class Hdf5Formatter(qt.QObject):
             numpy_object = dataset[()]
             text = self.__formatter.toString(numpy_object, dtype=dataset.dtype)
         else:
-            if dataset.size < 5 and dataset.compression is None:
-                numpy_object = dataset[0:5]
+            if dataset.size > 0 and dataset.size < 5 and dataset.compression is None:
+                numpy_object = dataset[0 : min(len(dataset), 5)]
                 text = self.__formatter.toString(numpy_object, dtype=dataset.dtype)
             else:
                 dimension = len(dataset.shape)
