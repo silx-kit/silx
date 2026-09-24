@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+
+3.1.3: 2026/09/25
+-----------------
+
+* Dependencies: Fixed support of `numpy` v1 (`PR #4725 <https://github.com/silx-kit/silx/pull/4725>`_, `PR #4728 <https://github.com/silx-kit/silx/pull/4728>`_)
+* `silx.gui.utils.glutils.isOpenGLAvailable`: Fixed support of `pyopengl`>=4.0.0a4 and wayland (`PR #4727 <https://github.com/silx-kit/silx/pull/4727>`_)
+
 3.1.2: 2026/09/03
 -----------------
 
