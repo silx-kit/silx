@@ -179,7 +179,7 @@ def test_unknown_scheme():
     expected = (False, True, "foo", "/foo/foobar.h5", "/foo/bar", (5, 1))
     assert_url(url, expected)
     assert (
-        url.invalid_reason == "Invalid scheme. It can only be fabio, silx, http, https."
+        url.invalid_reason == "Invalid scheme. It can only be fabio, silx, http, https, blissdata."
     )
 
 

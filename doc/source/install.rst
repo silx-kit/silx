@@ -265,6 +265,20 @@ It installs:
 
 * `h5pyd <https://github.com/HDFGroup/h5pyd>`_, the Python client for HSDS
 
+blissdata support
++++++++++++++++++
+
+The `blissdata` extra:
+
+.. code-block:: bash
+
+    pip install silx[blissdata]
+
+adds support for accessing experimental data through `blissdata <https://bliss.gitlab-pages.esrf.fr/blissdata/>`_.
+
+It installs:
+
+* `blissdata <https://github.com/HDFGroup/h5pyd>`_
 
 Build dependencies
 ++++++++++++++++++
