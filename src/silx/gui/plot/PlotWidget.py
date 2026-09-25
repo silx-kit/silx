@@ -2748,19 +2748,12 @@ class PlotWidget(qt.QMainWindow):
             if plotWidth > 0 and plotHeight > 0:
                 plotRatio = plotHeight / plotWidth
                 dataRatio = (ymax - ymin) / (xmax - xmin)
-                if dataRatio < plotRatio:
+                if not numpy.allclose(dataRatio, plotRatio):
                     # Increase y range
                     ycenter = 0.5 * (ymax + ymin)
                     yrange = (xmax - xmin) * plotRatio
                     limits[2] = ycenter - 0.5 * yrange
                     limits[3] = ycenter + 0.5 * yrange
-
-                elif dataRatio > plotRatio:
-                    # Increase x range
-                    xcenter = 0.5 * (xmax + xmin)
-                    xrange_ = (ymax - ymin) / plotRatio
-                    limits[0] = xcenter - 0.5 * xrange_
-                    limits[1] = xcenter + 0.5 * xrange_
 
         if self._viewConstrains:
             limits[:4] = self._viewConstrains.normalize(*limits[:4])

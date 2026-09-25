@@ -4,17 +4,6 @@ from typing import Literal
 Range = tuple[float, float]
 
 
-def findDimToKeep(
-    width: float, height: float, xRange: Range | None, yRange: Range | None
-) -> Literal["x"] | Literal["y"]:
-    if xRange is None or yRange is None or (yRange[1] - yRange[0]) == 0 or height == 0:
-        return "x"
-    dataRatio = (xRange[1] - xRange[0]) / float(yRange[1] - yRange[0])
-    plotRatio = width / float(height)
-
-    return "x" if dataRatio > plotRatio else "y"
-
-
 def ensureAspectRatio(
     plotWidth: float,
     plotHeight: float,

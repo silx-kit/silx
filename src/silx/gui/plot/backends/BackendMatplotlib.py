@@ -33,7 +33,7 @@ import logging
 import datetime as dt
 import numpy
 
-from .utils import Range, ensureAspectRatio, findDimToKeep
+from .utils import Range, ensureAspectRatio
 from ... import qt
 
 # First of all init matplotlib and set its backend
@@ -522,7 +522,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._axesDisplayed = True
 
         self.fig = Figure(
-            tight_layout=config._MPL_TIGHT_LAYOUT,
+            layout="tight" if config._MPL_TIGHT_LAYOUT else None,
         )
         self.fig.set_facecolor("w")
 
@@ -1247,13 +1247,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not self.isKeepDataAspectRatio():
             newXRange, newYRange, newY2Range = xRange, yRange, y2Range
         else:
-            bbox = self.fig.get_window_extent()
             if keepDim is None:
-                xDataRange, yDataRange, _ = self._plot.getDataRange()
-                keepDim = findDimToKeep(bbox.width, bbox.height, xDataRange, yDataRange)
+                keepDim = "x"
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
             newXRange, newYRange, newY2Range = ensureAspectRatio(
-                bbox.width,
-                bbox.height,
+                plotWidth,
+                plotHeight,
                 xRange,
                 yRange,
                 y2Range,
