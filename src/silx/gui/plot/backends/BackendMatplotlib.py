@@ -1247,13 +1247,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not self.isKeepDataAspectRatio():
             newXRange, newYRange, newY2Range = xRange, yRange, y2Range
         else:
-            bbox = self.fig.get_window_extent()
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
             if keepDim is None:
                 xDataRange, yDataRange, _ = self._plot.getDataRange()
-                keepDim = findDimToKeep(bbox.width, bbox.height, xDataRange, yDataRange)
+                keepDim = findDimToKeep(plotWidth, plotHeight, xDataRange, yDataRange)
             newXRange, newYRange, newY2Range = ensureAspectRatio(
-                bbox.width,
-                bbox.height,
+                plotWidth,
+                plotHeight,
                 xRange,
                 yRange,
                 y2Range,
