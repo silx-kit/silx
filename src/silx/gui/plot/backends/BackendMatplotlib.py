@@ -522,7 +522,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._axesDisplayed = True
 
         self.fig = Figure(
-            tight_layout=config._MPL_TIGHT_LAYOUT,
+            layout="tight" if config._MPL_TIGHT_LAYOUT else None,
         )
         self.fig.set_facecolor("w")
 
