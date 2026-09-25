@@ -45,7 +45,7 @@ from .._utils import axis_scale
 from . import glutils
 from .glutils.PlotImageFile import saveImageToFile
 from silx.gui.colors import RGBAColorType
-from .utils import findDimToKeep, ensureAspectRatio
+from .utils import ensureAspectRatio
 
 _logger = logging.getLogger(__name__)
 
@@ -1511,8 +1511,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         plotWidth, plotHeight = self._plotFrame.plotSize
         xRange, yRange, y2Range = self._plotFrame.dataRanges
         if keepDim is None:
-            ranges = self._plot.getDataRange()
-            keepDim = findDimToKeep(plotWidth, plotHeight, ranges.x, ranges.y)
+            keepDim = "x"
         newXRange, newYRange, newY2Range = ensureAspectRatio(
             plotWidth, plotHeight, xRange, yRange, y2Range, keepDim
         )
