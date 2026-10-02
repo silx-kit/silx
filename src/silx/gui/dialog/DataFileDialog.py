@@ -34,6 +34,7 @@ import logging
 from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
+from silx.utils.deprecation import deprecated
 from .AbstractDataFileDialog import AbstractDataFileDialog
 
 _logger = logging.getLogger(__name__)
@@ -314,7 +315,11 @@ class DataFileDialog(AbstractDataFileDialog):
         """
         self.__filter = mode
 
+    @deprecated(replacement="filterMode", since_version="3.2.0")
     def fileMode(self):
+        return self.filterMode()
+
+    def filterMode(self):
         """Returns the filter mode.
 
         :rtype: DataFileDialog.FilterMode
