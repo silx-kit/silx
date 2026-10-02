@@ -32,7 +32,7 @@ jobs:
           python ./tools/check_meson.py dist/silx-*.whl
 
   build:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }}"
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.QT_API }} ${{ matrix.numpy_version }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -43,18 +43,21 @@ jobs:
             QT_API: PySide6
             with_opencl: true
             with_gl_test: true
+            numpy_version: ""
 
           - os: macos-latest
             python-version: "3.14"
             QT_API: PyQt6
             with_opencl: false
             with_gl_test: false
+            numpy_version: ""
 
           - os: windows-latest
             python-version: "3.10"
             QT_API: PyQt5
             with_opencl: false
             with_gl_test: true
+            numpy_version: "numpy<2"
 
     steps:
       - uses: actions/checkout@v5
@@ -79,6 +82,10 @@ jobs:
           pip install -r ci/requirements-pinned.txt
           pip install --pre "${{ matrix.QT_API }}"
           pip install --pre "$(ls dist/silx*.whl)[full,test]"
+          if [ -n "${{ matrix.numpy_version }}" ]; then
+            pip uninstall -y h5pyd;
+            pip install "${{ matrix.numpy_version }}";
+          fi
           python ./ci/info_platform.py
           pip list
 

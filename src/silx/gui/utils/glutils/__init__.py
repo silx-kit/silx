@@ -26,6 +26,8 @@
 import os
 import sys
 import subprocess
+
+from packaging.version import Version
 from silx.gui import qt
 
 
@@ -129,11 +131,12 @@ def isOpenGLAvailable(
 
     # Check pyopengl availability
     try:
-        from silx.gui._glutils import gl
+        import OpenGL
     except ImportError:
         return _IsOpenGLAvailableResult(
-            "Cannot import OpenGL wrapper: pyopengl is not installed"
+            "Cannot import OpenGL: pyopengl is not installed"
         )
+    from silx.gui._glutils import gl
 
     # Pre checks for Qt < 5.4
     if not hasattr(qt, "QOpenGLWidget"):
@@ -149,15 +152,16 @@ def isOpenGLAvailable(
             # so this is only checked if the QApplication is already created
             return _IsOpenGLAvailableResult("Qt reports OpenGL not available")
 
-    # Check compatibility between Qt platform and pyopengl selected platform
-    qt_qpa_platform = qt.QGuiApplication.platformName()
-    pyopengl_platform = gl.getPlatform()
-    if (qt_qpa_platform == "wayland" and pyopengl_platform != "EGLPlatform") or (
-        qt_qpa_platform == "xcb" and pyopengl_platform != "GLXPlatform"
-    ):
-        return _IsOpenGLAvailableResult(
-            f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
-        )
+    if Version(OpenGL.__version__) < Version("4.0.0a4"):
+        # Check compatibility between Qt platform and pyopengl selected platform
+        qt_qpa_platform = qt.QGuiApplication.platformName()
+        pyopengl_platform = gl.getPlatform()
+        if (qt_qpa_platform == "wayland" and pyopengl_platform != "EGLPlatform") or (
+            qt_qpa_platform == "xcb" and pyopengl_platform != "GLXPlatform"
+        ):
+            return _IsOpenGLAvailableResult(
+                f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
+            )
 
     keyCache = version, shareOpenGLContexts
     if keyCache in _runtimeCheckCache:  # Use cache
@@ -217,10 +221,12 @@ if __name__ == "__main__":
         qt.QCoreApplication.setAttribute(qt.Qt.AA_ShareOpenGLContexts)
     app = qt.QApplication([])
     window = qt.QMainWindow(
-        flags=qt.Qt.Popup
+        flags=qt.Qt.Tool
         | qt.Qt.FramelessWindowHint
         | qt.Qt.NoDropShadowWindowHint
         | qt.Qt.WindowStaysOnTopHint
+        | qt.Qt.WindowTransparentForInput
+        | qt.Qt.WindowDoesNotAcceptFocus
     )
     window.setAttribute(qt.Qt.WA_ShowWithoutActivating)
     window.move(0, 0)

@@ -44,7 +44,7 @@ def apply(axisScale: AxisScaleType, value: float | ArrayLike) -> float | numpy.n
             scaled[~numpy.isfinite(scaled)] = numpy.nan
             return scaled
     elif axisScale == "asinh":
-        return numpy.asinh(value)
+        return numpy.arcsinh(value)
     else:
         raise ValueError(f"Unsupported axis scale: {axisScale}")
 
@@ -57,7 +57,7 @@ def revert(axisScale: AxisScaleType, value: float | ArrayLike) -> float | numpy.
         return value
     elif axisScale == "log":
         with numpy.errstate(over="ignore"):
-            return numpy.pow(10.0, value)
+            return numpy.power(10.0, value)
     elif axisScale == "asinh":
         with numpy.errstate(over="ignore"):
             return numpy.sinh(value)

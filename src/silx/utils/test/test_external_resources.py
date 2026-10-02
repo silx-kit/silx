@@ -81,7 +81,7 @@ class TestExternalResources(unittest.TestCase):
         filelist = self.resources.getdir(directory)
         # download file and remove it to create a json mapping file
         os.remove(filename)
-        directory_path = os.path.commonprefix(filelist)
+        directory_path = os.path.commonpath(filelist)
         # Make sure we will rmtree a dangerous path like "/"
         self.assertIn(self.resources.data_home, directory_path)
         shutil.rmtree(directory_path)
