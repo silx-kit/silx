@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/11/2023"
+__date__ = "02/10/2026"
 
 
 import gc
@@ -129,6 +129,7 @@ class TestCaseQt(unittest.TestCase):
     def tearDownClass(cls):
         sys.excepthook = cls._oldExceptionHook
 
+
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
@@ -137,6 +138,7 @@ class TestCaseQt(unittest.TestCase):
         else:
             self.__previousWidgets = self.qapp.allWidgets()
         self.__class__._exceptions = []
+        self._widgets_before = self.qapp.allWidgets()
 
     def _currentTestSucceeded(self):
         if hasattr(self, "_feedErrorsToResult"):
@@ -186,6 +188,20 @@ class TestCaseQt(unittest.TestCase):
             raise RuntimeError("Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
+        # Collecting here is the point of this class: this is what hands the
+        # C++ widgets back to Qt, and it must not happen in the middle of a
+        # later processEvents().
+        gc.collect()
+        if self._widgets_before is not None:
+            for widget in self.qapp.allWidgets():
+                if widget not in self._widgets_before:
+                    try:
+                        if widget.parent() is None:
+                            # children are deleted along with their parent
+                            widget.deleteLater()
+                    except RuntimeError:  # already gone on the C++ side
+                        _logger.debug("Widget already destroyed", exc_info=True)
+            self._widgets_before = None
         self.qapp.processEvents()
 
         if len(self.__class__._exceptions) > 0:
