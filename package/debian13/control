@@ -37,6 +37,8 @@ Build-Depends: cython3 (>= 0.23.2),
                python3-sphinx-copybutton,
                python3-sphinxcontrib.programoutput,
                python3-filelock,
+               python3-pydantic,
+               python3-qtawesome,
                xauth,
                xvfb
 Standards-Version: 4.1.3
