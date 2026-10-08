@@ -69,6 +69,9 @@ full = [
     'silx[full_no_qt]',
     'PySide6 >= 6.5',        # PyQt6, PyQt5  # For silx.gui
 ]
+blissdata = [
+    'blissdata >= 2.4.5'
+]
 h5pyd = [
     'h5pyd >= 0.20.0'
 ]
