@@ -29,6 +29,7 @@ __date__ = "28/05/2018"
 from collections.abc import Sequence
 import glob
 import logging
+import urllib.parse
 from typing import Any
 from collections.abc import Generator, Iterable
 from pathlib import Path
@@ -84,6 +85,12 @@ def filenames_to_dataurls(
     extra_slices = tuple(slices)
 
     for filename in filenames:
+        if isinstance(filename, str) and urllib.parse.urlparse(
+            filename
+        ).scheme.startswith("zarr+"):
+            yield filename
+            continue
+
         url = DataUrl(filename)
 
         for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
