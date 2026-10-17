@@ -19,7 +19,7 @@ runs:
         sudo apt-get install ocl-icd-opencl-dev xvfb libegl1 libglx-mesa0 xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb-cursor0 libxcb1
 
     - name: Setup Intel OpenCL ICD
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && runner.arch == 'X64'
       shell: bash
       run: |
         wget -nv http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz -O - | tar -xzvf -
