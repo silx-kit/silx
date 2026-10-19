@@ -372,9 +372,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         _StatsWidgetBase.setStats(self, statsHandler)
 
         self.setRowCount(0)
-        self.setColumnCount(
-            len(self._statsHandler.stats) + 3
-        )  # + legend, kind and roi # noqa
+        self.setColumnCount(len(self._statsHandler.stats) + 3)  # + legend, kind and roi # noqa
 
         for index, stat in enumerate(self._statsHandler.stats.values()):
             headerItem = qt.QTableWidgetItem(stat.name.capitalize())
