@@ -40,14 +40,18 @@ def testDrop(qapp, silxMimeData, qWidgetFactory):
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        qt.QPoint(0, 0) if qt.BINDING == "PyQt5" else qt.QPointF(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
     window.getPlot1D().dragEnterEvent(dragEnterEvent)
     qapp.processEvents()
 
     # Create drag move event
     dragMoveEvent = qt.QDragMoveEvent(
-        qt.QPoint(50, 50),
+        qt.QPoint(50, 50) if qt.BINDING == "PyQt5" else qt.QPointF(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
