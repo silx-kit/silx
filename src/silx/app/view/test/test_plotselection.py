@@ -1,8 +1,15 @@
 import pytest
+from packaging.version import Version
 from silx.gui import qt
 from silx.io.dictdump import dicttoh5
 import silx.io
 from silx.app.view.CustomPlotSelectionWindow import CustomPlotSelectionWindow
+
+
+def _drag_event_position(x, y):
+    # Qt 6.12 deprecated the integer-position drag event constructors.
+    point = qt.QPointF if Version(qt.qVersion()) >= Version("6.12") else qt.QPoint
+    return point(x, y)
 
 
 @pytest.fixture
@@ -40,14 +47,18 @@ def testDrop(qapp, silxMimeData, qWidgetFactory):
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        _drag_event_position(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
     window.getPlot1D().dragEnterEvent(dragEnterEvent)
     qapp.processEvents()
 
     # Create drag move event
     dragMoveEvent = qt.QDragMoveEvent(
-        qt.QPoint(50, 50),
+        _drag_event_position(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -85,7 +96,11 @@ def testRemoveDataset(silxMimeData, qapp, qWidgetFactory):
 
     # Create drop event for X dataset
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        _drag_event_position(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
     window.getPlot1D().dragEnterEvent(dragEnterEvent)
     qapp.processEvents()
@@ -118,7 +133,11 @@ def testResetModel(silxMimeData, qapp, qWidgetFactory):
 
     # Create drop event for X dataset
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        _drag_event_position(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
     window.getPlot1D().dragEnterEvent(dragEnterEvent)
     qapp.processEvents()
@@ -152,12 +171,16 @@ def testMultipleDrop(qapp, silxMimeData, qWidgetFactory, qapp_utils):
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        _drag_event_position(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
 
     # Create drag move event
     dragMoveEvent = qt.QDragMoveEvent(
-        qt.QPoint(50, 50),
+        _drag_event_position(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
@@ -202,14 +225,18 @@ def testDropInvalid(qapp, invalidSilxMimeData, qWidgetFactory, qapp_utils):
 
     # Create drag enter event
     dragEnterEvent = qt.QDragEnterEvent(
-        qt.QPoint(0, 0), qt.Qt.CopyAction, mime_data, qt.Qt.LeftButton, qt.Qt.NoModifier
+        _drag_event_position(0, 0),
+        qt.Qt.CopyAction,
+        mime_data,
+        qt.Qt.LeftButton,
+        qt.Qt.NoModifier,
     )
     window.getPlot1D().dragEnterEvent(dragEnterEvent)
     qapp.processEvents()
 
     # Create drag move event
     dragMoveEvent = qt.QDragMoveEvent(
-        qt.QPoint(50, 50),
+        _drag_event_position(50, 50),
         qt.Qt.CopyAction,
         mime_data,
         qt.Qt.LeftButton,
