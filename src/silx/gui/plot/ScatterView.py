@@ -167,7 +167,7 @@ class ScatterView(qt.QMainWindow):
         return scatter
 
     def _pickScatterData(self, x, y):
-        """Get data and index and value of top most scatter plot at position (x, y)
+        """Get data and index and value of the scatter data at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
@@ -182,11 +182,12 @@ class ScatterView(qt.QMainWindow):
             if plot is not None:
                 pixelPos = plot.dataToPixel(x, y)
                 if pixelPos is not None:
-                    # Start from top-most item
+                    # Only pick the data not the mask
+                    scatter = self.getScatterItem()
                     result = plot._pickTopMost(
                         pixelPos[0],
                         pixelPos[1],
-                        lambda item: isinstance(item, items.Scatter),
+                        lambda item: item is scatter,
                     )
                     if result is not None:
                         item = result.getItem()
