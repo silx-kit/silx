@@ -33,9 +33,13 @@ def test_snip_cache_changed_data_lengths(monkeypatch):
     config = dict(bgtheories.CONFIG, SmoothingFlag=False, AnchorsFlag=False)
     monkeypatch.setattr(bgtheories, "CONFIG", config)
     for name in (
-        "_BG_SNIP_OLDY", "_BG_SNIP_OLDWIDTH", "_BG_SNIP_OLDBG",
-        "_BG_SMOOTH_OLDWIDTH", "_BG_SMOOTH_OLDFLAG",
-        "_BG_OLD_ANCHORS", "_BG_OLD_ANCHORS_FLAG",
+        "_BG_SNIP_OLDY",
+        "_BG_SNIP_OLDWIDTH",
+        "_BG_SNIP_OLDBG",
+        "_BG_SMOOTH_OLDWIDTH",
+        "_BG_SMOOTH_OLDFLAG",
+        "_BG_OLD_ANCHORS",
+        "_BG_OLD_ANCHORS_FLAG",
     ):
         monkeypatch.setattr(bgtheories, name, getattr(bgtheories, name))
     bgtheories._BG_SNIP_OLDWIDTH = None
