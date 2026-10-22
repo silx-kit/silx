@@ -134,6 +134,11 @@ class DataView:
         """
         if self.__widget is None:
             self.__widget = self.createWidget(self.__parent)
+            # See https://github.com/silx-kit/silx/issues/4748
+            # Widgets can be created without being added to a layout (e.g. by
+            # clear or getDataPriority). Hide them explicitly, else Qt shows
+            # them when their parent becomes visible.
+            self.__widget.hide()
             hooks = self.getHooks()
             if hooks is not None:
                 hooks.viewWidgetCreated(self, self.__widget)
