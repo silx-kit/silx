@@ -211,7 +211,7 @@ def snip_bg(x, y0, width):
     # same parameters
     if not parameters_changed:
         # same data
-        if numpy.sum(_BG_SNIP_OLDY == y0) == len(y0):
+        if numpy.array_equal(_BG_SNIP_OLDY, y0):
             # same result
             return _BG_SNIP_OLDBG
 
