@@ -29,6 +29,49 @@ from silx.math.fit import bgtheories
 from silx.math.fit.functions import sum_gauss
 
 
+def test_snip_cache_changed_data_lengths(monkeypatch):
+    config = dict(bgtheories.CONFIG, SmoothingFlag=False, AnchorsFlag=False)
+    monkeypatch.setattr(bgtheories, "CONFIG", config)
+    for name in (
+        "_BG_SNIP_OLDY", "_BG_SNIP_OLDWIDTH", "_BG_SNIP_OLDBG",
+        "_BG_SMOOTH_OLDWIDTH", "_BG_SMOOTH_OLDFLAG",
+        "_BG_OLD_ANCHORS", "_BG_OLD_ANCHORS_FLAG",
+    ):
+        monkeypatch.setattr(bgtheories, name, getattr(bgtheories, name))
+    bgtheories._BG_SNIP_OLDWIDTH = None
+
+    for length in (200, 100, 200):
+        x = numpy.arange(length)
+        y = numpy.linspace(2.0, 8.0, length)
+        actual = bgtheories.snip_bg(x, y, 16)
+        assert actual.shape == y.shape
+        assert bgtheories.snip_bg(x, y.copy(), 16) is actual
+        # Compare a cache miss with the same calculation from an empty cache.
+        bgtheories._BG_SNIP_OLDWIDTH = None
+        expected = bgtheories.snip_bg(x, y, 16)
+        numpy.testing.assert_array_equal(actual, expected)
+
+
+def test_snip_cache_does_not_broadcast(monkeypatch):
+    config = dict(bgtheories.CONFIG, SmoothingFlag=False, AnchorsFlag=False)
+    monkeypatch.setattr(bgtheories, "CONFIG", config)
+    state = {
+        "_BG_SNIP_OLDY": numpy.array([1.0]),
+        "_BG_SNIP_OLDWIDTH": 16,
+        "_BG_SNIP_OLDBG": numpy.array([1.0]),
+        "_BG_SMOOTH_OLDWIDTH": config["SmoothingWidth"],
+        "_BG_SMOOTH_OLDFLAG": config["SmoothingFlag"],
+        "_BG_OLD_ANCHORS": config["AnchorsList"],
+        "_BG_OLD_ANCHORS_FLAG": config["AnchorsFlag"],
+    }
+    for name, value in state.items():
+        monkeypatch.setattr(bgtheories, name, value)
+    y = numpy.ones(100)
+    result = bgtheories.snip_bg(numpy.arange(len(y)), y, 16)
+    assert result.shape == y.shape
+    numpy.testing.assert_array_equal(result, y)
+
+
 class TestBgTheories(unittest.TestCase):
     """ """
 
