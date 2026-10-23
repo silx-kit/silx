@@ -49,15 +49,6 @@ then
         # testing/unstable: e.g. "trixie/sid"
         debian_version=$(cat /etc/debian_version | cut -d/ -f1)
         case $debian_version in
-            stretch)
-                debian_version=9
-                ;;
-            buster)
-                debian_version=10
-                ;;
-            bullseye)
-                debian_version=11
-                ;;
             bookworm)
                 debian_version=12
                 ;;
@@ -106,9 +97,6 @@ optional arguments:
                     the process using 'sudo dpkg'
     --stdeb-py3     Build using stdeb for python3
     --stdeb-py2.py3 Build using stdeb for python2 and python3
-    --debian9       Simulate a debian 9 Stretch system
-    --debian10      Simulate a debian 10 Buster system
-    --debian11      Simulate a debian 11 Bullseye system
     --debian12      Simulate a debian 12 Bookworm system
     --debian13      Simulate a debian 13 Trixie system
     --ubuntu22.04   Simulate an Ubuntu 22.04 Jammy system
@@ -141,7 +129,7 @@ do
           stdeb_all_python=1
           shift
           ;;
-      --debian9 | --debian10 | --debian11 | --debian12 | --debian13)
+      --debian12 | --debian13)
           distribution=debian
           debian_version=${1#--debian}
           debian_name=
@@ -248,15 +236,6 @@ build_deb() {
     if [ -z "$debian_name" ]
     then
       case ${distribution}${debian_version} in
-          debian9)
-              debian_name=stretch
-              ;;
-          debian10)
-              debian_name=buster
-              ;;
-          debian11)
-              debian_name=bullseye
-              ;;
           debian12)
               debian_name=bookworm
               ;;
