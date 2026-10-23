@@ -33,12 +33,20 @@ source_project=silx
 deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
 # target system
-if [ -f /etc/debian_version ]
+distribution=debian
+debian_name=
+if [ -f /etc/os-release ] && [ "$(. /etc/os-release; echo "$ID")" = "ubuntu" ]
+then
+    # Ubuntu: /etc/debian_version contains the name of a Debian testing release, use os-release instead
+    distribution=ubuntu
+    debian_version=$(. /etc/os-release; echo "$VERSION_ID")
+    debian_name=$(. /etc/os-release; echo "$VERSION_CODENAME")
+elif [ -f /etc/debian_version ]
 then
     debian_version=$(cat /etc/debian_version | cut -d. -f1 | grep -o '[0-9]*')
-    if [ -z $debian_version ]
+    if [ -z "$debian_version" ]
     then
-    #we are probably on a ubuntu platform
+        # testing/unstable: e.g. "trixie/sid"
         debian_version=$(cat /etc/debian_version | cut -d/ -f1)
         case $debian_version in
             stretch)
@@ -57,15 +65,14 @@ then
                 debian_version=13
                 ;;
             sid)
-		        debian_version=13
+                debian_version=13
         		;;
-            esac
+        esac
     fi
-
 else
     debian_version=0
 fi
-target_system=debian${debian_version}
+target_system=${distribution}${debian_version}
 
 project_directory="`dirname \"$0\"`"
 project_directory="`( cd \"$project_directory\" && pwd )`" # absolutized
@@ -87,9 +94,9 @@ fi
 
 usage="usage: $(basename "$0") [options]
 
-Build the Debian ${debian_version} package of the ${project} library.
+Build the ${target_system} package of the ${project} library.
 
-If the build succeed the directory dist/debian${debian_version} will
+If the build succeed the directory dist/${target_system} will
 contains the packages.
 
 optional arguments:
@@ -102,6 +109,9 @@ optional arguments:
     --debian10      Simulate a debian 10 Buster system
     --debian11      Simulate a debian 11 Bullseye system
     --debian12      Simulate a debian 12 Bookworm system
+    --debian13      Simulate a debian 13 Trixie system
+    --ubuntu22.04   Simulate an Ubuntu 22.04 Jammy system
+    --ubuntu24.04   Simulate an Ubuntu 24.04 Noble system
 "
 
 install=0
@@ -119,7 +129,7 @@ do
           install=1
           shift
           ;;
-      --stdeb-py2)
+      --stdeb-py3)
           use_stdeb=1
           stdeb_all_python=0
           shift
@@ -129,30 +139,20 @@ do
           stdeb_all_python=1
           shift
           ;;
-      --debian9)
-          debian_version=9
-          target_system=debian${debian_version}
+      --debian9 | --debian10 | --debian11 | --debian12 | --debian13)
+          distribution=debian
+          debian_version=${1#--debian}
+          debian_name=
+          target_system=${distribution}${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
           shift
           ;;
-      --debian10)
-          debian_version=10
-          target_system=debian${debian_version}
-          dist_directory=${project_directory}/dist/${target_system}
-          build_directory=${project_directory}/build/${target_system}
-          shift
-          ;;
-      --debian11)
-          debian_version=11
-          target_system=debian${debian_version}
-          dist_directory=${project_directory}/dist/${target_system}
-          build_directory=${project_directory}/build/${target_system}
-          shift
-          ;;
-      --debian12)
-          debian_version=12
-          target_system=debian${debian_version}
+      --ubuntu22.04 | --ubuntu24.04)
+          distribution=ubuntu
+          debian_version=${1#--ubuntu}
+          debian_name=
+          target_system=${distribution}${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
           shift
@@ -214,7 +214,15 @@ build_deb() {
     fi
     
     cd ${directory}
-    cp -r ${project_directory}/package/${target_system} debian
+    # use the packaging of the target system if available, else the most recent debian one
+    if [ -d ${project_directory}/package/${target_system} ]
+    then
+      packaging_directory=${project_directory}/package/${target_system}
+    else
+      packaging_directory=$(ls -d ${project_directory}/package/debian* | sort -V | tail -1)
+    fi
+    echo "Using packaging from ${packaging_directory}"
+    cp -r ${packaging_directory} debian
     cp ${project_directory}/copyright debian
     
     #handle test images
@@ -235,25 +243,43 @@ build_deb() {
       #export DEB_BUILD_OPTIONS=nocheck
     fi
 
-    case $debian_version in
-        9)
-            debian_name=stretch
-            ;;
-        10)
-            debian_name=buster
-            ;;
-        11)
-            debian_name=bullseye
-            ;;
-        12)
-            debian_name=bookworm
-            ;;
-    esac
+    if [ -z "$debian_name" ]
+    then
+      case ${distribution}${debian_version} in
+          debian9)
+              debian_name=stretch
+              ;;
+          debian10)
+              debian_name=buster
+              ;;
+          debian11)
+              debian_name=bullseye
+              ;;
+          debian12)
+              debian_name=bookworm
+              ;;
+          debian13)
+              debian_name=trixie
+              ;;
+          ubuntu22.04)
+              debian_name=jammy
+              ;;
+          ubuntu24.04)
+              debian_name=noble
+              ;;
+      esac
+    fi
 
-    dch --force-distribution -v ${debianversion}-1 "upstream development build of ${project} ${version}"
-    dch --force-distribution -D ${debian_name}-backports -l~bpo${debian_version}+ "${project} snapshot ${version} built for ${target_system}"
+    dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
+    if [ "$distribution" = "ubuntu" ]
+    then
+      dch -D ${debian_name} --force-distribution -l~ubuntu${debian_version}. "${project} snapshot ${version} built for ${target_system}"
+    else
+      dch -D ${debian_name}-backports --force-distribution -l~bpo${debian_version}+ "${project} snapshot ${version} built for ${target_system}"
+    fi
     #dch --bpo "${project} snapshot ${version} built for ${target_system}"
-    dpkg-buildpackage -r
+    # -us -uc: do not sign the source package and .changes file
+    dpkg-buildpackage -r -uc -us
     rc=$?
     
     if [ $rc -eq 0 ]; then
@@ -278,7 +304,7 @@ build_stdeb () {
     tarname=${project}-${strictversion}.tar.gz
     clean_up
 
-    python setup.py sdist
+    python3 setup.py sdist
     cp -f dist/${tarname} ${build_directory}
     cd ${build_directory}
     tar -xzf ${tarname}
@@ -313,7 +339,7 @@ fi
 
 
 if [ $install -eq 1 ]; then
-  sudo -v su -c  "dpkg -i ${dist_directory}/*.deb"
+  sudo dpkg -i ${dist_directory}/*.deb
 fi
 
 exit "$rc"
