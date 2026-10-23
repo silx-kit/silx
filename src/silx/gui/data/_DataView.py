@@ -148,7 +148,15 @@ class DataView:
         raise NotImplementedError()
 
     def clear(self):
-        """Clear the data from the view"""
+        """Clear the data from the view
+
+        Subclasses should override :meth:`_clear` rather than this method.
+        """
+        if self.isWidgetInitialized():
+            self._clear()
+
+    def _clear(self):
+        """Override in subclass to clear the data from the widget."""
         return None
 
     def setData(self, data):
