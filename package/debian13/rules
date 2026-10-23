@@ -3,7 +3,11 @@
 export DH_VERBOSE=1
 export PYBUILD_NAME=silx
 export PYBUILD_SYSTEM=pyproject
+# POCL (OpenCL) cache must be writable in sbuild
+export POCL_CACHE_DIR=$(CURDIR)/debian/pocl-cache
 #export PYBUILD_BUILD_ARGS := -Csetup-args=-Dcython=cython3
+
+include /usr/share/dpkg/pkg-info.mk
 
 %:
 	dh $@ --with python3,sphinxdoc --buildsystem=pybuild
@@ -17,26 +21,29 @@ override_dh_clean:
 override_dh_install:
 	dh_numpy3
 
-	# move the scripts to right package
-	dh_install -p silx debian/python3-pyfai/usr/bin usr/
-	# remove all scripts installed by pybuild
-	rm -rf debian/python3-silx/usr/bin
+	# move the scripts to the silx package
+	mkdir -p debian/silx/usr/bin
+	mv debian/python3-silx/usr/bin/silx debian/silx/usr/bin/
+	rmdir --ignore-fail-on-non-empty debian/python3-silx/usr/bin
 
-	#Finally install stuff
 	dh_install
 
-override_dh_python3:
-	dh_python3
-	dh_python3 -p python3-silx /usr/lib/$(DEB_HOST_MULTIARCH)/qt5/plugins/designer/python
+# Tests downloading data (scipy.datasets.ascent) cannot run without network access
+TEST_DESELECT=not test_norms_numpy and not TestNumpyFFT and not testAscent
 
 # WITH_QT_TEST=False to disable graphical tests
 # SILX_OPENCL=False to disable OpenCL tests
-# WITH_HIGH_MEM_TEST=True to enable tests taking large amount of memory
+# SILX_TEST_LOW_MEM=False to disable tests taking large amount of memory
 # GPU=False to disable the use of a GPU with OpenCL test
 # WITH_GL_TEST=False to disable tests using OpenGL
 override_dh_auto_test:
 	mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
-	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False WITH_HIGH_MEM_TEST=False xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} PYTEST_ADDOPTS=\"-k '$(TEST_DESELECT)'\" GPU=False SILX_TEST_LOW_MEM=False xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py --installed --qt-binding PyQt5 --no-opencl"
 
 override_dh_installman:
-	dh_installman -p silx build/man/*.1
+	# generate the man page from the installed script
+	PYTHONPATH=$$(echo $(CURDIR)/debian/python3-silx/usr/lib/python3*/dist-packages) \
+	help2man --no-info --version-string=$(DEB_VERSION_UPSTREAM) \
+		--name="Toolbox for X-Ray data analysis" \
+		--output=debian/silx.1 "python3 -m silx"
+	dh_installman -p silx debian/silx.1
