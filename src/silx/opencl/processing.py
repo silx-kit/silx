@@ -37,7 +37,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/12/2025"
+__date__ = "23/10/2026"
 __status__ = "stable"
 
 import os
@@ -46,6 +46,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
+import weakref
 from .common import (
     ocl,
     pyopencl,
@@ -130,6 +131,132 @@ class KernelContainer:
         )
 
 
+class OpenclQueue:
+    """OpenCL execution environment: context, device and command queue.
+
+    It can be shared between several `OpenclProcessing` (passed as their `ctx`).
+    All processings using the same `OpenclQueue` enqueue their commands in the
+    same queue, so the output of one processing can be fed to another one
+    without calling `finish()` in between (as long as the queue is in-order).
+
+    Switching the profiling mode re-creates the underlying `pyopencl.CommandQueue`:
+    all registered processings are then updated to use the new queue.
+
+    Note: sharing an in-order queue serializes the execution of all processings
+    using it.
+    """
+
+    def __init__(
+        self,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        memory=None,
+        profile=False,
+        queue=None,
+    ):
+        """Constructor of the OpenCL queue
+
+        :param ctx: OpenCL context in which the queue is created, left to None for
+                    automatic initialization from device type or platformid/deviceid
+        :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
+        :param platformid: integer with the platform_identifier, as given by clinfo
+        :param deviceid: Integer with the device identifier, as given by clinfo
+        :param memory: minimum memory available on device
+        :param profile: set to True to enable profiling
+        :param queue: existing `pyopencl.CommandQueue` to wrap instead of creating
+                      a new one. Its context, device and properties are kept and
+                      all other parameters are ignored.
+        """
+        profiling_flag = pyopencl.command_queue_properties.PROFILING_ENABLE
+        self._lock = threading.RLock()
+        self._users = weakref.WeakSet()
+        if queue is None:
+            if ctx is None:
+                ctx = ocl.create_context(
+                    devicetype=devicetype,
+                    platformid=platformid,
+                    deviceid=deviceid,
+                    memory=memory,
+                )
+            self.ctx = ctx
+            self.cl_device = ctx.devices[0]
+            self._properties = 0
+            self._queue = None
+            self._profile = None
+            self.set_profiling(profile)
+        else:
+            self.ctx = queue.context
+            self.cl_device = queue.device
+            self._properties = queue.properties & ~profiling_flag
+            self._queue = queue
+            self._profile = bool(queue.properties & profiling_flag)
+        platform = ocl.get_platform(self.cl_device.platform.name.strip())
+        self.device = platform.get_device(self.cl_device.name.strip())
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(device={self.cl_device.name.strip()!r}, "
+            f"profile={self._profile}, users={len(self._users)})"
+        )
+
+    @property
+    def queue(self):
+        """The current `pyopencl.CommandQueue`. It changes with the profiling mode."""
+        return self._queue
+
+    @property
+    def profile(self):
+        """True if the queue has profiling enabled"""
+        return self._profile
+
+    @property
+    def is_cpu(self):
+        """True if the device is a CPU"""
+        return self.device.type == "CPU"
+
+    def register(self, processing):
+        """Register a processing to be notified when the queue is re-created
+
+        :param processing: object with an `_update_queue(queue)` method
+        """
+        with self._lock:
+            self._users.add(processing)
+
+    def unregister(self, processing):
+        """Stop notifying a processing about queue changes"""
+        with self._lock:
+            self._users.discard(processing)
+
+    def finish(self):
+        """Wait for all commands enqueued in the queue to be completed"""
+        if self._queue is not None:
+            self._queue.finish()
+
+    def set_profiling(self, value=True):
+        """Switch On/Off the profiling flag of the command queue.
+
+        The queue is re-created and all registered processings are updated.
+
+        :param value: set to True to enable profiling, or to False to disable it.
+        """
+        value = bool(value)
+        with self._lock:
+            if value == self._profile:
+                return
+            properties = self._properties
+            if value:
+                properties |= pyopencl.command_queue_properties.PROFILING_ENABLE
+            self.finish()
+            self._queue = pyopencl.CommandQueue(
+                self.ctx, device=self.cl_device, properties=properties
+            )
+            self._profile = value
+            for user in list(self._users):
+                user._update_queue(self._queue)
+
+
 class OpenclProcessing:
     """Abstract class for different types of OpenCL processing.
 
@@ -160,7 +287,10 @@ class OpenclProcessing:
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
-                    initialization from device type or platformid/deviceid
+                    initialization from device type or platformid/deviceid.
+                    It can be a `pyopencl.Context` (a new queue is created),
+                    or, to share the queue with other processings, another
+                    `OpenclProcessing`, an `OpenclQueue` or a `pyopencl.CommandQueue`.
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
         :param platformid: integer with the platform_identifier, as given by clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
@@ -168,39 +298,125 @@ class OpenclProcessing:
                             out come of the compilation
         :param memory: minimum memory available on device
         :param profile: switch on profiling to be able to profile at the kernel
-                         level, store profiling elements (makes code slightly slower)
+                         level, store profiling elements (makes code slightly slower).
+                         When sharing a queue, profiling is enabled for all
+                         processings as soon as one of them requests it.
         """
         self.sem = threading.Semaphore()
         self._X87_VOLATILE = None
         self._APPLE_GPU = None
-        self.profile = None
         self.events = []  # List with of EventDescription, kept for profiling
         self.cl_mem = {}  # dict with all buffer allocated
         self.cl_program = None  # The actual OpenCL program
         self.cl_kernel_args = {}  # dict with all kernel arguments
-        self.queue = None
-        if ctx:
-            self.ctx = ctx
-        else:
-            self.ctx = ocl.create_context(
+        self._opencl_queue = None
+
+        if isinstance(ctx, OpenclProcessing):
+            opencl_queue = ctx.opencl_queue
+            if opencl_queue is None:
+                raise ValueError("The processing to share the queue with has none")
+        elif isinstance(ctx, OpenclQueue):
+            opencl_queue = ctx
+        elif isinstance(ctx, pyopencl.CommandQueue):
+            opencl_queue = OpenclQueue(queue=ctx)
+        elif ctx is None or isinstance(ctx, pyopencl.Context):
+            opencl_queue = OpenclQueue(
+                ctx=ctx,
                 devicetype=devicetype,
                 platformid=platformid,
                 deviceid=deviceid,
                 memory=memory,
+                profile=profile,
             )
-        device_name = self.ctx.devices[0].name.strip()
-        platform_name = self.ctx.devices[0].platform.name.strip()
-        platform = ocl.get_platform(platform_name)
-        self.device = platform.get_device(device_name)
-        self.cl_kernel_args = {}  # dict with all kernel arguments
+        else:
+            raise TypeError(f"Unsupported type for ctx: {type(ctx)}")
+        self.ctx = opencl_queue.ctx
+        self.device = opencl_queue.device
 
-        self.set_profiling(profile)
+        self._set_opencl_queue(opencl_queue)
+        if profile and not self.profile:
+            logger.info(
+                "%s: enable profiling on the shared queue", self.__class__.__name__
+            )
+            self.set_profiling(True)
         self.block_size = block_size
         self.program = None
         self.kernels = None
 
     def check_textures_availability(self):
         return check_textures_availability(self.ctx)
+
+    @property
+    def opencl_queue(self):
+        """The `OpenclQueue` used by this processing (or None once released)"""
+        return self._opencl_queue
+
+    @property
+    def queue(self):
+        """The `pyopencl.CommandQueue` used by this processing"""
+        if self._opencl_queue is None:
+            return None
+        return self._opencl_queue.queue
+
+    @queue.setter
+    def queue(self, value):
+        if value is None:
+            self._set_opencl_queue(None)
+        elif isinstance(value, OpenclQueue):
+            self._set_opencl_queue(value)
+        elif isinstance(value, pyopencl.CommandQueue):
+            self._set_opencl_queue(OpenclQueue(queue=value))
+        else:
+            raise TypeError(f"Unsupported type for queue: {type(value)}")
+
+    @property
+    def profile(self):
+        """True if the queue has profiling enabled"""
+        if self._opencl_queue is None:
+            return False
+        return self._opencl_queue.profile
+
+    def _set_opencl_queue(self, opencl_queue):
+        """Change the OpenCL queue used by this processing
+
+        :param opencl_queue: the new `OpenclQueue`, or None to release it
+        """
+        if self._opencl_queue is opencl_queue:
+            return
+        if opencl_queue is not None and opencl_queue.ctx != self.ctx:
+            raise ValueError("The queue does not belong to the processing context")
+        if self._opencl_queue is not None:
+            self._opencl_queue.unregister(self)
+        self._opencl_queue = opencl_queue
+        if opencl_queue is not None:
+            opencl_queue.register(self)
+            self._update_queue(opencl_queue.queue)
+
+    @staticmethod
+    def sync_queues(producer, consumer):
+        """Wait for the `producer` queue to complete if `consumer` is another queue.
+
+        Commands enqueued in the same in-order queue are executed sequentially,
+        so no synchronization is needed when both queues are the same, which is
+        the case when processings share their queue.
+
+        :param producer: queue where commands producing data were enqueued
+        :param consumer: queue where commands using this data will be enqueued,
+                         None if it is not known.
+        """
+        if producer is not None and producer != consumer:
+            producer.finish()
+
+    def _update_queue(self, queue):
+        """Called when the command queue is changed (e.g. profiling mode switch)
+
+        :param queue: the new `pyopencl.CommandQueue`
+        """
+        with self.sem:
+            # Update all memory-objects with the new queue:
+            for obj, cl_obj in list(self.cl_mem.items()):
+                if isinstance(cl_obj, pyopencl.array.Array):
+                    self.cl_mem[obj] = cl_obj.with_queue(queue)
 
     def __del__(self):
         """Destructor: release all buffers and programs"""
@@ -346,23 +562,13 @@ class OpenclProcessing:
                       Without profiling, the processing is marginally faster
 
         Profiling information can then be retrieved with the 'log_profile' method
+
+        If the queue is shared, this affects all processings sharing it.
         """
-        if bool(value) != self.profile:
-            with self.sem:
-                self.profile = bool(value)
-                if self.queue is not None:
-                    self.queue.finish()
-                if self.profile:
-                    self.queue = pyopencl.CommandQueue(
-                        self.ctx,
-                        properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
-                    )
-                else:
-                    self.queue = pyopencl.CommandQueue(self.ctx)
-                # Update all memory-objects with the new queue:
-                for obj, cl_obj in list(self.cl_mem.items()):
-                    if isinstance(cl_obj, pyopencl.array.Array):
-                        self.cl_mem[obj] = cl_obj.with_queue(self.queue)
+        if self._opencl_queue is None:
+            self._set_opencl_queue(OpenclQueue(self.ctx, profile=value))
+        else:
+            self._opencl_queue.set_profiling(value)
 
     def profile_add(self, event, desc):
         """

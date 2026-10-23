@@ -141,8 +141,7 @@ class LinearAlign(OpenclProcessing):
         self.mask = mask
         self.sift = SiftPlan(
             template=image,
-            ctx=self.ctx,
-            profile=self.profile,
+            ctx=self,
             block_size=self.block_size,
             init_sigma=init_sigma,
         )
@@ -157,9 +156,7 @@ class LinearAlign(OpenclProcessing):
                 % (self.ref_kp.size, masked.sum())
             )
             self.ref_kp = self.ref_kp[masked]
-        self.match = MatchPlan(
-            ctx=self.ctx, profile=self.profile, block_size=self.block_size
-        )
+        self.match = MatchPlan(ctx=self, block_size=self.block_size)
         #        Allocate reference keypoints on the GPU within match context:
         self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(
             self.match.queue, self.ref_kp
