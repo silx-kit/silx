@@ -114,6 +114,10 @@ class _CompositeDataView(DataView):
         """
         raise NotImplementedError()
 
+    def clear(self):
+        for v in self.getViews():
+            v.clear()
+
     def isSupportedData(self, data, info):
         """If true, the composite view allow sub views to access to this data.
         Else this this data is considered as not supported by any of sub views
@@ -225,10 +229,6 @@ class SelectOneDataView(_CompositeDataView):
 
     def createWidget(self, parent):
         return qt.QStackedWidget()
-
-    def clear(self):
-        for v in self.__views.keys():
-            v.clear()
 
     def setData(self, data):
         if self.__currentView is None:
@@ -363,10 +363,6 @@ class SelectManyDataView(_CompositeDataView):
     def createWidget(self, parent):
         raise RuntimeError("Abstract view")
 
-    def clear(self):
-        for v in self.__views:
-            v.clear()
-
     def setData(self, data):
         raise RuntimeError("Abstract view")
 
@@ -453,7 +449,7 @@ class _Plot1dView(DataView):
         widget.setGraphGrid(True)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
 
@@ -517,7 +513,7 @@ class _Plot2dRecordView(DataView):
 
         return RecordPlot(parent=parent)
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
 
@@ -653,7 +649,7 @@ class _Plot2dView(DataView):
             self.__aggregationModeAction.getAggregationMode()
         )
 
-    def clear(self):
+    def _clear(self):
         self.__imageItem.setData(numpy.zeros((0, 0), dtype=numpy.float32))
         self.__resetZoomNextTime = True
 
@@ -719,7 +715,7 @@ class _Plot3dView(DataView):
         plot.setAxesLabels(*reversed(self.axesNames(None, None)))
         return plot
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
         self.__resetZoomNextTime = True
 
@@ -784,7 +780,7 @@ class _ComplexImageView(DataView):
         maskToolsWidget.setItemMaskUpdated(True)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setData(None)
 
     def normalizeData(self, data):
@@ -829,7 +825,7 @@ class _ArrayView(DataView):
         widget.displayAxesSelector(False)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setArrayData(numpy.array([[]]))
 
     def setData(self, data):
@@ -862,7 +858,7 @@ class _ScalarView(DataView):
         self.__formatter = TextFormatter(parent)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setText("")
 
     def setData(self, data):
@@ -905,7 +901,7 @@ class _RecordView(DataView):
         widget.setWordWrap(False)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setArrayData(None)
 
     def setData(self, data):
@@ -947,7 +943,7 @@ class _HexaView(DataView):
         widget = HexaTableView(parent)
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setArrayData(None)
 
     def setData(self, data):
@@ -983,7 +979,7 @@ class _Hdf5View(DataView):
         widget = Hdf5TableView(parent)
         return widget
 
-    def clear(self):
+    def _clear(self):
         widget = self.getWidget()
         widget.setData(None)
 
@@ -1037,7 +1033,7 @@ class _InvalidNXdataView(DataView):
     def axesNames(self, data, info):
         return []
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setText("")
 
     def setData(self, data):
@@ -1140,7 +1136,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
     def axesNames(self, data, info):
         return ["col", "row"]
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().setArrayData(numpy.array([[]]), labels=True)
 
     def setData(self, data):
@@ -1180,7 +1176,7 @@ class _NXdataCurveView(_NXdataBaseDataView):
         # NxCurvePlot implements its own
         return None
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
@@ -1243,7 +1239,7 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
@@ -1314,7 +1310,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
@@ -1360,7 +1356,7 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
@@ -1404,7 +1400,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         )
         return widget
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
@@ -1473,7 +1469,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
         # disabled (used by default axis selector widget in Hdf5Viewer)
         return None
 
-    def clear(self):
+    def _clear(self):
         self.getWidget().clear()
 
     def setData(self, data):
