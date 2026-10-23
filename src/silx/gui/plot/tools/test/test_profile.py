@@ -118,19 +118,21 @@ class TestInteractions:
         finally:
             profileManager.clearProfile()
 
-    def testImageActions(self, imagePlot, subtests, qapp_utils):
-        roiClasses = [
+    @pytest.mark.parametrize(
+        "roiClass",
+        [
             rois.ProfileImageHorizontalLineROI,
             rois.ProfileImageVerticalLineROI,
             rois.ProfileImageLineROI,
             rois.ProfileImageCrossROI,
-        ]
-        for roiClass in roiClasses:
-            with subtests.test(roiClass=roiClass):
-                self.genericRoiTest(imagePlot, roiClass, qapp_utils)
+        ],
+    )
+    def testImageActions(self, imagePlot, roiClass, qapp_utils):
+        self.genericRoiTest(imagePlot, roiClass, qapp_utils)
 
-    def testScatterActions(self, scatterPlot, subtests, qapp_utils):
-        roiClasses = [
+    @pytest.mark.parametrize(
+        "roiClass",
+        [
             rois.ProfileScatterHorizontalLineROI,
             rois.ProfileScatterVerticalLineROI,
             rois.ProfileScatterLineROI,
@@ -138,21 +140,22 @@ class TestInteractions:
             rois.ProfileScatterHorizontalSliceROI,
             rois.ProfileScatterVerticalSliceROI,
             rois.ProfileScatterCrossSliceROI,
-        ]
-        for roiClass in roiClasses:
-            with subtests.test(roiClass=roiClass):
-                self.genericRoiTest(scatterPlot, roiClass, qapp_utils)
+        ],
+    )
+    def testScatterActions(self, scatterPlot, roiClass, qapp_utils):
+        self.genericRoiTest(scatterPlot, roiClass, qapp_utils)
 
-    def testStackActions(self, stackPlot, subtests, qapp_utils):
-        roiClasses = [
+    @pytest.mark.parametrize(
+        "roiClass",
+        [
             rois.ProfileImageStackHorizontalLineROI,
             rois.ProfileImageStackVerticalLineROI,
             rois.ProfileImageStackLineROI,
             rois.ProfileImageStackCrossROI,
-        ]
-        for roiClass in roiClasses:
-            with subtests.test(roiClass=roiClass):
-                self.genericRoiTest(stackPlot, roiClass, qapp_utils)
+        ],
+    )
+    def testStackActions(self, stackPlot, roiClass, qapp_utils):
+        self.genericRoiTest(stackPlot, roiClass, qapp_utils)
 
     def genericEditorTest(self, roi, editor):
         if isinstance(editor, editors._NoProfileRoiEditor):
@@ -193,8 +196,9 @@ class TestInteractions:
         else:
             assert False
 
-    def testEditors(self, defaultPlot, subtests, qapp):
-        roiClasses = [
+    @pytest.mark.parametrize(
+        "roiClass, editorClass",
+        [
             (rois.ProfileImageHorizontalLineROI, editors._DefaultImageProfileRoiEditor),
             (rois.ProfileImageVerticalLineROI, editors._DefaultImageProfileRoiEditor),
             (rois.ProfileImageLineROI, editors._DefaultImageProfileRoiEditor),
@@ -225,29 +229,29 @@ class TestInteractions:
                 rois.ProfileImageStackCrossROI,
                 editors._DefaultImageStackProfileRoiEditor,
             ),
-        ]
+        ],
+    )
+    def testEditors(self, defaultPlot, roiClass, editorClass, qapp):
         profileManager = manager.ProfileManager(defaultPlot, defaultPlot)
         editorAction = profileManager.createEditorAction(parent=defaultPlot)
-        for roiClass, editorClass in roiClasses:
-            with subtests.test(roiClass=roiClass):
-                roi = roiClass()
-                roi._setProfileManager(profileManager)
-                try:
-                    # Force widget creation
-                    menu = qt.QMenu(defaultPlot)
-                    menu.addAction(editorAction)
-                    widgets = editorAction.createdWidgets()
-                    assert len(widgets) > 0
+        roi = roiClass()
+        roi._setProfileManager(profileManager)
+        try:
+            # Force widget creation
+            menu = qt.QMenu(defaultPlot)
+            menu.addAction(editorAction)
+            widgets = editorAction.createdWidgets()
+            assert len(widgets) > 0
 
-                    editorAction.setProfileRoi(roi)
-                    editorWidget = editorAction._getEditor(widgets[0])
-                    assert isinstance(editorWidget, editorClass)
-                    self.genericEditorTest(roi, editorWidget)
-                finally:
-                    editorAction.setProfileRoi(None)
-                    menu.deleteLater()
-                    menu = None
-                    qapp.processEvents()
+            editorAction.setProfileRoi(roi)
+            editorWidget = editorAction._getEditor(widgets[0])
+            assert isinstance(editorWidget, editorClass)
+            self.genericEditorTest(roi, editorWidget)
+        finally:
+            editorAction.setProfileRoi(None)
+            menu.deleteLater()
+            menu = None
+            qapp.processEvents()
 
 
 class TestProfileToolBar:
@@ -266,40 +270,39 @@ class TestProfileToolBar:
 
         yield plot, toolBar
 
-    def testAlignedProfile(self, plotAndToolBar, subtests, qapp_utils):
+    @pytest.mark.parametrize("method", ("sum", "mean"))
+    @pytest.mark.parametrize("actionName", ("hLineAction", "vLineAction"))
+    def testAlignedProfile(self, plotAndToolBar, method, actionName, qapp_utils):
         """Test horizontal and vertical profile, without and with image"""
         plot, toolBar = plotAndToolBar
         # Use Plot backend widget to submit mouse events
         widget = plot.getWidgetHandle()
-        for method in ("sum", "mean"):
-            with subtests.test(method=method):
-                # 2 positions to use for mouse events
-                pos1 = widget.width() * 0.4, widget.height() * 0.4
-                pos2 = widget.width() * 0.6, widget.height() * 0.6
+        action = getattr(toolBar, actionName)
 
-                for action in (toolBar.hLineAction, toolBar.vLineAction):
-                    with subtests.test(mode=action.text()):
-                        # Trigger tool button for mode
-                        action.trigger()
-                        # Without image
-                        qapp_utils.mouseMove(widget, pos=pos1)
-                        qapp_utils.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
+        # 2 positions to use for mouse events
+        pos1 = widget.width() * 0.4, widget.height() * 0.4
+        pos2 = widget.width() * 0.6, widget.height() * 0.6
 
-                        # with image
-                        plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
-                        qapp_utils.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                        qapp_utils.mouseMove(widget, pos=pos2)
-                        qapp_utils.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+        # Trigger tool button for mode
+        action.trigger()
+        # Without image
+        qapp_utils.mouseMove(widget, pos=pos1)
+        qapp_utils.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
 
-                        qapp_utils.mouseMove(widget)
-                        qapp_utils.mouseClick(widget, qt.Qt.LeftButton)
+        # with image
+        plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
+        qapp_utils.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+        qapp_utils.mouseMove(widget, pos=pos2)
+        qapp_utils.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
-                        manager = toolBar.getProfileManager()
-                        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
+        qapp_utils.mouseMove(widget)
+        qapp_utils.mouseClick(widget, qt.Qt.LeftButton)
 
-    def testDiagonalProfile(
-        self, plotAndToolBar, subtests: pytest.Subtests, qapp_utils
-    ):
+        manager = toolBar.getProfileManager()
+        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
+
+    @pytest.mark.parametrize("method", ("sum", "mean"))
+    def testDiagonalProfile(self, plotAndToolBar, method, qapp_utils):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
         plot, toolBar = plotAndToolBar
@@ -307,49 +310,45 @@ class TestProfileToolBar:
 
         plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
 
-        for method in ("sum", "mean"):
-            with subtests.test(method=method):
-                # 2 positions to use for mouse events
-                pos1 = widget.width() * 0.4, widget.height() * 0.4
-                pos2 = widget.width() * 0.6, widget.height() * 0.6
+        # 2 positions to use for mouse events
+        pos1 = widget.width() * 0.4, widget.height() * 0.4
+        pos2 = widget.width() * 0.6, widget.height() * 0.6
 
-                # Trigger tool button for diagonal profile mode
-                toolBar.lineAction.trigger()
+        # Trigger tool button for diagonal profile mode
+        toolBar.lineAction.trigger()
 
-                # draw profile line
-                widget.setFocus(qt.Qt.OtherFocusReason)
-                qapp_utils.mouseMove(widget, pos=pos1)
-                qapp_utils.qWait(100)
-                qapp_utils.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                qapp_utils.qWait(100)
-                qapp_utils.mouseMove(widget, pos=pos2)
-                qapp_utils.qWait(100)
-                qapp_utils.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
-                qapp_utils.qWait(100)
+        # draw profile line
+        widget.setFocus(qt.Qt.OtherFocusReason)
+        qapp_utils.mouseMove(widget, pos=pos1)
+        qapp_utils.qWait(100)
+        qapp_utils.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+        qapp_utils.qWait(100)
+        qapp_utils.mouseMove(widget, pos=pos2)
+        qapp_utils.qWait(100)
+        qapp_utils.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+        qapp_utils.qWait(100)
 
-                manager = toolBar.getProfileManager()
+        manager = toolBar.getProfileManager()
 
-                qapp_utils.waitAsLongAs(manager.hasPendingOperations)
+        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
-                roi = manager.getCurrentRoi()
-                assert roi is not None
-                roi.setProfileLineWidth(3)
-                roi.setProfileMethod(method)
+        roi = manager.getCurrentRoi()
+        assert roi is not None
+        roi.setProfileLineWidth(3)
+        roi.setProfileMethod(method)
 
-                qapp_utils.waitAsLongAs(manager.hasPendingOperations)
+        qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
-                curveItem = (
-                    roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
-                )
-                if method == "sum":
-                    assert curveItem.getData()[1].max() > 10000
-                elif method == "mean":
-                    assert curveItem.getData()[1].max() < 10000
+        curveItem = roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
+        if method == "sum":
+            assert curveItem.getData()[1].max() > 10000
+        elif method == "mean":
+            assert curveItem.getData()[1].max() < 10000
 
-                # Remove the ROI so the profile window is also removed
-                roiManager = manager.getRoiManager()
-                roiManager.removeRoi(roi)
-                qapp_utils.qWait(100)
+        # Remove the ROI so the profile window is also removed
+        roiManager = manager.getRoiManager()
+        roiManager.removeRoi(roi)
+        qapp_utils.qWait(100)
 
 
 class TestProfile3DToolBar:
