@@ -66,9 +66,10 @@ then
                 ;;
             sid)
                 debian_version=13
-        		;;
+                ;;
         esac
     fi
+
 else
     debian_version=0
 fi
@@ -112,6 +113,7 @@ optional arguments:
     --debian13      Simulate a debian 13 Trixie system
     --ubuntu22.04   Simulate an Ubuntu 22.04 Jammy system
     --ubuntu24.04   Simulate an Ubuntu 24.04 Noble system
+    --ubuntu26.04   Simulate an Ubuntu 26.04 Resolute system
 "
 
 install=0
@@ -148,7 +150,7 @@ do
           build_directory=${project_directory}/build/${target_system}
           shift
           ;;
-      --ubuntu22.04 | --ubuntu24.04)
+      --ubuntu22.04 | --ubuntu24.04 | --ubuntu26.04)
           distribution=ubuntu
           debian_version=${1#--ubuntu}
           debian_name=
@@ -181,7 +183,7 @@ build_deb() {
     tarname=${project}_${debianversion}.orig.tar.gz
     clean_up
     python3 -m build -s
-    ln -s ${source_project}-${strictversion}.tar.gz dist/${tarname}
+    ln -sf ${source_project}-${strictversion}.tar.gz dist/${tarname}
     directory=${source_project}-${strictversion}
     cp -f dist/${tarname} ${build_directory}
     if [ -f dist/${project}-testimages.tar.gz ]
@@ -266,6 +268,9 @@ build_deb() {
               ;;
           ubuntu24.04)
               debian_name=noble
+              ;;
+          ubuntu26.04)
+              debian_name=resolute
               ;;
       esac
     fi

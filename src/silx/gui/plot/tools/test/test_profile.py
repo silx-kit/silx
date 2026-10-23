@@ -298,7 +298,7 @@ class TestProfileToolBar:
                         qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     def testDiagonalProfile(
-        self, plotAndToolBar, subtests: pytest.Subtests, qapp_utils
+        self, plotAndToolBar, subtests: "pytest.Subtests", qapp_utils
     ):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
