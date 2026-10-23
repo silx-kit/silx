@@ -198,6 +198,23 @@ def test_remove_view(data_viewer_widget):
     assert view not in data_viewer_widget.currentAvailableViews()
 
 
+def test_clear_does_not_create_widgets(data_viewer_widget):
+    data_viewer_widget.setData("foo")
+    assert data_viewer_widget.displayMode() == DataViews.RAW_MODE
+    data_viewer_widget.setData("bar")  # Clears the raw view
+
+    raw_view = data_viewer_widget.getViewFromModeId(DataViews.RAW_MODE)
+    current_view = raw_view.getCurrentView()
+    for view in raw_view.getViews():
+        assert view.isWidgetInitialized() == (view is current_view)
+
+
+def test_remove_view_does_not_create_widget(data_viewer_widget):
+    view = data_viewer_widget.getViewFromModeId(DataViews.PLOT1D_MODE)
+    data_viewer_widget.removeView(view)
+    assert not view.isWidgetInitialized()
+
+
 def test_replace_view(data_viewer_widget):
     view = _DataViewMock(data_viewer_widget)
     data_viewer_widget.replaceView(DataViews.RAW_MODE, view)

@@ -440,7 +440,8 @@ class DataViewer(qt.QFrame):
         :param DataView view: A dataview
         """
         self.__views.remove(view)
-        self.__stack.removeWidget(view.getWidget())
+        if view.isWidgetInitialized():
+            self.__stack.removeWidget(view.getWidget())
         # invalidate the full index. It will be updated as expected
         self.__index = {}
 
