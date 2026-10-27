@@ -243,8 +243,7 @@ BackendType = (
     BackendNameLiteral | BackendBase | Iterable[BackendNameLiteral | BackendBase] | None
 )
 
-GraphFormat = Literal["png", "svg", "pdf", "ps", "eps", "tif", "tiff", "jpeg", "jpg"]
-"""Formats supported by :meth:`PlotWidget.saveGraph`"""
+_GraphFormat = Literal["png", "svg", "pdf", "ps", "eps", "tif", "tiff", "jpeg", "jpg"]
 
 
 def _deduceGraphFormat(filename: str | StringIO | BytesIO) -> str | None:
@@ -3230,7 +3229,7 @@ class PlotWidget(qt.QMainWindow):
     def saveGraph(
         self,
         filename: str | StringIO | BytesIO,
-        fileFormat: GraphFormat | None = None,
+        fileFormat: _GraphFormat | None = None,
         dpi: int | None = None,
     ) -> bool:
         """Save a snapshot of the plot.

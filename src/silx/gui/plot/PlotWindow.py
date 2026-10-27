@@ -56,7 +56,7 @@ from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
 from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
-from .PlotWidget import GraphFormat, _deduceGraphFormat
+from .PlotWidget import _GraphFormat, _deduceGraphFormat
 
 try:
     from ..console import IPythonDockWidget
@@ -506,7 +506,7 @@ class PlotWindow(PlotWidget):
     def saveGraph(
         self,
         filename: str | StringIO | BytesIO,
-        fileFormat: GraphFormat | None = None,
+        fileFormat: _GraphFormat | None = None,
         dpi: int | None = None,
     ) -> bool:
         # Overwrite the original function to be able to grab the central widget and
