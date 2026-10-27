@@ -56,7 +56,7 @@ from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
 from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
-from .PlotWidget import GraphFormat
+from .PlotWidget import GraphFormat, _deduceGraphFormat
 
 try:
     from ..console import IPythonDockWidget
@@ -511,19 +511,30 @@ class PlotWindow(PlotWidget):
     ) -> bool:
         # Overwrite the original function to be able to grab the central widget and
         # potentially have the colorbar embed.
-        if fileFormat == "png":
-            centralWidget = self.centralWidget()
-            pixmap = centralWidget.grab()
-            if dpi is None:
-                pixmap.save(filename)
-            else:
-                image = pixmap.toImage()
-                # note: 0.0254 is used to convert from inch to meter
-                image.setDotsPerMeterX(dpi / 0.0254)
-                image.setDotsPerMeterY(dpi / 0.0254)
-                image.save(filename)
-            return True
-        return super().saveGraph(filename=filename, fileFormat=fileFormat, dpi=dpi)
+        if fileFormat is None:
+            fileFormat = _deduceGraphFormat(filename)
+        if fileFormat != "png":
+            return super().saveGraph(filename=filename, fileFormat=fileFormat, dpi=dpi)
+
+        image = self.centralWidget().grab().toImage()
+        if dpi is not None:
+            # note: 0.0254 is used to convert from inch to meter
+            image.setDotsPerMeterX(round(dpi / 0.0254))
+            image.setDotsPerMeterY(round(dpi / 0.0254))
+
+        if isinstance(filename, str):
+            return image.save(filename, "png")
+
+        # Qt cannot write to Python file-like objects: go through a QBuffer
+        buffer = qt.QBuffer()
+        buffer.open(qt.QIODevice.WriteOnly)
+        try:
+            if not image.save(buffer, "png"):
+                return False
+            filename.write(bytes(buffer.data()))
+        finally:
+            buffer.close()
+        return True
 
     def toolBar(self):
         """Return a QToolBar from the QAction of the PlotWindow."""

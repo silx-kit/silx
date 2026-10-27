@@ -248,11 +248,7 @@ GraphFormat = Literal["png", "svg", "pdf", "ps", "eps", "tif", "tiff", "jpeg", "
 
 
 def _deduceGraphFormat(filename: str | StringIO | BytesIO) -> str | None:
-    """Returns the file format from the filename extension.
-
-    :param filename: Destination of :meth:`PlotWidget.saveGraph`
-    :return: The lower case extension or None if filename is not a str
-    """
+    """Returns the file format from the filename extension."""
     if not isinstance(filename, str):
         return None
     return filename.split(".")[-1].lower()
