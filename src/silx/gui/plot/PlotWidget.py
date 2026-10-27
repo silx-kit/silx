@@ -247,6 +247,17 @@ GraphFormat = Literal["png", "svg", "pdf", "ps", "eps", "tif", "tiff", "jpeg", "
 """Formats supported by :meth:`PlotWidget.saveGraph`"""
 
 
+def _deduceGraphFormat(filename: str | StringIO | BytesIO) -> str | None:
+    """Returns the file format from the filename extension.
+
+    :param filename: Destination of :meth:`PlotWidget.saveGraph`
+    :return: The lower case extension or None if filename is not a str
+    """
+    if not isinstance(filename, str):
+        return None
+    return filename.split(".")[-1].lower()
+
+
 class PlotWidget(qt.QMainWindow):
     """Qt Widget providing a 1D/2D plot.
 
@@ -3242,11 +3253,10 @@ class PlotWidget(qt.QMainWindow):
         :return: False if cannot save the plot, True otherwise
         """
         if fileFormat is None:
-            if not hasattr(filename, "lower"):
+            fileFormat = _deduceGraphFormat(filename)
+            if fileFormat is None:
                 _logger.warning("saveGraph cancelled, cannot define file format.")
                 return False
-            else:
-                fileFormat = (filename.split(".")[-1]).lower()
 
         supportedFormats = (
             "png",
