@@ -40,12 +40,13 @@ import weakref
 import logging
 import numbers
 from collections import namedtuple
+from typing import Sequence
 
 import numpy
 
 from ... import qt
 from ...utils.matplotlib import DefaultTickFormatter
-from .._utils import checkAxisLimits, FLOAT32_MINPOS
+from .._utils import axis_scale, checkAxisLimits
 from .._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
 from .._utils.dtime_ticklayout import (
     DtUnit,
@@ -53,6 +54,7 @@ from .._utils.dtime_ticklayout import (
     calcTicksAdaptive,
     formatDatetimes,
 )
+from ..items.types import AxisScaleType
 
 _logger = logging.getLogger(__name__)
 
@@ -90,7 +92,7 @@ class PlotAxisCore:
 
         self._isDateTime = False
         self._timeZone = None
-        self._isLog = False
+        self._scale: AxisScaleType = "linear"
         self._dataRange = 1.0, 100.0
         self._displayCoords = (0.0, 0.0), (1.0, 0.0)
         self._title = ""
@@ -131,15 +133,13 @@ class PlotAxisCore:
             self._dirtyTicks()
 
     @property
-    def isLog(self):
-        """Whether the axis is using a log10 scale or not as a bool."""
-        return self._isLog
+    def scale(self) -> AxisScaleType:
+        return self._scale
 
-    @isLog.setter
-    def isLog(self, isLog):
-        isLog = bool(isLog)
-        if isLog != self._isLog:
-            self._isLog = isLog
+    @scale.setter
+    def scale(self, scale: AxisScaleType):
+        if scale != self._scale:
+            self._scale = scale
             self._dirtyTicks()
 
     @property
@@ -236,9 +236,9 @@ class PlotAxisCore:
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, (
-            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._foregroundColor = color
             self._dirtyTicks()
@@ -249,6 +249,12 @@ class PlotAxisCore:
         if self._ticks is None:
             self._ticks = tuple(self._ticksGenerator())
         return self._ticks
+
+    def applyScale(self, data: float | numpy.ndarray) -> float | numpy.ndarray:
+        return axis_scale.apply(self.scale, data)
+
+    def revertScale(self, data: float | numpy.ndarray) -> float | numpy.ndarray:
+        return axis_scale.revert(self.scale, data)
 
     def getVerticesAndLabels(self):
         """Create the list of vertices and associated text label descriptors.
@@ -358,6 +364,15 @@ class PlotAxisCore:
             yield start
             start += step
 
+    def _defaultFormatTicks(
+        self, min_: float, max_: float, tickValues: Sequence[float]
+    ) -> tuple[str, list[str]]:
+        """Returns offset/order text and list of tick labels"""
+        self._tickFormatter.axis.set_view_interval(min_, max_)
+        self._tickFormatter.axis.set_data_interval(min_, max_)
+        tickLabels = self._tickFormatter.format_ticks(tickValues)
+        return self._tickFormatter.get_offset(), tickLabels
+
     def _ticksGenerator(self):
         """Generator of ticks as tuples:
         ((x, y) in display, dataPos, textLabel).
@@ -365,8 +380,10 @@ class PlotAxisCore:
         self._orderAndOffsetText = ""
 
         dataMin, dataMax = self.dataRange
-        if self.isLog and dataMin <= 0.0:
-            _logger.warning("Getting ticks while isLog=True and dataRange[0]<=0.")
+        if not axis_scale.isValid(self.scale, dataMin):
+            _logger.warning(
+                "Getting ticks with dataRange[0] outside axis scale valid range"
+            )
             dataMin = 1.0
             if dataMax < dataMin:
                 dataMax = 1.0
@@ -374,37 +391,103 @@ class PlotAxisCore:
         if dataMin != dataMax:  # data range is not null
             (x0, y0), (x1, y1) = self.displayCoords
 
-            if self.isLog:
+            if self.scale == "asinh":
+                if self.isTimeSeries:
+                    _logger.warning("Time series not implemented for asinh axes")
+
+                axisLengthInches = (
+                    numpy.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2) / self.dotsPerInch
+                )
+                # ~1.3 tick per inch
+                nTicks = max(3, 2 * int(round(1.3 * axisLengthInches)) // 2 + 1)
+
+                scaledMin, scaledMax = self.applyScale((dataMin, dataMax))
+                scaledTentativeTicks = numpy.linspace(scaledMin, scaledMax, nTicks)
+                tentativeTicks = self.revertScale(scaledTentativeTicks)
+                with numpy.errstate(divide="ignore"):
+                    log10Ticks = numpy.sign(tentativeTicks) * 10 ** numpy.floor(
+                        numpy.log10(abs(tentativeTicks))
+                    )
+                uniqueLog10Ticks = set(
+                    pos
+                    for pos in log10Ticks
+                    if numpy.isfinite(pos) and dataMin <= pos <= dataMax
+                )
+                if dataMin * dataMax < 0:  # crossing zero: ensure 0
+                    uniqueLog10Ticks.add(0.0)
+
+                tickPositions = numpy.array(sorted(uniqueLog10Ticks))
+
+                if dataMin * dataMax < 0:
+                    # Remove ticks too close to 0
+                    scaledTicks = self.applyScale(tickPositions)
+                    distanceToZero = axisLengthInches * abs(
+                        scaledTicks / (scaledMax - scaledMin)
+                    )
+                    tickPositions = tickPositions[
+                        numpy.logical_or(distanceToZero == 0, distanceToZero >= 0.5)
+                    ]
+
+                xScale = (x1 - x0) / (scaledMax - scaledMin)
+                yScale = (y1 - y0) / (scaledMax - scaledMin)
+
+                if len(tickPositions) >= 2:
+                    for dataPos in tickPositions:
+                        scaledPos = self.applyScale(dataPos)
+                        xPixel = x0 + (scaledPos - scaledMin) * xScale
+                        yPixel = y0 + (scaledPos - scaledMin) * yScale
+                        if dataPos != 0:
+                            sign = "" if dataPos >= 0 else "-"
+                            exp = int(numpy.floor(numpy.log10(abs(dataPos))))
+                            text = f"{sign}1e{exp}"
+                        else:
+                            text = "0"
+                        yield ((xPixel, yPixel), dataPos, text)
+                else:  # Not enough ticks: Fallback to linear ticks in scaled space
+                    tickPositions = self.revertScale(
+                        numpy.linspace(scaledMin, scaledMax, nTicks)
+                    )
+                    offsetText, tickLabels = self._defaultFormatTicks(
+                        dataMin, dataMax, tickPositions
+                    )
+                    self._orderAndOffsetText = offsetText
+
+                    for dataPos, text in zip(tickPositions, tickLabels):
+                        xPixel = x0 + (self.applyScale(dataPos) - scaledMin) * xScale
+                        yPixel = y0 + (self.applyScale(dataPos) - scaledMin) * yScale
+                        yield ((xPixel, yPixel), dataPos, text)
+
+            elif self.scale == "log":
                 if self.isTimeSeries:
                     _logger.warning("Time series not implemented for log-scale")
 
-                logMin, logMax = math.log10(dataMin), math.log10(dataMax)
-                tickMin, tickMax, step, _ = niceNumbersForLog10(logMin, logMax)
+                scaledMin, scaledMax = self.applyScale((dataMin, dataMax))
+                tickMin, tickMax, step, _ = niceNumbersForLog10(scaledMin, scaledMax)
 
-                xScale = (x1 - x0) / (logMax - logMin)
-                yScale = (y1 - y0) / (logMax - logMin)
+                xScale = (x1 - x0) / (scaledMax - scaledMin)
+                yScale = (y1 - y0) / (scaledMax - scaledMin)
 
-                for logPos in self._frange(tickMin, tickMax, step):
-                    if logMin <= logPos <= logMax:
-                        dataPos = 10**logPos
-                        xPixel = x0 + (logPos - logMin) * xScale
-                        yPixel = y0 + (logPos - logMin) * yScale
-                        text = "1e%+03d" % logPos
+                for scaledPos in self._frange(tickMin, tickMax, step):
+                    if scaledMin <= scaledPos <= scaledMax:
+                        dataPos = self.revertScale(scaledPos)
+                        xPixel = x0 + (scaledPos - scaledMin) * xScale
+                        yPixel = y0 + (scaledPos - scaledMin) * yScale
+                        text = "1e%+03d" % scaledPos
                         yield ((xPixel, yPixel), dataPos, text)
 
                 if step == 1:
                     ticks = list(self._frange(tickMin, tickMax, step))[:-1]
-                    for logPos in ticks:
-                        dataOrigPos = 10**logPos
+                    for scaledPos in ticks:
+                        dataOrigPos = self.revertScale(scaledPos)
                         for index in range(2, 10):
                             dataPos = dataOrigPos * index
                             if dataMin <= dataPos <= dataMax:
-                                logSubPos = math.log10(dataPos)
-                                xPixel = x0 + (logSubPos - logMin) * xScale
-                                yPixel = y0 + (logSubPos - logMin) * yScale
+                                scaledSubPos = self.applyScale(dataPos)
+                                xPixel = x0 + (scaledSubPos - scaledMin) * xScale
+                                yPixel = y0 + (scaledSubPos - scaledMin) * yScale
                                 yield ((xPixel, yPixel), dataPos, None)
 
-            else:
+            elif self.scale == "linear":
                 xScale = (x1 - x0) / (dataMax - dataMin)
                 yScale = (y1 - y0) / (dataMax - dataMin)
 
@@ -426,12 +509,12 @@ class PlotAxisCore:
                         for pos in self._frange(tickMin, tickMax, step)
                         if dataMin <= pos <= dataMax
                     ]
-                    self._tickFormatter.axis.set_view_interval(dataMin, dataMax)
-                    self._tickFormatter.axis.set_data_interval(dataMin, dataMax)
-                    texts = self._tickFormatter.format_ticks(visibleTickPositions)
-                    self._orderAndOffsetText = self._tickFormatter.get_offset()
+                    offsetText, tickLabels = self._defaultFormatTicks(
+                        dataMin, dataMax, visibleTickPositions
+                    )
+                    self._orderAndOffsetText = offsetText
 
-                    for dataPos, text in zip(visibleTickPositions, texts):
+                    for dataPos, text in zip(visibleTickPositions, tickLabels):
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
                         yield ((xPixel, yPixel), dataPos, text)
@@ -464,6 +547,8 @@ class PlotAxisCore:
                         xPixel = x0 + (dataPos - dataMin) * xScale
                         yPixel = y0 + (dataPos - dataMin) * yScale
                         yield ((xPixel, yPixel), dataPos, text)
+            else:
+                raise RuntimeError(f"Unsupported axis scale: {self.scale}")
 
 
 # PlotFrameCore ###############################################################
@@ -529,9 +614,9 @@ class PlotFrameCore:
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, (
-            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._foregroundColor = color
             for axis in self.axes:
@@ -546,9 +631,9 @@ class PlotFrameCore:
     @gridColor.setter
     def gridColor(self, color):
         """Color used for grid"""
-        assert len(color) == 4, (
-            f"gridColor must have length 4, got {len(self._gridColor)}"
-        )
+        assert (
+            len(color) == 4
+        ), f"gridColor must have length 4, got {len(self._gridColor)}"
         if self._gridColor != color:
             self._gridColor = color
             self._dirty()
@@ -959,17 +1044,17 @@ class PlotFrame2DCore(PlotFrameCore):
         """
         if x is not None:
             self._dataRanges["x"] = checkAxisLimits(
-                x[0], x[1], self.xAxis.isLog, name="x"
+                self.xAxis.scale, x[0], x[1], name="x"
             )
 
         if y is not None:
             self._dataRanges["y"] = checkAxisLimits(
-                y[0], y[1], self.yAxis.isLog, name="y"
+                self.yAxis.scale, y[0], y[1], name="y"
             )
 
         if y2 is not None:
             self._dataRanges["y2"] = checkAxisLimits(
-                y2[0], y2[1], self.y2Axis.isLog, name="y2"
+                self.y2Axis.scale, y2[0], y2[1], name="y2"
             )
 
         self.xAxis.dataRange = self._dataRanges["x"]
@@ -984,46 +1069,18 @@ class PlotFrame2DCore(PlotFrameCore):
         3-tuple of 2-tuple (min, max) for each axis: x, y, y2.
         """
         if self._transformedDataRanges is None:
-            (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self.dataRanges
+            xRange, yRange, y2Range = self.dataRanges
+            scaledRanges = []
+            for range_, axis in [
+                (xRange, self.xAxis),
+                (yRange, self.yAxis),
+                (y2Range, self.y2Axis),
+            ]:
+                scaledRange = axis.applyScale(range_)
+                scaledRange[~numpy.isfinite(scaledRange)] = 0.0
+                scaledRanges.append(tuple(scaledRange))
 
-            if self.xAxis.isLog:
-                try:
-                    xMin = math.log10(xMin)
-                except ValueError:
-                    _logger.info("xMin: warning log10(%f)", xMin)
-                    xMin = 0.0
-                try:
-                    xMax = math.log10(xMax)
-                except ValueError:
-                    _logger.info("xMax: warning log10(%f)", xMax)
-                    xMax = 0.0
-
-            if self.yAxis.isLog:
-                try:
-                    yMin = math.log10(yMin)
-                except ValueError:
-                    _logger.info("yMin: warning log10(%f)", yMin)
-                    yMin = 0.0
-                try:
-                    yMax = math.log10(yMax)
-                except ValueError:
-                    _logger.info("yMax: warning log10(%f)", yMax)
-                    yMax = 0.0
-
-                try:
-                    y2Min = math.log10(y2Min)
-                except ValueError:
-                    _logger.info("yMin: warning log10(%f)", y2Min)
-                    y2Min = 0.0
-                try:
-                    y2Max = math.log10(y2Max)
-                except ValueError:
-                    _logger.info("yMax: warning log10(%f)", y2Max)
-                    y2Max = 0.0
-
-            self._transformedDataRanges = self._DataRanges(
-                (xMin, xMax), (yMin, yMax), (y2Min, y2Max)
-            )
+            self._transformedDataRanges = self._DataRanges(*scaledRanges)
 
         return self._transformedDataRanges
 
@@ -1098,37 +1155,18 @@ class PlotFrame2DCore(PlotFrameCore):
             dtype=numpy.float64,
         )
 
-    @staticmethod
-    def _applyLog(
-        data: float | numpy.ndarray, isLog: bool
-    ) -> float | numpy.ndarray | None:
-        """Apply log to data filtering out"""
-        if not isLog:
-            return data
-
-        if isinstance(data, numbers.Real):
-            return None if data < FLOAT32_MINPOS else math.log10(data)
-
-        isBelowMin = data < FLOAT32_MINPOS
-        if numpy.any(isBelowMin):
-            data = numpy.array(data, copy=True, dtype=numpy.float64)
-            data[isBelowMin] = numpy.nan
-
-        with numpy.errstate(divide="ignore"):
-            return numpy.log10(data)
-
     def dataToPixel(self, x, y, axis="left"):
         """Convert data coordinate to widget pixel coordinate."""
         assert axis in ("left", "right")
 
         trBounds = self.transformedDataRanges
 
-        xDataTr = self._applyLog(x, self.xAxis.isLog)
-        if xDataTr is None:
+        xDataTr = self.xAxis.applyScale(x)
+        if isinstance(xDataTr, numbers.Real) and not numpy.isfinite(xDataTr):
             return None
 
-        yDataTr = self._applyLog(y, self.yAxis.isLog)
-        if yDataTr is None:
+        yDataTr = self.yAxis.applyScale(y)
+        if isinstance(yDataTr, numbers.Real) and not numpy.isfinite(yDataTr):
             return None
 
         # Non-orthogonal axes
@@ -1185,19 +1223,19 @@ class PlotFrame2DCore(PlotFrameCore):
         trBounds = self.transformedDataRanges
 
         if self.isXAxisInverted:
-            unscaledXData = self.size[0] - self.margins.right - x - 0.5
+            xPlotPixel = self.size[0] - self.margins.right - x - 0.5
         else:
-            unscaledXData = x - self.margins.left + 0.5
-        xData = trBounds.x[0] + unscaledXData / float(plotWidth) * (
+            xPlotPixel = x - self.margins.left + 0.5
+        xScaledData = trBounds.x[0] + xPlotPixel / float(plotWidth) * (
             trBounds.x[1] - trBounds.x[0]
         )
 
         if self.isYAxisInverted:
-            unscaledYData = y - self.margins.top + 0.5
+            yPlotPixel = y - self.margins.top + 0.5
         else:
-            unscaledYData = self.size[1] - self.margins.bottom - y - 0.5
+            yPlotPixel = self.size[1] - self.margins.bottom - y - 0.5
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
-        yData = usedAxis[0] + unscaledYData / float(plotHeight) * (
+        yScaledData = usedAxis[0] + yPlotPixel / float(plotHeight) * (
             usedAxis[1] - usedAxis[0]
         )
 
@@ -1207,14 +1245,11 @@ class PlotFrame2DCore(PlotFrameCore):
             skew_mat = numpy.array(((xx, yx), (xy, yy)))
             skew_mat = numpy.linalg.inv(skew_mat)
 
-            coords = numpy.dot(skew_mat, numpy.array((xData, yData)))
-            xData, yData = coords
+            coords = numpy.dot(skew_mat, numpy.array((xScaledData, yScaledData)))
+            xScaledData, yScaledData = coords
 
-        if self.xAxis.isLog:
-            xData = pow(10, xData)
-        if self.yAxis.isLog:
-            yData = pow(10, yData)
-
+        xData = self.xAxis.revertScale(xScaledData)
+        yData = self.yAxis.revertScale(yScaledData)
         return xData, yData
 
     def _buildGridVerticesWithTest(self, test):
@@ -1384,9 +1419,9 @@ class PlotFrame2DCore(PlotFrameCore):
     @foregroundColor.setter
     def foregroundColor(self, color):
         """Color used for frame and labels"""
-        assert len(color) == 4, (
-            f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
-        )
+        assert (
+            len(color) == 4
+        ), f"foregroundColor must have length 4, got {len(self._foregroundColor)}"
         if self._foregroundColor != color:
             self._y2Axis.foregroundColor = color
             PlotFrameCore.foregroundColor.fset(self, color)
