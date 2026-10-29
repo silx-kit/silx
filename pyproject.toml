@@ -57,7 +57,7 @@ pygfx = [
     'rendercanvas >=2.6.1',      # For silx.gui.plot (pygfx backend)
 ]
 full_no_qt = [
-    'silx[opencl,pygfx]',
+    'silx[opencl]',
     'qtconsole',             # For silx.gui.console
     'matplotlib >= 3.6',     # For silx.gui.plot
     'PyOpenGL',              # For silx.gui.plot3d
