@@ -1,7 +1,37 @@
+import logging
 from typing import Literal
 
 
+_logger = logging.getLogger(__name__)
+
+
 Range = tuple[float, float]
+
+
+def restrictWgpuToPrimaryBackends() -> None:
+    """Exclude wgpu's GL/EGL backend from GPU adapter enumeration.
+
+    When selecting a GPU adapter, wgpu enumerates every backend. Its GL/EGL
+    path aborts the whole process with an uncatchable Rust panic
+    (``EGL_BAD_ACCESS``) when a Qt OpenGL context is already current on the
+    thread, e.g. after ``PlotWidget.setBackend("gl")`` then
+    ``setBackend("pygfx")``. Restrict the wgpu instance to the "Primary"
+    backends (Vulkan/Metal/DX12) that the pygfx backend targets so the fragile
+    GL path is never probed.
+
+    This must run before the wgpu instance is created (before the first
+    ``request_adapter``/``enumerate_adapters`` call); it is a no-op afterwards.
+    Call it from every code path that may be first to create the instance.
+    """
+    try:
+        from wgpu.backends.wgpu_native.extras import set_instance_extras
+    except ImportError:
+        return  # Older wgpu without instance-backend selection
+    try:
+        set_instance_extras(backends=["Primary"])
+    except Exception:
+        # Instance already created, or unsupported flag: nothing we can do.
+        _logger.debug("Could not restrict wgpu instance backends", exc_info=True)
 
 
 def findDimToKeep(
