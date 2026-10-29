@@ -40,7 +40,8 @@ from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
 
 from .. import items
-from .._utils import FLOAT32_MINPOS
+from .._utils import axis_scale
+from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
 from ... import qt
@@ -1286,33 +1287,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         if previousYRightRange != self.getGraphYLimits(axis="right"):
             self._plot.getYAxis(axis="right")._emitLimitsChanged()
 
-    # Backend API: Log transform helpers #####################################
-
-    def _logTransformX(self, x):
-        """Apply log10 if X axis is log scale."""
-        if not self._plotFrame.xAxis.isLog:
-            return x
-        x = numpy.array(x, copy=True, dtype=numpy.float64)
-        mask = x < FLOAT32_MINPOS
-        x[mask] = numpy.nan
-        with numpy.errstate(divide="ignore"):
-            return numpy.log10(x).astype(numpy.float32)
-
-    def _logTransformY(self, y, yaxis="left"):
-        """Apply log10 if Y axis is log scale."""
-        isLog = (
-            self._plotFrame.yAxis.isLog
-            if yaxis == "left"
-            else self._plotFrame.y2Axis.isLog
-        )
-        if not isLog:
-            return y
-        y = numpy.array(y, copy=True, dtype=numpy.float64)
-        mask = y < FLOAT32_MINPOS
-        y[mask] = numpy.nan
-        with numpy.errstate(divide="ignore"):
-            return numpy.log10(y).astype(numpy.float32)
-
     # Backend API: Add methods ##############################################
 
     def addCurve(
@@ -1335,46 +1309,54 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         x = numpy.asarray(x, dtype=numpy.float64)
         y = numpy.asarray(y, dtype=numpy.float64)
 
-        # Log transform errors before coordinates
-        if self._plotFrame.xAxis.isLog and xerror is not None:
-            xerror = numpy.asarray(xerror, dtype=numpy.float32)
-            logX = numpy.log10(x)
-            if xerror.ndim == 2:
-                xErrMinus, xErrPlus = xerror[0], xerror[1]
-            else:
-                xErrMinus, xErrPlus = xerror, xerror
-            with numpy.errstate(divide="ignore", invalid="ignore"):
-                xErrMinus = logX - numpy.log10(x - xErrMinus)
-            xErrPlus = numpy.log10(x + xErrPlus) - logX
-            xerror = numpy.array((xErrMinus, xErrPlus), dtype=numpy.float32)
+        # Handle axes scale: convert data
+        xAxis = self._plotFrame.xAxis
+        if xAxis.scale != "linear":
+            xScaled = xAxis.applyScale(x)
 
-        isYLog = (yaxis == "left" and self._plotFrame.yAxis.isLog) or (
-            yaxis == "right" and self._plotFrame.y2Axis.isLog
-        )
-        if isYLog and yerror is not None:
-            yerror = numpy.asarray(yerror, dtype=numpy.float32)
-            logY = numpy.log10(y)
-            if yerror.ndim == 2:
-                yErrMinus, yErrPlus = yerror[0], yerror[1]
-            else:
-                yErrMinus, yErrPlus = yerror, yerror
-            with numpy.errstate(divide="ignore", invalid="ignore"):
-                yErrMinus = logY - numpy.log10(y - yErrMinus)
-            yErrPlus = numpy.log10(y + yErrPlus) - logY
-            yerror = numpy.array((yErrMinus, yErrPlus), dtype=numpy.float32)
-
-        x = self._logTransformX(x)
-        y = self._logTransformY(y, yaxis)
-
-        if baseline is not None and isYLog:
-            if isinstance(baseline, numpy.ndarray):
-                baseline = self._logTransformY(baseline, yaxis)
-            else:
-                bl = float(baseline)
-                if bl > 0:
-                    baseline = math.log10(bl)
+            if xerror is not None:
+                # Transform xerror so that
+                # xScaled +/- xerrorScaled = scaled(x +/- xerror)
+                xerror = numpy.asarray(xerror, dtype=numpy.float32)
+                if xerror.ndim == 2:
+                    xErrMinus, xErrPlus = xerror[0], xerror[1]
                 else:
-                    baseline = numpy.nan
+                    xErrMinus, xErrPlus = xerror, xerror
+                xerror = numpy.array(
+                    (
+                        xScaled - xAxis.applyScale(x - xErrMinus),
+                        xAxis.applyScale(x + xErrPlus) - xScaled,
+                    ),
+                    dtype=numpy.float32,
+                )
+
+            x = xScaled
+
+        yAxis = self._plotFrame.y2Axis if yaxis == "right" else self._plotFrame.yAxis
+
+        if yAxis.scale != "linear":
+            yScaled = yAxis.applyScale(y)
+
+            if yerror is not None:
+                # Transform yerror so that
+                # yScaled +/- yerrorScaled = scaled(y +/- yerror)
+                yerror = numpy.asarray(yerror, dtype=numpy.float32)
+                if yerror.ndim == 2:
+                    yErrMinus, yErrPlus = yerror[0], yerror[1]
+                else:
+                    yErrMinus, yErrPlus = yerror, yerror
+                yerror = numpy.array(
+                    (
+                        yScaled - yAxis.applyScale(y - yErrMinus),
+                        yAxis.applyScale(y + yErrPlus) - yScaled,
+                    ),
+                    dtype=numpy.float32,
+                )
+
+            y = yScaled
+
+            if baseline is not None:
+                baseline = yAxis.applyScale(baseline)
 
         item = _PygfxCurveItem(
             x,
@@ -1401,23 +1383,29 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         sx, sy = scale
         h, w = data.shape[:2]
 
-        if self._plotFrame.xAxis.isLog:
-            xMin = ox
-            xMax = ox + w * sx
-            if xMin > 0 and xMax > 0:
-                logXMin = math.log10(xMin)
-                logXMax = math.log10(xMax)
-                ox = logXMin
-                sx = (logXMax - logXMin) / w
+        xAxis = self._plotFrame.xAxis
+        if xAxis.scale != "linear":
+            xStart, xEnd = ox, ox + w * sx
+            xMin = min(xStart, xEnd)
+            if numpy.isfinite(xMin) and not axis_scale.isValid(xAxis.scale, xMin):
+                raise RuntimeError(
+                    "Cannot add image with coordinate outside X axis valid range"
+                )
+            scaledStart, scaledEnd = xAxis.applyScale((xStart, xEnd))
+            ox = scaledStart
+            sx = (scaledEnd - scaledStart) / w
 
-        if self._plotFrame.yAxis.isLog:
-            yMin = oy
-            yMax = oy + h * sy
-            if yMin > 0 and yMax > 0:
-                logYMin = math.log10(yMin)
-                logYMax = math.log10(yMax)
-                oy = logYMin
-                sy = (logYMax - logYMin) / h
+        yAxis = self._plotFrame.yAxis
+        if yAxis.scale != "linear":
+            yStart, yEnd = oy, oy + h * sy
+            yMin = min(yStart, yEnd)
+            if numpy.isfinite(yMin) and not axis_scale.isValid(yAxis.scale, yMin):
+                raise RuntimeError(
+                    "Cannot add image with coordinate outside Y axis valid range"
+                )
+            scaledStart, scaledEnd = yAxis.applyScale((yStart, yEnd))
+            oy = scaledStart
+            sy = (scaledEnd - scaledStart) / h
 
         # Reuse pooled item if shape matches (avoids GPU object recreation)
         reuse = self._reusableImageItem
@@ -1433,8 +1421,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         return item
 
     def addTriangles(self, x, y, triangles, color, alpha):
-        x = self._logTransformX(numpy.asarray(x, dtype=numpy.float64))
-        y = self._logTransformY(numpy.asarray(y, dtype=numpy.float64))
+        x = self._plotFrame.xAxis.applyScale(numpy.asarray(x, dtype=numpy.float64))
+        y = self._plotFrame.yAxis.applyScale(numpy.asarray(y, dtype=numpy.float64))
         item = _PygfxTrianglesItem(x, y, triangles, color, alpha)
         self._dataGroup.add(item.group)
         return item
@@ -1451,8 +1439,26 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         linewidth,
         gapcolor,
     ):
-        x = self._logTransformX(numpy.asarray(x, dtype=numpy.float64))
-        y = self._logTransformY(numpy.asarray(y, dtype=numpy.float64))
+        x = numpy.asarray(x, dtype=numpy.float64)
+        y = numpy.asarray(y, dtype=numpy.float64)
+
+        xMin = x.min()
+        if numpy.isfinite(xMin) and not axis_scale.isValid(
+            self._plotFrame.xAxis.scale, xMin
+        ):
+            raise RuntimeError(
+                "Cannot add item with coordinate outside X axis valid range"
+            )
+        yMin = y.min()
+        if numpy.isfinite(yMin) and not axis_scale.isValid(
+            self._plotFrame.yAxis.scale, yMin
+        ):
+            raise RuntimeError(
+                "Cannot add item with coordinate outside Y axis valid range"
+            )
+
+        x = self._plotFrame.xAxis.applyScale(x)
+        y = self._plotFrame.yAxis.applyScale(y)
         # Ensure overlay outlines (e.g. zoom selection) are clearly visible
         if overlay and linewidth < 2.0:
             linewidth = 2.0
@@ -1488,17 +1494,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         font: qt.QFont,
         bgcolor: RGBAColorType | None,
     ) -> object:
-        # Log transform marker coordinates
-        if x is not None and self._plotFrame.xAxis.isLog:
-            x = math.log10(x) if x > 0 else numpy.nan
+        # Scale marker coordinates
+        if x is not None:
+            x = self._plotFrame.xAxis.applyScale(x)
         if y is not None:
-            isYLog = (
-                self._plotFrame.yAxis.isLog
-                if yaxis == "left"
-                else self._plotFrame.y2Axis.isLog
+            yAxis = (
+                self._plotFrame.y2Axis if yaxis == "right" else self._plotFrame.yAxis
             )
-            if isYLog:
-                y = math.log10(y) if y > 0 else numpy.nan
+            y = yAxis.applyScale(y)
 
         item = _PygfxMarkerItem(
             x,
@@ -1877,18 +1880,23 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     def setXAxisTimeSeries(self, isTimeSeries):
         self._plotFrame.xAxis.isTimeSeries = isTimeSeries
 
-    def setXAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.xAxis.isLog:
-            if flag and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with log axes")
-            self._plotFrame.xAxis.isLog = flag
+    def setXAxisScale(self, scale: AxisScaleType):
+        if scale != self._plotFrame.xAxis.scale:
+            if scale != "linear" and self._keepDataAspectRatio:
+                _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
 
-    def setYAxisLogarithmic(self, flag):
-        if flag != self._plotFrame.yAxis.isLog or flag != self._plotFrame.y2Axis.isLog:
-            if flag and self._keepDataAspectRatio:
-                _logger.warning("KeepDataAspectRatio is ignored with log axes")
-            self._plotFrame.yAxis.isLog = flag
-            self._plotFrame.y2Axis.isLog = flag
+            self._plotFrame.xAxis.scale = scale
+
+    def setYAxisScale(self, scale: AxisScaleType):
+        if (
+            scale != self._plotFrame.yAxis.scale
+            or scale != self._plotFrame.y2Axis.scale
+        ):
+            if scale != "linear" and self._keepDataAspectRatio:
+                _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
+
+            self._plotFrame.yAxis.scale = scale
+            self._plotFrame.y2Axis.scale = scale
 
     def setYAxisInverted(self, flag: bool):
         self._plotFrame.isYAxisInverted = flag
@@ -1905,14 +1913,24 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     def isYRightAxisVisible(self):
         return self._plotFrame.isY2Axis
 
+    def _hasNonLinearScales(self) -> bool:
+        nonLinearScales = [
+            scale
+            for scale in (
+                self._plotFrame.xAxis.scale,
+                self._plotFrame.yAxis.scale,
+                self._plotFrame.y2Axis.scale,
+            )
+            if scale != "linear"
+        ]
+        return len(nonLinearScales) != 0
+
     def isKeepDataAspectRatio(self):
-        if self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog:
-            return False
-        return self._keepDataAspectRatio
+        return False if self._hasNonLinearScales() else self._keepDataAspectRatio
 
     def setKeepDataAspectRatio(self, flag):
-        if flag and (self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog):
-            _logger.warning("KeepDataAspectRatio is ignored with log axes")
+        if flag and self._hasNonLinearScales():
+            _logger.warning("KeepDataAspectRatio is ignored with non linear axes")
         self._keepDataAspectRatio = flag
 
     def setGraphGrid(self, which):
