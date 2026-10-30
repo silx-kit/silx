@@ -165,11 +165,12 @@ class RadarView(qt.QGraphicsView):
     _ACTIVEDATA_BRUSH = qt.QBrush(qt.QColor("transparent"))
     _ACTIVEDATA_PEN.setWidth(2)
     _ACTIVEDATA_PEN.setCosmetic(True)
-    _VISIBLE_PEN = qt.QPen(qt.QColor("blue"))
+    _VISIBLE_PEN_COLOR = "blue"
+    _VISIBLE_PEN = qt.QPen(qt.QColor(_VISIBLE_PEN_COLOR))
     _VISIBLE_PEN.setWidth(2)
     _VISIBLE_PEN.setCosmetic(True)
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
-    _TOOLTIP = "Radar View:\nRed contour: Visible area\nGray area: The image"
+    _TOOLTIP = f"Radar View:\n{_VISIBLE_PEN_COLOR.capitalize()} contour: Visible area\nGray area: The image"
 
     _PIXMAP_SIZE = 256
 
@@ -241,6 +242,26 @@ class RadarView(qt.QGraphicsView):
         self._visibleRect.setRect(0, 0, width, height)
         self._visibleRect.setPos(left, top)
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
+
+    def getForegroundColor(self) -> qt.QColor:
+        """Returns the foreground color of this widget
+
+        It is used for the contour of the active image, scatter or curve.
+        """
+        return self._imageRect.pen().color()
+
+    def setForegroundColor(self, color: qt.QColor):
+        """Set the foreground color of this widget
+
+        It is used for the contour of the active image, scatter or curve.
+        The data area and the visible area colors are not affected.
+
+        :param color: The new color
+        """
+        pen = qt.QPen(self._ACTIVEDATA_PEN)
+        pen.setColor(qt.QColor(color))
+        for item in (self._imageRect, self._scatterRect, self._curveRect):
+            item.setPen(pen)
 
     def __setVisibleRectFromPlot(self, plot):
         """Update radar view visible area.

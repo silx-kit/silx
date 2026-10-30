@@ -178,3 +178,28 @@ def testRGBAInAggregationMode(imageView, qapp_utils):
         items.ImageDataAggregated.Aggregation.MAX
     )
     qapp_utils.qWait(100)
+
+
+def testBackgroundColorsPropagation(imageView):
+    """Test background colors are propagated to the side histograms"""
+    imageView.setBackgroundColor("red")
+    imageView.setDataBackgroundColor("blue")
+    for histo in (imageView._histoHPlot, imageView._histoVPlot):
+        assert histo.getBackgroundColor() == imageView.getBackgroundColor()
+        assert histo.getDataBackgroundColor() == imageView.getDataBackgroundColor()
+    radarView = imageView.radarView()
+    assert radarView.backgroundBrush().color() == imageView.getBackgroundColor()
+
+    imageView.setDataBackgroundColor(None)
+    for histo in (imageView._histoHPlot, imageView._histoVPlot):
+        assert not histo.getDataBackgroundColor().isValid()
+
+
+def testForegroundColorsPropagation(imageView):
+    """Test foreground and grid colors are propagated to the side histograms"""
+    imageView.setForegroundColor("white")
+    imageView.setGridColor("green")
+    for histo in (imageView._histoHPlot, imageView._histoVPlot):
+        assert histo.getForegroundColor() == imageView.getForegroundColor()
+        assert histo.getGridColor() == imageView.getGridColor()
+    assert imageView.radarView().getForegroundColor() == imageView.getForegroundColor()

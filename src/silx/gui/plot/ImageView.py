@@ -535,6 +535,32 @@ class ImageView(PlotWindow):
         PlotWidget.setBackend(self, backend)
         self.__setCentralWidget()
 
+    @docstring(PlotWidget)
+    def setBackgroundColor(self, color):
+        super().setBackgroundColor(color)
+        for histo in (self._histoHPlot, self._histoVPlot):
+            histo.setBackgroundColor(color)
+        self._radarView.setBackgroundBrush(qt.QBrush(self.getBackgroundColor()))
+
+    @docstring(PlotWidget)
+    def setDataBackgroundColor(self, color):
+        super().setDataBackgroundColor(color)
+        for histo in (self._histoHPlot, self._histoVPlot):
+            histo.setDataBackgroundColor(color)
+
+    @docstring(PlotWidget)
+    def setForegroundColor(self, color):
+        super().setForegroundColor(color)
+        for histo in (self._histoHPlot, self._histoVPlot):
+            histo.setForegroundColor(color)
+        self._radarView.setForegroundColor(self.getForegroundColor())
+
+    @docstring(PlotWidget)
+    def setGridColor(self, color):
+        super().setGridColor(color)
+        for histo in (self._histoHPlot, self._histoVPlot):
+            histo.setGridColor(color)
+
     def _dirtyCache(self):
         self._cache = None
 
@@ -751,6 +777,8 @@ class ImageView(PlotWindow):
         """
         self._radarView = radarView
         self._radarView.setPlotWidget(self)
+        self._radarView.setBackgroundBrush(qt.QBrush(self.getBackgroundColor()))
+        self._radarView.setForegroundColor(self.getForegroundColor())
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
     # High-level API
