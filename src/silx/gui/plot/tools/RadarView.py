@@ -243,12 +243,18 @@ class RadarView(qt.QGraphicsView):
         self._visibleRect.setPos(left, top)
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
 
-    def getActiveDataColor(self) -> qt.QColor:
-        """Returns the color of the contour of the active image, scatter or curve"""
+    def getForegroundColor(self) -> qt.QColor:
+        """Returns the foreground color of this widget
+
+        It is used for the contour of the active image, scatter or curve.
+        """
         return self._imageRect.pen().color()
 
-    def setActiveDataColor(self, color: qt.QColor):
-        """Set the color of the contour of the active image, scatter or curve
+    def setForegroundColor(self, color: qt.QColor):
+        """Set the foreground color of this widget
+
+        It is used for the contour of the active image, scatter or curve.
+        The data area and the visible area colors are not affected.
 
         :param color: The new color
         """

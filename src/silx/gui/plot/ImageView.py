@@ -553,7 +553,7 @@ class ImageView(PlotWindow):
         super().setForegroundColor(color)
         for histo in (self._histoHPlot, self._histoVPlot):
             histo.setForegroundColor(color)
-        self._radarView.setActiveDataColor(self.getForegroundColor())
+        self._radarView.setForegroundColor(self.getForegroundColor())
 
     @docstring(PlotWidget)
     def setGridColor(self, color):
@@ -778,7 +778,7 @@ class ImageView(PlotWindow):
         self._radarView = radarView
         self._radarView.setPlotWidget(self)
         self._radarView.setBackgroundBrush(qt.QBrush(self.getBackgroundColor()))
-        self._radarView.setActiveDataColor(self.getForegroundColor())
+        self._radarView.setForegroundColor(self.getForegroundColor())
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
     # High-level API

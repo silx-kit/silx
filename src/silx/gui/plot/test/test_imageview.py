@@ -202,4 +202,4 @@ def testForegroundColorsPropagation(imageView):
     for histo in (imageView._histoHPlot, imageView._histoVPlot):
         assert histo.getForegroundColor() == imageView.getForegroundColor()
         assert histo.getGridColor() == imageView.getGridColor()
-    assert imageView.radarView().getActiveDataColor() == imageView.getForegroundColor()
+    assert imageView.radarView().getForegroundColor() == imageView.getForegroundColor()
