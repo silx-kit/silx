@@ -165,11 +165,12 @@ class RadarView(qt.QGraphicsView):
     _ACTIVEDATA_BRUSH = qt.QBrush(qt.QColor("transparent"))
     _ACTIVEDATA_PEN.setWidth(2)
     _ACTIVEDATA_PEN.setCosmetic(True)
-    _VISIBLE_PEN = qt.QPen(qt.QColor("blue"))
+    _VISIBLE_PEN_COLOR = "blue"
+    _VISIBLE_PEN = qt.QPen(qt.QColor(_VISIBLE_PEN_COLOR))
     _VISIBLE_PEN.setWidth(2)
     _VISIBLE_PEN.setCosmetic(True)
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
-    _TOOLTIP = "Radar View:\nRed contour: Visible area\nGray area: The image"
+    _TOOLTIP = f"Radar View:\n{_VISIBLE_PEN_COLOR.capitalize()} contour: Visible area\nGray area: The image"
 
     _PIXMAP_SIZE = 256
 
