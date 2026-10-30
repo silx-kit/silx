@@ -765,6 +765,23 @@ class ImageView(PlotWindow):
                     extent=(self._cache.dataYRange),
                 )
 
+    def getSideHistogramPlot(self, axis: str) -> PlotWidget:
+        """Return the plot widget displaying the side histogram.
+
+        Warning: The side histograms are aligned with the image thanks to
+        their axes margins. Changing them (e.g., with
+        :meth:`PlotWidget.setAxesDisplayed` or :meth:`PlotWidget.setAxesMargins`)
+        breaks this alignment.
+
+        :param axis: 'x' for the horizontal histogram (below the image),
+            'y' for the vertical histogram (on the side of the image)
+        """
+        assert axis in ("x", "y")
+        if axis == "x":
+            return self._histoHPlot
+        else:
+            return self._histoVPlot
+
     def radarView(self):
         """Get the lower right radarView widget."""
         return self._radarView
