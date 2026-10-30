@@ -44,6 +44,7 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
+from typing import Literal
 
 import silx
 from .. import qt
@@ -764,6 +765,23 @@ class ImageView(PlotWindow):
                     data=numpy.array(self._cache.histoV, copy=True),
                     extent=(self._cache.dataYRange),
                 )
+
+    def getSideHistogramPlot(self, position: Literal["bottom", "right"]) -> PlotWidget:
+        """Return the plot widget displaying the side histogram.
+
+        Warning: The side histograms are aligned with the image thanks to
+        their axes margins. Changing them (e.g., with
+        :meth:`PlotWidget.setAxesDisplayed` or :meth:`PlotWidget.setAxesMargins`)
+        breaks this alignment.
+
+        :param position: 'bottom' for the horizontal histogram (below the image),
+            'right' for the vertical histogram (on the right of the image)
+        """
+        assert position in ("bottom", "right")
+        if position == "bottom":
+            return self._histoHPlot
+        else:
+            return self._histoVPlot
 
     def radarView(self):
         """Get the lower right radarView widget."""
