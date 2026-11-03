@@ -206,11 +206,14 @@ class ExternalResources:
 
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
-                data = opener(
+                with opener(
                     f"{self.url_base}/{filename}", data=None, timeout=self.timeout
-                ).read()
+                ) as response:
+                    data = response.read()
                 logger.info(f"File {filename} successfully downloaded.")
-            except urllib.error.URLError:
+            except urllib.error.URLError as err:
+                if isinstance(err, urllib.error.HTTPError):
+                    err.close()  # an HTTPError holds the (unread) response
                 raise unittest.SkipTest("network unreachable.")
 
             dirname = os.path.dirname(fullfilename)
