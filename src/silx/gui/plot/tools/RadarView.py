@@ -244,9 +244,7 @@ class RadarView(qt.QGraphicsView):
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
 
     def getForegroundColor(self) -> qt.QColor:
-        """Returns the foreground color of this widget
-
-        It is used for the contour of the active image, scatter or curve.
+        """Returns the color used for the contour of the active plot item.
         """
         return self._imageRect.pen().color()
 
