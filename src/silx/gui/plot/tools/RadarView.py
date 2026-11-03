@@ -249,12 +249,9 @@ class RadarView(qt.QGraphicsView):
         return self._imageRect.pen().color()
 
     def setForegroundColor(self, color: qt.QColor):
-        """Set the foreground color of this widget
-
-        It is used for the contour of the active image, scatter or curve.
+        """Set the color used for the contour of the active plot item.
+        
         The data area and the visible area colors are not affected.
-
-        :param color: The new color
         """
         pen = qt.QPen(self._ACTIVEDATA_PEN)
         pen.setColor(qt.QColor(color))
