@@ -243,14 +243,13 @@ class RadarView(qt.QGraphicsView):
         self._visibleRect.setPos(left, top)
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
 
-    def getForegroundColor(self) -> qt.QColor:
-        """Returns the color used for the contour of the active plot item.
-        """
+    def getActiveItemColor(self) -> qt.QColor:
+        """Returns the color used for the contour of the active plot item."""
         return self._imageRect.pen().color()
 
-    def setForegroundColor(self, color: qt.QColor):
+    def setActiveItemColor(self, color: qt.QColor):
         """Set the color used for the contour of the active plot item.
-        
+
         The data area and the visible area colors are not affected.
         """
         pen = qt.QPen(self._ACTIVEDATA_PEN)
