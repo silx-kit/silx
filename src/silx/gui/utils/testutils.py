@@ -129,7 +129,6 @@ class TestCaseQt(unittest.TestCase):
     def tearDownClass(cls):
         sys.excepthook = cls._oldExceptionHook
 
-
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
