@@ -636,12 +636,12 @@ class GLPlotFrame2D(GLPlotFrame):
 
         if y is not None:
             self._dataRanges["y"] = checkAxisLimits(
-                self.xAxis.scale, y[0], y[1], name="y"
+                self.yAxis.scale, y[0], y[1], name="y"
             )
 
         if y2 is not None:
             self._dataRanges["y2"] = checkAxisLimits(
-                self.xAxis.scale, y2[0], y2[1], name="y2"
+                self.y2Axis.scale, y2[0], y2[1], name="y2"
             )
 
         self.xAxis.dataRange = self._dataRanges["x"]
