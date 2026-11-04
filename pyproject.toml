@@ -72,6 +72,9 @@ full = [
 h5pyd = [
     'h5pyd >= 0.20.0'
 ]
+zarr = [
+    'zarr[remote] >= 3.0.0'
+]
 doc = [
     'silx[full]',
     'Sphinx',                    # To build the documentation in doc/

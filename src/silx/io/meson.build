@@ -18,6 +18,7 @@ py.install_sources([
     'spech5.py',
     'url.py',
     'utils.py',
+    'zarrh5.py',
 ],
 subdir: 'silx/io',  # Folder relative to site-packages to install to
 )
