@@ -166,6 +166,12 @@ elif BINDING == "PySide6":
         )
 
     from PySide6 import QtCore
+
+    if Version(QtCore.qVersion()) < Version("6.5"):
+        raise RuntimeError(
+            f"Qt v{QtCore.qVersion()} is not supported, please upgrade it."
+        )
+
     from PySide6.QtCore import *  # noqa
     from PySide6.QtGui import *  # noqa
     from PySide6.QtWidgets import *  # noqa
@@ -202,6 +208,11 @@ elif BINDING == "PyQt6":
     if QtCore.PYQT_VERSION < int("0x60500", 16):
         raise RuntimeError(
             "PyQt6 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
+        )
+
+    if Version(QtCore.qVersion()) < Version("6.5"):
+        raise RuntimeError(
+            f"Qt v{QtCore.qVersion()} is not supported, please upgrade it."
         )
 
     from PyQt6 import QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
