@@ -171,7 +171,8 @@ class ImageProcessing(OpenclProcessing):
             else:  # assume it is same size and type as weoking buffer
                 assert out.shape == self.buffer_shape
                 assert out.dtype == numpy.float32
-            out.finish()
+            # wait for pending commands on out, if they were enqueued elsewhere
+            self.sync_queues(out.queue, self.queue)
             output_array = out
         else:
             if out_dtype != numpy.float32 and out_size:
@@ -188,6 +189,8 @@ class ImageProcessing(OpenclProcessing):
         if img is None:
             input_array = self.cl_mem["image1_d"]
         if isinstance(img, pyopencl.array.Array):
+            # wait for img to be ready, if it was produced on another queue
+            self.sync_queues(img.queue, self.queue)
             if copy:
                 evt = pyopencl.enqueue_copy(
                     self.queue, self.cl_mem["image1_d"].data, img.data
@@ -195,7 +198,6 @@ class ImageProcessing(OpenclProcessing):
                 input_array = self.cl_mem["image1_d"]
                 events.append(EventDescription("copy D->D", evt))
             else:
-                img.finish()
                 input_array = img
                 evt = None
         else:
@@ -260,7 +262,7 @@ class ImageProcessing(OpenclProcessing):
             res = output_array.get()
             return res
         else:
-            output_array.finish()
+            self.sync_queues(self.queue, output_array.queue)
             return output_array
 
     def normalize(self, img, mini=0.0, maxi=1.0, copy=True, out=None):
@@ -340,7 +342,7 @@ class ImageProcessing(OpenclProcessing):
             res = output_array.get()
             return res
         else:
-            output_array.finish()
+            self.sync_queues(self.queue, output_array.queue)
             return output_array
 
     def histogram(
@@ -475,5 +477,5 @@ class ImageProcessing(OpenclProcessing):
             res = output_array.get()
             return res, edges_array.get()
         else:
-            output_array.finish()
+            self.sync_queues(self.queue, output_array.queue)
             return output_array, edges_array

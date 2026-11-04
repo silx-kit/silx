@@ -93,8 +93,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             slice_shape=slice_shape,
             axis_position=axis_position,
             angles=angles,
-            ctx=self.ctx,
-            profile=profile,
+            ctx=self,
         )
         # Create a projector
         self.projector = Projection(
@@ -103,11 +102,10 @@ class ReconstructionAlgorithm(OpenclProcessing):
             axis_position=axis_position,
             detector_width=self.backprojector.num_bins,
             normalize=False,
-            ctx=self.ctx,
-            profile=profile,
+            ctx=self,
         )
         self.sino_shape = sino_shape
-        self.is_cpu = self.backprojector.is_cpu
+        self.is_cpu = self.opencl_queue.is_cpu
         # Arrays
         self.d_data = parray.empty(self.queue, sino_shape, dtype=np.float32)
         self.d_data.fill(0.0)
@@ -246,15 +244,9 @@ class SIRT(ReconstructionAlgorithm):
             self.proj(d_x, d_sino)
             d_sino -= self.d_data
             d_sino *= d_R
-            if self.is_cpu:
-                # This sync is necessary when using CPU, while it is not for GPU
-                d_sino.finish()
             self.backproj(d_sino, d_x)
             d_x *= -d_C
             d_x += d_x_old
-            if self.is_cpu:
-                # This sync is necessary when using CPU, while it is not for GPU
-                d_x.finish()
 
         return d_x
 
@@ -315,7 +307,7 @@ class TV(ReconstructionAlgorithm):
         self.compute_preconditioners()
 
         # Create a LinAlg instance
-        self.linalg = LinAlg(self.backprojector.slice_shape, ctx=self.ctx)
+        self.linalg = LinAlg(self.backprojector.slice_shape, ctx=self)
         # Positivity constraint
         self.elwise_clamp = ElementwiseKernel(
             self.ctx, "float *a", "a[i] = max(a[i], 0.0f);"

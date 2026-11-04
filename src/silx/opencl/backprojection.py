@@ -274,7 +274,7 @@ class Backprojection(OpenclProcessing):
         self.filter_name = filter_name or "ram-lak"
         self.sino_filter = SinoFilter(
             self.shape,
-            ctx=self.ctx,
+            ctx=self,
             filter_name=self.filter_name,
             extra_options=self.extra_options,
         )
