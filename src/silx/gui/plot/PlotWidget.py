@@ -36,7 +36,7 @@ import datetime as dt
 import itertools
 from io import BytesIO, StringIO
 import numbers
-from typing import Any, Callable, Generator, Literal
+from typing import Any, Callable, Generator, Literal, get_args
 
 
 import numpy
@@ -242,6 +242,15 @@ BackendNameLiteral = Literal["matplotlib", "mpl", "gl", "opengl", "none"]
 BackendType = (
     BackendNameLiteral | BackendBase | Iterable[BackendNameLiteral | BackendBase] | None
 )
+
+_GraphFormat = Literal["png", "svg", "pdf", "ps", "eps", "tif", "tiff", "jpeg", "jpg"]
+
+
+def _deduceGraphFormat(filename: str | StringIO | BytesIO) -> str | None:
+    """Returns the file format from the filename extension."""
+    if not isinstance(filename, str):
+        return None
+    return filename.rsplit(".")[-1].lower()
 
 
 class PlotWidget(qt.QMainWindow):
@@ -3220,7 +3229,7 @@ class PlotWidget(qt.QMainWindow):
     def saveGraph(
         self,
         filename: str | StringIO | BytesIO,
-        fileFormat: str | None = None,
+        fileFormat: _GraphFormat | None = None,
         dpi: int | None = None,
     ) -> bool:
         """Save a snapshot of the plot.
@@ -3230,29 +3239,21 @@ class PlotWidget(qt.QMainWindow):
         The matplotlib backend supports more formats:
         "pdf", "ps", "eps", "tiff", "jpeg", "jpg".
 
-        :param filename: Destination
-        :param fileFormat:  String specifying the format
+        :param filename: Destination: either a file path, a :class:`BytesIO`
+            for binary formats or a :class:`StringIO` for "svg".
+        :param fileFormat: String specifying the format.
+            If None, it is deduced from the extension of `filename`
+            (which must then be a str).
         :param dpi: The resolution to use or None (in dot per inches).
         :return: False if cannot save the plot, True otherwise
         """
         if fileFormat is None:
-            if not hasattr(filename, "lower"):
+            fileFormat = _deduceGraphFormat(filename)
+            if fileFormat is None:
                 _logger.warning("saveGraph cancelled, cannot define file format.")
                 return False
-            else:
-                fileFormat = (filename.split(".")[-1]).lower()
 
-        supportedFormats = (
-            "png",
-            "svg",
-            "pdf",
-            "ps",
-            "eps",
-            "tif",
-            "tiff",
-            "jpeg",
-            "jpg",
-        )
+        supportedFormats = get_args(_GraphFormat)
 
         if fileFormat not in supportedFormats:
             _logger.warning("Unsupported format %s", fileFormat)
