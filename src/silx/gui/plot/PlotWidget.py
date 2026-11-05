@@ -36,7 +36,7 @@ import datetime as dt
 import itertools
 from io import BytesIO, StringIO
 import numbers
-from typing import Any, Callable, Generator, Literal
+from typing import Any, Callable, Generator, Literal, get_args
 
 
 import numpy
@@ -3253,17 +3253,7 @@ class PlotWidget(qt.QMainWindow):
                 _logger.warning("saveGraph cancelled, cannot define file format.")
                 return False
 
-        supportedFormats = (
-            "png",
-            "svg",
-            "pdf",
-            "ps",
-            "eps",
-            "tif",
-            "tiff",
-            "jpeg",
-            "jpg",
-        )
+        supportedFormats = get_args(_GraphFormat)
 
         if fileFormat not in supportedFormats:
             _logger.warning("Unsupported format %s", fileFormat)
