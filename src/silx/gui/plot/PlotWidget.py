@@ -250,7 +250,7 @@ def _deduceGraphFormat(filename: str | StringIO | BytesIO) -> str | None:
     """Returns the file format from the filename extension."""
     if not isinstance(filename, str):
         return None
-    return filename.split(".")[-1].lower()
+    return filename.rsplit(".")[-1].lower()
 
 
 class PlotWidget(qt.QMainWindow):
