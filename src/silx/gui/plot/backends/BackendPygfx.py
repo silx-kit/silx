@@ -983,12 +983,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             textObj.local.position = (lx, ly, 0)
 
             if rotate:
-                import pylinalg as la
-
                 # Negate angle because screen camera flips Y
-                textObj.local.rotation = la.quat_from_axis_angle(
-                    (0, 0, 1), math.radians(-rotate)
-                )
+                textObj.local.euler_z = math.radians(-rotate)
 
             self._screenFrameGroup.add(textObj)
 
