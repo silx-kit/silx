@@ -877,7 +877,7 @@ class GLPlotFrame2D(GLPlotFrame):
 
                     else:  # axis == self.y2Axis
                         axis_name = "right"
-                        corners = numpy.array(
+                        cornersInData = numpy.array(
                             [self.pixelToData(x, y, axis="right") for (x, y) in corners]
                         )
                         borders = (
