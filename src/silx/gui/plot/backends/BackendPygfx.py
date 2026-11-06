@@ -416,17 +416,20 @@ class _PygfxImageItem:
 
     def _uploadRGBA(self, rgba, origin, scale, alpha):
         """Upload a (H, W, 4) uint8 RGBA array, creating or updating the image."""
-        rgbaFloat = numpy.ascontiguousarray(rgba, dtype=numpy.float32) / 255.0
+        rgba = numpy.ascontiguousarray(rgba, dtype=numpy.uint8)
         if alpha < 1.0:
-            rgbaFloat[:, :, 3] *= alpha
+            rgba = rgba.copy()  # Do not modify caller's array
+            rgba[:, :, 3] = numpy.rint(rgba[:, :, 3] * alpha).astype(numpy.uint8)
 
         if self._imageObj is None:
-            geom = gfx.Geometry(grid=gfx.Texture(rgbaFloat, dim=2))
-            mat = gfx.ImageBasicMaterial(interpolation="nearest")
+            geom = gfx.Geometry(grid=gfx.Texture(rgba, dim=2))
+            # uint8 textures are sampled as unorm and scaled by 255 in the
+            # shader, so contrast limits must match the uint8 range
+            mat = gfx.ImageBasicMaterial(interpolation="nearest", clim=(0, 255))
             self._imageObj = gfx.Image(geom, mat)
             self.group.add(self._imageObj)
         else:
-            self._imageObj.geometry.grid.set_data(rgbaFloat)
+            self._imageObj.geometry.grid.set_data(rgba)
 
         ox, oy = origin
         sx, sy = scale
