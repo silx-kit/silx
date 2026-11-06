@@ -109,11 +109,12 @@ jobs:
           CIBW_BUILD_FRONTEND: "build; args: -C setup-args=-Duse_openmp=disabled"
 
           # Install system packages, Intel OpenCL ICD and oldest dependencies
+          # The ICD requires libnuma and libtinfo.so.5
           CIBW_BEFORE_TEST_LINUX: >-
             yum install -y xorg-x11-server-Xvfb mesa-dri-drivers mesa-libEGL mesa-libGL
             libxkbcommon-x11 libxkbcommon xcb-util-image xcb-util-keysyms xcb-util-renderutil
-            xcb-util-wm libXrandr libXcursor libxcb &&
-            curl -sSfL http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.38.tar.gz | tar -xz -C /opt &&
+            xcb-util-wm libXrandr libXcursor libxcb numactl-libs ncurses-compat-libs &&
+            curl -sSfL http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.37.tar.gz | tar -xz -C /opt &&
             echo /opt/intel_opencl_icd/icd/libintelocl.so > /opt/intel_opencl_icd/vendors/intel64.icd &&
             pip install --only-binary :all: -r {project}/ci/oldest-requirements.txt
           CIBW_TEST_ENVIRONMENT: >-
