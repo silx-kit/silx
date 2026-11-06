@@ -96,3 +96,38 @@ jobs:
           WITH_GL_TEST: ${{ matrix.with_gl_test && 'True' || 'False' }}
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
+
+  oldest-dependencies:
+    name: "Python 3.10 on ubuntu-latest PyQt5 with oldest dependencies"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+          cache: "pip"
+      - uses: ./.github/actions/setup-system
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade build
+
+      - name: Build wheel
+        run: |
+          python -m build --wheel
+          ls dist
+
+      - name: Install
+        run: |
+          pip install --only-binary :all: -r ci/oldest-requirements.txt
+          pip install --no-deps "$(ls dist/silx*.whl)"
+          pip check
+          python ./ci/info_platform.py
+          pip list
+
+      - name: Test
+        env:
+          QT_API: PyQt5
+          SILX_OPENCL: "True"
+          WITH_GL_TEST: "True"
+        run: |
+          python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=PyQt5']))"
