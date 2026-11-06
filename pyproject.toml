@@ -55,6 +55,7 @@ opencl = [
 pygfx = [
     'pygfx >=0.16.0,<0.17.0',   # For silx.gui.plot (pygfx backend)
     'rendercanvas >=2.6.1',      # For silx.gui.plot (pygfx backend)
+    'wgpu >=0.23.0',             # For silx.gui.plot (pygfx backend): set_instance_extras
 ]
 full_no_qt = [
     'silx[opencl]',

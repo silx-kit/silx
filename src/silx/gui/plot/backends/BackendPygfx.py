@@ -38,6 +38,7 @@ import numpy
 
 from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
+from wgpu.backends.wgpu_native.extras import set_instance_extras
 
 from .. import items
 from .._utils import axis_scale
@@ -47,15 +48,27 @@ from ... import colors
 from ... import qt
 from ._PlotFrameCore import PlotFrame2DCore
 from .glutils.PlotImageFile import saveImageToFile
-from .utils import findDimToKeep, ensureAspectRatio, restrictWgpuToPrimaryBackends
+from .utils import findDimToKeep, ensureAspectRatio
 from silx.gui.colors import RGBAColorType
 
 _logger = logging.getLogger(__name__)
 
-# Keep wgpu off its fragile GL/EGL backend before it creates the adapter.
-# Importing this module is the first product-path touch of wgpu (the instance
-# is created lazily when the renderer is built in __init__).
-restrictWgpuToPrimaryBackends()
+
+@functools.cache
+def _restrictWgpuToPrimaryBackends() -> None:
+    """Restrict the wgpu instance to the Vulkan/Metal/DX12 backends.
+
+    Probing wgpu's OpenGL (EGL) backend aborts the process if Qt already
+    created an OpenGL context (e.g., a "gl" PlotWidget).
+
+    Must be called before the first ``gfx.WgpuRenderer`` is created, since
+    the wgpu instance is process-global; it has no effect if wgpu was already
+    used in the process.
+    """
+    try:
+        set_instance_extras(backends=["Primary"])
+    except Exception:  # RuntimeError if the wgpu instance already exists
+        _logger.debug("Could not restrict wgpu instance backends", exc_info=True)
 
 
 @functools.cache
@@ -110,17 +123,6 @@ _SYMBOL_MAP = {
     ">": "triangle_right",
     "*": "asterisk6",
 }
-
-
-def _rgbaToGfxColor(color):
-    """Convert silx RGBA color (4-tuple of 0..1 floats) to pygfx Color."""
-    if color is None:
-        return gfx.Color(1, 1, 1, 1)
-    if isinstance(color, str):
-        color = colors.rgba(color)
-    if len(color) == 3:
-        return gfx.Color(*color, 1.0)
-    return gfx.Color(*color)
 
 
 # Item classes ################################################################
@@ -736,6 +738,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._mousePosInPixels = None
 
         # pygfx rendering objects
+        _restrictWgpuToPrimaryBackends()  # Must be done before creating the renderer
         self._renderer = gfx.WgpuRenderer(self, pixel_ratio=4)
         self._scene = gfx.Scene()
 
