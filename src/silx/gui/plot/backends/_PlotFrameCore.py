@@ -563,7 +563,6 @@ class PlotFrameCore:
     """
 
     _TICK_LENGTH_IN_PIXELS = 5
-    _LINE_WIDTH = 1
 
     _Margins = namedtuple("Margins", ("left", "right", "top", "bottom"))
 

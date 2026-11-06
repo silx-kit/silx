@@ -689,7 +689,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     Uses pygfx for GPU-accelerated rendering via WGPU (Vulkan/Metal/DX12).
     """
 
-    _TEXT_MARKER_PADDING = 4
     VSYNC = True
     """Enable VSync (default True). Set to False before creating the plot
     to unlock frame rates beyond the monitor refresh rate."""
@@ -749,19 +748,20 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._camera = gfx.OrthographicCamera(640, 480, maintain_aspect=False)
 
         # Scene hierarchy
-        self._bgGroup = gfx.Group()
+        # Data area background: updated by setBackgroundColors
+        self._bgObj = gfx.Background(
+            None, gfx.BackgroundMaterial(gfx.Color(*self._dataBackgroundColor))
+        )
         self._dataGroup = gfx.Group()
         self._overlayGroup = gfx.Group()
-        self._frameGroup = gfx.Group()
 
         # Shift overlays forward in z so they always render in front of data.
         # Camera z-range is wide (near=-100..far=100), so z=10 is safe.
         self._overlayGroup.local.z = 10
 
-        self._scene.add(self._bgGroup)
+        self._scene.add(self._bgObj)
         self._scene.add(self._dataGroup)
         self._scene.add(self._overlayGroup)
-        self._scene.add(self._frameGroup)
 
         # PlotFrame for coordinate transforms
         self._plotFrame = PlotFrame2DCore(
@@ -785,12 +785,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._screenScene.add(self._screenFrameGroup)
         self._screenCamera = gfx.OrthographicCamera(maintain_aspect=False)
         self._cachedBgColor = (1.0, 1.0, 1.0, 1.0)
-
-        # Frame rendering objects (populated by _updateFrame)
-        self._frameLines = None
-        self._gridLines = None
-        self._frameTexts = []
-        self._titleText = None
 
         # Crosshair cursor lines
         self._crosshairHLine = None
@@ -1976,15 +1970,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._backgroundColor = backgroundColor
         self._dataBackgroundColor = dataBackgroundColor
 
-        # Remove old background
-        if hasattr(self, "_bgObj") and self._bgObj is not None:
-            if self._bgObj in self._scene.children:
-                self._scene.remove(self._bgObj)
-
-        # Update data scene background (plot area uses dataBackgroundColor)
-        if dataBackgroundColor is not None:
-            bgColor = gfx.Color(*dataBackgroundColor)
-            self._bgObj = gfx.Background(None, gfx.BackgroundMaterial(bgColor))
-            self._scene.add(self._bgObj)
+        if dataBackgroundColor is None:
+            self._bgObj.visible = False
         else:
-            self._bgObj = None
+            self._bgObj.material.set_colors(dataBackgroundColor)
+            self._bgObj.visible = True
