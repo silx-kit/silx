@@ -2150,7 +2150,7 @@ def testCurveErrors(qapp, plotWidget, xerror, yerror):
     plotWidget.getYAxis().setScale("log")
 
 
-@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl", "pygfx"), indirect=True)
 def testDataToPixelOutsideValidRange(qapp, plotWidget: PlotWidget):
     plotWidget.addCurve(x=(0, 1, 2, 3), y=(0, 1, 4, 9))
 
