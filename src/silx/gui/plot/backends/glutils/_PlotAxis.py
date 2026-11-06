@@ -488,8 +488,9 @@ class PlotAxis:
                         _logger.warning("Data range cannot be displayed with time axis")
                         return  # Range is out of bound of the datetime
 
-                    if bestUnit(
-                        (dtMax - dtMin).total_seconds() == DtUnit.MICRO_SECONDS
+                    if (
+                        bestUnit((dtMax - dtMin).total_seconds())
+                        == DtUnit.MICRO_SECONDS
                     ):
                         # Special case for micro seconds: Reduce tick density
                         tickDensity = 1.0 * self.devicePixelRatio / self.dotsPerInch
