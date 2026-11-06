@@ -151,10 +151,7 @@ class _PygfxCurveItem:
         self.yaxis = yaxis
         self.group = gfx.Group()
         self._lineObj = None
-        self._gapLineObj = None
         self._pointsObj = None
-        self._errorGroup = None
-        self._fillObj = None
 
         x = numpy.asarray(x, dtype=numpy.float32)
         y = numpy.asarray(y, dtype=numpy.float32)
@@ -208,10 +205,8 @@ class _PygfxCurveItem:
                     thickness=max(linewidth, 1.0),
                     color=gfx.Color(*gapRgba),
                 )
-                self._gapLineObj = gfx.Line(
-                    gfx.Geometry(positions=gapPositions), gapMat
-                )
-                self.group.add(self._gapLineObj)
+                gapLineObj = gfx.Line(gfx.Geometry(positions=gapPositions), gapMat)
+                self.group.add(gapLineObj)
 
         # Symbol / Points
         hasSymbol = symbol not in (None, "", " ")
@@ -243,7 +238,7 @@ class _PygfxCurveItem:
 
         # Error bars
         if xerror is not None or yerror is not None:
-            self._errorGroup = gfx.Group()
+            errorGroup = gfx.Group()
             errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
             if len(errSegments) > 0:
                 errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
@@ -252,15 +247,15 @@ class _PygfxCurveItem:
                     color=uniformColor,
                 )
                 errLine = gfx.Line(errGeom, errMat)
-                self._errorGroup.add(errLine)
-            self.group.add(self._errorGroup)
+                errorGroup.add(errLine)
+            self.group.add(errorGroup)
 
         # Fill between curve and baseline
         if fill and len(x) >= 2:
-            self._fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
-            if self._fillObj is not None:
-                self._fillObj.local.z = -0.2  # behind curve line
-                self.group.add(self._fillObj)
+            fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
+            if fillObj is not None:
+                fillObj.local.z = -0.2  # behind curve line
+                self.group.add(fillObj)
 
     @staticmethod
     def _buildErrorBarSegments(x, y, xerror, yerror):
@@ -472,8 +467,7 @@ class _PygfxTrianglesItem:
                 side="both",
             )
 
-        self._meshObj = gfx.Mesh(geom, mat)
-        self.group.add(self._meshObj)
+        self.group.add(gfx.Mesh(geom, mat))
 
 
 class _PygfxShapeItem(dict):
