@@ -887,11 +887,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         extent = max(abs(xMax - xMin), abs(yMax - yMin), 1.0)
         self._camera.show_rect(xMin, xMax, yMin, yMax, depth=extent)
 
-        # Populate projection matrix caches so isDirty returns False
-        # (pygfx doesn't use OpenGL projection matrices, but isDirty checks them)
-        _ = self._plotFrame.transformedDataProjMat
-        _ = self._plotFrame.transformedDataY2ProjMat
-
     def _updateFrame(self):
         """Update axes, ticks, grid, labels in screen space."""
         # Update background color only when changed

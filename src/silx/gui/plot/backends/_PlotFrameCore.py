@@ -905,24 +905,10 @@ class PlotFrame2DCore(PlotFrameCore):
         self._baseVectors = (1.0, 0.0), (0.0, 1.0)
 
         self._transformedDataRanges = None
-        self._transformedDataProjMat = None
-        self._transformedDataY2ProjMat = None
 
     def _dirty(self):
         super()._dirty()
         self._transformedDataRanges = None
-        self._transformedDataProjMat = None
-        self._transformedDataY2ProjMat = None
-
-    @property
-    def isDirty(self):
-        """True if it needs to refresh, False otherwise."""
-        return (
-            super().isDirty
-            or self._transformedDataRanges is None
-            or self._transformedDataProjMat is None
-            or self._transformedDataY2ProjMat is None
-        )
 
     @property
     def xAxis(self):
@@ -1083,77 +1069,6 @@ class PlotFrame2DCore(PlotFrameCore):
             self._transformedDataRanges = self._DataRanges(*scaledRanges)
 
         return self._transformedDataRanges
-
-    @property
-    def transformedDataProjMat(self):
-        """Orthographic projection matrix for rendering transformed data
-
-        :type: numpy.ndarray (4x4)
-        """
-        if self._transformedDataProjMat is None:
-            xMin, xMax = self.transformedDataRanges.x
-            yMin, yMax = self.transformedDataRanges.y
-
-            if self.isYAxisInverted:
-                yMax, yMin = yMin, yMax
-
-            if self.isXAxisInverted:
-                xMax, xMin = xMin, xMax
-
-            self._transformedDataProjMat = self._mat4Ortho(
-                xMin, xMax, yMin, yMax, 1, -1
-            )
-
-        return self._transformedDataProjMat
-
-    @property
-    def transformedDataY2ProjMat(self):
-        """Orthographic projection matrix for rendering transformed data
-        for the 2nd Y axis
-
-        :type: numpy.ndarray (4x4)
-        """
-        if self._transformedDataY2ProjMat is None:
-            xMin, xMax = self.transformedDataRanges.x
-            y2Min, y2Max = self.transformedDataRanges.y2
-
-            if self.isYAxisInverted:
-                y2Max, y2Min = y2Min, y2Max
-
-            if self.isXAxisInverted:
-                xMax, xMin = xMin, xMax
-
-            self._transformedDataY2ProjMat = self._mat4Ortho(
-                xMin, xMax, y2Min, y2Max, 1, -1
-            )
-
-        return self._transformedDataY2ProjMat
-
-    @staticmethod
-    def _mat4Ortho(left, right, bottom, top, near, far):
-        """Orthographic projection matrix (row-major).
-
-        Equivalent to glutils.GLSupport.mat4Ortho but without GL dependency.
-        """
-        if left == right or bottom == top or near == far:
-            return numpy.identity(4, dtype=numpy.float64)
-
-        sx = 2.0 / (right - left)
-        sy = 2.0 / (top - bottom)
-        sz = -2.0 / (far - near)
-        tx = -(right + left) / (right - left)
-        ty = -(top + bottom) / (top - bottom)
-        tz = -(far + near) / (far - near)
-
-        return numpy.array(
-            (
-                (sx, 0.0, 0.0, tx),
-                (0.0, sy, 0.0, ty),
-                (0.0, 0.0, sz, tz),
-                (0.0, 0.0, 0.0, 1.0),
-            ),
-            dtype=numpy.float64,
-        )
 
     def dataToPixel(self, x, y, axis="left"):
         """Convert data coordinate to widget pixel coordinate."""
