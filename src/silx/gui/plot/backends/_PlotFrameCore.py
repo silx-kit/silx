@@ -528,8 +528,9 @@ class PlotAxisCore:
                         _logger.warning("Data range cannot be displayed with time axis")
                         return  # Range is out of bound of the datetime
 
-                    if bestUnit(
-                        (dtMax - dtMin).total_seconds() == DtUnit.MICRO_SECONDS
+                    if (
+                        bestUnit((dtMax - dtMin).total_seconds())
+                        == DtUnit.MICRO_SECONDS
                     ):
                         # Special case for micro seconds: Reduce tick density
                         tickDensity = 1.0 * self.devicePixelRatio / self.dotsPerInch
@@ -1318,7 +1319,7 @@ class PlotFrame2DCore(PlotFrameCore):
 
                     else:  # axis == self.y2Axis
                         axis_name = "right"
-                        corners = numpy.array(
+                        cornersInData = numpy.array(
                             [self.pixelToData(x, y, axis="right") for (x, y) in corners]
                         )
                         borders = (
