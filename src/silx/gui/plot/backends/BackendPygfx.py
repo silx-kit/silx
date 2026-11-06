@@ -742,7 +742,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # pygfx rendering objects
         _restrictWgpuToPrimaryBackends()  # Must be done before creating the renderer
-        self._renderer = gfx.WgpuRenderer(self, pixel_ratio=4)
+        self._renderer = gfx.WgpuRenderer(self)
         self._scene = gfx.Scene()
 
         # Camera: orthographic for 2D plotting
