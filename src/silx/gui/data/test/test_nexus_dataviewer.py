@@ -11,7 +11,7 @@ from silx.gui.plot.items import ImageDataAggregated, ImageRgba
 from silx.gui.plot3d.items import Scatter3D
 
 
-def test_image_no_interpretation(qapp, qWidgetFactory, tmp_path):
+def test_image_no_interpretation(qapp_utils, qWidgetFactory, tmp_path):
     widget: DataViewer = qWidgetFactory(DataViewer)
     with h5py.File(tmp_path / "test.h5", "w") as h5file:
         h5file.attrs["NX_class"] = "NXdata"
@@ -22,7 +22,8 @@ def test_image_no_interpretation(qapp, qWidgetFactory, tmp_path):
 
         widget.setData(h5file["/"])
 
-        qapp.processEvents()
+        # Wait for DataViewer to update the view, done with a QTimer
+        qapp_utils.qWait(100)
 
         viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
         assert viewClasses == (
@@ -38,7 +39,7 @@ def test_image_no_interpretation(qapp, qWidgetFactory, tmp_path):
         assert plot.getYAxis().getLimits() == (-5, 5)
 
 
-def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
+def test_rgb_image_with_interpretation(qapp_utils, qWidgetFactory, tmp_path):
     widget: DataViewer = qWidgetFactory(DataViewer)
     with h5py.File(tmp_path / "test.h5", "w") as h5file:
         h5file.attrs["NX_class"] = "NXdata"
@@ -50,7 +51,8 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
 
         widget.setData(h5file["/"])
 
-        qapp.processEvents()
+        # Wait for DataViewer to update the view, done with a QTimer
+        qapp_utils.qWait(100)
 
         viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
         assert viewClasses == (
@@ -65,7 +67,9 @@ def test_rgb_image_with_interpretation(qapp, qWidgetFactory, tmp_path):
         assert isinstance(plot.getImage("rgb"), ImageRgba)
 
 
-def test_image_with_non_affine_axis_becomes_scatter(qapp, qWidgetFactory, tmp_path):
+def test_image_with_non_affine_axis_becomes_scatter(
+    qapp_utils, qWidgetFactory, tmp_path
+):
     widget: DataViewer = qWidgetFactory(DataViewer)
     with h5py.File(tmp_path / "test.h5", "w") as h5file:
         h5file.attrs["NX_class"] = "NXdata"
@@ -77,7 +81,8 @@ def test_image_with_non_affine_axis_becomes_scatter(qapp, qWidgetFactory, tmp_pa
 
         widget.setData(h5file["/"])
 
-        qapp.processEvents()
+        # Wait for DataViewer to update the view, done with a QTimer
+        qapp_utils.qWait(100)
 
         imageView = widget.currentAvailableViews()[0]
         plot: Plot2D = imageView.getWidget().getPlot()
@@ -89,7 +94,7 @@ def test_image_with_non_affine_axis_becomes_scatter(qapp, qWidgetFactory, tmp_pa
     sys.version_info.major == 3 and sys.version_info.minor == 14,
     reason="Triggers segfault on Python 3.14. To be fixed",
 )
-def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
+def test_3d_scatter(qapp_utils, qWidgetFactory, tmp_path):
     widget: DataViewer = qWidgetFactory(DataViewer)
 
     x = numpy.arange(500)
@@ -107,7 +112,8 @@ def test_3d_scatter(qapp, qWidgetFactory, tmp_path):
 
         widget.setData(h5file["/"])
 
-        qapp.processEvents()
+        # Wait for DataViewer to update the view, done with a QTimer
+        qapp_utils.qWait(100)
 
         viewClasses = tuple(view.__class__ for view in widget.currentAvailableViews())
         assert viewClasses == (
