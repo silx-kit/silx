@@ -159,7 +159,7 @@ class TestPlotWindow(TestCaseQt):
         del self._count
 
     @pytest.mark.usefixtures("use_opengl")
-    def testSwitchBackend(self):
+    def testSwitchBackendMatplotlibOpenGL(self):
         """Test switching an empty plot"""
         self.plot.resetZoom()
         xlimits = self.plot.getXAxis().getLimits()
@@ -167,7 +167,24 @@ class TestPlotWindow(TestCaseQt):
         isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
 
         for backend in ("gl", "mpl"):
-            with self.subTest():
+            with self.subTest(backend=backend):
+                self.plot.setBackend(backend)
+                self.plot.replot()
+                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
+                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
+                self.assertEqual(self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
+
+    @pytest.mark.usefixtures("use_opengl")
+    @pytest.mark.usefixtures("use_pygfx")
+    def testSwitchBackend(self):
+        """Test switching an empty plot"""
+        self.plot.resetZoom()
+        xlimits = self.plot.getXAxis().getLimits()
+        ylimits = self.plot.getYAxis().getLimits()
+        isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
+
+        for backend in ("gl", "mpl", "pygfx"):
+            with self.subTest(backend=backend):
                 self.plot.setBackend(backend)
                 self.plot.replot()
                 self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)

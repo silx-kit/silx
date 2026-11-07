@@ -47,6 +47,13 @@ def pytest_addoption(parser):
         help="Disable tests using OpenGL",
     )
     parser.addoption(
+        "--no-pygfx",
+        dest="pygfx",
+        default=True,
+        action="store_false",
+        help="Disable tests using pygfx",
+    )
+    parser.addoption(
         "--no-opencl",
         dest="opencl",
         default=True,
@@ -82,6 +89,9 @@ _FILTERWARNINGS = (
     "ignore::DeprecationWarning:pyparsing.util",
     # fabio<2025.10 sets ndarray.shape in-place, deprecated since numpy 2.5.0
     "ignore::DeprecationWarning:fabio.fit2dmaskimage",
+    # pygfx sets ndarray.shape in-place (pygfx.resources._texture/_buffer),
+    # deprecated in NumPy 2.5. Remove once pygfx no longer does.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:pygfx",
 )
 
 
@@ -119,6 +129,16 @@ def use_opengl(test_options):
     """
     if not test_options.WITH_GL_TEST:
         pytest.skip(test_options.WITH_GL_TEST_REASON, allow_module_level=True)
+
+
+@pytest.fixture(scope="session")
+def use_pygfx(test_options):
+    """Fixture to flag test using pygfx.
+
+    This can be skipped with `--no-pygfx`.
+    """
+    if not test_options.WITH_PYGFX_TEST:
+        pytest.skip(test_options.WITH_PYGFX_TEST_REASON, allow_module_level=True)
 
 
 @pytest.fixture(scope="session")
