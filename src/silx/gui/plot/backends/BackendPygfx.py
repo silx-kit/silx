@@ -428,7 +428,9 @@ class _PygfxImageItem:
 
         ox, oy = origin
         sx, sy = scale
-        self._imageObj.local.position = (ox, oy, 0)
+        # pygfx centers texels on integer coordinates (quad spans
+        # [-0.5, size - 0.5]); silx pixel (i, j) covers [j, j + 1] x [i, i + 1]
+        self._imageObj.local.position = (ox + 0.5 * sx, oy + 0.5 * sy, 0)
         self._imageObj.local.scale = (sx, sy, 1)
 
 
