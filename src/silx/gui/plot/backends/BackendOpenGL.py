@@ -43,7 +43,7 @@ from ..._glutils import gl
 from ... import _glutils as glu
 from .._utils import axis_scale
 from . import glutils
-from .glutils.PlotImageFile import saveImageToFile
+from ._PlotImageFile import saveImageToFile
 from silx.gui.colors import RGBAColorType
 from .utils import findDimToKeep, ensureAspectRatio
 
