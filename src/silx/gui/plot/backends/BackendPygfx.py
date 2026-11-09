@@ -126,6 +126,27 @@ _SYMBOL_MAP = {
 }
 
 
+def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarray:
+    """Convert per-vertex colors to a float32 RGBA array in [0, 1].
+
+    :param color: (N, 3) or (N, 4) array of colors, either float in [0, 1]
+        or unsigned bytes in [0, 255].
+    :param alpha: Opacity in [0, 1] applied to the alpha channel.
+    """
+    color = numpy.asarray(color)
+    if numpy.issubdtype(color.dtype, numpy.integer):
+        rgba = color.astype(numpy.float32) / 255.0
+    else:
+        rgba = numpy.array(color, dtype=numpy.float32)
+
+    if rgba.shape[1] == 3:
+        return numpy.column_stack(
+            [rgba, numpy.full(len(rgba), alpha, dtype=numpy.float32)]
+        )
+    rgba[:, 3] *= alpha
+    return rgba
+
+
 # Item classes ################################################################
 
 
@@ -160,14 +181,7 @@ class _PygfxCurveItem:
         # Per-vertex color handling
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
             perVertexColor = True
-            vertexColors = numpy.asarray(color, dtype=numpy.float32)
-            if vertexColors.shape[1] == 3:
-                vertexColors = numpy.column_stack(
-                    [
-                        vertexColors,
-                        numpy.full(len(vertexColors), alpha, dtype=numpy.float32),
-                    ]
-                )
+            vertexColors = _vertexColorsToFloatRGBA(color, alpha)
             uniformColor = gfx.Color(1, 1, 1, 1)
         else:
             perVertexColor = False
@@ -454,12 +468,8 @@ class _PygfxTrianglesItem:
         positions[:, 0] = x
         positions[:, 1] = y
 
-        color = numpy.asarray(color, dtype=numpy.float32)
-        if color.ndim == 2:
-            if color.shape[1] == 3:
-                color = numpy.column_stack(
-                    [color, numpy.full(len(color), alpha, dtype=numpy.float32)]
-                )
+        if not isinstance(color, str) and numpy.ndim(color) == 2:
+            color = _vertexColorsToFloatRGBA(color, alpha)
             geom = gfx.Geometry(positions=positions, indices=triangles, colors=color)
             mat = gfx.MeshBasicMaterial(color_mode="vertex", side="both")
         else:
