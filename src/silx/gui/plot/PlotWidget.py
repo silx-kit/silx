@@ -3244,6 +3244,8 @@ class PlotWidget(qt.QMainWindow):
         :param fileFormat: String specifying the format.
             If None, it is deduced from the extension of `filename`
             (which must then be a str).
+            If given, it takes precedence over the extension of `filename`:
+            e.g., ``saveGraph("plot.svg", fileFormat="png")`` writes a PNG file.
         :param dpi: The resolution to use or None (in dot per inches).
         :return: False if cannot save the plot, True otherwise
         """
