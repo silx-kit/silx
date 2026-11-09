@@ -48,7 +48,7 @@ from ... import colors
 from ... import qt
 from ..._geometry import segmentTrianglesIntersection
 from ._PlotFrameCore import PlotFrame2DCore
-from .glutils.PlotImageFile import saveImageToFile
+from ._PlotImageFile import saveImageToFile
 from .utils import findDimToKeep, ensureAspectRatio
 from silx.gui.colors import RGBAColorType
 
