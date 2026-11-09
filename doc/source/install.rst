@@ -261,8 +261,6 @@ The `pygfx` extra:
 
 adds the `pygfx` rendering backend for :mod:`silx.gui.plot` widgets,
 based on WebGPU.
-It can be selected with ``PlotWidget(backend="pygfx")`` or as default with
-``silx.config.DEFAULT_PLOT_BACKEND = "pygfx"``.
 
 It installs:
 
