@@ -46,6 +46,7 @@ from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
 from ... import qt
+from ..._geometry import segmentTrianglesIntersection
 from ._PlotFrameCore import PlotFrame2DCore
 from .glutils.PlotImageFile import saveImageToFile
 from .utils import findDimToKeep, ensureAspectRatio
@@ -1727,9 +1728,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # Create vertical segment through clicked point
         segment = numpy.array(((x, y, -1.0), (x, y, 1.0)), dtype=numpy.float32)
-
-        from silx.gui._glutils.utils import segmentTrianglesIntersection
-
         indices = segmentTrianglesIntersection(segment, triCoords)[0]
         if len(indices) == 0:
             return None

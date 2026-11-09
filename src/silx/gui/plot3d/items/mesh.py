@@ -31,7 +31,7 @@ __date__ = "17/07/2018"
 import logging
 import numpy
 
-from ... import _glutils as glu
+from ..._geometry import segmentTrianglesIntersection
 from ..scene import primitives, utils, function
 from ..scene.transform import Rotate
 from .core import DataItem3D, ItemChangedType
@@ -167,7 +167,7 @@ class _MeshBase(DataItem3D):
                 _logger.warning("Unsupported draw mode: %s" % mode)
                 return None
 
-        trianglesIndices, t, barycentric = glu.segmentTrianglesIntersection(
+        trianglesIndices, t, barycentric = segmentTrianglesIntersection(
             rayObject, triangles
         )
 
@@ -519,7 +519,7 @@ class _CylindricalVolume(DataItem3D):
         positions = self._mesh.getAttribute("position", copy=False)
         triangles = positions.reshape(-1, 3, 3)  # 'triangle' draw mode
 
-        trianglesIndices, t = glu.segmentTrianglesIntersection(rayObject, triangles)[:2]
+        trianglesIndices, t = segmentTrianglesIntersection(rayObject, triangles)[:2]
 
         if len(trianglesIndices) == 0:
             return None
