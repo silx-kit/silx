@@ -206,12 +206,8 @@ def addValueToDate(dateTime, value, unit):
         raise ValueError(f"Unexpected DtUnit: {unit}")
 
 
-def bestUnit(durationInSeconds):
-    """Gets the best tick spacing given a duration in seconds.
-
-    :param durationInSeconds: time span duration in seconds
-    :return: DtUnit enumeration.
-    """
+def bestUnit(durationInSeconds: float) -> tuple[float, DtUnit]:
+    """Gets the best tick spacing given a duration in seconds."""
 
     # Based on; https://stackoverflow.com/a/2144398/
     # If the duration is longer than two years the tick spacing will be in
