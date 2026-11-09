@@ -55,6 +55,11 @@ The OpenGL-based backend is implemented in the :mod:`.backends.BackendOpenGL` mo
 the :mod:`.backends.glutils` package which provides the different primitives used for rendering and interaction.
 It is based on :mod:`silx.gui._glutils`, `PyOpenGL <http://pyopengl.sourceforge.net/>`_ and OpenGL >= 2.1.
 
+The WebGPU-based backend is implemented in the :mod:`.backends.BackendPygfx` module.
+It is based on `pygfx <https://github.com/pygfx/pygfx>`_ for rendering and
+`rendercanvas <https://github.com/pygfx/rendercanvas>`_ for the Qt integration,
+and uses `wgpu <https://github.com/pygfx/wgpu-py>`_ with the Vulkan, Metal or DirectX 12 backends.
+
 .. |Plot and backend| image:: img/plot_and_backend.png
    :align: middle
 
