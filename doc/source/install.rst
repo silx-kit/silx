@@ -250,6 +250,31 @@ Alternative supported Qt bindings are:
 * `PyQt6 <https://pypi.org/project/PyQt6/>`_
 * `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_
 
+pygfx plot backend
+++++++++++++++++++
+
+The `pygfx` extra:
+
+.. code-block:: bash
+
+    pip install silx[full,pygfx]
+
+adds the `pygfx` rendering backend for :mod:`silx.gui.plot` widgets,
+based on WebGPU.
+It can be selected with ``PlotWidget(backend="pygfx")`` or as default with
+``silx.config.DEFAULT_PLOT_BACKEND = "pygfx"``.
+
+It installs:
+
+* `pygfx <https://github.com/pygfx/pygfx>`_ for rendering
+* `rendercanvas <https://github.com/pygfx/rendercanvas>`_
+  for integrating the rendering in Qt widgets
+* `wgpu <https://github.com/pygfx/wgpu-py>`_, the Python binding of WebGPU
+
+Required system dependencies:
+
+* GPU drivers supporting Vulkan (Linux, Windows), Metal (macOS) or DirectX 12 (Windows)
+
 HSDS support
 ++++++++++++
 
