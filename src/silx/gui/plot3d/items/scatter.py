@@ -33,7 +33,7 @@ import sys
 import numpy
 from matplotlib.tri import Triangulation
 
-from ... import _glutils as glu
+from ..._geometry import segmentTrianglesIntersection
 from ..scene import function, primitives, utils
 
 from ...plot.items import ScatterVisualizationMixIn
@@ -462,7 +462,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
         trianglesIndices = self._cachedTrianglesIndices.reshape(-1, 3)
         triangles = points[trianglesIndices, :3]
-        selectedIndices, t, barycentric = glu.segmentTrianglesIntersection(
+        selectedIndices, t, barycentric = segmentTrianglesIntersection(
             rayObject, triangles
         )
         closest = numpy.argmax(barycentric, axis=1)

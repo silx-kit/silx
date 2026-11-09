@@ -36,6 +36,7 @@ import numpy
 
 from .....math.combo import min_max
 from .... import _glutils as glutils
+from ...._geometry import segmentTrianglesIntersection
 from ...._glutils import gl
 from .GLPlotItem import GLPlotItem
 
@@ -131,9 +132,7 @@ class GLPlotTriangles(GLPlotItem):
 
         segment = numpy.array(((x, y, -1), (x, y, 1)), dtype=numpy.float32)
         # Picked triangle indices
-        indices = glutils.segmentTrianglesIntersection(
-            segment, self.__picking_triangles
-        )[0]
+        indices = segmentTrianglesIntersection(segment, self.__picking_triangles)[0]
         # Point indices
         indices = numpy.unique(numpy.ravel(self.__triangles[indices]))
 
