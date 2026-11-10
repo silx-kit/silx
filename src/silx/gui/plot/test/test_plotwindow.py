@@ -173,3 +173,15 @@ class TestPlotWindow(TestCaseQt):
                 self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
                 self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
                 self.assertEqual(self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
+
+
+def testCopyAction(qWidgetFactory):
+    """Test copying a PlotWindow to the clipboard"""
+    plot = qWidgetFactory(PlotWindow)
+    plot.addImage(numpy.arange(100).reshape(10, 10))
+    clipboard = qt.QApplication.clipboard()
+    clipboard.clear()
+
+    plot.getCopyAction().trigger()
+
+    assert not clipboard.image().isNull()

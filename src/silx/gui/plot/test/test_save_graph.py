@@ -58,15 +58,3 @@ def testSaveGraphFileLikeWithoutFormat(plotWithImage):
 def testSaveGraphUnsupportedFormat(plotWithImage, tmp_path):
     """Test saveGraph fails with an unsupported format"""
     assert not plotWithImage.saveGraph(str(tmp_path / "plot.xyz"))
-
-
-def testCopyAction(qWidgetFactory):
-    """Test copying a PlotWindow to the clipboard"""
-    plot = qWidgetFactory(PlotWindow)
-    plot.addImage(numpy.arange(100).reshape(10, 10))
-    clipboard = qt.QApplication.clipboard()
-    clipboard.clear()
-
-    plot.getCopyAction().trigger()
-
-    assert not clipboard.image().isNull()
