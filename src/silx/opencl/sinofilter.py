@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "07/06/2019"
+__date__ = "12/11/2026"
 
 import numpy as np
 from math import pi
@@ -230,7 +230,7 @@ class SinoFilter(OpenclProcessing):
         if not (isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
             raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
-    def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
+    def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0), sync=True):
         """
 
         :param dst:
@@ -238,10 +238,11 @@ class SinoFilter(OpenclProcessing):
         :param transfer_shape:
         :param dst_offset:
         :param src_offset:
+        :param sync: wait for processing done before returning
         :return: OpenCL event of the copy, enqueued in `self.queue`
         """
         shape = tuple(int(i) for i in transfer_shape[::-1])
-        return self.kernels.cpy2d(
+        ev = self.kernels.cpy2d(
             self.queue,
             shape,
             None,
@@ -253,6 +254,9 @@ class SinoFilter(OpenclProcessing):
             np.int32(src_offset),
             np.int32(transfer_shape[::-1]),
         )
+        if sync:
+            ev.wait()
+        return ev
 
     def copy2d_host(
         self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)
