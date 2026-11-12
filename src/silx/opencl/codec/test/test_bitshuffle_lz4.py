@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2022 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "30/06/2026"
+__date__ = "12/11/2026"
 
 import struct
 import numpy
@@ -46,6 +46,7 @@ except ImportError:
     bitshuffle = None
 from ...common import ocl, pyopencl
 from ...codec.bitshuffle_lz4 import BitshuffleLz4
+from ...codec._unblock_bslz4 import unblock_bslz4
 
 TESTCASES = (  # dtype, shape
     ("uint64", (103, 503)),
@@ -59,6 +60,38 @@ TESTCASES = (  # dtype, shape
 )
 
 
+def _create_test_data(shape, lam=100, dtype="uint32"):
+    """Create test (image, compressed stream) pair.
+
+    :param shape: Shape of test image
+    :param lam: Expectation of interval argument for numpy.random.poisson
+    :return: (reference image array, compressed stream)
+    """
+    ref = numpy.random.poisson(lam, size=shape).astype(dtype)
+    raw = (
+        struct.pack(">Q", ref.nbytes)
+        + b"\x00" * 4
+        + bitshuffle.compress_lz4(ref).tobytes()
+    )
+    return ref, raw
+
+
+@pytest.mark.skipif(bitshuffle is None, reason="bitshuffle is missing")
+def test_unblock_bslz4_input_types():
+    """unblock_bslz4 accepts any contiguous buffer, not only bytes (#4777)"""
+    ref, raw = _create_test_data(shape=(101, 509), dtype="uint32")
+    expected = unblock_bslz4(raw, ref.itemsize)
+    assert expected.size == (ref.nbytes + 8191) // 8192
+    for src in (
+        bytearray(raw),
+        memoryview(raw),
+        numpy.frombuffer(raw, dtype=numpy.uint8),
+        numpy.frombuffer(raw, dtype=numpy.int8),
+        numpy.frombuffer(raw, dtype=numpy.uint8).reshape(-1, 1),
+    ):
+        assert numpy.array_equal(unblock_bslz4(src, ref.itemsize), expected), type(src)
+
+
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
     reason="PyOpenCl or bitshuffle is missing",
@@ -66,21 +99,7 @@ TESTCASES = (  # dtype, shape
 class TestBitshuffleLz4:
     """Test pyopencl bishuffle+LZ4 decompression"""
 
-    @staticmethod
-    def _create_test_data(shape, lam=100, dtype="uint32"):
-        """Create test (image, compressed stream) pair.
-
-        :param shape: Shape of test image
-        :param lam: Expectation of interval argument for numpy.random.poisson
-        :return: (reference image array, compressed stream)
-        """
-        ref = numpy.random.poisson(lam, size=shape).astype(dtype)
-        raw = (
-            struct.pack(">Q", ref.nbytes)
-            + b"\x00" * 4
-            + bitshuffle.compress_lz4(ref).tobytes()
-        )
-        return ref, raw
+    _create_test_data = staticmethod(_create_test_data)
 
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress(self, dtype, shape):
@@ -91,6 +110,26 @@ class TestBitshuffleLz4:
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
         res = bs.decompress(raw).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
+
+    @pytest.mark.parametrize("dtype,shape", TESTCASES)
+    def test_decompress_from_numpy(self, dtype, shape):
+        """Test decompression of a chunk given as a numpy array (#4777)"""
+        ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+        raw = numpy.frombuffer(raw, dtype=numpy.uint8)
+        bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
+        res = bs.decompress(raw).get()
+        assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
+
+    @pytest.mark.parametrize("dec_size_factor", (0.5, 2))
+    def test_decompress_other_size(self, dec_size_factor):
+        """Test decompression of a chunk whose size differs from `dec_size` (#4777)"""
+        ref, raw = self._create_test_data(shape=(101, 509), dtype="uint32")
+
+        bs = BitshuffleLz4(len(raw), int(ref.size * dec_size_factor), dtype=ref.dtype)
+        res = bs.decompress(raw).get()
+        assert numpy.array_equal(res[: ref.size], ref.ravel()), (
+            "Checks decompression works"
+        )
 
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress_from_buffer(self, dtype, shape):

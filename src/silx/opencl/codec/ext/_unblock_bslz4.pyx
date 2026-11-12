@@ -10,7 +10,7 @@
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "02/07/2026"
+__date__ = "12/11/2026"
 
 
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
@@ -77,19 +77,23 @@ cdef inline  uint32_t bshuf_default_block_size(uint32_t elem_size):
 
 
 
-def unblock_bslz4(bytes src, uint8_t item_size=4):
+def unblock_bslz4(src, uint8_t item_size=4):
     """
     Parse a compressed Bitshuffle-LZ4 stream and record the start of each LZ4-block
 
-    :param src: compressed LZ4 stream
+    :param src: compressed LZ4 stream, as any contiguous object exposing the buffer
+                protocol (bytes, bytearray, numpy array, pinned host memory, ...)
     :param item_size: used only if the stream does not contain the block-size in the header
     :return: list of start of block in the input stream (as numpy array)
     """
+    return _unblock_bslz4(memoryview(src).cast("B"), item_size)
+
+
+cdef _unblock_bslz4(const uint8_t[::1] buffer, uint8_t item_size):
     cdef:
-        uint64_t size = len(src)
-        uint64_t total_nbytes = load64_BE(src, 0)
-        uint32_t block_nbytes = load32_BE(src, 8)
-        const uint8_t[::1] buffer = src
+        uint64_t size = buffer.shape[0]
+        uint64_t total_nbytes = load64_BE(buffer, 0)
+        uint32_t block_nbytes = load32_BE(buffer, 8)
         uint32_t nblocks, block_max_size
         uint64_t[::1] block_start
         uint32_t block_idx = 0
