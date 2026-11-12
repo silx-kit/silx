@@ -230,7 +230,9 @@ class SinoFilter(OpenclProcessing):
         if not (isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
             raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
-    def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0), sync=True):
+    def copy2d(
+        self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0), sync=True
+    ):
         """
 
         :param dst:
