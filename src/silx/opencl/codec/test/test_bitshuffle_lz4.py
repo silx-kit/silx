@@ -92,6 +92,17 @@ class TestBitshuffleLz4:
         res = bs.decompress(raw).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
 
+    @pytest.mark.parametrize("dec_size_factor", (0.5, 2))
+    def test_decompress_other_size(self, dec_size_factor):
+        """Test decompression of a chunk whose size differs from `dec_size` (#4777)"""
+        ref, raw = self._create_test_data(shape=(101, 509), dtype="uint32")
+
+        bs = BitshuffleLz4(len(raw), int(ref.size * dec_size_factor), dtype=ref.dtype)
+        res = bs.decompress(raw).get()
+        assert numpy.array_equal(res[: ref.size], ref.ravel()), (
+            "Checks decompression works"
+        )
+
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress_from_buffer(self, dtype, shape):
         """Test reading compressed data from pyopencl Buffer"""

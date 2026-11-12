@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+3.1.?: ????/??/??
+-----------------
+
+* `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
+
 3.1.2: 2026/09/03
 -----------------
 
