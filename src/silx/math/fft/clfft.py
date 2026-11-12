@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2018-2029 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -91,9 +91,7 @@ class CLFFT(BaseFFT):
             axes=axes,
             normalize=normalize,
         )
-        if ((ctx is not None) and 
-            (queue is not None) and 
-            (queue.context != ctx)):
+        if ((ctx is not None) and (queue is not None) and (queue.context != ctx)):
             raise ValueError("Provided Context and Queue are inconsistent!") 
         self.ctx = ctx
         self.queue = queue
