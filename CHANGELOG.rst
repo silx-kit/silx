@@ -6,6 +6,7 @@ Release Notes
 
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
+* `silx.opencl.codec.bitshuffle_lz4`: Added `block_position` parameter to `BitshuffleLz4.decompress` to provide LZ4 block positions computed on the host (`unblock_bslz4`) for data already on the device, skipping the slow `lz4_unblock` kernel; fixed buffer overflow when decompressing on-device-unblocked chunks larger than the allocated size (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 
 3.1.2: 2026/09/03
 -----------------
