@@ -46,6 +46,7 @@ except ImportError:
     bitshuffle = None
 from ...common import ocl, pyopencl
 from ...codec.bitshuffle_lz4 import BitshuffleLz4
+from ...codec._unblock_bslz4 import unblock_bslz4
 
 TESTCASES = (  # dtype, shape
     ("uint64", (103, 503)),
@@ -59,6 +60,38 @@ TESTCASES = (  # dtype, shape
 )
 
 
+def _create_test_data(shape, lam=100, dtype="uint32"):
+    """Create test (image, compressed stream) pair.
+
+    :param shape: Shape of test image
+    :param lam: Expectation of interval argument for numpy.random.poisson
+    :return: (reference image array, compressed stream)
+    """
+    ref = numpy.random.poisson(lam, size=shape).astype(dtype)
+    raw = (
+        struct.pack(">Q", ref.nbytes)
+        + b"\x00" * 4
+        + bitshuffle.compress_lz4(ref).tobytes()
+    )
+    return ref, raw
+
+
+@pytest.mark.skipif(bitshuffle is None, reason="bitshuffle is missing")
+def test_unblock_bslz4_input_types():
+    """unblock_bslz4 accepts any contiguous buffer, not only bytes (#4777)"""
+    ref, raw = _create_test_data(shape=(101, 509), dtype="uint32")
+    expected = unblock_bslz4(raw, ref.itemsize)
+    assert expected.size == (ref.nbytes + 8191) // 8192
+    for src in (
+        bytearray(raw),
+        memoryview(raw),
+        numpy.frombuffer(raw, dtype=numpy.uint8),
+        numpy.frombuffer(raw, dtype=numpy.int8),
+        numpy.frombuffer(raw, dtype=numpy.uint8).reshape(-1, 1),
+    ):
+        assert numpy.array_equal(unblock_bslz4(src, ref.itemsize), expected), type(src)
+
+
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
     reason="PyOpenCl or bitshuffle is missing",
@@ -66,21 +99,7 @@ TESTCASES = (  # dtype, shape
 class TestBitshuffleLz4:
     """Test pyopencl bishuffle+LZ4 decompression"""
 
-    @staticmethod
-    def _create_test_data(shape, lam=100, dtype="uint32"):
-        """Create test (image, compressed stream) pair.
-
-        :param shape: Shape of test image
-        :param lam: Expectation of interval argument for numpy.random.poisson
-        :return: (reference image array, compressed stream)
-        """
-        ref = numpy.random.poisson(lam, size=shape).astype(dtype)
-        raw = (
-            struct.pack(">Q", ref.nbytes)
-            + b"\x00" * 4
-            + bitshuffle.compress_lz4(ref).tobytes()
-        )
-        return ref, raw
+    _create_test_data = staticmethod(_create_test_data)
 
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress(self, dtype, shape):
@@ -88,6 +107,15 @@ class TestBitshuffleLz4:
         Tests the byte offset decompression on GPU with various configuration
         """
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+        bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
+        res = bs.decompress(raw).get()
+        assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
+
+    @pytest.mark.parametrize("dtype,shape", TESTCASES)
+    def test_decompress_from_numpy(self, dtype, shape):
+        """Test decompression of a chunk given as a numpy array (#4777)"""
+        ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+        raw = numpy.frombuffer(raw, dtype=numpy.uint8)
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
         res = bs.decompress(raw).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
