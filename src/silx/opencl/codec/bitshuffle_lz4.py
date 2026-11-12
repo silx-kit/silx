@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "02/07/2026"
+__date__ = "12/11/2026"
 __status__ = "production"
 
 
@@ -172,7 +172,7 @@ class BitshuffleLz4(OpenclProcessing):
                 events.append(EventDescription("copy raw H -> D", evt))
                 cmp_buffer = self.cl_mem["cmp"].data
 
-                dest_size = struct.unpack(">Q", raw[:8])
+                (dest_size,) = struct.unpack(">Q", raw[:8])
                 self_dest_nbyte = self.dec_size * self.dec_dtype.itemsize
                 if dest_size < self_dest_nbyte:
                     num_blocks = numpy.uint32(
