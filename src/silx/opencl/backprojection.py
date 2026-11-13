@@ -322,7 +322,7 @@ class Backprojection(OpenclProcessing):
         if not (self._use_textures):
             if id(self.d_sino) == id(d_sino):
                 return
-            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, d_sino)
+            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, d_sino.data)
             what = "transfer filtered sino D->D buffer"
             ev.wait()
         else:
