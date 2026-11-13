@@ -96,3 +96,32 @@ jobs:
           WITH_GL_TEST: ${{ matrix.with_gl_test && 'True' || 'False' }}
         run: |
           python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=${{ matrix.QT_API }}']))"
+
+  oldest-dependencies:
+    name: "Python 3.10 on manylinux x86_64 PyQt5 with oldest dependencies"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pypa/cibuildwheel@b9e566a2b284570af229f6c2a33673410d0389a3  # v4.3.4
+        env:
+          CIBW_BUILD: cp310-manylinux_x86_64
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD_FRONTEND: "build; args: -C setup-args=-Duse_openmp=disabled"
+
+          # Install system packages, Intel OpenCL ICD and oldest dependencies
+          # The ICD requires libnuma and libtinfo.so.5
+          CIBW_BEFORE_TEST_LINUX: >-
+            yum install -y xorg-x11-server-Xvfb mesa-dri-drivers mesa-libEGL mesa-libGL
+            libxkbcommon-x11 libxkbcommon xcb-util-image xcb-util-keysyms xcb-util-renderutil
+            xcb-util-wm libXrandr libXcursor libxcb numactl-libs ncurses-compat-libs &&
+            curl -sSfL http://www.silx.org/pub/OpenCL/intel_opencl_icd-6.4.0.37.tar.gz | tar -xz -C /opt &&
+            echo /opt/intel_opencl_icd/icd/libintelocl.so > /opt/intel_opencl_icd/vendors/intel64.icd &&
+            pip install --only-binary :all: -r {project}/ci/oldest-requirements.txt
+          CIBW_TEST_ENVIRONMENT: >-
+            QT_API=PyQt5
+            SILX_OPENCL=True
+            WITH_GL_TEST=True
+            OCL_ICD_VENDORS=/opt/intel_opencl_icd/vendors/intel64.icd
+          CIBW_TEST_COMMAND: >-
+            pip check && pip list &&
+            python -c "import silx.test, sys; sys.exit(silx.test.run_tests(verbosity=3, args=['--qt-binding=PyQt5']))"

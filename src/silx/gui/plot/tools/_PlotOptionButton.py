@@ -13,7 +13,7 @@ class PlotOptionButton(PlotToolButton):
     def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
 
-        self.setIcon(qtawesome.icon("fa6s.bars"))
+        self.setIcon(qtawesome.icon("mdi6.menu"))
 
         self._menu = qt.QMenu(self)
         self._menu.aboutToShow.connect(self._customControlButtonMenu)
