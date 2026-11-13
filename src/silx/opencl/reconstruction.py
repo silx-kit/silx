@@ -129,15 +129,15 @@ class ReconstructionAlgorithm(OpenclProcessing):
         """
         Project d_slice to d_sino
         """
-        self.projector.transfer_device_to_texture(d_slice.data)  # .wait()
+        self.projector.transfer_device_to_texture(d_slice.data)
         self.projector.projection(dst=d_sino)
 
     def backproj(self, d_sino, d_slice):
         """
         Backproject d_sino to d_slice
         """
-        self.backprojector.transfer_device_to_texture(d_sino.data)  # .wait()
-        self.backprojector.backprojection(dst=d_slice)
+        self.backprojector._transfer_device_to_texture(d_sino)
+        self.backprojector.backprojection(d_sino, output=d_slice)
 
 
 class SIRT(ReconstructionAlgorithm):
