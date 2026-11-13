@@ -91,11 +91,11 @@ class CLFFT(BaseFFT):
             axes=axes,
             normalize=normalize,
         )
-        if ((ctx is not None) and (queue is not None) and (queue.context != ctx)):
-            raise ValueError("Provided Context and Queue are inconsistent!") 
+        if (ctx is not None) and (queue is not None) and (queue.context != ctx):
+            raise ValueError("Provided Context and Queue are inconsistent!")
         self.ctx = ctx
         self.queue = queue
-        
+
         self.choose_best_device = choose_best_device
         self.fast_math = fast_math
         self.backend = "clfft"
