@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
-__date__ = "07/06/2019"
+__date__ = "12/11/2026"
 
 import numpy as np
 from math import pi
@@ -136,7 +136,7 @@ class SinoFilter(OpenclProcessing):
                 self.sino_padded_shape,
                 dtype=np.float32,
                 axes=(-1,),
-                ctx=self.ctx,
+                queue=self.queue,
             )
         else:
             self.fft_backend = "numpy"
@@ -210,8 +210,8 @@ class SinoFilter(OpenclProcessing):
     def _init_kernels(self):
         OpenclProcessing.compile_kernels(self, self.kernel_files)
         h, w = self.d_sino_f.shape
+        # The queue is not part of the arguments as it changes with profiling
         self.mult_kern_args = (
-            self.queue,
             (int(w), (int(h))),
             None,
             self.d_sino_f.data,
@@ -230,7 +230,9 @@ class SinoFilter(OpenclProcessing):
         if not (isinstance(arr, np.ndarray) or isinstance(arr, parray.Array)):
             raise ValueError("Expected either numpy.ndarray or pyopencl.array.Array")
 
-    def copy2d(self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)):
+    def copy2d(
+        self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0), sync=True
+    ):
         """
 
         :param dst:
@@ -238,6 +240,8 @@ class SinoFilter(OpenclProcessing):
         :param transfer_shape:
         :param dst_offset:
         :param src_offset:
+        :param sync: wait for processing done before returning
+        :return: OpenCL event of the copy, enqueued in `self.queue`
         """
         shape = tuple(int(i) for i in transfer_shape[::-1])
         ev = self.kernels.cpy2d(
@@ -252,7 +256,9 @@ class SinoFilter(OpenclProcessing):
             np.int32(src_offset),
             np.int32(transfer_shape[::-1]),
         )
-        ev.wait()
+        if sync:
+            ev.wait()
+        return ev
 
     def copy2d_host(
         self, dst, src, transfer_shape, dst_offset=(0, 0), src_offset=(0, 0)
@@ -280,21 +286,19 @@ class SinoFilter(OpenclProcessing):
         self.d_sino_padded.fill(0)
         if self.fft_backend == "opencl":
             # OpenCL backend: FFT/mult/IFFT are done on device.
+            self.sync_queues(self.d_sino_padded.queue, self.queue)
             if isinstance(sino, np.ndarray):
                 # OpenCL backend + numpy input: copy H->D.
                 # As pyopencl does not support rectangular copies, we have to
                 # do a copy H->D in a temporary device buffer, and then call a
                 # kernel doing the rectangular D-D copy.
                 self.tmp_sino_device[:] = sino[:]
-                if self.is_cpu:
-                    self.tmp_sino_device.finish()
                 d_sino_ref = self.tmp_sino_device
             else:
+                self.sync_queues(sino.queue, self.queue)
                 d_sino_ref = sino
             # Rectangular copy D->D
             self.copy2d(self.d_sino_padded, d_sino_ref, self.sino_shape)
-            if self.is_cpu:
-                self.d_sino_padded.finish()  # should not be required here
         else:
             # Numpy backend: FFT/mult/IFFT are done on host.
             if not (isinstance(sino, np.ndarray)):
@@ -326,15 +330,11 @@ class SinoFilter(OpenclProcessing):
                     src=self.d_sino_padded,
                     transfer_shape=self.sino_shape,
                 )
-                if self.is_cpu:
-                    self.tmp_sino_device.finish()  # should not be required here
-                res[:] = self.tmp_sino_device.get()[:]
+                res[:] = self.tmp_sino_device.get(queue=self.queue)[:]
             else:
-                if self.is_cpu:
-                    self.d_sino_padded.finish()
+                self.sync_queues(res.queue, self.queue)
                 self.copy2d(res, self.d_sino_padded, self.sino_shape)
-                if self.is_cpu:
-                    res.finish()  # should not be required here
+                self.sync_queues(self.queue, res.queue)
         else:
             if not (isinstance(res, np.ndarray)):
                 # Numpy backend + pyopencl output: rect copy H->H + copy H->D
@@ -351,9 +351,9 @@ class SinoFilter(OpenclProcessing):
 
     def _do_fft(self):
         if self.fft_backend == "opencl":
+            self.sync_queues(self.queue, self.fft.queue)
             self.fft.fft(self.d_sino_padded, output=self.d_sino_f)
-            if self.is_cpu:
-                self.d_sino_f.finish()
+            self.sync_queues(self.fft.queue, self.queue)
         else:
             # numpy backend does not support "output=" argument,
             # and rfft always return a complex128 result.
@@ -363,10 +363,7 @@ class SinoFilter(OpenclProcessing):
     def _multiply_fourier(self):
         if self.fft_backend == "opencl":
             # Everything is on device. Call the multiplication kernel.
-            ev = self.kernels.inplace_complex_mul_2Dby1D(*self.mult_kern_args)
-            ev.wait()
-            if self.is_cpu:
-                self.d_sino_f.finish()  # should not be required here
+            self.kernels.inplace_complex_mul_2Dby1D(self.queue, *self.mult_kern_args)
         else:
             # Everything is on host.
             self.d_sino_f *= self.filter_f
@@ -375,10 +372,10 @@ class SinoFilter(OpenclProcessing):
         if self.fft_backend == "opencl":
             if self.is_cpu:
                 self.d_sino_padded.fill(0)
-                self.d_sino_padded.finish()
+                self.sync_queues(self.d_sino_padded.queue, self.fft.queue)
+            self.sync_queues(self.queue, self.fft.queue)
             self.fft.ifft(self.d_sino_f, output=self.d_sino_padded)
-            if self.is_cpu:
-                self.d_sino_padded.finish()
+            self.sync_queues(self.fft.queue, self.queue)
         else:
             # numpy backend does not support "output=" argument,
             # and irfft always return a float64 result.

@@ -274,7 +274,7 @@ class Backprojection(OpenclProcessing):
         self.filter_name = filter_name or "ram-lak"
         self.sino_filter = SinoFilter(
             self.shape,
-            ctx=self.ctx,
+            ctx=self,
             filter_name=self.filter_name,
             extra_options=self.extra_options,
         )
@@ -322,7 +322,7 @@ class Backprojection(OpenclProcessing):
         if not (self._use_textures):
             if id(self.d_sino) == id(d_sino):
                 return
-            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, d_sino)
+            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, d_sino.data)
             what = "transfer filtered sino D->D buffer"
             ev.wait()
         else:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2026 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,9 @@ class CLFFT(BaseFFT):
         i.e., more speed but less accuracy.
     :param bool choose_best_device:
         Whether to automatically choose the best available OpenCL device.
+    :param pyopencl.CommandQueue queue:
+        If set to other than None, an existing pyopencl command queue is used
+        (and `ctx` is the context of this queue).
     """
 
     def __init__(
@@ -72,6 +75,7 @@ class CLFFT(BaseFFT):
         ctx=None,
         fast_math=False,
         choose_best_device=True,
+        queue=None,
     ):
         if not (__have_clfft__) or not (__have_clfft__):
             raise ImportError(
@@ -87,7 +91,11 @@ class CLFFT(BaseFFT):
             axes=axes,
             normalize=normalize,
         )
+        if (ctx is not None) and (queue is not None) and (queue.context != ctx):
+            raise ValueError("Provided Context and Queue are inconsistent!")
         self.ctx = ctx
+        self.queue = queue
+
         self.choose_best_device = choose_best_device
         self.fast_math = fast_math
         self.backend = "clfft"
@@ -168,6 +176,9 @@ class CLFFT(BaseFFT):
         self.data_out = self.refs["data_out"]
 
     def init_context_queue(self):
+        if self.queue is not None:
+            self.ctx = self.queue.context
+            return
         if self.ctx is None:
             if self.choose_best_device:
                 self.ctx = ocl.create_context()
