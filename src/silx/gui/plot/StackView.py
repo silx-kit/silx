@@ -280,12 +280,17 @@ class StackView(qt.QMainWindow):
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
+        self.__controlWidget = qt.QWidget(central_widget)
+        controlLayout = qt.QGridLayout(self.__controlWidget)
+        controlLayout.setContentsMargins(0, 0, 0, 0)
+        controlLayout.addWidget(self.__planeSelection, 0, 0)
+        controlLayout.addWidget(self._browser_label, 0, 1)
+        controlLayout.addWidget(self._browser, 0, 2)
+
         layout = qt.QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0, 1, 3)
-        layout.addWidget(self.__planeSelection, 1, 0)
-        layout.addWidget(self._browser_label, 1, 1)
-        layout.addWidget(self._browser, 1, 2)
+        layout.addWidget(self.__controlWidget, 1, 0, 1, 3)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
@@ -982,14 +987,21 @@ class StackView(qt.QMainWindow):
         """
         return self._plot
 
+    def getControlWidget(self) -> qt.QWidget:
+        """Returns the widget containing the existing stack browsing controls.
+
+        The widget contains the plane selector, the frame label and the frame
+        browser.
+        """
+        return self.__controlWidget
+
     def setOptionVisible(self, isVisible):
         """
         Set the visibility of the browsing options.
 
         :param bool isVisible: True to have the options visible, else False
         """
-        self._browser.setVisible(isVisible)
-        self.__planeSelection.setVisible(isVisible)
+        self.__controlWidget.setVisible(isVisible)
 
     # proxies to PlotWidget or PlotWindow methods
     def getProfileToolbar(self):
