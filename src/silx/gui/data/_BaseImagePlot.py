@@ -47,13 +47,21 @@ class BaseImagePlot(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self._plot)
-        layout.addWidget(self._axesSelector)
-        layout.addWidget(self._signalSelector)
+        self.__controls = qt.QWidget(self)
+        controlsLayout = qt.QVBoxLayout(self.__controls)
+        controlsLayout.setContentsMargins(0, 0, 0, 0)
+        controlsLayout.addWidget(self._axesSelector)
+        controlsLayout.addWidget(self._signalSelector)
+        layout.addWidget(self.__controls)
 
         self.setLayout(layout)
 
     def getPlot(self) -> Plot2D:
         return self._plot
+
+    def getControlWidget(self) -> qt.QWidget:
+        """Returns the widget containing the existing axes and signal selectors."""
+        return self.__controls
 
     def setImageData(
         self,

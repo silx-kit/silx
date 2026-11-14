@@ -89,6 +89,13 @@ class DataViewer(qt.QFrame):
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
 
+    dataDisplayed = qt.Signal()
+    """Emitted after the current view receives its data and selection.
+
+    Display updates are deferred. This signal reports every completed update,
+    including updates that keep the same slicing and permutation.
+    """
+
     selectionChanged = qt.Signal(object, object)
     """Emitted when the data selection changes.
 
@@ -148,6 +155,10 @@ class DataViewer(qt.QFrame):
         views = self.createDefaultViews(self.__stack)
         self.__views = list(views)
         self.setDisplayMode(DataViews.EMPTY_MODE)
+
+    def getAxesSelectorWidget(self) -> qt.QGroupBox:
+        """Returns the existing axis selection group and its controls."""
+        return self.__axisSelection
 
     def setGlobalHooks(self, hooks):
         """Set a data view hooks for all the views
@@ -299,23 +310,27 @@ class DataViewer(qt.QFrame):
         # setDisplayMode) restart the timer, so the view is updated only once
         self.__setDataInViewTimer.start(10)
 
+    def __isSelectionChanged(self) -> bool:
+        """Returns True if the slicing or the permutation of the displayed data
+        differs from the last one reported by :attr:`selectionChanged`."""
+        current = self.__displayedSelection
+        if current is None:
+            return False
+        previous = self.__previousSelection
+        return (current.slice, current.permutation) != (
+            previous.slice,
+            previous.permutation,
+        )
+
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
         self.__currentView.setDataSelection(self.__displayedSelection)
 
-        if self.__displayedSelection is None:
-            return
-
-        # Emit signal only when selection has changed
-        if (
-            self.__previousSelection.slice != self.__displayedSelection.slice
-            or self.__previousSelection.permutation
-            != self.__displayedSelection.permutation
-        ):
-            self.selectionChanged.emit(
-                self.__displayedSelection.slice, self.__displayedSelection.permutation
-            )
-            self.__previousSelection = self.__displayedSelection
+        if self.__isSelectionChanged():
+            selection = self.__displayedSelection
+            self.selectionChanged.emit(selection.slice, selection.permutation)
+            self.__previousSelection = selection
+        self.dataDisplayed.emit()
 
     def setDisplayedView(self, view):
         """Set the displayed view.
