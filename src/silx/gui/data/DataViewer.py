@@ -89,6 +89,13 @@ class DataViewer(qt.QFrame):
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
 
+    dataDisplayed = qt.Signal()
+    """Emitted after the current view receives its data and selection.
+
+    Display updates are deferred. This signal reports every completed update,
+    including updates that keep the same slicing and permutation.
+    """
+
     selectionChanged = qt.Signal(object, object)
     """Emitted when the data selection changes.
 
@@ -144,6 +151,14 @@ class DataViewer(qt.QFrame):
         views = self.createDefaultViews(self.__stack)
         self.__views = list(views)
         self.setDisplayMode(DataViews.EMPTY_MODE)
+
+    def getAxesSelectorWidget(self) -> qt.QGroupBox:
+        """Returns the existing axis selection group and its controls.
+
+        The group can be hosted in another layout while keeping its selection
+        state and connections to this viewer.
+        """
+        return self.__axisSelection
 
     def setGlobalHooks(self, hooks):
         """Set a data view hooks for all the views
@@ -298,11 +313,8 @@ class DataViewer(qt.QFrame):
         self.__currentView.setData(self.__displayedData)
         self.__currentView.setDataSelection(self.__displayedSelection)
 
-        if self.__displayedSelection is None:
-            return
-
         # Emit signal only when selection has changed
-        if (
+        if self.__displayedSelection is not None and (
             self.__previousSelection.slice != self.__displayedSelection.slice
             or self.__previousSelection.permutation
             != self.__displayedSelection.permutation
@@ -311,6 +323,7 @@ class DataViewer(qt.QFrame):
                 self.__displayedSelection.slice, self.__displayedSelection.permutation
             )
             self.__previousSelection = self.__displayedSelection
+        self.dataDisplayed.emit()
 
     def setDisplayedView(self, view):
         """Set the displayed view.

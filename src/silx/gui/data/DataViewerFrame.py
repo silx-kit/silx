@@ -58,6 +58,12 @@ class DataViewerFrame(qt.QWidget):
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
 
+    dataDisplayed = qt.Signal()
+    """Emitted after the current view receives its data and selection.
+
+    Reports every completed deferred update, even with an unchanged selection.
+    """
+
     selectionChanged = qt.Signal(object, object)
     """Emitted when the data selection changes.
 
@@ -108,12 +114,17 @@ class DataViewerFrame(qt.QWidget):
         self.setLayout(layout)
 
         self.__dataViewer.dataChanged.connect(self.__dataChanged)
+        self.__dataViewer.dataDisplayed.connect(self.__dataDisplayed)
         self.__dataViewer.displayedViewChanged.connect(self.__displayedViewChanged)
         self.__dataViewer.selectionChanged.connect(self.__selectionChanged)
 
     def __dataChanged(self):
         """Called when the data is changed"""
         self.dataChanged.emit()
+
+    def __dataDisplayed(self):
+        """Called after the current view receives its data and selection."""
+        self.dataDisplayed.emit()
 
     def __displayedViewChanged(self, view):
         """Called when the displayed view changes"""
@@ -129,6 +140,10 @@ class DataViewerFrame(qt.QWidget):
         :param DataViewHooks context: The hooks to use
         """
         self.__dataViewer.setGlobalHooks(hooks)
+
+    def getAxesSelectorWidget(self) -> qt.QGroupBox:
+        """Returns the DataViewer's existing axis selection group."""
+        return self.__dataViewer.getAxesSelectorWidget()
 
     def getReachableViews(self):
         return self.__dataViewer.getReachableViews()
