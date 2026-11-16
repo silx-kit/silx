@@ -5,7 +5,7 @@ description: Run Python code, a script, a module or a project entry point agains
 
 # Run code against the development version
 
-`bootstrap.py` (repository root) builds the project with meson into `./build_py<XY>` (the build directory name contains the Python version, e.g. `build_py313` for Python 3.13, so several interpreters can coexist), prepends the result to `sys.path`, then executes the requested target. Always use it rather than the `fabio` installed in the environment, which may differ from the sources.
+`bootstrap.py` (repository root) builds the project with meson into `./build_py<XY>` (the build directory name contains the Python version, e.g. `build_py313` for Python 3.13, so several interpreters can coexist), prepends the result to `sys.path`, then executes the requested target. Always use it rather than the `silx` installed in the environment, which may differ from the sources.
 
 From the repository root:
 

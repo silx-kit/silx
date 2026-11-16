@@ -6,7 +6,7 @@ This file provides guidance to LLM-Agent/Harnesses when working with code in thi
 
 silx: Python toolkit for synchrotron data analysis (HDF5/SPEC/FabIO I/O, OpenCL processing, Qt plot widgets, `silx view` / `silx convert` / `silx compare` apps). Python >= 3.10, built with meson-python + Cython (`src/silx`).
 
-**Stale agent files:** `AGENTS.md` and `.agents/skills/*` were imported from the FabIO project and describe FabIO (`src/fabio/`, `fabio.test`, unittest `suite()`). Do not follow them for paths, test layout or changelog format; use this file. Only the `bootstrap.py` usage in the `bootstrap` skill applies as is.
+Agent skills (`bootstrap`, `issue`, `prepare-fix`, `test`) live in `.agents/skills/`.
 
 ## AI policy
 
