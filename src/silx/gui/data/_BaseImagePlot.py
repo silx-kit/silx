@@ -58,9 +58,15 @@ class BaseImagePlot(qt.QWidget):
         except IndexError as e:
             raise KeyError("No image found. Was an image loaded?") from e
 
-        image = signal[self._axesSelector.selection()]
+        slice_selection = self._axesSelector.selection()
+        if slice_selection is not None:
+            signal = signal[slice_selection]
+
         axes_permutation = self._axesSelector.permutation()
-        return numpy.transpose(image, axes_permutation)
+        if axes_permutation is not None:
+            signal = numpy.transpose(signal, axes_permutation)
+
+        return signal
 
     def _getImageName(self):
         if len(self._signalSelector.getSignalNames()) > 0:
