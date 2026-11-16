@@ -30,7 +30,7 @@ import sys
 
 from silx.gui import qt
 from silx.gui.data.DataViewerFrame import DataViewerFrame
-from silx.gui.data.DataViews import DataView
+from silx.gui.data.DataViews import DataView, DataViewPriority
 
 logging.basicConfig()
 _logger = logging.getLogger("customDataView")
@@ -82,8 +82,8 @@ class MyColorView(DataView):
 
     def getDataPriority(self, data, info):
         if isinstance(data, Color):
-            return 100
-        return self.UNSUPPORTED
+            return DataViewPriority.DEFAULT
+        return DataViewPriority.UNSUPPORTED
 
 
 def main():
