@@ -83,10 +83,9 @@ def save_NXdata(
         associated with each axis
     :type axes_errors: List[numpy.ndarray, None]
     :param str title: Graph title (saved as a "title" dataset) or None.
-    :param str interpretation: *@interpretation* attribute ("spectrum",
-        "image", "rgba-image" or None). This is only needed in cases of
-        ambiguous dimensionality, e.g. a 3D array which represents a RGBA
-        image rather than a stack.
+    :param str interpretation: *@interpretation* attribute.
+        This is only needed in cases of ambiguous dimensionality,
+        e.g. a 3D array which represents a RGBA image rather than a stack.
     :param str nxentry_name: Name of group in which the NXdata group
         is created. By default, "/entry" is used.
 

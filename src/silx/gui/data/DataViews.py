@@ -1338,7 +1338,10 @@ class _NXdataImageView(_NXdataBaseDataView):
 
 
 class _NXDataRgbaImageView(_NXdataBaseDataView):
-    """DataView using a Plot2D for displaying NXdata RGB(A) images"""
+    """DataView using a Plot2D for displaying NXdata RGB(A) images.
+
+    Only "rgb-image" and "rgba-image" @interpretation are supported.
+    """
 
     def __init__(self, parent):
         _NXdataBaseDataView.__init__(
