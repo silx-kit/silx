@@ -318,7 +318,7 @@ class ArrayImagePlot(BaseImagePlot):
                 self._signalSelector.hide()
             self._signalSelector.setSignalIndex(0)
 
-        self._updateImageAxes()
+        self._updateImageAxes(initialize_aspect_ratio=True)
         self._plot.resetZoom()
 
     def _addItemToPlot(self, xAxis, yAxis):
