@@ -33,6 +33,27 @@ import numpy
 from .. import qt
 from ..plot3d.SceneWindow import SceneWindow
 from ..plot3d.items import ScalarField3D, ComplexField3D, ItemChangedType
+from ..widgets.ButtonOverlay import ButtonOverlay
+
+
+def _createLoadConfirmationText(shape: tuple[int, ...]) -> str:
+    """Returns the text of the button displayed in place of a large volume"""
+    nbVoxels = int(numpy.prod(shape, dtype=numpy.uint64))
+    return "\n".join(
+        [
+            f"Volume of {'x'.join(str(dim) for dim in shape)} ({nbVoxels:,} voxels) "
+            "not loaded automatically.",
+            "",
+            "Displaying it requires heavy computation (data range, isosurface)",
+            "during which the application is frozen, and it can fail if the",
+            "following resources are not sufficient:",
+            "- Memory (RAM)",
+            "- GPU memory",
+            "- GPU maximum 3D texture size",
+            "",
+            "Click to load and display the volume",
+        ]
+    )
 
 
 class VolumeWindow(SceneWindow):
@@ -41,9 +62,22 @@ class VolumeWindow(SceneWindow):
     :param QWidget: parent
     """
 
+    LOAD_CONFIRMATION_THRESHOLD: int | None = None
+    """Number of voxels from which displaying a volume requires a user confirmation.
+
+    Volumes with at least this number of voxels are not loaded automatically:
+    a button is displayed instead and data is loaded once it is clicked.
+    None (default) to always load volumes directly.
+    """
+
     def __init__(self, parent):
         super().__init__(parent)
         self.__firstData = True
+        self.__pendingData: tuple | None = None
+
+        self.__loadButton = ButtonOverlay(self.getSceneWidget())
+        self.__loadButton.setVisible(False)
+        self.__loadButton.clicked.connect(self.__loadPendingData)
         # Hide global parameter dock
         self.getGroupResetWidget().parent().setVisible(False)
 
@@ -61,8 +95,39 @@ class VolumeWindow(SceneWindow):
             "Z" if zlabel is None else zlabel,
         )
 
+    def isLoadPending(self) -> bool:
+        """Returns True if a volume is waiting for user confirmation to be loaded"""
+        return self.__pendingData is not None
+
+    def __clearPendingData(self):
+        self.__pendingData = None
+        self.__loadButton.setVisible(False)
+
+    def __loadPendingData(self):
+        """Load the volume waiting for confirmation"""
+        if self.__pendingData is None:
+            return
+        data, offset, scale = self.__pendingData
+        self.__clearPendingData()
+        qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+        try:
+            self.__setData(data, offset, scale)
+        finally:
+            qt.QApplication.restoreOverrideCursor()
+
+    def __requiresConfirmation(self, data) -> bool:
+        threshold = self.LOAD_CONFIRMATION_THRESHOLD
+        if threshold is None:
+            return False
+        nbVoxels = int(numpy.prod(data.shape, dtype=numpy.uint64))
+        return nbVoxels >= threshold
+
     def clear(self):
         """Clear any currently displayed data"""
+        self.__clearPendingData()
+        self.__clear()
+
+    def __clear(self):
         sceneWidget = self.getSceneWidget()
         items = sceneWidget.getItems()
         if len(items) == 1 and isinstance(items[0], (ScalarField3D, ComplexField3D)):
@@ -90,6 +155,18 @@ class VolumeWindow(SceneWindow):
         :param List[float] offset: (tx, ty, tz) coordinates of the origin
         :param List[float] scale: (sx, sy, sz) scale for each dimension
         """
+        self.__clearPendingData()
+        if self.__requiresConfirmation(data):
+            self.__clear()
+            self.__pendingData = data, offset, scale
+            self.__loadButton.setText(_createLoadConfirmationText(data.shape))
+            self.__loadButton.adjustSize()
+            self.__loadButton.setVisible(True)
+            self.__loadButton.raise_()
+            return
+        self.__setData(data, offset, scale)
+
+    def __setData(self, data, offset, scale):
         sceneWidget = self.getSceneWidget()
         dataMaxCoords = numpy.array(list(reversed(data.shape))) - 1
 

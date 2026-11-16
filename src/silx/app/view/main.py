@@ -163,6 +163,14 @@ def mainQt(options):
     if options.fresh_preferences:
         settings.clear()
 
+    try:
+        from silx.gui.data._VolumeWindow import VolumeWindow
+    except ImportError:
+        _logger.debug("3D visualization is not available", exc_info=True)
+    else:
+        # Ask for user confirmation before displaying large volumes
+        VolumeWindow.LOAD_CONFIRMATION_THRESHOLD = 256**3
+
     window = createWindow(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 

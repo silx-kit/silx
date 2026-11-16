@@ -325,3 +325,45 @@ class TestDataView(TestCaseQt):
         dataViewClass = DataViews._Plot3dView
         widget = self.createDataViewWithData(dataViewClass, data)
         self.qWaitForWindowExposed(widget)
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testCubeLoadConfirmation(qapp, qapp_utils, monkeypatch):
+    """Test that large volumes are loaded only once the overlay button is clicked"""
+    pytest.importorskip("silx.gui.plot3d")
+    from silx.gui.data._VolumeWindow import VolumeWindow
+    from silx.gui.widgets.ButtonOverlay import ButtonOverlay
+
+    monkeypatch.setattr(VolumeWindow, "LOAD_CONFIRMATION_THRESHOLD", 4**3)
+    view = DataViews._Plot3dView(None)
+    widget = view.getWidget()
+    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    widget.show()
+    qapp_utils.qWaitForWindowExposed(widget)
+    sceneWidget = widget.getSceneWidget()
+    button = widget.findChild(ButtonOverlay)
+
+    # Small volume: loaded directly
+    view.setData(numpy.ones((3, 3, 3), dtype=numpy.float32))
+    assert not widget.isLoadPending()
+    assert not button.isVisible()
+    assert len(sceneWidget.getItems()) == 1
+
+    # Large volume: waiting for confirmation
+    view.setData(numpy.ones((4, 4, 4), dtype=numpy.float32))
+    assert widget.isLoadPending()
+    assert button.isVisible()
+    assert "4x4x4" in button.text()
+    assert all(item.getData(copy=False) is None for item in sceneWidget.getItems())
+
+    qapp_utils.mouseClick(button, qt.Qt.LeftButton)
+    qapp.processEvents()
+    assert not widget.isLoadPending()
+    assert not button.isVisible()
+    items = sceneWidget.getItems()
+    assert len(items) == 1
+    assert items[0].getData(copy=False).shape == (4, 4, 4)
+
+    widget.close()
+    qapp.processEvents()
+
