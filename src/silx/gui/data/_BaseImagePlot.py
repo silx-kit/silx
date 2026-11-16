@@ -55,8 +55,8 @@ class BaseImagePlot(qt.QWidget):
         signalIndex = self._signalSelector.getSignalIndex()
         try:
             signal = self._signals[signalIndex]
-        except IndexError:
-            raise KeyError("No image found. Was an image loaded?")
+        except IndexError as e:
+            raise KeyError("No image found. Was an image loaded?") from e
 
         image = signal[self._axesSelector.selection()]
         axes_permutation = self._axesSelector.permutation()
