@@ -478,11 +478,13 @@ class NXdata:
         attribute is present.
 
         The *interpretation* attribute provides information about the last
-        dimensions of the signal. The allowed values are:
+        dimensions of the signal. The supported values are:
 
              - *"scalar"*: 0-D data to be plotted
-             - *"spectrum"*: 1-D data to be plotted
+             - *"spectrum"*: 1-D data to be plotted
              - *"image"*: 2-D data to be plotted
+             - *"rgb-image"*: 3-D data to be plotted
+             - *"rgba-image"*: 3-D data to be plotted
              - *"vertex"*: 3-D data to be plotted
 
         For example, a 3-D signal with interpretation *"spectrum"* should be
