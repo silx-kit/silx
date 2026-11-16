@@ -25,6 +25,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/02/2019"
 
+import logging
+
 import pytest
 
 import numpy
@@ -36,6 +38,7 @@ from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.utils.testutils import SignalListener
+from silx.utils.deprecation import depreclog
 from silx.gui.utils.testutils import TestCaseQt
 
 import h5py
@@ -62,6 +65,14 @@ class _DataViewMock(DataView):
 def data_viewer_widget(request):
     widget = request.param(parent=None)
     yield widget
+
+
+def test_deprecated_unsupported(caplog):
+    with caplog.at_level(logging.WARNING, logger=depreclog.name):
+        assert DataView.UNSUPPORTED is DataViews.DataViewPriority.UNSUPPORTED
+        assert _DataViewMock.UNSUPPORTED == -1
+    assert len(caplog.records) == 2
+    assert "DataViewPriority.UNSUPPORTED" in caplog.records[0].getMessage()
 
 
 def test_text_data(data_viewer_widget):

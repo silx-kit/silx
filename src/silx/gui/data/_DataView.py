@@ -2,7 +2,7 @@ import enum
 import logging
 import os
 
-from ...utils.deprecation import deprecated
+from ...utils.deprecation import deprecated, deprecated_warning
 from .. import qt
 from ..colors import Colormap
 from ..dialog.ColormapDialog import ColormapDialog
@@ -69,6 +69,23 @@ class DataViewPriority(enum.IntEnum):
     """The view is the only sensible one for this data"""
 
 
+class _DeprecatedUnsupported:
+    """Descriptor for the deprecated :attr:`DataView.UNSUPPORTED`.
+
+    It works for both class and instance access.
+    """
+
+    def __get__(self, obj, objtype=None) -> DataViewPriority:
+        deprecated_warning(
+            type_="Attribute",
+            name="DataView.UNSUPPORTED",
+            replacement="DataViewPriority.UNSUPPORTED",
+            since_version="3.2.0",
+            skip_backtrace_count=1,
+        )
+        return DataViewPriority.UNSUPPORTED
+
+
 class DataViewHooks:
     """A set of hooks defined to custom the behaviour of the data views."""
 
@@ -88,9 +105,13 @@ class DataViewHooks:
 class DataView:
     """Holder for the data view."""
 
-    UNSUPPORTED = DataViewPriority.UNSUPPORTED
+    UNSUPPORTED = _DeprecatedUnsupported()
     """Priority returned when the requested data can't be displayed by the
-    view (alias of :attr:`DataViewPriority.UNSUPPORTED`)."""
+    view.
+
+    .. deprecated:: 3.2.0
+        Use :attr:`DataViewPriority.UNSUPPORTED` instead.
+    """
 
     TITLE_PATTERN = "{datapath}{slicing} {permuted}"
     """Pattern used to format the title of the plot.
