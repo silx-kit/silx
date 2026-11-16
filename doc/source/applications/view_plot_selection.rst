@@ -93,28 +93,24 @@ Select the datasets
 
 Only **1D datasets** can be used. Other datasets are rejected on drop.
 
-Drag and drop in the dataset list
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Drag and drop
+~~~~~~~~~~~~~
 
-Drag a 1D dataset from the *silx view* HDF5 tree and drop it in the dataset
-list of the *Plot selection* window:
+Drag a 1D dataset from the *silx view* HDF5 tree and drop it either in the
+dataset list or on the plot of the *Plot selection* window:
 
-* dropped on the **X** row: the dataset is used as X values (it replaces the
-  previous X dataset, if any);
-* dropped anywhere else (e.g. on the *Drop a 1D dataset* placeholder below
-  **Y**): the dataset is added as a new Y curve.
+* to use it as **X** values (it replaces the previous X dataset, if any), drop it:
 
-The targeted row is highlighted while dragging.
+  * on the **X** row of the dataset list, or
+  * **below the plot area** (on the X axis);
 
-Drag and drop on the plot
-~~~~~~~~~~~~~~~~~~~~~~~~~
+* to add it as a new **Y** curve, drop it:
 
-Datasets can also be dropped directly on the plot:
+  * on the **Y** row of the dataset list, or
+  * **inside the plot area**.
 
-* dropped **below the plot area** (on the X axis): sets the X values;
-* dropped **inside the plot area**: adds a Y curve.
-
-An overlay shows which area the dataset will be dropped in.
+While dragging, the targeted row of the dataset list is highlighted, and an
+overlay shows the targeted area of the plot.
 
 .. _plot-selection-context-menu:
 
