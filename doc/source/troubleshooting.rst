@@ -4,13 +4,20 @@ Trouble shooting
 Using OpenGL through ssh
 ------------------------
 
+``silx view`` can use OpenGL>=2.1:
+
+- for the "3D" visualization tab
+- when the plot rendering backend was set to OpenGL in the Options menu.
+
+If ``silx view`` was set to use its OpenGL plot rendering backend beforehand,
+it is possible to disable it by running ``silx view --fresh``.
+
 Some widgets in :mod:`silx.gui` are using OpenGL>=2.1:
 
-- silx view's 3D visualization and when set to use OpenGL backend,
 - Widgets in :mod:`silx.gui.plot3d`, and
 - The OpenGL backend of :class:`~silx.gui.plot.PlotWidget` and related widgets in :mod:`silx.gui.plot`.
 
-OpenGL-based applications works through ssh only under certain conditions:
+OpenGL-based applications can run over SSH only under specific conditions:
 
 - Use ``ssh -X`` to enable X11 forwarding.
 - The operating system must enable OpenGL through X11 forwarding. This is not the case by default on Debian/Ubuntu. See `Enabling OpenGL forwarding`_.
