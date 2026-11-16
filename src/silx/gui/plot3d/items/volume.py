@@ -50,23 +50,6 @@ from ._pick import PickingResult
 _logger = logging.getLogger(__name__)
 
 
-_LARGE_VOLUME_THRESHOLD = 1024 * 2048 * 2048
-"""Number of voxels above which a warning is logged when setting volume data"""
-
-
-def _warnIfLargeVolume(data) -> None:
-    """Log a warning if data has more voxels than :data:`_LARGE_VOLUME_THRESHOLD`"""
-    shape = numpy.shape(data)
-    nbVoxels = int(numpy.prod(shape, dtype=numpy.uint64))
-    if nbVoxels > _LARGE_VOLUME_THRESHOLD:
-        _logger.warning(
-            "Displaying a large volume (shape: %s, %d voxels). "
-            "This may require a lot of memory and fail or be slow.",
-            "x".join(str(dim) for dim in shape),
-            nbVoxels,
-        )
-
-
 class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     """Class representing a cutting plane in a :class:`ScalarField3D` item.
 
@@ -552,7 +535,6 @@ class ScalarField3D(BaseNodeItem):
             self._boundedGroup.shape = None
 
         else:
-            _warnIfLargeVolume(data)
             data = numpy.array(
                 data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.float32, order="C"
             )
@@ -858,7 +840,6 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
             self._boundedGroup.shape = None
 
         else:
-            _warnIfLargeVolume(data)
             data = numpy.array(
                 data, copy=copy or NP_OPTIONAL_COPY, dtype=numpy.complex64, order="C"
             )
