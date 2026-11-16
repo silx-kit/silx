@@ -195,6 +195,22 @@ class _Axis(qt.QWidget):
         name = self.axisName()
         self.setVisible(visible or name == "")
 
+    def setNamedAxisSelectorEnabled(self, enabled: bool):
+        """Enable or disable the whole axes combobox."""
+        self.__axes.setEnabled(enabled)
+
+    def setAxisNameEnabled(self, name: str, enabled: bool):
+        """Enable or disable the axis with the given name."""
+        index = self.__axes.findText(name)
+        if index < 0:
+            return
+        model = self.__axes.model()
+        if not isinstance(model, qt.QStandardItemModel):
+            return
+        item = model.item(index)
+        if item is not None:
+            item.setEnabled(enabled)
+
 
 class NumpyAxesSelector(qt.QWidget):
     """Widget to select a view from a numpy array.
@@ -599,6 +615,21 @@ class NumpyAxesSelector(qt.QWidget):
         self.__namedAxesVisibility = visible
         for axis in self.__axis:
             axis.setNamedAxisSelectorVisibility(visible)
+
+    def setNamedAxisEnabled(self, name: str, enabled: bool):
+        """Enable or disable the axis with the given name for every dimension.
+
+        :param name: Name of the axis, as set with :meth:`setAxisNames`
+
+        Call this after :meth:`setData` and :meth:`setAxisNames`,
+        as those rebuild the combo-boxes.
+        """
+        for axis in self.__axis:
+            axis.setAxisNameEnabled(name, enabled)
+
+    def setNamedAxisSelectorEnabled(self, dimension: int, enabled: bool):
+        """Enable or disable the axes combo-box of one dimension."""
+        self.__axis[dimension].setNamedAxisSelectorEnabled(enabled)
 
     def getIndicesOfNamedAxes(self) -> dict[str, int]:
         result: dict[str, int] = {}

@@ -56,13 +56,17 @@ class RgbaImagePlot(BaseImagePlot):
         with blockSignals(self._axesSelector, self._signalSelector):
             self._axesSelector.clear()
             self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
-            self._axesSelector.setNamedAxesSelectorVisibility(False)
+            self._axesSelector.setNamedAxesSelectorVisibility(True)
 
             # Labels need to be set before the data
             if axesNames:
                 self._axesNames = axesNames
                 self._axesSelector.setLabels(axesNames)
             self._axesSelector.setData(signals[0])
+            # Disable the RGBA channel option in all axes
+            self._axesSelector.setNamedAxisEnabled("RGB(A) channel", False)
+            # Disable the RGBA channel axis selected
+            self._axesSelector.setNamedAxisSelectorEnabled(-1, False)
 
             if len(signals[0].shape) <= 3:
                 self._axesSelector.hide()
