@@ -42,7 +42,7 @@ Custom plot selection
 
 The *Plot selection* window (*Views* → *Plot selection*) plots 1D datasets
 against each other, whatever the file or the HDF5 group they come from:
-one dataset is used as X and one or more datasets are plotted as Y curves.
+one dataset can be used as X and one or more datasets are plotted as Y curves.
 Datasets are selected by drag and drop from the HDF5 tree.
 
 See :ref:`silx-view-plot-selection` for details.

@@ -1,17 +1,7 @@
-.. meta::
-   :keywords: silx view, plot selection, plot 1D datasets, compare plots, compare curves
-
 .. _silx-view-plot-selection:
 
 Custom plot selection
 ---------------------
-
-.. index::
-   single: plot selection
-   single: silx view; plot selection
-   single: plot 1D datasets
-   single: compare plots
-   single: compare curves
 
 .. grid :: 1 2 2 2
 
@@ -70,7 +60,9 @@ the Y curves are plotted against their index.
 If the X and Y datasets do not have the same length, the curve is truncated to
 the shortest one.
 
-The selection is not saved: it is lost when *silx view* is closed.
+.. warning::
+
+   The selection is not saved: it is lost when *silx view* is closed.
 
 Demo
 ....
