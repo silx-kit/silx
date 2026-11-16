@@ -63,9 +63,8 @@ class BaseImagePlot(qt.QWidget):
             return self._signalSelector.getCurrentSignalName()
         return ""
 
-    def _updateImageAxes(self):
-        """Updates the image axes. Called when the user selects a different axis than the displayed one."""
-
+    def _updateImageAxes(self, initialize_aspect_ratio=False):
+        """Updates the image axes. Called when the user selects a different axis."""
         xAxisIndex, yAxisIndex = self._getXYIndices()
         if self._axes:
             xAxis = self._axes[xAxisIndex]
@@ -77,7 +76,12 @@ class BaseImagePlot(qt.QWidget):
             yAxis = None
             xUnits = None
             yUnits = None
-        self._plot.setKeepDataAspectRatio(xUnits == yUnits)
+
+        if initialize_aspect_ratio:
+            keep_aspect_ratio = (xUnits is None and yUnits is None) or (
+                xUnits is not None and xUnits == yUnits
+            )
+            self._plot.setKeepDataAspectRatio(keep_aspect_ratio)
 
         self._addItemToPlot(xAxis, yAxis)
 
