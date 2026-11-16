@@ -1,4 +1,5 @@
 import numpy
+import pytest
 
 from .. import NXdataWidgets
 
@@ -26,6 +27,111 @@ def test_image_view_axis_permutation(qapp):
     # Swap the displayed dimensions (y, x) -> (x, y).
     # Expected image: data[1, :, :].T, with shape (5, 4).
     expected_image = data[selection].T
+
+    actual_image = widget._getImageToDisplay()
+    numpy.testing.assert_array_equal(actual_image, expected_image)
+
+
+@pytest.mark.parametrize(
+    "default_slice, axes, shape, n_unsliced_dims, expected",
+    [
+        pytest.param(
+            None,
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="no-default-slice",
+        ),
+        pytest.param(
+            [".", ".", "0"],
+            None,
+            (10, 20, 30),
+            2,
+            (slice(None), slice(None), 0),
+            id="index",
+        ),
+        pytest.param(
+            [".", "difference", "."],
+            [
+                numpy.arange(3),
+                numpy.array(["threshold_1", "threshold_2", "difference"]),
+                None,
+            ],
+            (3, 3, 100),
+            2,
+            (slice(None), 2, slice(None)),
+            id="nxdata-channel-value",
+        ),
+        pytest.param(
+            [".", "2", "."],
+            [
+                numpy.arange(3),
+                numpy.array(["threshold_1", "threshold_2", "difference"]),
+                None,
+            ],
+            (3, 3, 100),
+            2,
+            (slice(None), 2, slice(None)),
+            id="nxdata-channel-index",
+        ),
+        pytest.param(
+            [".", ".", "invalid"],
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="invalid-value",
+        ),
+        pytest.param(
+            [".", "."],
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="invalid-length",
+        ),
+        pytest.param(
+            ["0", "1", "2"],
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="not-two-slices",
+        ),
+    ],
+)
+def test_get_default_slice_selection(
+    default_slice, axes, shape, n_unsliced_dims, expected
+):
+    result = NXdataWidgets._get_default_slice_selection(
+        default_slice, axes, shape, n_unsliced_dims
+    )
+    assert result == expected
+
+
+def test_image_view_default_slice(qapp):
+    """Test that NXdata default_slice is applied to the image view."""
+
+    data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
+
+    widget = NXdataWidgets.ArrayImagePlot()
+
+    widget.setImageData(
+        signals=[data],
+        signals_names=["signal"],
+        axes_names=["z", "y", "x"],
+        # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
+        default_slice=[".", ".", "1"],
+        # selects index 1 along dim2 (x)
+    )
+
+    # Selection is data[:, :, 1] with shape (3, 4).
+    expected_slice = slice(None), slice(None), 1
+    expected_image = data[expected_slice]
+
+    actual_slice = widget._axesSelector.selection()
+    assert actual_slice == expected_slice
 
     actual_image = widget._getImageToDisplay()
     numpy.testing.assert_array_equal(actual_image, expected_image)
