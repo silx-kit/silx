@@ -49,7 +49,7 @@ requires = [
 
 [project.optional-dependencies]
 opencl = [
-    'pyopencl', # For silx.opencl
+    'pyopencl >= 2024.3', # For silx.opencl
     'Mako',     # For pyopencl reduction
 ]
 pygfx = [
@@ -68,7 +68,7 @@ full_no_qt = [
     'Pillow',                # For silx.opencl.image.test
     'pint',                  # For silx.io.dictdump
     'hdf5plugin',            # For HDF5 compression filters handling
-    'qtawesome',             # For icons
+    'qtawesome >= 1.1.0',    # For icons
 ]
 full = [
     'silx[full_no_qt]',
@@ -90,7 +90,8 @@ doc = [
 test = [
     'silx[full,h5pyd]',
     'bitshuffle',
-    'imageio[tifffile]',         # For dictdump links tests
+    'imageio[tifffile] >= 2.18.0',  # For dictdump links tests
+    'scipy >= 1.10',             # For scipy.datasets.ascent
     'pytest',                    # For testing
     'pytest-xvfb',               # For GUI testing
     'pytest-cov',                # For coverage
