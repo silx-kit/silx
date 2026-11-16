@@ -467,7 +467,8 @@ class DataViewer(qt.QFrame):
             views.extend(v.getMatchingViews(data, info))
         views = [(v.getCachedDataPriority(data, info), v) for v in views]
         views = filter(lambda t: t[0] > DataViews.DataViewPriority.UNSUPPORTED, views)
-        views = sorted(views, reverse=True)
+        # Stable sort: views with the same priority keep registration order
+        views = sorted(views, key=lambda t: t[0], reverse=True)
         views = [v[1] for v in views]
 
         # store available views

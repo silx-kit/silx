@@ -15,49 +15,23 @@ class DataViewPriority(enum.IntEnum):
     """Priorities returned by :meth:`DataView.getDataPriority`.
 
     The view with the highest priority is used to display the data by default.
+    Views with the same priority are ordered by registration order.
     """
 
     UNSUPPORTED = -1
     """The view can't display the data"""
 
-    LAST_RESORT = 1
+    FALLBACK = 1
     """The view can display the data, but only as a last resort"""
 
-    FALLBACK = 2
-    """Generic view able to display almost anything"""
-
-    POOR_FIT = 10
-    """The view can display the data, but it is poorly suited"""
-
-    LOW = 40
+    LOW = 10
     """The view can display the data, but other views are better suited"""
-
-    BELOW_DEFAULT = 90
-    """Just below :attr:`DEFAULT`, to avoid being selected by default"""
 
     DEFAULT = 100
     """The view is suited to display the data"""
 
-    DEFAULT_PLUS = 110
-    """Slightly above :attr:`DEFAULT`"""
-
-    DEFAULT_PLUS_2 = 120
-    """Slightly above :attr:`DEFAULT_PLUS`"""
-
-    ALMOST_GOOD = 190
-    """Slightly below :attr:`GOOD`"""
-
-    GOOD = 200
-    """The view is well suited to display the data"""
-
-    GOOD_PLUS = 210
-    """Slightly above :attr:`GOOD`"""
-
-    TABLE = 500
-    """Table views of arrays and records"""
-
-    TABLE_PLUS = 510
-    """Slightly above :attr:`TABLE`"""
+    PREFERRED = 500
+    """The view is the preferred one for this kind of data"""
 
     INTERPRETATION = 1000
     """The data's ``interpretation`` matches the view"""
