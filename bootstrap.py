@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "24/04/2025"
+__date__ = "16/11/2026"
 
 import sys
 import os
@@ -33,7 +33,7 @@ def get_project_name(root_dir):
     :return: The name of the project stored in root_dir
     """
     logger.debug("Getting project name in %s", root_dir)
-    with open("pyproject.toml") as f:
+    with open(os.path.join(root_dir, "pyproject.toml")) as f:
         pyproject = tomli.loads(f.read())
     return pyproject.get("project", {}).get("name")
 
@@ -50,10 +50,11 @@ def build_project(name, root_dir):
     if sys.platform == "win32":
         libdir = "Lib"
 
-    build = os.path.join(root_dir, "build")
+    build_dir = f"build_py{sys.version_info[0]}{sys.version_info[1]}"
+    build = os.path.join(root_dir, build_dir)
     if not (os.path.isdir(build) and os.path.isdir(os.path.join(build, name))):
         p = subprocess.Popen(
-            ["meson", "setup", "build"], shell=False, cwd=root_dir, env=os.environ
+            ["meson", "setup", build_dir], shell=False, cwd=root_dir, env=os.environ
         )
         p.wait()
     p = subprocess.Popen(
@@ -85,12 +86,14 @@ def build_project(name, root_dir):
                 home = os.path.join(build, libdir, python_version, "site-packages")
             home = os.path.abspath(home)
 
-    cnt = 0
+    tmp = []
     while not os.path.isdir(home):
-        cnt += 1
-        home = os.path.split(home)[0]
-    for _ in range(cnt):
-        n = os.listdir(home)[0]
+        home, last = os.path.split(home)
+        tmp.append(last)
+    for _ in tmp:
+        for n in os.listdir(home):
+            if os.path.isdir(os.path.join(home, n)):
+                break
         home = os.path.join(home, n)
 
     logger.warning("Building %s to %s", name, home)
