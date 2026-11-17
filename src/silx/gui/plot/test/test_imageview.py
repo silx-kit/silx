@@ -186,8 +186,8 @@ def testBackgroundColorsPropagation(imageView):
     imageView.setBackgroundColor("red")
     imageView.setDataBackgroundColor("blue")
     for histo in (
-        imageView.getSideHistogramPlot("horizontal"),
-        imageView.getSideHistogramPlot("vertical"),
+        imageView.getSideHistogramPlotWidget("horizontal"),
+        imageView.getSideHistogramPlotWidget("vertical"),
     ):
         assert histo.getBackgroundColor() == imageView.getBackgroundColor()
         assert histo.getDataBackgroundColor() == imageView.getDataBackgroundColor()
@@ -196,8 +196,8 @@ def testBackgroundColorsPropagation(imageView):
 
     imageView.setDataBackgroundColor(None)
     for histo in (
-        imageView.getSideHistogramPlot("horizontal"),
-        imageView.getSideHistogramPlot("vertical"),
+        imageView.getSideHistogramPlotWidget("horizontal"),
+        imageView.getSideHistogramPlotWidget("vertical"),
     ):
         assert not histo.getDataBackgroundColor().isValid()
 
@@ -207,8 +207,8 @@ def testForegroundColorsPropagation(imageView):
     imageView.setForegroundColor("white")
     imageView.setGridColor("green")
     for histo in (
-        imageView.getSideHistogramPlot("horizontal"),
-        imageView.getSideHistogramPlot("vertical"),
+        imageView.getSideHistogramPlotWidget("horizontal"),
+        imageView.getSideHistogramPlotWidget("vertical"),
     ):
         assert histo.getForegroundColor() == imageView.getForegroundColor()
         assert histo.getGridColor() == imageView.getGridColor()
@@ -217,8 +217,8 @@ def testForegroundColorsPropagation(imageView):
 
 def testGetSideHistogramPlot(imageView):
     """Test access to the side histograms plot widgets"""
-    histoX = imageView.getSideHistogramPlot("horizontal")
-    histoY = imageView.getSideHistogramPlot("vertical")
+    histoX = imageView.getSideHistogramPlotWidget("horizontal")
+    histoY = imageView.getSideHistogramPlotWidget("vertical")
     assert isinstance(histoX, PlotWidget)
     assert isinstance(histoY, PlotWidget)
     assert histoX is not histoY
@@ -228,4 +228,4 @@ def testGetSideHistogramPlot(imageView):
     assert histoY.getYAxis().getLimits() == imageView.getYAxis().getLimits()
 
     with pytest.raises(AssertionError):
-        imageView.getSideHistogramPlot("x")
+        imageView.getSideHistogramPlotWidget("x")
