@@ -766,7 +766,7 @@ class ImageView(PlotWindow):
                     extent=(self._cache.dataYRange),
                 )
 
-    def getSideHistogramPlot(
+    def getSideHistogramPlotWidget(
         self, orientation: Literal["horizontal", "vertical"]
     ) -> PlotWidget:
         """Return the plot widget displaying the side histogram.
