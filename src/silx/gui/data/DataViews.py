@@ -597,8 +597,9 @@ class _Plot2dRecordView(DataView):
         if info.interpretation == "spectrum":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
-            # Same as _Plot1dView
             return DataViewPriority.GOOD + 10
+        if info.dim == 1:
+            return DataViewPriority.LOW
         return DataViewPriority.LOW - 10
 
 
@@ -887,8 +888,7 @@ class _ScalarView(DataView):
             return DataViewPriority.UNSUPPORTED
         if silx.io.is_group(data):
             return DataViewPriority.UNSUPPORTED
-        # Above _Hdf5View
-        return DataViewPriority.FALLBACK + 1
+        return DataViewPriority.FALLBACK
 
 
 class _RecordView(DataView):
@@ -1342,11 +1342,9 @@ class _NXdataImageView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if nxd.signal.ndim >= 2 and not numpy.iscomplexobj(nxd.signal):
-            return (
-                DataViewPriority.INTERPRETATION
-                if nxd.interpretation == "image"
-                else DataViewPriority.GOOD
-            )
+            if nxd.interpretation == "image":
+                return DataViewPriority.INTERPRETATION
+            return DataViewPriority.GOOD
         else:
             return DataViewPriority.UNSUPPORTED
 
