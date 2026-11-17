@@ -1,8 +1,7 @@
 import h5py
-
 from ...io.commonh5 import Dataset
+
 from ..plot import items
-from ..utils import blockSignals
 from ._BaseImagePlot import BaseImagePlot
 from ._utils import ImageAxis, getAxesCalib, setImageCoords
 
@@ -12,6 +11,8 @@ class RgbaImagePlot(BaseImagePlot):
     Widget for plotting a RGB(A) image with a multi-dimensional signal array
     and two 1D axes array.
     """
+
+    _DISPLAY_AXES = ("Y", "X", "RGB(A) channel")
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,56 +33,13 @@ class RgbaImagePlot(BaseImagePlot):
         signalsNames: list[str] | None = None,
         axesNames: list[str] | None = None,
         title: str | None = None,
+        selection: tuple[int | slice, ...] | None = None,
     ):
-        """
-        Sets signals, axes and axes metadata that will be used to set the displayed image.
-
-        :param signals: list of n-D datasets or list of 3D datasets interpreted as RGBA image.
-        :param axes: list of 1D datasets to be used as axes
-        :param signalsNames: Names for each image, used as subtitle and legend.
-        :param axesNames: Names for each axis, used as graph label.
-        :param title: Graph title
-        """
-        if len(signals) == 0:
-            raise ValueError("Cannot set image data from empty signals")
-        if axes is None:
-            axes = []
-        if signalsNames is None:
-            signalsNames = []
-
-        self._signals = signals
-        self._axes = axes
-        self._title = title
-
-        with blockSignals(self._axesSelector, self._signalSelector):
-            self._axesSelector.clear()
-            self._axesSelector.setAxisNames(["Y", "X", "RGB(A) channel"])
-            self._axesSelector.setNamedAxesSelectorVisibility(True)
-
-            # Labels need to be set before the data
-            if axesNames:
-                self._axesNames = axesNames
-                self._axesSelector.setLabels(axesNames)
-            self._axesSelector.setData(signals[0])
-            # Disable the RGBA channel option in all axes
-            self._axesSelector.setNamedAxisEnabled("RGB(A) channel", False)
-            # Disable the RGBA channel axis selected
-            self._axesSelector.setNamedAxisSelectorEnabled(-1, False)
-
-            if len(signals[0].shape) <= 3:
-                self._axesSelector.hide()
-            else:
-                self._axesSelector.show()
-            if signalsNames:
-                self._signalSelector.setSignalNames(signalsNames)
-            if len(signals) > 1:
-                self._signalSelector.show()
-            else:
-                self._signalSelector.hide()
-            self._signalSelector.setSignalIndex(0)
-
-        self._updateImageAxes(initialize_aspect_ratio=True)
-        self._plot.resetZoom()
+        super().setImageData(signals, axes, signalsNames, axesNames, title, selection)
+        # Disable the RGBA channel option in all axes
+        self._axesSelector.setNamedAxisEnabled("RGB(A) channel", False)
+        # Disable the RGBA channel axis selected
+        self._axesSelector.setNamedAxisSelectorEnabled(-1, False)
 
     def _addItemToPlot(self, xAxis: ImageAxis, yAxis: ImageAxis):
         self._plot.remove(kind="image")

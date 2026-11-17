@@ -19,6 +19,9 @@ class BaseImagePlot(qt.QWidget):
     and two 1D axes array.
     """
 
+    _DISPLAY_AXES: tuple[str, ...] = ("Y", "X")
+    """Names of the axes used to display the image"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -50,6 +53,60 @@ class BaseImagePlot(qt.QWidget):
 
     def getPlot(self) -> Plot2D:
         return self._plot
+
+    def setImageData(
+        self,
+        signals: list[h5py.Dataset | Dataset],
+        axes: list[h5py.Dataset | Dataset] | None = None,
+        signalsNames: list[str] | None = None,
+        axesNames: list[str] | None = None,
+        title: str | None = None,
+        selection: tuple[int | slice, ...] | None = None,
+    ):
+        """
+        Sets signals, axes and axes metadata that will be used to set the displayed image.
+
+        :param signals: list of n-D datasets
+        :param axes: list of 1D datasets to be used as axes
+        :param signalsNames: Names for each image, used as subtitle and legend.
+        :param axesNames: Names for each axis, used as graph label.
+        :param title: Graph title
+        :param selection: Initial selection of the dimensions.
+        """
+        if len(signals) == 0:
+            raise ValueError("Cannot set image data from empty signals")
+
+        self._signals = signals
+        self._axes = axes or []
+        self._axesNames = axesNames or []
+        self._title = title
+
+        with blockSignals(self._axesSelector, self._signalSelector):
+            self._axesSelector.clear()
+            self._axesSelector.setAxisNames(self._DISPLAY_AXES)
+            self._axesSelector.setNamedAxesSelectorVisibility(True)
+
+            # Labels need to be set before the data
+            self._axesSelector.setLabels(self._axesNames)
+            self._axesSelector.setData(signals[0])
+
+            if selection is not None:
+                self._axesSelector.setSelection(selection)
+
+            if signals[0].ndim <= len(self._DISPLAY_AXES):
+                self._axesSelector.hide()
+            else:
+                self._axesSelector.show()
+
+            self._signalSelector.setSignalNames(signalsNames or [])
+            if len(signals) > 1:
+                self._signalSelector.show()
+            else:
+                self._signalSelector.hide()
+            self._signalSelector.setSignalIndex(0)
+
+        self._updateImageAxes(initialize_aspect_ratio=True)
+        self._plot.resetZoom()
 
     def _getImageToDisplay(self):
         signalIndex = self._signalSelector.getSignalIndex()
