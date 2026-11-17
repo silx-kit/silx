@@ -40,35 +40,12 @@ and to view this data in plot widgets or in simple table views.
 Custom plot selection
 ---------------------
 
-.. grid :: 1 2 2 2
+The *Plot selection* window (*Views* → *Plot selection*) plots 1D datasets
+against each other, whatever the file or the HDF5 group they come from:
+one dataset can be used as X and one or more datasets are plotted as Y curves.
+Datasets are selected by drag and drop from the HDF5 tree.
 
-   .. grid-item-card::
-      :columns: 12
-      :text-align: center
-
-      .. figure:: img/silx-view-plotSelection.png
-         :align: center
-
-      Plot custom curves from selected 1D datasets.
-
-How to access
-.............
-
-.. grid :: 1 2 2 2
-
-   .. grid-item-card::
-      :columns: 12
-      :text-align: center
-
-      .. figure:: img/silx-view-plotMenu.png
-         :align: center
-
-      Open the 'Plot selection' window (View menu -> Plot selection)
-
-      .. figure:: img/silx-view-dropPlot.png
-         :align: center
-
-      The "Plot selection" window opens: You can plot custom curves by dragging and dropping 1D datasets from "silx view" to "Plot selection" window's "X" and "Y" fields.
+See :ref:`silx-view-plot-selection` for details.
 
 Command line
 ------------

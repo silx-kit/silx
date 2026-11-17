@@ -15,5 +15,6 @@ To see the list of all available commands, type the following command in a termi
    :maxdepth: 1
 
    view
+   view_plot_selection
    convert
    compare
