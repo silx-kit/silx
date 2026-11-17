@@ -974,7 +974,7 @@ def _get_default_slice_selection(
     default_slice: Sequence[str | bytes | int] | None,
     axes: Sequence[h5py.Dataset | numpy.ndarray | None] | None,
     shape: Sequence[int],
-    n_unsliced_dims: int,
+    expected_n_dims: int,
 ) -> tuple[int | slice, ...] | None:
     """Convert an NXdata @default_slice attribute to a selection tuple.
 
@@ -984,11 +984,11 @@ def _get_default_slice_selection(
     :param default_slice: Value of the @default_slice attribute.
     :param axes: Axes datasets, one per signal dimension. They can be None.
     :param shape: Signal shape.
-    :param n_unsliced_dims: Number of dimensions that must remain unsliced.
+    :param expected_n_dims: Number of dimensions that must remain unsliced.
     :return: A selection tuple with one element per signal dimension,
         ``slice(None)`` meaning "select all". Return None if the
         @default_slice is absent, invalid or inconsistent with
-        ``n_unsliced_dims``.
+        ``expected_n_dims``.
     """
     if default_slice is None:
         return None
@@ -1032,13 +1032,13 @@ def _get_default_slice_selection(
 
         selection.append(index)
 
-    _n_unsliced_dims = sum(isinstance(item, slice) for item in selection)
-    if _n_unsliced_dims != n_unsliced_dims:
+    n_unsliced_dims = sum(isinstance(item, slice) for item in selection)
+    if n_unsliced_dims != expected_n_dims:
         nxdata_logger.warning(
-            "Ignoring @default_slice: exactly %d dimensions "
-            "must remain unsliced instead of %d",
+            "Ignoring @default_slice: exactly %d dimensions must remain "
+            "unsliced instead of %d",
+            expected_n_dims,
             n_unsliced_dims,
-            _n_unsliced_dims,
         )
         return None
 
