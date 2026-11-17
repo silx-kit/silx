@@ -15,9 +15,6 @@ class DataViewPriority(enum.IntEnum):
     """Priorities returned by :meth:`DataView.getDataPriority`.
 
     The view with the highest priority is used to display the data by default.
-
-    As it is an :class:`enum.IntEnum`, members can be compared to plain
-    integers, so custom views may still return any integer.
     """
 
     UNSUPPORTED = -1
