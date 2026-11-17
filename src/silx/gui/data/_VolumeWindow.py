@@ -154,9 +154,7 @@ class VolumeWindow(SceneWindow):
             self.__clear()
             self.__pendingData = data, offset, scale
             self.__loadButton.setText(_createLoadConfirmationText(data.shape))
-            self.__loadButton.adjustSize()
             self.__loadButton.setVisible(True)
-            self.__loadButton.raise_()
             return
         self.__setData(data, offset, scale)
 
