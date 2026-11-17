@@ -1,4 +1,5 @@
 import h5py
+import numpy
 
 from ...io.commonh5 import Dataset
 from ...io.nxdata import get_attr_as_unicode
@@ -54,9 +55,18 @@ class BaseImagePlot(qt.QWidget):
         signalIndex = self._signalSelector.getSignalIndex()
         try:
             signal = self._signals[signalIndex]
-        except KeyError:
-            raise KeyError("No image found. Was an image loaded?")
-        return signal[self._axesSelector.selection()]
+        except IndexError as e:
+            raise KeyError("No image found. Was an image loaded?") from e
+
+        slice_selection = self._axesSelector.selection()
+        if slice_selection is not None:
+            signal = signal[slice_selection]
+
+        axes_permutation = self._axesSelector.permutation()
+        if axes_permutation is not None:
+            signal = numpy.transpose(signal, axes_permutation)
+
+        return signal
 
     def _getImageName(self):
         if len(self._signalSelector.getSignalNames()) > 0:
