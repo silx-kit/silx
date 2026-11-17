@@ -39,6 +39,8 @@ from ..widgets.ButtonOverlay import ButtonOverlay
 def _createLoadConfirmationText(shape: tuple[int, ...]) -> str:
     """Returns the text of the button displayed in place of a large volume"""
     nbVoxels = int(numpy.prod(shape, dtype=numpy.uint64))
+    # Note on required resources: RAM, and OpenGL texture memory / max 3D texture size
+    # (a dedicated GPU is not mandatory, software OpenGL also works)
     return "\n".join(
         [
             f"Volume of {'x'.join(str(dim) for dim in shape)} ({nbVoxels:,} voxels) "
@@ -46,12 +48,9 @@ def _createLoadConfirmationText(shape: tuple[int, ...]) -> str:
             "",
             "Displaying it requires heavy computation (data range, isosurface)",
             "during which the application is frozen, and it can fail if the",
-            "following resources are not sufficient:",
-            "- Memory (RAM)",
-            "- GPU memory",
-            "- GPU maximum 3D texture size",
+            "available resources are not sufficient.",
             "",
-            "Click to load and display the volume",
+            "Click to load and display the volume.",
         ]
     )
 
