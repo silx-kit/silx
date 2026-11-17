@@ -971,7 +971,7 @@ class NXdata:
 
 
 def _get_default_slice_selection(
-    default_slice: numpy.ndarray | Sequence[object] | None,
+    default_slice: Sequence[str | bytes | int] | None,
     axes: Sequence[h5py.Dataset | numpy.ndarray | None] | None,
     shape: Sequence[int],
     n_unsliced_dims: int,
