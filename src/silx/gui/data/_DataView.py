@@ -30,6 +30,9 @@ class DataViewPriority(enum.IntEnum):
     DEFAULT = 100
     """The view is suited to display the data"""
 
+    GOOD = 200
+    """The view is well suited to display the data"""
+
     PREFERRED = 500
     """The view is the preferred one for this kind of data"""
 

@@ -489,7 +489,7 @@ class _Plot1dView(DataView):
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
             # Above the image views
-            return DataViewPriority.DEFAULT + 10
+            return DataViewPriority.GOOD + 10
         if info.dim == 1:
             return DataViewPriority.DEFAULT
         else:
@@ -598,7 +598,7 @@ class _Plot2dRecordView(DataView):
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
             # Same as _Plot1dView
-            return DataViewPriority.DEFAULT + 10
+            return DataViewPriority.GOOD + 10
         return DataViewPriority.LOW - 10
 
 
@@ -685,9 +685,9 @@ class _Plot2dView(DataView):
         if info.interpretation == "image":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.GOOD
         else:
-            return DataViewPriority.DEFAULT - 10
+            return DataViewPriority.GOOD - 10
 
 
 class _Plot3dView(DataView):
@@ -738,7 +738,7 @@ class _Plot3dView(DataView):
             return DataViewPriority.UNSUPPORTED
         if info.dim == 3:
             # Below the image views
-            return DataViewPriority.DEFAULT - 20
+            return DataViewPriority.DEFAULT
         else:
             # Above _Plot1dView
             return DataViewPriority.LOW + 10
@@ -809,9 +809,9 @@ class _ComplexImageView(DataView):
         if info.interpretation == "image":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.GOOD
         else:
-            return DataViewPriority.DEFAULT - 10
+            return DataViewPriority.GOOD - 10
 
 
 class _ArrayView(DataView):
@@ -1345,7 +1345,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return (
                 DataViewPriority.INTERPRETATION
                 if nxd.interpretation == "image"
-                else DataViewPriority.PREFERRED
+                else DataViewPriority.GOOD
             )
         else:
             return DataViewPriority.UNSUPPORTED
@@ -1451,7 +1451,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         if nxd.signal.ndim >= 2 and numpy.iscomplexobj(nxd.signal):
             if nxd.interpretation == "image":
                 return DataViewPriority.INTERPRETATION
-            return DataViewPriority.PREFERRED
+            return DataViewPriority.GOOD
         else:
             return DataViewPriority.UNSUPPORTED
 
