@@ -47,7 +47,7 @@ class DataViewPriority(enum.IntEnum):
     DEFAULT_PLUS_2 = 120
     """Slightly above :attr:`DEFAULT_PLUS`"""
 
-    GOOD_MINUS = 190
+    ALMOST_GOOD = 190
     """Slightly below :attr:`GOOD`"""
 
     GOOD = 200

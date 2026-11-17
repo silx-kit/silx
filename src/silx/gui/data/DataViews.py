@@ -688,7 +688,7 @@ class _Plot2dView(DataView):
         if info.dim == 2:
             return DataViewPriority.GOOD
         else:
-            return DataViewPriority.GOOD_MINUS
+            return DataViewPriority.ALMOST_GOOD
 
 
 class _Plot3dView(DataView):
@@ -810,7 +810,7 @@ class _ComplexImageView(DataView):
         if info.dim == 2:
             return DataViewPriority.GOOD
         else:
-            return DataViewPriority.GOOD_MINUS
+            return DataViewPriority.ALMOST_GOOD
 
 
 class _ArrayView(DataView):
