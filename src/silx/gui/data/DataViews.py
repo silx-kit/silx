@@ -597,9 +597,12 @@ class _Plot2dRecordView(DataView):
         if info.interpretation == "spectrum":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
+            # Same as _Plot1dView
             return DataViewPriority.GOOD + 10
         if info.dim == 1:
-            return DataViewPriority.LOW
+            # Above _RecordView: prefer the plot for 1D records
+            return DataViewPriority.LOW + 10
+        # Below _RecordView
         return DataViewPriority.LOW - 10
 
 
