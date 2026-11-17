@@ -1,6 +1,8 @@
 import numpy
 import pytest
 
+from silx.io.nxdata.parse import _get_default_slice_selection
+
 from .. import NXdataWidgets
 
 
@@ -104,34 +106,32 @@ def test_image_view_axis_permutation(qapp):
 def test_get_default_slice_selection(
     default_slice, axes, shape, n_unsliced_dims, expected
 ):
-    result = NXdataWidgets._get_default_slice_selection(
+    result = _get_default_slice_selection(
         default_slice, axes, shape, n_unsliced_dims
     )
     assert result == expected
 
 
 def test_image_view_default_slice(qapp):
-    """Test that NXdata default_slice is applied to the image view."""
+    """Test that a default slice selection is applied to the image view."""
 
     data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
 
     widget = NXdataWidgets.ArrayImagePlot()
 
+    # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
+    # selects index 1 along dim2 (x).
+    selection = slice(None), slice(None), 1
+
     widget.setImageData(
         signals=[data],
         signals_names=["signal"],
         axes_names=["z", "y", "x"],
-        # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
-        default_slice=[".", ".", "1"],
-        # selects index 1 along dim2 (x)
+        selection=selection,
     )
 
-    # Selection is data[:, :, 1] with shape (3, 4).
-    expected_slice = slice(None), slice(None), 1
-    expected_image = data[expected_slice]
-
     actual_slice = widget._axesSelector.selection()
-    assert actual_slice == expected_slice
+    assert actual_slice == selection
 
     actual_image = widget._getImageToDisplay()
-    numpy.testing.assert_array_equal(actual_image, expected_image)
+    numpy.testing.assert_array_equal(actual_image, data[selection])

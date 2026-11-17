@@ -276,7 +276,7 @@ class ArrayImagePlot(BaseImagePlot):
         axes_names: list[str] | None = None,
         axes_scales: list[AxisScaleType | None] | None = None,
         title: str | None = None,
-        default_slice: numpy.ndarray | Sequence[object] | None = None,
+        selection: tuple[int | slice, ...] | None = None,
     ):
         """
         Sets signals, axes and axes metadata that will be used to set the displayed image.
@@ -287,8 +287,7 @@ class ArrayImagePlot(BaseImagePlot):
         :param axes_names: Names for each axis, used as graph label.
         :param axes_scales: Scale of axes
         :param title: Graph title
-        :param default_slice: NXdata default_slice attribute defining the
-            initial selection of dimensions.
+        :param selection: Initial selection of the dimensions.
         """
         if len(signals) == 0:
             raise ValueError("Cannot set image data from empty signals")
@@ -307,13 +306,6 @@ class ArrayImagePlot(BaseImagePlot):
             if self._axesNames:
                 self._axesSelector.setLabels(self._axesNames)
             self._axesSelector.setData(signals[0])
-
-            selection = _get_default_slice_selection(
-                default_slice=default_slice,
-                axes=axes,
-                shape=signals[0].shape,
-                n_unsliced_dims=2,
-            )
 
             if selection is not None:
                 self._axesSelector.setSelection(selection)
@@ -914,106 +906,3 @@ class ArrayVolumePlot(qt.QWidget):
         self._axesSelector.blockSignals(old)
         self.getVolumeView().clear()
 
-
-def _get_default_slice_selection(
-    default_slice: numpy.ndarray | Sequence[object] | None,
-    axes: Sequence[h5py.Dataset | Dataset | None] | None,
-    shape: Sequence[int],
-    n_unsliced_dims: int,
-) -> tuple[int | slice, ...] | None:
-    """Convert NXdata @default_slice into a NumpyAxesSelector selection.
-
-    See https://manual.nexusformat.org/classes/base_classes/NXdata.html#nxdata-default-slice-attribute
-    """
-    if default_slice is None:
-        return None
-
-    default_slice = numpy.asarray(default_slice)
-
-    if default_slice.ndim != 1 or len(default_slice) != len(shape):
-        _logger.warning("Ignoring invalid NXdata @default_slice")
-        return None
-
-    selection = []
-
-    for dim, value in enumerate(default_slice):
-        if isinstance(value, bytes):
-            value = value.decode("utf-8")
-
-        if isinstance(value, str) and value == ".":
-            selection.append(slice(None))
-            continue
-
-        axis = axes[dim] if axes is not None else None
-
-        index = _get_default_slice_index(value, axis)
-
-        if index is None:
-            _logger.warning(
-                "Cannot resolve @default_slice value %r on dimension %d",
-                value,
-                dim,
-            )
-            return None
-
-        selection.append(index)
-
-    _n_unsliced_dims = sum(isinstance(item, slice) for item in selection)
-    if _n_unsliced_dims != n_unsliced_dims:
-        _logger.warning(
-            "Ignoring @default_slice: exactly %d dimensions "
-            "must remain unsliced instead of %d",
-            n_unsliced_dims,
-            _n_unsliced_dims,
-        )
-        return None
-
-    return tuple(selection)
-
-
-def _get_default_slice_index(
-    value: object,
-    axis: h5py.Dataset | Dataset | None,
-) -> int | None:
-    """Convert an NXdata default_slice value into an axis index."""
-    index = _get_index_from_axis_index(value, axis)
-    if index is None:
-        index = _get_index_from_axis_value(value, axis)
-    return index
-
-
-def _get_index_from_axis_index(
-    value: object,
-    axis: h5py.Dataset | Dataset | None,
-) -> int | None:
-    """Try default_slice value representing an axis index."""
-    try:
-        number = int(value)
-    except (TypeError, ValueError):
-        return None
-
-    if axis is None or axis.ndim != 1:
-        return number
-
-    return number % len(axis)  # map between [0, size[
-
-
-def _get_index_from_axis_value(
-    value: object,
-    axis: h5py.Dataset | Dataset | None,
-) -> int | None:
-    """Try default_slice value representing an axis value."""
-    if axis is None or axis.ndim != 1:
-        return None
-
-    axis_values = numpy.asarray(axis)
-
-    if axis_values.dtype.kind == "S":
-        axis_values = numpy.char.decode(axis_values, "utf-8")
-
-    matches = numpy.flatnonzero(axis_values.astype(str) == str(value))
-
-    if len(matches) != 1:
-        return None
-
-    return int(matches[0])

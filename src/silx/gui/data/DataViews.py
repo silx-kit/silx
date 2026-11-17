@@ -1328,7 +1328,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             axes_names=nxd.axes_names,
             axes_scales=nxd.plot_style.axes_scale_types,
             title=nxd.title,
-            default_slice=nxd.group.attrs.get("default_slice"),
+            selection=nxd.get_default_slice_selection(expected_n_dims=2),
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
