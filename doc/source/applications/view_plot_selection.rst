@@ -77,9 +77,6 @@ dataset list or on the plot of the *Plot selection* window:
   * on the **Y** row of the dataset list, or
   * **inside the plot area**.
 
-While dragging, the targeted row of the dataset list is highlighted, and an
-overlay shows the targeted area of the plot.
-
 .. _plot-selection-context-menu:
 
 From the context menu
