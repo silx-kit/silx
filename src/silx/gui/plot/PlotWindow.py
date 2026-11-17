@@ -264,6 +264,7 @@ class PlotWindow(PlotWidget):
         self._consoleAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
+        self._showAxisAction = None
 
         # Make colorbar background white
         self._colorbar.setAutoFillBackground(True)
@@ -737,6 +738,12 @@ class PlotWindow(PlotWidget):
         if self._crosshairAction is None:
             self._crosshairAction = actions.control.CrosshairAction(self, color="red")
         return self._crosshairAction
+
+    def getShowAxisAction(self) -> actions.control.ShowAxisAction:
+        """Action toggling the display of the plot axes."""
+        if self._showAxisAction is None:
+            self._showAxisAction = actions.control.ShowAxisAction(self, parent=self)
+        return self._showAxisAction
 
     def getMaskAction(self):
         """QAction toggling image mask dock widget
