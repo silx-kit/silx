@@ -622,6 +622,7 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+        widget.toolBar().addAction(widget.getShowAxisAction())
 
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)
