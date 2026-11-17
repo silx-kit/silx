@@ -488,7 +488,8 @@ class _Plot1dView(DataView):
         if info.interpretation == "spectrum":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
-            return DataViewPriority.DEFAULT
+            # Above the image views
+            return DataViewPriority.DEFAULT + 10
         if info.dim == 1:
             return DataViewPriority.DEFAULT
         else:
@@ -596,7 +597,8 @@ class _Plot2dRecordView(DataView):
         if info.interpretation == "spectrum":
             return DataViewPriority.INTERPRETATION
         if info.dim == 2 and info.shape[0] == 1:
-            return DataViewPriority.DEFAULT
+            # Same as _Plot1dView
+            return DataViewPriority.DEFAULT + 10
         if info.dim == 1:
             return DataViewPriority.LOW
         else:
@@ -738,9 +740,11 @@ class _Plot3dView(DataView):
         if min(data.shape) < 2:
             return DataViewPriority.UNSUPPORTED
         if info.dim == 3:
-            return DataViewPriority.DEFAULT
+            # Below the image views
+            return DataViewPriority.DEFAULT - 10
         else:
-            return DataViewPriority.LOW
+            # Above _Plot1dView
+            return DataViewPriority.LOW + 10
 
 
 class _ComplexImageView(DataView):
@@ -920,7 +924,8 @@ class _RecordView(DataView):
         if info.size <= 0:
             return DataViewPriority.UNSUPPORTED
         if info.isRecord:
-            return DataViewPriority.LOW
+            # Above _ScalarView and _Plot2dRecordView
+            return DataViewPriority.LOW + 10
         if data is None or not info.isArray:
             return DataViewPriority.UNSUPPORTED
         if info.dim == 1:
@@ -928,7 +933,7 @@ class _RecordView(DataView):
                 return DataViewPriority.PREFERRED
             return DataViewPriority.PREFERRED
         elif info.isRecord:
-            return DataViewPriority.LOW
+            return DataViewPriority.LOW + 10
         return DataViewPriority.UNSUPPORTED
 
 
@@ -1287,7 +1292,8 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if isScatter(nxd, naxes=2):
-            return DataViewPriority.PREFERRED
+            # Above _NXdataCurveView, even with @interpretation="spectrum"
+            return DataViewPriority.INTERPRETATION + 10
         return DataViewPriority.UNSUPPORTED
 
 
@@ -1547,7 +1553,8 @@ class _NxDataScatter3D(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if isScatter(nxd, naxes=3):
-            return DataViewPriority.PREFERRED
+            # Above _NXdataCurveView, even with @interpretation="spectrum"
+            return DataViewPriority.INTERPRETATION + 10
         return DataViewPriority.UNSUPPORTED
 
 
