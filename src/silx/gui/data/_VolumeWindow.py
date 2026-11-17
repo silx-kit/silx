@@ -61,7 +61,7 @@ class VolumeWindow(SceneWindow):
     :param QWidget: parent
     """
 
-    LOAD_CONFIRMATION_THRESHOLD: int | None = None
+    LOAD_CONFIRMATION_THRESHOLD: int | None = 256**3
     """Number of voxels from which displaying a volume requires a user confirmation."""
 
     def __init__(self, parent):
