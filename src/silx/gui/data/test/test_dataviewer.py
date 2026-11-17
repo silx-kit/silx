@@ -35,8 +35,10 @@ from .. import DataViews
 from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
+from silx.gui.data._VolumeWindow import VolumeWindow
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.widgets.ButtonOverlay import ButtonOverlay
 
 import h5py
 
@@ -330,9 +332,6 @@ class TestDataView(TestCaseQt):
 @pytest.mark.usefixtures("use_opengl")
 def testCubeLoadConfirmation(qapp, qapp_utils):
     """Test that large volumes are loaded only once the overlay button is clicked"""
-    pytest.importorskip("silx.gui.plot3d")
-    from silx.gui.data._VolumeWindow import VolumeWindow
-    from silx.gui.widgets.ButtonOverlay import ButtonOverlay
 
     class _VolumeWindowWithThreshold(VolumeWindow):
         LOAD_CONFIRMATION_THRESHOLD = 4**3
@@ -374,4 +373,3 @@ def testCubeLoadConfirmation(qapp, qapp_utils):
 
     widget.close()
     qapp.processEvents()
-
