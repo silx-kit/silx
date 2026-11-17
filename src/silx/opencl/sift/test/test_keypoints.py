@@ -67,6 +67,15 @@ from ..utils import get_opencl_code
 logger = logging.getLogger(__name__)
 
 
+class TestWorkgroupSizes(unittest.TestCase):
+    def test_reduces_3d_workgroup_to_device_limit(self):
+        from ..plan import SiftPlan
+
+        self.assertEqual(SiftPlan._get_valid_workgroup_size((8, 8, 8), 256), (8, 8, 4))
+        self.assertEqual(SiftPlan._get_valid_workgroup_size((8, 8, 8), 64), (4, 4, 4))
+        self.assertEqual(SiftPlan._get_valid_workgroup_size((8, 8, 8), 1024), (8, 8, 8))
+
+
 @unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
 class _TestKeypoints(unittest.TestCase):
     __test__ = False  # ignore abstract class

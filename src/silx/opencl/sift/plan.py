@@ -58,6 +58,7 @@ import os
 import time
 import math
 import logging
+from typing import Optional, Tuple, Union
 import numpy
 from .param import par
 from ..common import ocl  # noqa F401 Initialize OpenCL
@@ -113,6 +114,38 @@ class SiftPlan(OpenclProcessing):
             ("desc", (numpy.uint8, 128)),
         ]
     )
+
+    @staticmethod
+    def _get_valid_workgroup_size(
+        workgroup_size: Union[int, Tuple[int, ...]],
+        max_work_group_size: Optional[int],
+    ) -> Union[int, Tuple[int, ...]]:
+        """Clamp a requested local workgroup to the device limit.
+
+        The SIFT kernels use fixed local shapes such as (8, 8, 8). Some Intel
+        and other OpenCL drivers report a smaller maximum work-group size than
+        the nominal kernel configuration. In that case the raw local size is
+        invalid and the backend fails with INVALID_GLOBAL_WORK_SIZE when the
+        kernel is enqueued.
+        """
+        if max_work_group_size is None:
+            return workgroup_size
+
+        limit = int(max_work_group_size)
+        if isinstance(workgroup_size, int):
+            return min(int(workgroup_size), limit)
+
+        requested = tuple(int(v) for v in workgroup_size)
+        if limit >= int(numpy.prod(requested)):
+            return requested
+
+        current = list(requested)
+        while int(numpy.prod(current)) > limit:
+            index = max(range(len(current)), key=lambda i: (current[i], i))
+            if current[index] <= 1:
+                break
+            current[index] = max(1, current[index] // 2)
+        return tuple(current)
 
     def __init__(
         self,
@@ -805,7 +838,15 @@ class SiftPlan(OpenclProcessing):
                         pyopencl.LocalMemory(128 * 4),
                     ]
                 orientation = self.kernels.get_kernel(orientation_name)
-                wg = self.kernels_max_wg_size[orientation_name]
+                max_wg = self.kernels_wg.get(
+                    orientation_name,
+                    self.kernels_max_wg_size[orientation_name],
+                )
+                wg = int(
+                    self._get_valid_workgroup_size(
+                        self.kernels_max_wg_size[orientation_name], max_wg
+                    )
+                )
                 wgsize2 = (wg,)
                 procsize = (int(newcnt * wg),)
                 evt = orientation(
@@ -838,7 +879,16 @@ class SiftPlan(OpenclProcessing):
                     if self.USE_CPU or (self.LOW_END > 1):
                         logger.info("Computing descriptors with CPU optimized kernels")
                         descriptor_name = "descriptor_cpu"
-                        wg = self.kernels_max_wg_size[descriptor_name][0]
+                        desired = self.kernels_max_wg_size[descriptor_name]
+                        wg = int(
+                            self._get_valid_workgroup_size(
+                                desired,
+                                self.kernels_wg.get(
+                                    descriptor_name,
+                                    numpy.prod(desired),
+                                ),
+                            )
+                        )
                         wgsize2 = (wg,)
                         procsize2 = (int(newcnt * wg),)
                     else:
@@ -847,31 +897,24 @@ class SiftPlan(OpenclProcessing):
                                 "Computing descriptors with older-GPU optimized kernels"
                             )
                             descriptor_name = "descriptor_gpu1"
-                            wgsize2 = self.kernels_max_wg_size[descriptor_name]
-                            procsize2 = (
-                                int(newcnt * wgsize2[0]),
-                                wgsize2[1],
-                                wgsize2[2],
-                            )
-                        #                             if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
-                        #                                 # will fail anyway:
-                        #                                 self.LOW_END += 1
-                        #                                 continue
                         else:
                             logger.info(
                                 "Computing descriptors with newer-GPU optimized kernels"
                             )
                             descriptor_name = "descriptor_gpu2"
-                            wgsize2 = self.kernels_max_wg_size[descriptor_name]
-                            procsize2 = (
-                                int(newcnt * wgsize2[0]),
-                                wgsize2[1],
-                                wgsize2[2],
+                        desired = self.kernels_max_wg_size[descriptor_name]
+                        max_wg = self.kernels_wg.get(
+                            descriptor_name,
+                            numpy.prod(desired),
+                        )
+                        wgsize2 = self._get_valid_workgroup_size(desired, max_wg)
+                        if not isinstance(wgsize2, tuple):
+                            wgsize2 = (int(wgsize2),)
+                        procsize2 = (int(newcnt * wgsize2[0]),)
+                        if len(wgsize2) > 1:
+                            procsize2 = (int(newcnt * wgsize2[0]),) + tuple(
+                                wgsize2[1:]
                             )
-                    #                             if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
-                    #                                 # will fail anyway:
-                    #                                 self.LOW_END += 1
-                    #                                 continue
                     try:
                         descriptor = self.kernels.get_kernel(descriptor_name)
                         evt2 = descriptor(
