@@ -58,9 +58,6 @@ Show / hide the window
 ......................
 
 The window is hidden when *silx view* starts. To show it, select *Views* → *Plot selection* from the menu bar.
-The menu entry is checkable: it is checked while the window is visible.
-
-Hide it by closing the window. The menu entry is kept in sync with the window.
 
 Select the datasets
 ...................
