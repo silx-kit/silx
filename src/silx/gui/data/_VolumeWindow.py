@@ -62,12 +62,7 @@ class VolumeWindow(SceneWindow):
     """
 
     LOAD_CONFIRMATION_THRESHOLD: int | None = None
-    """Number of voxels from which displaying a volume requires a user confirmation.
-
-    Volumes with at least this number of voxels are not loaded automatically:
-    a button is displayed instead and data is loaded once it is clicked.
-    None (default) to always load volumes directly.
-    """
+    """Number of voxels from which displaying a volume requires a user confirmation."""
 
     def __init__(self, parent):
         super().__init__(parent)
