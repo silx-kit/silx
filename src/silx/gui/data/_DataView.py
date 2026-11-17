@@ -24,7 +24,7 @@ class DataViewPriority(enum.IntEnum):
     FALLBACK = 1
     """The view can display the data, but only as a last resort"""
 
-    LOW = 10
+    LOW = 40
     """The view can display the data, but other views are better suited"""
 
     DEFAULT = 100
