@@ -187,11 +187,11 @@ class _ComplexDataToolButton(qt.QToolButton):
 
     _RANGE_DIALOG_TEXT = "Set Amplitude Range..."
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(self, parent: qt.QWidget | None = None, item: ImageComplexData = None):
         super().__init__(parent=parent)
 
-        assert plot is not None
-        self._plot2DComplex = plot
+        assert item is not None
+        self._complexItem = item
 
         menu = qt.QMenu(self)
         menu.triggered.connect(self._triggered)
@@ -210,8 +210,12 @@ class _ComplexDataToolButton(qt.QToolButton):
 
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-        self._modeChanged(self._plot2DComplex.getComplexMode())
-        self._plot2DComplex.sigVisualizationModeChanged.connect(self._modeChanged)
+        self._modeChanged(self._complexItem.getComplexMode())
+        self._complexItem.sigItemChanged.connect(self._itemChanged)
+
+    def _itemChanged(self, event):
+        if event is items.ItemChangedType.VISUALIZATION_MODE:
+            self._modeChanged(self._complexItem.getComplexMode())
 
     def _modeChanged(self, mode):
         """Handle change of visualization modes"""
@@ -228,7 +232,7 @@ class _ComplexDataToolButton(qt.QToolButton):
 
         if actionText == self._RANGE_DIALOG_TEXT:  # Show dialog
             # Get amplitude range
-            data = self._plot2DComplex.getData(copy=False)
+            data = self._complexItem.getComplexData(copy=False)
 
             if data.size > 0:
                 absolute = numpy.absolute(data)
@@ -240,7 +244,7 @@ class _ComplexDataToolButton(qt.QToolButton):
             dialog = _AmplitudeRangeDialog(
                 parent=self,
                 amplitudeRange=dataRange,
-                displayedRange=self._plot2DComplex._getAmplitudeRangeInfo(),
+                displayedRange=self._complexItem._getAmplitudeRangeInfo(),
             )
             dialog.sigRangeChanged.connect(self._rangeChanged)
             dialog.exec()
@@ -249,11 +253,11 @@ class _ComplexDataToolButton(qt.QToolButton):
         else:  # update mode
             mode = action.data()
             if isinstance(mode, ImageComplexData.ComplexMode):
-                self._plot2DComplex.setComplexMode(mode)
+                self._complexItem.setComplexMode(mode)
 
     def _rangeChanged(self, range_):
         """Handle updates of range in the dialog"""
-        self._plot2DComplex._setAmplitudeRangeInfo(*range_)
+        self._complexItem._setAmplitudeRangeInfo(*range_)
 
 
 class ComplexImageView(qt.QWidget):
@@ -295,7 +299,7 @@ class ComplexImageView(qt.QWidget):
         self._plot2D.setActiveImage(self._plotImage)
 
         toolBar = qt.QToolBar("Complex", self)
-        toolBar.addWidget(_ComplexDataToolButton(parent=self, plot=self))
+        toolBar.addWidget(_ComplexDataToolButton(parent=self, item=self._plotImage))
 
         self._plot2D.insertToolBar(self._plot2D.getProfileToolbar(), toolBar)
 
