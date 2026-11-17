@@ -1020,7 +1020,7 @@ def _get_default_slice_selection(
             )
             return None
 
-        index = _get_default_slice_index(value, axis)
+        index = _get_default_slice_index(value, axis, shape[dim])
 
         if index is None:
             nxdata_logger.warning(
@@ -1048,28 +1048,26 @@ def _get_default_slice_selection(
 def _get_default_slice_index(
     value: object,
     axis: h5py.Dataset | numpy.ndarray | None,
+    dim_size: int,
 ) -> int | None:
     """Convert an NXdata @default_slice value into a dimension index."""
-    index = _get_index_from_axis_index(value, axis)
+    index = _get_index_from_axis_index(value, dim_size)
     if index is None:
         index = _get_index_from_axis_string(value, axis)
     return index
 
 
-def _get_index_from_axis_index(
-    value: object,
-    axis: h5py.Dataset | numpy.ndarray | None,
-) -> int | None:
+def _get_index_from_axis_index(value: object, dim_size: int) -> int | None:
     """Try default_slice value representing an axis index."""
     try:
         number = int(value)
     except (TypeError, ValueError):
         return None
 
-    if axis is None:
-        return number
+    if not 0 <= number < dim_size:
+        return None
 
-    return number % len(axis)  # map between [0, size[
+    return number
 
 
 def _get_index_from_axis_string(

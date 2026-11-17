@@ -54,6 +54,22 @@ def test_image_view_axis_permutation(qapp):
             id="index",
         ),
         pytest.param(
+            [".", ".", "35"],
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="out-of-bound-index",
+        ),
+        pytest.param(
+            [".", ".", "-1"],
+            None,
+            (10, 20, 30),
+            2,
+            None,
+            id="negative-index",
+        ),
+        pytest.param(
             [".", "difference", "."],
             [
                 numpy.arange(3),
