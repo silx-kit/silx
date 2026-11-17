@@ -359,12 +359,7 @@ class DataView:
 
     def getDataPriority(self, data, info) -> int:
         """
-        Returns the priority of using this view according to a data.
-
-        Views provided by silx return :class:`DataViewPriority` members.
-        Custom views may return any integer: the view with the highest
-        priority is used by default and :attr:`DataViewPriority.UNSUPPORTED`
-        means this view can't display this data.
+        Returns the priority of using this view according to a data as a int or a :class:`DataViewPriority`.
 
         :param object data: The data to check
         :param DataInfo info: Pre-computed information on the data
