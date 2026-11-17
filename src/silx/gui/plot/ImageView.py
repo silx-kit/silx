@@ -44,6 +44,7 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
+from typing import Literal
 
 import silx
 from .. import qt
@@ -764,6 +765,20 @@ class ImageView(PlotWindow):
                     data=numpy.array(self._cache.histoV, copy=True),
                     extent=(self._cache.dataYRange),
                 )
+
+    def getSideHistogramPlotWidget(
+        self, orientation: Literal["horizontal", "vertical"]
+    ) -> PlotWidget:
+        """Return the plot widget displaying the side histogram.
+
+        :param orientation: 'horizontal' for the horizontal histogram (below the image),
+            'vertical' for the vertical histogram (on the right of the image)
+        """
+        assert orientation in ("horizontal", "vertical")
+        if orientation == "horizontal":
+            return self._histoHPlot
+        else:
+            return self._histoVPlot
 
     def radarView(self):
         """Get the lower right radarView widget."""
