@@ -599,10 +599,7 @@ class _Plot2dRecordView(DataView):
         if info.dim == 2 and info.shape[0] == 1:
             # Same as _Plot1dView
             return DataViewPriority.DEFAULT + 10
-        if info.dim == 1:
-            return DataViewPriority.LOW
-        else:
-            return DataViewPriority.LOW
+        return DataViewPriority.LOW - 10
 
 
 class _Plot2dView(DataView):
@@ -690,7 +687,7 @@ class _Plot2dView(DataView):
         if info.dim == 2:
             return DataViewPriority.DEFAULT
         else:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.DEFAULT - 10
 
 
 class _Plot3dView(DataView):
@@ -741,7 +738,7 @@ class _Plot3dView(DataView):
             return DataViewPriority.UNSUPPORTED
         if info.dim == 3:
             # Below the image views
-            return DataViewPriority.DEFAULT - 10
+            return DataViewPriority.DEFAULT - 20
         else:
             # Above _Plot1dView
             return DataViewPriority.LOW + 10
@@ -814,7 +811,7 @@ class _ComplexImageView(DataView):
         if info.dim == 2:
             return DataViewPriority.DEFAULT
         else:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.DEFAULT - 10
 
 
 class _ArrayView(DataView):
@@ -890,7 +887,8 @@ class _ScalarView(DataView):
             return DataViewPriority.UNSUPPORTED
         if silx.io.is_group(data):
             return DataViewPriority.UNSUPPORTED
-        return DataViewPriority.LOW
+        # Above _Hdf5View
+        return DataViewPriority.FALLBACK + 1
 
 
 class _RecordView(DataView):
@@ -924,16 +922,15 @@ class _RecordView(DataView):
         if info.size <= 0:
             return DataViewPriority.UNSUPPORTED
         if info.isRecord:
-            # Above _ScalarView and _Plot2dRecordView
-            return DataViewPriority.LOW + 10
+            return DataViewPriority.LOW
         if data is None or not info.isArray:
             return DataViewPriority.UNSUPPORTED
         if info.dim == 1:
             if info.shape[0] == 1:
-                return DataViewPriority.PREFERRED
+                return DataViewPriority.PREFERRED + 10
             return DataViewPriority.PREFERRED
         elif info.isRecord:
-            return DataViewPriority.LOW + 10
+            return DataViewPriority.LOW
         return DataViewPriority.UNSUPPORTED
 
 
@@ -1015,11 +1012,10 @@ class _RawView(CompositeDataView):
         super().__init__(
             parent=parent, modeId=RAW_MODE, label="Raw", icon=icons.getQIcon("view-raw")
         )
-        # Order matters: it is used to select between views of same priority
         self.addView(_HexaView(parent))
+        self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
-        self.addView(_ScalarView(parent))
 
 
 class _InvalidNXdataView(DataView):
