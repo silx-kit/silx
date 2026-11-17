@@ -888,7 +888,8 @@ class _ScalarView(DataView):
             return DataViewPriority.UNSUPPORTED
         if silx.io.is_group(data):
             return DataViewPriority.UNSUPPORTED
-        return DataViewPriority.FALLBACK
+        # Above _Hdf5View
+        return DataViewPriority.FALLBACK + 1
 
 
 class _RecordView(DataView):
