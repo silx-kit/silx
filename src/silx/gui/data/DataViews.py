@@ -1148,11 +1148,9 @@ class _NXdataScalarView(_NXdataBaseDataView):
         self.getWidget().setArrayData(signal, labels=True)
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
-        return (
-            DataViewPriority.DEFAULT
-            if nxd.signal.ndim == 0
-            else DataViewPriority.UNSUPPORTED
-        )
+        if nxd.signal.ndim == 0:
+            return DataViewPriority.DEFAULT
+        return DataViewPriority.UNSUPPORTED
 
 
 class _NXdataCurveView(_NXdataBaseDataView):
@@ -1212,11 +1210,9 @@ class _NXdataCurveView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if nxd.signal.ndim >= 1:
-            return (
-                DataViewPriority.GOOD
-                if nxd.interpretation == "spectrum"
-                else DataViewPriority.DEFAULT_PLUS
-            )
+            if nxd.interpretation == "spectrum":
+                return DataViewPriority.GOOD
+            return DataViewPriority.DEFAULT_PLUS
         else:
             return DataViewPriority.UNSUPPORTED
 
@@ -1289,11 +1285,9 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
-        return (
-            DataViewPriority.GOOD
-            if isScatter(nxd, naxes=2)
-            else DataViewPriority.UNSUPPORTED
-        )
+        if isScatter(nxd, naxes=2):
+            return DataViewPriority.GOOD
+        return DataViewPriority.UNSUPPORTED
 
 
 class _NXdataImageView(_NXdataBaseDataView):
@@ -1392,7 +1386,9 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
-        return DataViewPriority.GOOD if isRgba(nxd) else DataViewPriority.UNSUPPORTED
+        if isRgba(nxd):
+            return DataViewPriority.GOOD
+        return DataViewPriority.UNSUPPORTED
 
 
 class _NXdataComplexImageView(_NXdataBaseDataView):
@@ -1450,11 +1446,9 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if nxd.signal.ndim >= 2 and numpy.iscomplexobj(nxd.signal):
-            return (
-                DataViewPriority.GOOD
-                if nxd.interpretation == "image"
-                else DataViewPriority.DEFAULT_PLUS_2
-            )
+            if nxd.interpretation == "image":
+                return DataViewPriority.GOOD
+            return DataViewPriority.DEFAULT_PLUS_2
         else:
             return DataViewPriority.UNSUPPORTED
 
@@ -1551,11 +1545,9 @@ class _NxDataScatter3D(_NXdataBaseDataView):
             self._scatterItem.setSymbolSize(sizes)
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
-        return (
-            DataViewPriority.GOOD
-            if isScatter(nxd, naxes=3)
-            else DataViewPriority.UNSUPPORTED
-        )
+        if isScatter(nxd, naxes=3):
+            return DataViewPriority.GOOD
+        return DataViewPriority.UNSUPPORTED
 
 
 class _NXdataView(CompositeDataView):
