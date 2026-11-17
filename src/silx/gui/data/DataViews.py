@@ -1409,9 +1409,9 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
+        from silx.gui.data._NxComplexImagePlot import NxComplexImagePlot
 
-        widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget = NxComplexImagePlot(parent, colormap=self.defaultColormap())
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
@@ -1426,22 +1426,12 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
 
         self._updateColormap(nxd)
 
-        # last two axes are Y & X
-        img_slicing = slice(-2, None)
-        y_axis, x_axis = nxd.axes[img_slicing]
-        y_label, x_label = nxd.axes_names[img_slicing]
-        x_units = get_attr_as_unicode(x_axis, "units") if x_axis else None
-        y_units = get_attr_as_unicode(y_axis, "units") if y_axis else None
-
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
-            x_axis=x_axis,
-            y_axis=y_axis,
-            signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
-            xlabel=x_label,
-            ylabel=y_label,
+            axes=nxd.axes,
+            signalsNames=[nxd.signal_name] + nxd.auxiliary_signals_names,
+            axesNames=nxd.axes_names,
             title=nxd.title,
-            keep_ratio=(x_units == y_units),
         )
 
     def axesNames(self, data, info):
