@@ -1042,7 +1042,7 @@ def _get_default_slice_index(
     """Convert an NXdata @default_slice value into a dimension index."""
     index = _get_index_from_axis_index(value, axis)
     if index is None:
-        index = _get_index_from_axis_value(value, axis)
+        index = _get_index_from_axis_string(value, axis)
     return index
 
 
@@ -1062,25 +1062,33 @@ def _get_index_from_axis_index(
     return number % len(axis)  # map between [0, size[
 
 
-def _get_index_from_axis_value(
+def _get_index_from_axis_string(
     value: object,
     axis: h5py.Dataset | numpy.ndarray | None,
 ) -> int | None:
-    """Try default_slice value representing an axis value."""
+    """Try to interpret a @default_slice value as an axis value label."""
     if axis is None or axis.ndim != 1:
         return None
 
     axis_values = numpy.asarray(axis)
 
-    if axis_values.dtype.kind == "S":
-        axis_values = numpy.char.decode(axis_values, "utf-8")
-
-    matches = numpy.flatnonzero(axis_values.astype(str) == str(value))
-
-    if len(matches) != 1:
+    if axis_values.dtype.kind not in "SUO":
         return None
 
-    return int(matches[0])
+    try:
+        value_as_str = str(value)
+    except (TypeError, ValueError):
+        return None
+
+    if axis_values.dtype.kind in "SO":
+        if axis_values.dtype.kind == "S":
+            axis_values = numpy.char.decode(axis_values, "utf-8")
+        else:
+            axis_values = axis_values.astype(str)
+
+    matches = numpy.flatnonzero(axis_values == value_as_str)
+
+    return int(matches[0]) if matches.size == 1 else None
 
 
 def is_valid_nxdata(group: h5py.Group) -> bool:  # noqa

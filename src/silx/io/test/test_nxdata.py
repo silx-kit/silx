@@ -335,6 +335,41 @@ class TestNXdata:
             assert not nxd.is_x_y_value_scatter
             assert nxd.interpretation == "image"
 
+    def testDefaultSliceSelection(self, tmp_path):
+        with h5py.File(tmp_path / "nxdata_default_slice.h5", "w") as h5f:
+            group = h5f.create_group("data")
+            group.attrs["NX_class"] = "NXdata"
+            group.attrs["signal"] = "signal"
+            group.attrs["axes"] = numpy.array(
+                ["z", "channel", "x"], dtype=text_dtype
+            )
+            group.attrs["default_slice"] = numpy.array(
+                [".", "difference", "."], dtype=text_dtype
+            )
+            group.create_dataset(
+                "signal", data=numpy.arange(2 * 3 * 4).reshape(2, 3, 4)
+            )
+            group.create_dataset("z", data=numpy.arange(2))
+            group.create_dataset(
+                "channel",
+                data=numpy.array(
+                    ["threshold_1", "threshold_2", "difference"],
+                    dtype=h5py.string_dtype("utf-8"),
+                ),
+            )
+            group.create_dataset("x", data=numpy.arange(4))
+
+            assert nxdata.is_valid_nxdata(group)
+
+            nxd = nxdata.NXdata(group)
+
+            assert nxd.get_default_slice_selection(expected_n_dims=2) == (
+                slice(None),
+                2,
+                slice(None),
+            )
+            assert nxd.get_default_slice_selection(expected_n_dims=1) is None
+
     @pytest.mark.parametrize("interpretation", ("rgb-image", "rgba-image"))
     @pytest.mark.parametrize("nchannels", (3, 4))
     def testRGBAImage(self, tmp_path, interpretation, nchannels):
