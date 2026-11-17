@@ -328,14 +328,22 @@ class TestDataView(TestCaseQt):
 
 
 @pytest.mark.usefixtures("use_opengl")
-def testCubeLoadConfirmation(qapp, qapp_utils, monkeypatch):
+def testCubeLoadConfirmation(qapp, qapp_utils):
     """Test that large volumes are loaded only once the overlay button is clicked"""
     pytest.importorskip("silx.gui.plot3d")
     from silx.gui.data._VolumeWindow import VolumeWindow
     from silx.gui.widgets.ButtonOverlay import ButtonOverlay
 
-    monkeypatch.setattr(VolumeWindow, "LOAD_CONFIRMATION_THRESHOLD", 4**3)
-    view = DataViews._Plot3dView(None)
+    class _VolumeWindowWithThreshold(VolumeWindow):
+        LOAD_CONFIRMATION_THRESHOLD = 4**3
+
+    class _Plot3dViewWithThreshold(DataViews._Plot3dView):
+        def createWidget(self, parent):
+            plot = _VolumeWindowWithThreshold(parent)
+            plot.setAxesLabels(*reversed(self.axesNames(None, None)))
+            return plot
+
+    view = _Plot3dViewWithThreshold(None)
     widget = view.getWidget()
     widget.setAttribute(qt.Qt.WA_DeleteOnClose)
     widget.show()
