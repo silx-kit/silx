@@ -1010,6 +1010,16 @@ def _get_default_slice_selection(
 
         axis = axes[dim] if axes is not None else None
 
+        if axis is not None and axis.ndim != 1:
+            nxdata_logger.warning(
+                "Cannot resolve @default_slice value %r on dimension %d: "
+                "axis has %d dimensions",
+                value,
+                dim,
+                axis.ndim,
+            )
+            return None
+
         index = _get_default_slice_index(value, axis)
 
         if index is None:
@@ -1056,7 +1066,7 @@ def _get_index_from_axis_index(
     except (TypeError, ValueError):
         return None
 
-    if axis is None or axis.ndim != 1:
+    if axis is None:
         return number
 
     return number % len(axis)  # map between [0, size[

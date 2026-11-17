@@ -101,6 +101,14 @@ def test_image_view_axis_permutation(qapp):
             None,
             id="not-two-slices",
         ),
+        pytest.param(
+            ["0", ".", "."],
+            [numpy.ones((2, 2)), None, None],
+            (10, 20, 30),
+            2,
+            None,
+            id="axis-ndim-2",
+        ),
     ],
 )
 def test_get_default_slice_selection(
