@@ -17,6 +17,8 @@ Custom plot selection
 How to access
 .............
 
+The window is hidden when *silx view* starts. To show it, select *Views* → *Plot selection* from the menu bar.
+
 .. grid :: 1 2 2 2
 
    .. grid-item-card::
@@ -53,11 +55,6 @@ Demo
    <video controls loop muted width="100%">
       <source src="../_static/silx-view-plotSelection-demo.webm" type="video/webm">
    </video>
-
-Show / hide the window
-......................
-
-The window is hidden when *silx view* starts. To show it, select *Views* → *Plot selection* from the menu bar.
 
 Select the datasets
 ...................
