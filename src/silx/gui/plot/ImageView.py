@@ -766,7 +766,9 @@ class ImageView(PlotWindow):
                     extent=(self._cache.dataYRange),
                 )
 
-    def getSideHistogramPlot(self, position: Literal["bottom", "right"]) -> PlotWidget:
+    def getSideHistogramPlot(
+        self, orientation: Literal["horizontal", "vertical"]
+    ) -> PlotWidget:
         """Return the plot widget displaying the side histogram.
 
         Warning: The side histograms are aligned with the image thanks to
@@ -774,11 +776,11 @@ class ImageView(PlotWindow):
         :meth:`PlotWidget.setAxesDisplayed` or :meth:`PlotWidget.setAxesMargins`)
         breaks this alignment.
 
-        :param position: 'bottom' for the horizontal histogram (below the image),
-            'right' for the vertical histogram (on the right of the image)
+        :param orientation: 'horizontal' for the horizontal histogram (below the image),
+            'vertical' for the vertical histogram (on the right of the image)
         """
-        assert position in ("bottom", "right")
-        if position == "bottom":
+        assert orientation in ("horizontal", "vertical")
+        if orientation == "horizontal":
             return self._histoHPlot
         else:
             return self._histoVPlot
