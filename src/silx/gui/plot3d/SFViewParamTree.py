@@ -775,7 +775,7 @@ class IsoSurfaceLevelItem(SubjectItem):
 
     def setEditorData(self, editor):
         editor.setValue(self._pullData())
-        return False
+        return True
 
     def _setModelData(self, editor):
         self._pushData(editor.value())
