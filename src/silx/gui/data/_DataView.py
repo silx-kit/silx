@@ -67,10 +67,6 @@ class DataViewPriority(enum.IntEnum):
 
 
 class _DeprecatedUnsupported:
-    """Descriptor for the deprecated :attr:`DataView.UNSUPPORTED`.
-
-    It works for both class and instance access.
-    """
 
     def __get__(self, obj, objtype=None) -> DataViewPriority:
         deprecated_warning(
