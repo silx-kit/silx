@@ -14,9 +14,7 @@ updates:
 
   # Python dependencies: pyproject.toml and ci/requirements-pinned.txt
   - package-ecosystem: "pip"
-    directories:
-      - "/"
-      - "/ci"
+    directory: "/"
     schedule:
       interval: "weekly"
 
