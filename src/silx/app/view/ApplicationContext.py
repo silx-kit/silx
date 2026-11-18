@@ -205,8 +205,6 @@ class ApplicationContext(DataViewHooks):
 
     def viewWidgetCreated(self, view, widget):
         """Initialize the axes visibility of the image views from the settings.
-
-        Override from DataViewHooks
         """
         if self.__settings is None:
             return
