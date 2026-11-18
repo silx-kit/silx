@@ -82,7 +82,7 @@ class MyColorView(DataView):
 
     def getDataPriority(self, data, info):
         if isinstance(data, Color):
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.SUITABLE
         return DataViewPriority.UNSUPPORTED
 
 

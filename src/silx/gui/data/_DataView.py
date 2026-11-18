@@ -23,46 +23,46 @@ class DataViewPriority(enum.IntEnum):
     LAST_RESORT = 1
     """The view can display the data, but only as a last resort"""
 
-    FALLBACK = 2
+    GENERIC = 2
     """Generic view able to display almost anything"""
 
-    POOR_FIT = 10
+    POOR = 10
     """The view can display the data, but it is poorly suited"""
 
-    LOW = 40
+    FAIR = 40
     """The view can display the data, but other views are better suited"""
 
-    BELOW_DEFAULT = 90
-    """Just below :attr:`DEFAULT`, to avoid being selected by default"""
+    SUITABLE_LOW = 90
+    """Just below :attr:`SUITABLE`, to avoid being selected by default"""
 
-    DEFAULT = 100
+    SUITABLE = 100
     """The view is suited to display the data"""
 
-    DEFAULT_PLUS = 110
-    """Slightly above :attr:`DEFAULT`"""
+    SUITABLE_HIGH = 110
+    """Slightly above :attr:`SUITABLE`"""
 
-    DEFAULT_PLUS_2 = 120
-    """Slightly above :attr:`DEFAULT_PLUS`"""
+    SUITABLE_HIGHEST = 120
+    """Slightly above :attr:`SUITABLE_HIGH`"""
 
-    ALMOST_GOOD = 190
+    GOOD_LOW = 190
     """Slightly below :attr:`GOOD`"""
 
     GOOD = 200
     """The view is well suited to display the data"""
 
-    GOOD_PLUS = 210
+    GOOD_HIGH = 210
     """Slightly above :attr:`GOOD`"""
 
-    TABLE = 500
-    """Table views of arrays and records"""
+    PREFERRED = 500
+    """The view is preferred over the other views (e.g. table views of arrays and records)"""
 
-    TABLE_PLUS = 510
-    """Slightly above :attr:`TABLE`"""
+    PREFERRED_HIGH = 510
+    """Slightly above :attr:`PREFERRED`"""
 
-    INTERPRETATION = 1000
+    INTERPRETATION_MATCH = 1000
     """The data's ``interpretation`` matches the view"""
 
-    SPECIFIC = 2000
+    DEDICATED = 2000
     """The view is the only sensible one for this data"""
 
 

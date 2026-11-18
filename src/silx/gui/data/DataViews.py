@@ -486,13 +486,13 @@ class _Plot1dView(DataView):
         if info.dim < 1:
             return DataViewPriority.UNSUPPORTED
         if info.interpretation == "spectrum":
-            return DataViewPriority.INTERPRETATION
+            return DataViewPriority.INTERPRETATION_MATCH
         if info.dim == 2 and info.shape[0] == 1:
-            return DataViewPriority.GOOD_PLUS
+            return DataViewPriority.GOOD_HIGH
         if info.dim == 1:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.SUITABLE
         else:
-            return DataViewPriority.POOR_FIT
+            return DataViewPriority.POOR
 
 
 class _Plot2dRecordView(DataView):
@@ -594,13 +594,13 @@ class _Plot2dRecordView(DataView):
         if info.countNumericColumns < 2:
             return DataViewPriority.UNSUPPORTED
         if info.interpretation == "spectrum":
-            return DataViewPriority.INTERPRETATION
+            return DataViewPriority.INTERPRETATION_MATCH
         if info.dim == 2 and info.shape[0] == 1:
-            return DataViewPriority.GOOD_PLUS
+            return DataViewPriority.GOOD_HIGH
         if info.dim == 1:
-            return DataViewPriority.LOW
+            return DataViewPriority.FAIR
         else:
-            return DataViewPriority.POOR_FIT
+            return DataViewPriority.POOR
 
 
 class _Plot2dView(DataView):
@@ -684,11 +684,11 @@ class _Plot2dView(DataView):
         if info.dim < 2:
             return DataViewPriority.UNSUPPORTED
         if info.interpretation == "image":
-            return DataViewPriority.INTERPRETATION
+            return DataViewPriority.INTERPRETATION_MATCH
         if info.dim == 2:
             return DataViewPriority.GOOD
         else:
-            return DataViewPriority.ALMOST_GOOD
+            return DataViewPriority.GOOD_LOW
 
 
 class _Plot3dView(DataView):
@@ -738,9 +738,9 @@ class _Plot3dView(DataView):
         if min(data.shape) < 2:
             return DataViewPriority.UNSUPPORTED
         if info.dim == 3:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.SUITABLE
         else:
-            return DataViewPriority.POOR_FIT
+            return DataViewPriority.POOR
 
 
 class _ComplexImageView(DataView):
@@ -806,11 +806,11 @@ class _ComplexImageView(DataView):
         if info.dim < 2:
             return DataViewPriority.UNSUPPORTED
         if info.interpretation == "image":
-            return DataViewPriority.INTERPRETATION
+            return DataViewPriority.INTERPRETATION_MATCH
         if info.dim == 2:
             return DataViewPriority.GOOD
         else:
-            return DataViewPriority.ALMOST_GOOD
+            return DataViewPriority.GOOD_LOW
 
 
 class _ArrayView(DataView):
@@ -843,7 +843,7 @@ class _ArrayView(DataView):
             return DataViewPriority.UNSUPPORTED
         if info.dim < 2:
             return DataViewPriority.UNSUPPORTED
-        return DataViewPriority.TABLE
+        return DataViewPriority.PREFERRED
 
 
 class _ScalarView(DataView):
@@ -886,7 +886,7 @@ class _ScalarView(DataView):
             return DataViewPriority.UNSUPPORTED
         if silx.io.is_group(data):
             return DataViewPriority.UNSUPPORTED
-        return DataViewPriority.FALLBACK
+        return DataViewPriority.GENERIC
 
 
 class _RecordView(DataView):
@@ -920,15 +920,15 @@ class _RecordView(DataView):
         if info.size <= 0:
             return DataViewPriority.UNSUPPORTED
         if info.isRecord:
-            return DataViewPriority.LOW
+            return DataViewPriority.FAIR
         if data is None or not info.isArray:
             return DataViewPriority.UNSUPPORTED
         if info.dim == 1:
             if info.shape[0] == 1:
-                return DataViewPriority.TABLE_PLUS
-            return DataViewPriority.TABLE
+                return DataViewPriority.PREFERRED_HIGH
+            return DataViewPriority.PREFERRED
         elif info.isRecord:
-            return DataViewPriority.LOW
+            return DataViewPriority.FAIR
         return DataViewPriority.UNSUPPORTED
 
 
@@ -959,7 +959,7 @@ class _HexaView(DataView):
         if info.size <= 0:
             return DataViewPriority.UNSUPPORTED
         if info.isVoid:
-            return DataViewPriority.SPECIFIC
+            return DataViewPriority.DEDICATED
         return DataViewPriority.UNSUPPORTED
 
 
@@ -1086,7 +1086,7 @@ class _InvalidNXdataView(DataView):
                 else:
                     self._msg += " but the corresponding NXdata seems to be"
                     self._msg += " malformed."
-        return DataViewPriority.DEFAULT
+        return DataViewPriority.SUITABLE
 
 
 class _NXdataBaseDataView(DataView):
@@ -1149,7 +1149,7 @@ class _NXdataScalarView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if nxd.signal.ndim == 0:
-            return DataViewPriority.DEFAULT
+            return DataViewPriority.SUITABLE
         return DataViewPriority.UNSUPPORTED
 
 
@@ -1212,7 +1212,7 @@ class _NXdataCurveView(_NXdataBaseDataView):
         if nxd.signal.ndim >= 1:
             if nxd.interpretation == "spectrum":
                 return DataViewPriority.GOOD
-            return DataViewPriority.DEFAULT_PLUS
+            return DataViewPriority.SUITABLE_HIGH
         else:
             return DataViewPriority.UNSUPPORTED
 
@@ -1342,7 +1342,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return (
                 DataViewPriority.GOOD
                 if nxd.interpretation == "image"
-                else DataViewPriority.DEFAULT_PLUS_2
+                else DataViewPriority.SUITABLE_HIGHEST
             )
         else:
             return DataViewPriority.UNSUPPORTED
@@ -1448,7 +1448,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         if nxd.signal.ndim >= 2 and numpy.iscomplexobj(nxd.signal):
             if nxd.interpretation == "image":
                 return DataViewPriority.GOOD
-            return DataViewPriority.DEFAULT_PLUS_2
+            return DataViewPriority.SUITABLE_HIGHEST
         else:
             return DataViewPriority.UNSUPPORTED
 
@@ -1501,7 +1501,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
         if nxd.signal.ndim >= 3:
-            return DataViewPriority.BELOW_DEFAULT
+            return DataViewPriority.SUITABLE_LOW
         else:
             return DataViewPriority.UNSUPPORTED
 
