@@ -31,6 +31,7 @@ import logging
 from collections.abc import Sequence
 
 import silx
+from silx.gui.data import DataViews
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
@@ -47,6 +48,7 @@ class ApplicationContext(DataViewHooks):
 
     - Create a single colormap shared with all the views
     - Create a single colormap dialog shared with all the views
+    - Persist the application settings
     """
 
     def __init__(self, parent, settings=None):
@@ -200,6 +202,33 @@ class ApplicationContext(DataViewHooks):
             dialog.setModal(False)
             self.__defaultColormapDialog = dialog
         return self.__defaultColormapDialog
+
+    def viewWidgetCreated(self, view, widget):
+        """Initialize the axes visibility of the image views from the settings.
+
+        Override from DataViewHooks
+        """
+        if self.__settings is None:
+            return
+        modeId = view.modeId()
+        if modeId == DataViews.PLOT2D_MODE:
+            plot = widget
+        elif modeId in (
+            DataViews.COMPLEX_PLOT2D_MODE,
+            DataViews.NXDATA_IMAGE_MODE,
+            DataViews.NXDATA_RGBA_IMAGE_MODE,
+        ):
+            plot = widget.getPlot()
+        else:
+            return
+        displayed = self.__settings.value("plot/axes-displayed", True, bool)
+        plot.setAxesDisplayed(displayed)
+        plot.getShowAxisAction().triggered.connect(self.__showAxisActionTriggered)
+
+    def __showAxisActionTriggered(self, checked: bool):
+        """Store the last axes visibility selected by the user"""
+        if self.__settings is not None:
+            self.__settings.setValue("plot/axes-displayed", checked)
 
     @staticmethod
     def getDefaultPlotBackend() -> str:
