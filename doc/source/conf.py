@@ -85,6 +85,9 @@ if importlib.util.find_spec("sphinx_autodoc_typehints"):
 
 autodoc_member_order = "bysource"
 
+# Silence sphinx-design (>=0.8) deprecation warning for '^^^'/'+++' card separators
+suppress_warnings = ["design.card_legacy"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
