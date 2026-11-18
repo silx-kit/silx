@@ -4,11 +4,6 @@
 :mod:`plot`: 1D and 2D Plot widgets
 ===================================
 
-.. toctree::
-   :hidden:
-
-   getting_started.rst
-
 .. currentmodule:: silx.gui.plot
 
 .. automodule:: silx.gui.plot
