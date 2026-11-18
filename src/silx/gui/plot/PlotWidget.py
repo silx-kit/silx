@@ -344,13 +344,6 @@ class PlotWidget(qt.QMainWindow):
     It provides the source as passed to :meth:`setInteractiveMode`.
     """
 
-    # sigDynamicColormapModeChanged = qt.Signal(object)
-    # """
-    # Signal emitted when the dynamic colormap changed
-
-    # It provides the source as passed to :meth:`setInteractiveMode`.
-    # """
-
     sigItemAdded = qt.Signal(items.Item)
     """Signal emitted when an item was just added to the plot
 
@@ -3771,7 +3764,7 @@ class PlotWidget(qt.QMainWindow):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
-        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom', 'dynamic_colormap'.
+        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
@@ -3799,7 +3792,7 @@ class PlotWidget(qt.QMainWindow):
         """Switch the interactive mode.
 
         :param mode: The name of the interactive mode.
-                     In 'draw', 'pan', 'select', 'select-draw', 'zoom', 'dynamic_colormap'.
+                     In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
         :type color: Color description: The name as a str or
@@ -3823,7 +3816,7 @@ class PlotWidget(qt.QMainWindow):
         finally:
             self.__isInteractionSignalForwarded = True
 
-        if mode in ["pan", "zoom", "dynamic_colormap"]:
+        if mode in ["pan", "zoom"]:
             self._previousDefaultMode = mode, zoomOnWheel
 
         self.notify("interactiveModeChanged", source=source)
@@ -3889,12 +3882,6 @@ class PlotWidget(qt.QMainWindow):
             # that even if mouse didn't move on the screen, it moved relative
             # to the plotted data.
             self.__simulateMouseMove()
-        elif key == qt.Qt.Key_W:
-            self.setInteractiveMode("dynamic_colormap")
-        elif key == qt.Qt.Key_P:
-            self.setInteractiveMode("pan")
-        elif key == qt.Qt.Key_Z:
-            self.setInteractiveMode("zoom")
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
