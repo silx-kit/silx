@@ -3,7 +3,7 @@ appdirs==1.4.4
 attrs==21.2.0
 backcall==0.2.0
 certifi==2026.10.23
-charset-normalizer==2.0.6
+charset-normalizer==3.5.2
 contourpy==1.0.1
 coverage==6.2
 cycler==0.11.0
