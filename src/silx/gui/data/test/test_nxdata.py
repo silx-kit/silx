@@ -130,9 +130,7 @@ def test_image_view_axis_permutation(qapp):
 def test_get_default_slice_selection(
     default_slice, axes, shape, expected_n_dims, expected
 ):
-    result = _get_default_slice_selection(
-        default_slice, axes, shape, expected_n_dims
-    )
+    result = _get_default_slice_selection(default_slice, axes, shape, expected_n_dims)
     assert result == expected
 
 

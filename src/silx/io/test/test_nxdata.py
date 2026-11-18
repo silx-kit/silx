@@ -340,9 +340,7 @@ class TestNXdata:
             group = h5f.create_group("data")
             group.attrs["NX_class"] = "NXdata"
             group.attrs["signal"] = "signal"
-            group.attrs["axes"] = numpy.array(
-                ["z", "channel", "x"], dtype=text_dtype
-            )
+            group.attrs["axes"] = numpy.array(["z", "channel", "x"], dtype=text_dtype)
             group.attrs["default_slice"] = numpy.array(
                 [".", "difference", "."], dtype=text_dtype
             )

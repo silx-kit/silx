@@ -905,4 +905,3 @@ class ArrayVolumePlot(qt.QWidget):
         self._axesSelector.clear()
         self._axesSelector.blockSignals(old)
         self.getVolumeView().clear()
-
