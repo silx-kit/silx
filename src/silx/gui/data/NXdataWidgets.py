@@ -276,6 +276,7 @@ class ArrayImagePlot(BaseImagePlot):
         axes_names: list[str] | None = None,
         axes_scales: list[AxisScaleType | None] | None = None,
         title: str | None = None,
+        selection: tuple[int | slice, ...] | None = None,
     ):
         """
         Sets signals, axes and axes metadata that will be used to set the displayed image.
@@ -286,7 +287,7 @@ class ArrayImagePlot(BaseImagePlot):
         :param axes_names: Names for each axis, used as graph label.
         :param axes_scales: Scale of axes
         :param title: Graph title
-        :param isRgba: True if data is a 3D RGBA image
+        :param selection: Initial selection of the dimensions.
         """
         if len(signals) == 0:
             raise ValueError("Cannot set image data from empty signals")
@@ -305,6 +306,9 @@ class ArrayImagePlot(BaseImagePlot):
             if self._axesNames:
                 self._axesSelector.setLabels(self._axesNames)
             self._axesSelector.setData(signals[0])
+
+            if selection is not None:
+                self._axesSelector.setSelection(selection)
 
             if len(signals[0].shape) <= 2:
                 self._axesSelector.hide()

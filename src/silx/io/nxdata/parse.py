@@ -18,7 +18,7 @@ Other public functions:
 """
 
 import json
-from typing import Any, get_args
+from typing import Any, Sequence, get_args
 
 import h5py
 import numpy
@@ -785,6 +785,32 @@ class NXdata:
 
         return self._plot_style
 
+    def get_default_slice_selection(
+        self, expected_n_dims: int
+    ) -> tuple[int | slice, ...] | None:
+        """Selection defined by the @default_slice attribute.
+
+        See:
+        https://manual.nexusformat.org/classes/base_classes/NXdata.html#nxdata-default-slice-attribute
+
+        :param int expected_n_dims:
+            Number of dimensions that must remain unsliced.
+        :return: A selection tuple with one element per signal dimension,
+            ``slice(None)`` meaning "select all". Return None if the
+            @default_slice is absent, invalid or inconsistent with
+            ``expected_n_dims``.
+        :raises: InvalidNXdataError
+        """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
+        return _get_default_slice_selection(
+            self.group.attrs.get("default_slice"),
+            self.axes,
+            self.signal.shape,
+            expected_n_dims,
+        )
+
     def __is_scatter(self) -> bool:
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
@@ -942,6 +968,134 @@ class NXdata:
             if axis is not None and len(axis) not in [volume_shape[i], 2]:
                 return False
         return True
+
+
+def _get_default_slice_selection(
+    default_slice: Sequence[str | bytes | int] | None,
+    axes: Sequence[h5py.Dataset | numpy.ndarray | None] | None,
+    shape: Sequence[int],
+    expected_n_dims: int,
+) -> tuple[int | slice, ...] | None:
+    """Convert an NXdata @default_slice attribute to a selection tuple.
+
+    See:
+    https://manual.nexusformat.org/classes/base_classes/NXdata.html#nxdata-default-slice-attribute
+
+    :param default_slice: Value of the @default_slice attribute.
+    :param axes: Axes datasets, one per signal dimension. They can be None.
+    :param shape: Signal shape.
+    :param expected_n_dims: Number of dimensions that must remain unsliced.
+    :return: A selection tuple with one element per signal dimension,
+        ``slice(None)`` meaning "select all". Return None if the
+        @default_slice is absent, invalid or inconsistent with
+        ``expected_n_dims``.
+    """
+    if default_slice is None:
+        return None
+
+    default_slice = numpy.asarray(default_slice)
+
+    if default_slice.ndim != 1 or len(default_slice) != len(shape):
+        nxdata_logger.warning("Ignoring invalid NXdata @default_slice")
+        return None
+
+    selection = []
+    for dim, value in enumerate(default_slice):
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
+
+        if isinstance(value, str) and value == ".":
+            selection.append(slice(None))
+            continue
+
+        axis = axes[dim] if axes is not None else None
+
+        if axis is not None and axis.ndim != 1:
+            nxdata_logger.warning(
+                "Cannot resolve @default_slice value %r on dimension %d: "
+                "axis has %d dimensions",
+                value,
+                dim,
+                axis.ndim,
+            )
+            return None
+
+        index = _get_default_slice_index(value, axis, shape[dim])
+
+        if index is None:
+            nxdata_logger.warning(
+                "Cannot resolve @default_slice value %r on dimension %d",
+                value,
+                dim,
+            )
+            return None
+
+        selection.append(index)
+
+    n_unsliced_dims = sum(isinstance(item, slice) for item in selection)
+    if n_unsliced_dims != expected_n_dims:
+        nxdata_logger.warning(
+            "Ignoring @default_slice: exactly %d dimensions must remain "
+            "unsliced instead of %d",
+            expected_n_dims,
+            n_unsliced_dims,
+        )
+        return None
+
+    return tuple(selection)
+
+
+def _get_default_slice_index(
+    value: object,
+    axis: h5py.Dataset | numpy.ndarray | None,
+    dim_size: int,
+) -> int | None:
+    """Convert an NXdata @default_slice value into a dimension index."""
+    index = _get_index_from_axis_index(value, dim_size)
+    if index is None:
+        index = _get_index_from_axis_string(value, axis)
+    return index
+
+
+def _get_index_from_axis_index(value: object, dim_size: int) -> int | None:
+    """Try default_slice value representing an axis index."""
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return None
+
+    if not 0 <= number < dim_size:
+        return None
+
+    return number
+
+
+def _get_index_from_axis_string(
+    value: object,
+    axis: h5py.Dataset | numpy.ndarray | None,
+) -> int | None:
+    """Try to interpret a @default_slice value as an axis value label."""
+    if axis is None or axis.ndim != 1:
+        return None
+
+    axis_values = numpy.asarray(axis)
+
+    if axis_values.dtype.kind not in "SUO":
+        return None
+
+    try:
+        value_as_str = str(value)
+    except (TypeError, ValueError):
+        return None
+
+    if axis_values.dtype.kind == "S":
+        axis_values = numpy.char.decode(axis_values, "utf-8")
+    elif axis_values.dtype.kind == "O":
+        axis_values = axis_values.astype(str)
+
+    matches = numpy.flatnonzero(axis_values == value_as_str)
+
+    return int(matches[0]) if matches.size == 1 else None
 
 
 def is_valid_nxdata(group: h5py.Group) -> bool:  # noqa
