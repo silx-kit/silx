@@ -4,11 +4,6 @@
 :mod:`hdf5`: HDF5 widgets
 =========================
 
-.. toctree::
-   :hidden:
-
-   getting_started.rst
-
 .. currentmodule:: silx.gui.hdf5
 
 .. automodule:: silx.gui.hdf5
