@@ -14,8 +14,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -60,8 +60,8 @@ jobs:
             numpy_version: "numpy<2"
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
@@ -101,8 +101,8 @@ jobs:
     name: "Python 3.10 on manylinux x86_64 PyQt5 with oldest dependencies"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: pypa/cibuildwheel@b9e566a2b284570af229f6c2a33673410d0389a3  # v4.3.4
+      - uses: actions/checkout@v7
+      - uses: pypa/cibuildwheel@f9b966cfadf4109556cadc5bb39ddb72d0ce664e  # v4.3.5
         env:
           CIBW_BUILD: cp310-manylinux_x86_64
           CIBW_BUILD_VERBOSITY: 1
