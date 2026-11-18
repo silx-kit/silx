@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # GitHub Actions used in .github/workflows and local composite actions
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/*"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Python dependencies: pyproject.toml and ci/requirements-pinned.txt
+  - package-ecosystem: "pip"
+    directories:
+      - "/"
+      - "/ci"
+    schedule:
+      interval: "weekly"
+
+  # ci/oldest/requirements.txt pins the oldest supported dependencies on purpose:
+  # only keep up-to-date the packages used to download packages/data during
+  # the oldest-dependencies CI job (pooch -> requests and its dependencies).
+  # It is in its own directory since Dependabot options apply per directory.
+  - package-ecosystem: "pip"
+    directory: "/ci/oldest"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "certifi"
+      - dependency-name: "charset-normalizer"
+      - dependency-name: "idna"
+      - dependency-name: "requests"
+      - dependency-name: "urllib3"
+    groups:
+      oldest-requirements-network:
+        patterns:
+          - "*"
