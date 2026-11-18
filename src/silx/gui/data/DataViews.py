@@ -774,6 +774,7 @@ class _ComplexImageView(DataView):
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
+        widget.getPlot().toolBar().addAction(widget.getPlot().getShowAxisAction())
         widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel("X")
