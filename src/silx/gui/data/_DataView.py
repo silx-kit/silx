@@ -103,12 +103,6 @@ class DataView:
     """Holder for the data view."""
 
     UNSUPPORTED = _DeprecatedUnsupported()
-    """Priority returned when the requested data can't be displayed by the
-    view.
-
-    .. deprecated:: 3.2.0
-        Use :attr:`DataViewPriority.UNSUPPORTED` instead.
-    """
 
     TITLE_PATTERN = "{datapath}{slicing} {permuted}"
     """Pattern used to format the title of the plot.
