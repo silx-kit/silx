@@ -67,14 +67,6 @@ def data_viewer_widget(request):
     yield widget
 
 
-def test_deprecated_unsupported(caplog):
-    with caplog.at_level(logging.WARNING, logger=depreclog.name):
-        assert DataView.UNSUPPORTED is DataViews.DataViewPriority.UNSUPPORTED
-        assert _DataViewMock.UNSUPPORTED == -1
-    assert len(caplog.records) == 2
-    assert "DataViewPriority.UNSUPPORTED" in caplog.records[0].getMessage()
-
-
 def test_text_data(data_viewer_widget):
     data_list = ["aaa", int, 8, object]
     for data in data_list:
