@@ -20,7 +20,7 @@ Agent skills (`bootstrap`, `issue`, `prepare-fix`, `test`) live in `.agents/skil
   - `python run_tests.py` builds then runs the suite; options `--no-gui`, `--no-opencl`, `--no-opengl`, `--high-mem`, `--qt-binding=<PySide6|PyQt5|PyQt6>`, `-i` (test the installed package).
   - Single test on an installed/editable package: `pytest src/silx/io/test/test_url.py::test_name`.
   - Tests are placed in a `test/` subfolder next to the code, in `test_<module>.py`. GUI tests need a display (pytest-xvfb); OpenCL/GL/high-mem tests are skipped via options in `src/silx/conftest.py`.
-- Lint/format (CI runs both): `ruff check .` and `ruff format --check .` (rules E, F; E402/E501 ignored). Unlike elsewhere, formatting **is** enforced.
+- Lint/format (CI runs both): `ruff check .` and `ruff format --check .` (rules in `pyproject.toml`). Unlike elsewhere, formatting **is** enforced.
 - Docs: `sphinx-build doc/source/ build/html`.
 - Changelog: `CHANGELOG.rst` (root), one bullet per change in the section under development, in the form ``* `silx.module`: Description (`Issue #N <https://github.com/silx-kit/silx/issues/N>`_)``.
 
