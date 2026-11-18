@@ -1088,11 +1088,10 @@ def _get_index_from_axis_string(
     except (TypeError, ValueError):
         return None
 
-    if axis_values.dtype.kind in "SO":
-        if axis_values.dtype.kind == "S":
-            axis_values = numpy.char.decode(axis_values, "utf-8")
-        else:
-            axis_values = axis_values.astype(str)
+    if axis_values.dtype.kind == "S":
+        axis_values = numpy.char.decode(axis_values, "utf-8")
+    elif axis_values.dtype.kind == "O":
+        axis_values = axis_values.astype(str)
 
     matches = numpy.flatnonzero(axis_values == value_as_str)
 
