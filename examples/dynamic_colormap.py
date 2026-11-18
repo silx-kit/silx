@@ -21,38 +21,41 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This script shows how to dyamically adjust the colormap to a small region 
-around the cursor position. The DynamicColormapMode can be activated either by
-the icon in the widget toolbar or by simply pressing the w-key.
-The image has 4 regions with different contrasts (but same levels =0). When activated, the 
-DynamicColormap mode will adjust the colormap to enhance the contrast in the 
-region close to the cursor.
-More precissely: it computes the min and max in the region surrounded by the blue 
-rectangle and applies these values to the current colormap.
+"""This script shows how to add a :class:`DynamicColormapAction` to a plot.
 
-The pan and zoom modes (the two other interaction modes) can be activated either 
-by their respective icon or by pressing the P- and Z-key respectively.
+When the action is checked (toolbar button or W key), moving the mouse over
+the image adjusts the colormap range to the data in a small region around the
+cursor. The region is displayed as a dashed rectangle.
+
+The image is made of 4 quadrants of noise with different amplitudes, and it
+has a non-default origin and scale.
 """
 
 import numpy
+
 from silx.gui import qt
 from silx.gui.plot import Plot2D
+from silx.gui.plot.actions.image import DynamicColormapAction
 
 
 def main():
     app = qt.QApplication([])
 
-    # Create the ad hoc plot widget and change its default colormap
-    x = numpy.zeros((100, 100),dtype=numpy.float32)
-    x[:50,:50] = numpy.random.randn(50,50)
-    x[:50,50:] = 10 * numpy.random.randn(50,50)
-    x[50:,:50] = 100 * numpy.random.randn(50,50)
-    x[50:,50:] = 5 * numpy.random.randn(50,50)
+    image = numpy.zeros((100, 100), dtype=numpy.float32)
+    image[:50, :50] = numpy.random.randn(50, 50)
+    image[:50, 50:] = 10 * numpy.random.randn(50, 50)
+    image[50:, :50] = 100 * numpy.random.randn(50, 50)
+    image[50:, 50:] = 5 * numpy.random.randn(50, 50)
 
-    example = Plot2D()
-    example.addImage(x)
-    example.show()
+    plot = Plot2D()
+    plot.addImage(image, origin=(-50.0, 20.0), scale=(0.5, 2.0))
 
+    action = DynamicColormapAction(plot, parent=plot)
+    action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+    plot.toolBar().addAction(action)
+    plot.addAction(action)  # To enable the shortcut
+
+    plot.show()
     app.exec()
 
 
