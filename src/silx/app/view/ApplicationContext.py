@@ -204,8 +204,7 @@ class ApplicationContext(DataViewHooks):
         return self.__defaultColormapDialog
 
     def viewWidgetCreated(self, view, widget):
-        """Initialize the axes visibility of the image views from the settings.
-        """
+        """Initialize the axes visibility of the image views from the settings."""
         if self.__settings is None:
             return
         modeId = view.modeId()
