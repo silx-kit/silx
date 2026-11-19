@@ -1206,6 +1206,7 @@ class _NXdataCurveView(_NXdataBaseDataView):
             axes_names=nxd.axes_names,
             axes_errors=axes_errors,
             title=nxd.title or nxd.signal_name,
+            selection=nxd.get_default_slice_selection(expected_n_dims=1),
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:
@@ -1432,6 +1433,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
             signalsNames=[nxd.signal_name] + nxd.auxiliary_signals_names,
             axesNames=nxd.axes_names,
             title=nxd.title,
+            selection=nxd.get_default_slice_selection(expected_n_dims=2),
         )
 
     def axesNames(self, data, info):
@@ -1491,6 +1493,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
             axes=nxd.axes,
             axes_names=nxd.axes_names,
             title=nxd.title or nxd.signal_name,
+            selection=nxd.get_default_slice_selection(expected_n_dims=3),
         )
 
     def _getNXDataPriority(self, nxd: NXdata) -> int:

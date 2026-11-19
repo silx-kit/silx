@@ -4,6 +4,7 @@ Release Notes
 3.2.0: ????/??/??
 -----------------
 
+* `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 

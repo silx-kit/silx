@@ -2,6 +2,10 @@ import numpy
 import pytest
 
 from silx.io.nxdata.parse import _get_default_slice_selection
+from .._NxComplexImagePlot import NxComplexImagePlot
+from .._NxCurvePlot import NxCurvePlot
+from .._NxVolumePlot import NxVolumePlot
+
 
 from .. import NXdataWidgets
 
@@ -157,3 +161,47 @@ def test_image_view_default_slice(qapp):
 
     actual_image = widget._getImageToDisplay()
     numpy.testing.assert_array_equal(actual_image, data[selection])
+
+
+def test_complex_image_view_default_slice(qapp):
+    data = (numpy.arange(3 * 4 * 5) * (1 + 1j)).reshape(3, 4, 5)
+    selection = slice(None), 2, slice(None)
+
+    widget = NxComplexImagePlot()
+    widget.setImageData(
+        signals=[data],
+        signalsNames=["signal"],
+        axesNames=["z", "y", "x"],
+        selection=selection,
+    )
+
+    assert widget._axesSelector.selection() == selection
+    numpy.testing.assert_array_equal(
+        widget._imageItem.getComplexData(), data[selection]
+    )
+
+
+def test_curve_view_default_slice(qapp):
+    data = numpy.arange(3 * 4).reshape(3, 4).astype(float)
+    selection = 1, slice(None)
+
+    widget = NxCurvePlot()
+    widget.setCurvesData(signals=[data], signal_names=["signal"], selection=selection)
+
+    assert widget._axesSelector.selection() == selection
+    curve = widget._plot.getActiveCurve()
+    numpy.testing.assert_array_equal(curve.getYData(), data[selection])
+
+
+@pytest.mark.usefixtures("use_opengl")
+def test_volume_view_default_slice(qapp):
+    data = numpy.arange(2 * 3 * 4 * 5, dtype=numpy.float32).reshape(2, 3, 4, 5)
+    selection = 1, slice(None), slice(None), slice(None)
+
+    widget = NxVolumePlot()
+    widget.setVolumeData(signal=data, selection=selection)
+
+    assert widget._axesSelector.selection() == selection
+
+    (volume,) = widget._view.getSceneWidget().getItems()
+    numpy.testing.assert_array_equal(volume.getData(copy=False), data[selection])

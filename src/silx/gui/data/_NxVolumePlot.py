@@ -62,6 +62,7 @@ class NxVolumePlot(qt.QWidget):
         axes: Sequence[numpy.ndarray | None] | None = None,
         axes_names: Sequence[str | None] | None = None,
         title: str | None = None,
+        selection: tuple[int | slice, ...] | None = None,
     ):
         self.__signal = signal
         if axes:
@@ -82,6 +83,8 @@ class NxVolumePlot(qt.QWidget):
             if self.__axes_names:
                 self._axesSelector.setLabels(self.__axes_names)
             self._axesSelector.setData(signal)
+            if selection is not None:
+                self._axesSelector.setSelection(selection)
             self._axesSelector.setVisible(signal.ndim > 3)
 
         if title:

@@ -53,6 +53,7 @@ class NxCurvePlot(qt.QWidget):
         axes_errors: Sequence[numpy.ndarray | None] | None = None,
         axes_scales: Sequence[types.AxisScaleType | None] | None = None,
         title: str | None = None,
+        selection: tuple[int | slice, ...] | None = None,
     ) -> None:
         # Clear everything to avoid stale data if one of the operations below raises an error
         self.__signals.clear()
@@ -96,6 +97,9 @@ class NxCurvePlot(qt.QWidget):
             if axes_names:
                 self._axesSelector.setLabels(axes_names)
             self._axesSelector.setData(signals[0])
+
+            if selection is not None:
+                self._axesSelector.setSelection(selection)
 
             if len(signals[0].shape) < 2:
                 self._axesSelector.hide()
