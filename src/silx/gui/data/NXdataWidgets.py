@@ -47,7 +47,6 @@ from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibra
 
 from ._utils import getAxesCalib, setImageCoords
 from ..plot.items.types import AxisScaleType
-from ..utils import blockSignals
 from ...utils.deprecation import deprecated, deprecated_warning
 from .ArrayCurvePlot import ArrayCurvePlot as _ArrayCurvePlot
 
@@ -289,41 +288,15 @@ class ArrayImagePlot(BaseImagePlot):
         :param title: Graph title
         :param selection: Initial selection of the dimensions.
         """
-        if len(signals) == 0:
-            raise ValueError("Cannot set image data from empty signals")
-        self._signals = signals
-        self._axes = axes
-        self._axesNames = axes_names
         self._axesScales = axes_scales
-        self._title = title
-
-        with blockSignals(self._axesSelector, self._signalSelector):
-            self._axesSelector.clear()
-            self._axesSelector.setAxisNames(["Y", "X"])
-            self._axesSelector.setNamedAxesSelectorVisibility(True)
-
-            # Labels need to be set before the data
-            if self._axesNames:
-                self._axesSelector.setLabels(self._axesNames)
-            self._axesSelector.setData(signals[0])
-
-            if selection is not None:
-                self._axesSelector.setSelection(selection)
-
-            if len(signals[0].shape) <= 2:
-                self._axesSelector.hide()
-            else:
-                self._axesSelector.show()
-
-            self._signalSelector.setSignalNames(signals_names)
-            if len(signals) > 1:
-                self._signalSelector.show()
-            else:
-                self._signalSelector.hide()
-            self._signalSelector.setSignalIndex(0)
-
-        self._updateImageAxes(initialize_aspect_ratio=True)
-        self._plot.resetZoom()
+        super().setImageData(
+            signals,
+            axes=axes,
+            signalsNames=signals_names,
+            axesNames=axes_names,
+            title=title,
+            selection=selection,
+        )
 
     def _addItemToPlot(self, xAxis, yAxis):
         """Updates the image axes. Called when the user selects a different axis than the displayed one."""
