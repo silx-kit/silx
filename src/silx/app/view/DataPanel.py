@@ -104,6 +104,8 @@ class DataPanel(qt.QWidget):
 
         self.__dataViewer = DataViewerFrame(self)
         self.__dataViewer.setGlobalHooks(context)
+        if context is not None:
+            self.__dataViewer.dataChanged.connect(context.dataChanged)
 
         layout = qt.QVBoxLayout(self)
         layout.setSpacing(0)
