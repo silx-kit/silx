@@ -559,9 +559,10 @@ class Hdf5Item(Hdf5Node):
             sequence = self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(
                 self.nexusClassName, defaultSequence
             )
+
+            children = self._getChildren()
             for kind, child_name in sequence:
-                for index in range(self.childCount()):
-                    child = self.child(index)
+                for child in children:
                     if (
                         isinstance(child, Hdf5Item)
                         and child.h5Class == silx.io.utils.H5Type.DATASET
