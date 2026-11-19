@@ -1651,7 +1651,45 @@ _DRAW_MODES = {
 }
 
 
-class DrawMode(FocusManager):
+class _FocusManagerWithMiddlePan(FocusManager):
+    """FocusManager providing pan with the middle mouse button.
+
+    Middle button events are handled before dispatching events to the
+    event handlers, so that panning is available at any time,
+    including while a drawing is in progress (e.g., between the clicks
+    defining the 2 points of a line).
+    """
+
+    def __init__(self, plot, eventHandlers=()):
+        super().__init__(eventHandlers)
+        self._pan = Pan(plot)
+        self._isPanning = False
+
+    def handleEvent(self, eventName, *args, **kwargs):
+        if eventName == "press" and args[2] == MIDDLE_BTN:
+            if not self._isPanning:
+                self._isPanning = True
+                self._pan.beginDrag(*args)
+            return  # Consume middle click events
+        if eventName == "release" and args[2] == MIDDLE_BTN:
+            if self._isPanning:
+                self._isPanning = False
+                self._pan.endDrag(None, args[:2], MIDDLE_BTN)
+            return  # Consume middle click events
+        if eventName == "move" and self._isPanning:
+            x, y = args[:2]
+            self._pan.drag(x, y, MIDDLE_BTN)
+
+        return super().handleEvent(eventName, *args, **kwargs)
+
+    def cancel(self):
+        if self._isPanning:
+            self._isPanning = False
+            self._pan.cancel()
+        super().cancel()
+
+
+class DrawMode(_FocusManagerWithMiddlePan):
     """Interactive mode for draw and select"""
 
     def __init__(self, plot, shape, label, color, width):
@@ -1662,27 +1700,20 @@ class DrawMode(FocusManager):
             "color": color,
             "width": width,
         }
-        super().__init__(
-            (
-                Pan(plot, clickButtons=(), dragButtons=(MIDDLE_BTN,)),
-                eventHandlerClass(plot, parameters),
-            )
-        )
+        super().__init__(plot, (eventHandlerClass(plot, parameters),))
 
     def getDescription(self):
         """Returns the dict describing this interactive mode"""
-        params = self.eventHandlers[1].parameters.copy()
+        params = self.eventHandlers[0].parameters.copy()
         params["mode"] = "draw"
         return params
 
 
-class DrawSelectMode(FocusManager):
+class DrawSelectMode(_FocusManagerWithMiddlePan):
     """Interactive mode for draw and select"""
 
     def __init__(self, plot, shape, label, color, width):
         eventHandlerClass = _DRAW_MODES[shape]
-        self._pan = Pan(plot)
-        self._panStart = None
         parameters = {
             "shape": shape,
             "label": label,
@@ -1690,25 +1721,9 @@ class DrawSelectMode(FocusManager):
             "width": width,
         }
         super().__init__(
-            (ItemsInteractionForCombo(plot), eventHandlerClass(plot, parameters))
+            plot,
+            (ItemsInteractionForCombo(plot), eventHandlerClass(plot, parameters)),
         )
-
-    def handleEvent(self, eventName, *args, **kwargs):
-        # Hack to add pan interaction to select-draw
-        # See issue Refactor PlotWidget interaction #3292
-        if eventName == "press" and args[2] == MIDDLE_BTN:
-            self._panStart = args[:2]
-            self._pan.beginDrag(*args)
-            return  # Consume middle click events
-        elif eventName == "release" and args[2] == MIDDLE_BTN:
-            self._panStart = None
-            self._pan.endDrag(self._panStart, args[:2], MIDDLE_BTN)
-            return  # Consume middle click events
-        elif self._panStart is not None and eventName == "move":
-            x, y = args[:2]
-            self._pan.drag(x, y, MIDDLE_BTN)
-
-        super().handleEvent(eventName, *args, **kwargs)
 
     def getDescription(self):
         """Returns the dict describing this interactive mode"""
