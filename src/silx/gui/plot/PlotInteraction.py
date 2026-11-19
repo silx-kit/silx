@@ -1456,7 +1456,7 @@ class FocusManager(StateMachine):
             self.eventHandler.handleEvent("move", x, y)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
+            if btn in self.focusBtns:
                 self.focusBtns.discard(btn)
                 requestFocus = self.eventHandler.handleEvent("release", x, y, btn)
                 if len(self.focusBtns) == 0 and not requestFocus:
