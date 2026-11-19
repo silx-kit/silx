@@ -44,6 +44,7 @@ if ocl:
     import pyopencl
     import pyopencl.array
 from ..utils import get_opencl_code
+from .utils import get_test_devices
 
 logger = logging.getLogger(__name__)
 
@@ -128,14 +129,13 @@ class TestAddition(unittest.TestCase):
         """
         tests that all devices are working properly ... lengthy and error prone
         """
-        for platform in ocl.platforms:
-            for did, device in enumerate(platform.devices):
-                meas = _measure_workgroup_size((platform.id, device.id))
-                self.assertEqual(
-                    meas,
-                    device.max_work_group_size,
-                    f"Workgroup size for {platform}/{device}: {meas} == {device.max_work_group_size}",
-                )
+        for platform, device in get_test_devices():
+            meas = _measure_workgroup_size((platform.id, device.id))
+            self.assertEqual(
+                meas,
+                device.max_work_group_size,
+                f"Workgroup size for {platform}/{device}: {meas} == {device.max_work_group_size}",
+            )
 
     def test_query(self):
         """

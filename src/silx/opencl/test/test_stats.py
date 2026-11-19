@@ -40,6 +40,7 @@ import numpy
 
 import unittest
 from ..common import ocl
+from .utils import get_test_devices
 
 if ocl:
     from ..statistics import StatResults, Statistics
@@ -87,40 +88,43 @@ class TestStatistics(unittest.TestCase):
         tests that all devices are working properly ...
         """
         logger.info("Reference results: %s", self.ref)
-        for pid, platform in enumerate(ocl.platforms):
-            for did, device in enumerate(platform.devices):
-                try:
-                    s = Statistics(template=self.data, platformid=pid, deviceid=did)
-                except Exception as err:
-                    failed_init = True
-                    res = StatResults(0, 0, 0, 0, 0, 0, 0)
-                    print(err)
-                else:
-                    failed_init = False
-                    for comp in ("single", "double", "comp"):
-                        t0 = time.perf_counter()
-                        res = s(self.data, comp=comp)
-                        t1 = time.perf_counter()
-                        logger.info(
-                            "Runtime on %s/%s : %.3fms x%.1f",
-                            platform,
-                            device,
-                            1000 * (t1 - t0),
-                            self.ref_time / (t1 - t0),
-                        )
+        for platform, device in get_test_devices():
+            try:
+                s = Statistics(
+                    template=self.data,
+                    platformid=platform.id,
+                    deviceid=device.id,
+                )
+            except Exception as err:
+                failed_init = True
+                res = StatResults(0, 0, 0, 0, 0, 0, 0)
+                print(err)
+            else:
+                failed_init = False
+                for comp in ("single", "double", "comp"):
+                    t0 = time.perf_counter()
+                    res = s(self.data, comp=comp)
+                    t1 = time.perf_counter()
+                    logger.info(
+                        "Runtime on %s/%s : %.3fms x%.1f",
+                        platform,
+                        device,
+                        1000 * (t1 - t0),
+                        self.ref_time / (t1 - t0),
+                    )
 
-                        if failed_init or not self.validate(res):
-                            logger.error(
-                                "failed_init %s; Computation modes %s",
-                                failed_init,
-                                comp,
-                            )
-                            logger.error(
-                                "Failed on platform %s device %s", platform, device
-                            )
-                            logger.error("Reference results: %s", self.ref)
-                            logger.error("Faulty results: %s", res)
-                            self.assertTrue(
-                                False,
-                                f"Stat calculation failed on {platform},{device} in mode {comp}",
-                            )
+                    if failed_init or not self.validate(res):
+                        logger.error(
+                            "failed_init %s; Computation modes %s",
+                            failed_init,
+                            comp,
+                        )
+                        logger.error(
+                            "Failed on platform %s device %s", platform, device
+                        )
+                        logger.error("Reference results: %s", self.ref)
+                        logger.error("Faulty results: %s", res)
+                        self.assertTrue(
+                            False,
+                            f"Stat calculation failed on {platform},{device} in mode {comp}",
+                        )
