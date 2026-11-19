@@ -1,13 +1,81 @@
+import enum
 import logging
 import os
 
-from ...utils.deprecation import deprecated
+from ...utils.deprecation import deprecated, deprecated_warning
 from .. import qt
 from ..colors import Colormap
 from ..dialog.ColormapDialog import ColormapDialog
 from ._utils import normalizeData
 
 _logger = logging.getLogger(__name__)
+
+
+class DataViewPriority(enum.IntEnum):
+    """Priorities returned by :meth:`DataView.getDataPriority`.
+
+    The view with the highest priority is used to display the data by default.
+    """
+
+    UNSUPPORTED = -1
+    """The view can't display the data"""
+
+    LAST_RESORT = 1
+    """The view can display the data, but only as a last resort"""
+
+    GENERIC = 2
+    """Generic view able to display almost anything"""
+
+    POOR = 10
+    """The view can display the data, but it is poorly suited"""
+
+    FAIR = 40
+    """The view can display the data, but other views are better suited"""
+
+    SUITABLE_LOW = 90
+    """Just below :attr:`SUITABLE`, to avoid being selected by default"""
+
+    SUITABLE = 100
+    """The view is suited to display the data"""
+
+    SUITABLE_HIGH = 110
+    """Slightly above :attr:`SUITABLE`"""
+
+    SUITABLE_HIGHEST = 120
+    """Slightly above :attr:`SUITABLE_HIGH`"""
+
+    GOOD_LOW = 190
+    """Slightly below :attr:`GOOD`"""
+
+    GOOD = 200
+    """The view is well suited to display the data"""
+
+    GOOD_HIGH = 210
+    """Slightly above :attr:`GOOD`"""
+
+    PREFERRED = 500
+    """The view is preferred over the other views (e.g. table views of arrays and records)"""
+
+    PREFERRED_HIGH = 510
+    """Slightly above :attr:`PREFERRED`"""
+
+    INTERPRETATION_MATCH = 1000
+    """The data's ``interpretation`` matches the view"""
+
+    DEDICATED = 2000
+    """The view is the only sensible one for this data"""
+
+
+class _DeprecatedUnsupported:
+    def __get__(self, obj, objtype=None) -> DataViewPriority:
+        deprecated_warning(
+            type_="Attribute",
+            name="DataView.UNSUPPORTED",
+            replacement="DataViewPriority.UNSUPPORTED",
+            since_version="3.2.0",
+            skip_backtrace_count=1,
+        )
+        return DataViewPriority.UNSUPPORTED
 
 
 class DataViewHooks:
@@ -29,9 +97,7 @@ class DataViewHooks:
 class DataView:
     """Holder for the data view."""
 
-    UNSUPPORTED = -1
-    """Priority returned when the requested data can't be displayed by the
-    view."""
+    UNSUPPORTED = _DeprecatedUnsupported()
 
     TITLE_PATTERN = "{datapath}{slicing} {permuted}"
     """Pattern used to format the title of the plot.
@@ -265,7 +331,7 @@ class DataView:
         :rtype: List[DataView]
         """
         priority = self.getCachedDataPriority(data, info)
-        if priority == DataView.UNSUPPORTED:
+        if priority == DataViewPriority.UNSUPPORTED:
             return []
         return [self]
 
@@ -277,21 +343,14 @@ class DataView:
             info.cachePriority(self, priority)
         return priority
 
-    def getDataPriority(self, data, info):
+    def getDataPriority(self, data, info) -> DataViewPriority:
         """
-        Returns the priority of using this view according to a data.
-
-        - `UNSUPPORTED` means this view can't display this data
-        - `1` means this view can display the data
-        - `100` means this view should be used for this data
-        - `1000` max value used by the views provided by silx
-        - ...
+        Returns the priority of using this view according to a data as a int or a :class:`DataViewPriority`.
 
         :param object data: The data to check
         :param DataInfo info: Pre-computed information on the data
-        :rtype: int
         """
-        return DataView.UNSUPPORTED
+        return DataViewPriority.UNSUPPORTED
 
     def __lt__(self, other):
         return str(self) < str(other)
