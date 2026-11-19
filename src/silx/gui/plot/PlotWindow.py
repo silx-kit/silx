@@ -264,7 +264,6 @@ class PlotWindow(PlotWidget):
         self._consoleAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
-        self._showAxisAction = None
 
         # Make colorbar background white
         self._colorbar.setAutoFillBackground(True)
@@ -739,12 +738,6 @@ class PlotWindow(PlotWidget):
             self._crosshairAction = actions.control.CrosshairAction(self, color="red")
         return self._crosshairAction
 
-    def getShowAxisAction(self) -> actions.control.ShowAxisAction:
-        """Action toggling the display of the plot axes."""
-        if self._showAxisAction is None:
-            self._showAxisAction = actions.control.ShowAxisAction(self, parent=self)
-        return self._showAxisAction
-
     def getMaskAction(self):
         """QAction toggling image mask dock widget
 
@@ -1047,10 +1040,15 @@ class Plot2D(PlotWindow):
         self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
-        self.toolBar().insertAction(self.colorbarAction, self.getShowAxisAction())
+        self._showAxisAction = actions_control.ShowAxisAction(self, parent=self)
+        self.toolBar().insertAction(self.colorbarAction, self._showAxisAction)
 
         # Connect signals / slots
         self.sigActiveImageChanged.connect(self.__activeImageChanged)
+
+    def getShowAxisAction(self) -> actions_control.ShowAxisAction:
+        """Action toggling the display of the plot axes."""
+        return self._showAxisAction
 
     def __activeImageChanged(self, previous, legend):
         """Handle change of active image
