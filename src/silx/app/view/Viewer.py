@@ -34,6 +34,7 @@ import traceback
 from types import TracebackType
 
 import silx.io.nxdata
+from silx.io.url import DataUrl
 from silx.gui import qt
 from silx.gui import icons
 import silx.gui.hdf5
@@ -315,14 +316,22 @@ class Viewer(qt.QMainWindow):
         # FIXME: The architecture have to be reworked to support this feature.
         # model.synchronizeH5pyObject(h5)
 
+        row = model.h5pyObjectRow(h5)
+        if filename is None and row >= 0:
+            # Reuse the url/filename the file was opened with
+            item = model.data(
+                model.index(row, 0, qt.QModelIndex()),
+                role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE,
+            )
+            filename = item._openedPath
         if filename is None:
             filename = f"{h5.file.filename}::{h5.name}"
-        row = model.h5pyObjectRow(h5)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
 
-        nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
+        filePath = DataUrl(filename).file_path()
+        nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
 
         model.insertFile(filename, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())

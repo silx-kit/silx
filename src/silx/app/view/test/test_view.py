@@ -45,6 +45,7 @@ from silx.app.view.CustomNxdataWidget import CustomNxdataWidget
 from silx.gui.hdf5._utils import Hdf5DatasetMimeData
 from silx.gui.utils.testutils import TestCaseQt
 from silx.io import commonh5
+from silx.io.url import DataUrl
 
 
 @pytest.fixture(scope="module")
@@ -94,6 +95,23 @@ class TestViewer(TestCaseQt):
         ref = weakref.ref(widget)
         widget = None
         self.qWaitForDestroy(ref)
+
+
+def testViewerSynchronizeKeepsOpenedPath(qWidgetFactory, data_h5):
+    """Synchronizing a file reloads it from the url it was opened with"""
+    url = DataUrl(file_path=data_h5, data_path="/arrays", scheme="silx").path()
+    viewer = qWidgetFactory(Viewer)
+    viewer.appendFile(url)
+    model = viewer._Viewer__treeview.findHdf5TreeModel()
+    h5 = model.data(model.index(0, 0, qt.QModelIndex()), role=model.H5PY_OBJECT_ROLE)
+    assert h5.name == "/arrays"
+
+    viewer._Viewer__synchronizeH5pyObject(h5)
+
+    assert model.rowCount() == 1
+    item = model.data(model.index(0, 0, qt.QModelIndex()), role=model.H5PY_ITEM_ROLE)
+    assert item._openedPath == url
+    assert item.obj.name == "/arrays"
 
 
 @pytest.mark.usefixtures("qapp")

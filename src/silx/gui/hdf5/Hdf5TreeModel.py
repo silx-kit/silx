@@ -638,7 +638,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if node.parent is not self.__root:
             return
 
-        filename = node.obj.filename
+        # Reuse the url/filename the file was opened with
+        filename = node._openedPath
+        if filename is None:
+            filename = node.obj.filename
         self.insertFileAsync(filename, index.row(), synchronizingNode=node)
 
     @staticmethod
@@ -745,8 +748,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         return len(self.__runnerSet) > 0
 
     def insertFileAsync(self, filename: str, row=-1, synchronizingNode=None):
-        if not os.path.isfile(filename):
-            raise OSError("Filename '%s' must be a file path" % filename)
+        """Load a file into the data model in a background thread.
+
+        :param filename: file path or URL (e.g., ``file.h5::/path``)
+        """
+        filePath = filename
+        if not os.path.isfile(filePath):
+            filePath = DataUrl(filename).file_path()
+            if not os.path.isfile(filePath):
+                raise OSError("Filename '%s' must be a file path" % filename)
 
         # create temporary item
         if synchronizingNode is None:
@@ -762,7 +772,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             item = synchronizingNode
 
             # Only refresh NFS cache for updates
-            _nfs_cache_refresh(os.path.dirname(os.path.realpath(filename)))
+            _nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
