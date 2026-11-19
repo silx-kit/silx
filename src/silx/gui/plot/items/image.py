@@ -244,7 +244,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         return numpy.array(self._mask, copy=copy or NP_OPTIONAL_COPY)
 
     def setMaskData(self, mask: numpy.ndarray | None, copy: bool = True):
-        """Set the image data
+        """Set the mask associated with the image data
 
         This mask is applied to data retrieved with :meth:`getValueData`
         (used for display and tools associated with `PlotWidget`).
