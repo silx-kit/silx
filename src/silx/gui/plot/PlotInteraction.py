@@ -1413,9 +1413,12 @@ class FocusManager(StateMachine):
     By default it looses focus when all buttons are released.
     """
 
+    _FOCUS_BUTTONS = LEFT_BTN, MIDDLE_BTN
+    """Buttons which can be used to acquire focus"""
+
     class Idle(State):
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
+            if btn in self.machine._FOCUS_BUTTONS:
                 for eventHandler in self.machine.eventHandlers:
                     requestFocus = eventHandler.handleEvent("press", x, y, btn)
                     if requestFocus:
@@ -1432,7 +1435,7 @@ class FocusManager(StateMachine):
             self._processEvent("move", x, y)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
+            if btn in self.machine._FOCUS_BUTTONS:
                 self._processEvent("release", x, y, btn)
 
         def onWheel(self, x, y, angle):
