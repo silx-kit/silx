@@ -41,14 +41,14 @@ from silx.gui.plot.actions.image import DynamicColormapAction
 def main():
     app = qt.QApplication([])
 
-    image = numpy.zeros((100, 100), dtype=numpy.float32)
-    image[:50, :50] = numpy.random.randn(50, 50)
-    image[:50, 50:] = 10 * numpy.random.randn(50, 50)
-    image[50:, :50] = 100 * numpy.random.randn(50, 50)
-    image[50:, 50:] = 5 * numpy.random.randn(50, 50)
+    image = numpy.zeros((1000, 1000), dtype=numpy.float32)
+    image[:500, :500] = numpy.random.randn(500, 500)
+    image[:500, 500:] = 10 * numpy.random.randn(500, 500)
+    image[500:, :500] = 100 * numpy.random.randn(500, 500)
+    image[500:, 500:] = 5 * numpy.random.randn(500, 500)
 
     plot = Plot2D()
-    plot.addImage(image, origin=(-50.0, 20.0), scale=(0.5, 2.0))
+    plot.addImage(image, origin=(-500.0, 200.0), scale=(0.5, 2.0))
 
     action = DynamicColormapAction(plot, parent=plot)
     action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
