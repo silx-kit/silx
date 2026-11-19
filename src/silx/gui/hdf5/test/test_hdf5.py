@@ -195,6 +195,31 @@ class TestHdf5TreeModel(TestCaseQt):
         model = None
         self.qWaitForDestroy(ref)
 
+    def testSynchronizeObjectKeepsOpenedPath(self):
+        """Synchronize reloads the item from the url it was opened with"""
+        url = f"{self.filename}::/arrays"
+        model = hdf5.Hdf5TreeModel()
+        model.insertFile(url)
+        index = model.index(0, 0, qt.QModelIndex())
+        h5 = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+        self.assertEqual(h5.name, "/arrays")
+
+        model.synchronizeH5pyObject(h5)
+        self.waitAsLongAs(model.hasPendingOperations)
+        self.qapp.processEvents()
+
+        index = model.index(0, 0, qt.QModelIndex())
+        node = model.nodeFromIndex(index)
+        self.assertIsInstance(node, hdf5.Hdf5Item.Hdf5Item)
+        self.assertEqual(node._openedPath, url)
+        self.assertEqual(node.obj.name, "/arrays")
+        # delete the model
+        node = None
+        h5 = None
+        ref = weakref.ref(model)
+        model = None
+        self.qWaitForDestroy(ref)
+
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
         self.assertEqual(model.isFileMoveEnabled(), True)
