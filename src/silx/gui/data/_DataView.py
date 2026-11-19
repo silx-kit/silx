@@ -67,7 +67,6 @@ class DataViewPriority(enum.IntEnum):
 
 
 class _DeprecatedUnsupported:
-
     def __get__(self, obj, objtype=None) -> DataViewPriority:
         deprecated_warning(
             type_="Attribute",
