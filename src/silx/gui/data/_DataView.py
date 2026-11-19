@@ -343,7 +343,7 @@ class DataView:
             info.cachePriority(self, priority)
         return priority
 
-    def getDataPriority(self, data, info) -> int:
+    def getDataPriority(self, data, info) -> DataViewPriority:
         """
         Returns the priority of using this view according to a data as a int or a :class:`DataViewPriority`.
 
