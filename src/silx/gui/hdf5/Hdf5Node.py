@@ -166,6 +166,11 @@ class Hdf5Node:
         self.__initChild()
         return self.__child[index]
 
+    def _getChildren(self) -> tuple["Hdf5Node", ...]:
+        """Returns the children of the node, loading them if needed."""
+        self.__initChild()
+        return tuple(self.__child)
+
     def __initChild(self):
         """Init the child of the node in case the list was lazy loaded."""
         if self.__child is None:
