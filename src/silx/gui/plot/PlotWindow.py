@@ -1037,12 +1037,7 @@ class Plot2D(PlotWindow):
 
         self.toolBar().insertAction(self.colorbarAction, self.getShowAxisAction())
 
-        # Put colorbar action after colormap action
-        actions = self.toolBar().actions()
-        for action in actions:
-            if action is self.getColormapAction():
-                break
-
+        # Connect signals / slots
         self.sigActiveImageChanged.connect(self.__activeImageChanged)
 
     def __activeImageChanged(self, previous, legend):
