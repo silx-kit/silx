@@ -38,7 +38,6 @@ from silx.gui import qt
 
 from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.utils.testutils import SignalListener
-from silx.utils.deprecation import depreclog
 from silx.gui.utils.testutils import TestCaseQt
 
 import h5py
