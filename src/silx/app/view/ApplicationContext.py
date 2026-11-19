@@ -35,7 +35,6 @@ from silx.gui.data import DataViews
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
-from silx.gui.data._BaseImagePlot import BaseImagePlot as _BaseImagePlot
 
 _logger = logging.getLogger(__name__)
 
@@ -211,7 +210,11 @@ class ApplicationContext(DataViewHooks):
         modeId = view.modeId()
         if modeId == DataViews.PLOT2D_MODE:
             plot = widget
-        elif isinstance(widget, _BaseImagePlot):
+        elif modeId in (
+            DataViews.COMPLEX_PLOT2D_MODE,
+            DataViews.NXDATA_IMAGE_MODE,
+            DataViews.NXDATA_RGBA_IMAGE_MODE,
+        ):
             plot = widget.getPlot()
         else:
             return
