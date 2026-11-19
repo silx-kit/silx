@@ -28,8 +28,17 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
+import sys
+
 import pytest
 from silx.gui import qt
+
+# ipykernel 7 warns about its own synchronous IPythonKernel.do_history (called when
+# qtconsole requests history at startup), do_complete, do_inspect and do_shutdown
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:For consistency across implementations:PendingDeprecationWarning"
+)
+
 
 # dummy objects to test pushing variables to the interactive namespace
 _a = 1
@@ -42,8 +51,6 @@ def _f():
 @pytest.fixture
 def console(qapp_utils):
     """Create a console widget"""
-    # Console tests disabled due to corruption of python environment
-    pytest.skip("Disabled (see issue #538)")
     try:
         from silx.gui.console import IPythonDockWidget
     except ImportError:
@@ -55,6 +62,7 @@ def console(qapp_utils):
     console.show()
     qapp_utils.qWaitForWindowExposed(console)
     yield console
+    console.ipyconsole.shutdownKernel()
     console.setAttribute(qt.Qt.WA_DeleteOnClose)
     console.close()
     console = None
@@ -69,3 +77,19 @@ def testInteract(console, qapp_utils):
     qapp_utils.keyClicks(console, "import silx")
     qapp_utils.keyClick(console, qt.Qt.Key_Enter)
     qapp_utils.qapp.processEvents()
+
+
+def test_host_interpreter_unchanged(qWidgetFactory):
+    """Creating an IPythonWidget must not alter the host interpreter (#538)"""
+    try:
+        from silx.gui.console import IPythonWidget
+    except ImportError:
+        pytest.skip("IPythonWidget is not available")
+
+    main_module = sys.modules["__main__"]
+    prompts = {name: getattr(sys, name, None) for name in ("ps1", "ps2", "ps3")}
+
+    widget = qWidgetFactory(IPythonWidget)
+    assert sys.modules["__main__"] is main_module
+    assert {name: getattr(sys, name, None) for name in ("ps1", "ps2", "ps3")} == prompts
+    widget.shutdownKernel()
