@@ -25,7 +25,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/02/2019"
 
-import logging
 
 import pytest
 
