@@ -28,6 +28,7 @@ __license__ = "MIT"
 __date__ = "06/09/2017"
 
 
+import gc
 import unittest
 import weakref
 import tempfile
@@ -147,3 +148,26 @@ class TestAnimatedIcons(TestCaseQt):
 
     def testMultiImageIconNotExists(self):
         self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
+
+
+def test_svg_icon_freed_with_its_engine(qapp):
+    """Free SVG icons and their engines while Qt can still use the engines"""
+    icon = qt.QIcon(icons._SvgIconEngine("zoom"))
+
+    # Modify a copy: Qt calls clone() to detach the copy from the icon.
+    copy = qt.QIcon(icon)
+    copy.addPixmap(qt.QPixmap(4, 4))
+    # Without the fix, PySide6 crashes: the cloned engine is already deleted.
+    copy.pixmap(16, 16)
+
+    class Holder:
+        pass
+
+    # Put the icon in a reference cycle, so that only the garbage collector
+    # frees the icon and its engine.
+    holder = Holder()
+    holder.cycle = holder
+    holder.icon = icon
+    del icon, holder, copy
+    # Without the fix, PySide6 crashes: Qt deletes the engine a second time.
+    gc.collect()
