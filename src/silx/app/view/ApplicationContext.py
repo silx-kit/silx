@@ -31,9 +31,14 @@ import logging
 from collections.abc import Sequence
 
 import silx
+from silx.gui import qt
 from silx.gui.data.DataViews import DataViewHooks
+from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot, ArrayImagePlot
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot import Plot2D
+from silx.gui.plot.ComplexImageView import ComplexImageView
+from silx.gui.plot.actions.image import DynamicColormapAction
 
 _logger = logging.getLogger(__name__)
 
@@ -47,6 +52,9 @@ class ApplicationContext(DataViewHooks):
 
     - Create a single colormap shared with all the views
     - Create a single colormap dialog shared with all the views
+    - Add a dynamic colormap action (W key) to the image views.
+      When the displayed data changes, it is deactivated and the colormap
+      range it sets is reset.
     """
 
     def __init__(self, parent, settings=None):
@@ -55,6 +63,9 @@ class ApplicationContext(DataViewHooks):
         self.__defaultColormapDialog = None
         self.__settings = settings
         self.__recentFiles = []
+        self.__dynamicColormapActions = weakref.WeakSet()
+        self.__colormapRangeToRestore = None
+        """Default colormap range before using dynamic colormap actions"""
 
     def getSettings(self):
         """Returns actual application settings.
@@ -121,8 +132,13 @@ class ApplicationContext(DataViewHooks):
         parent.saveSettings(settings)
 
         if self.__defaultColormap is not None:
+            colormap = self.__defaultColormap
+            if self.__colormapRangeToRestore is not None:
+                # Do not save the range set by dynamic colormap actions
+                colormap = colormap.copy()
+                colormap.setVRange(*self.__colormapRangeToRestore)
             settings.beginGroup("colormap")
-            settings.setValue("default", self.__defaultColormap.saveState())
+            settings.setValue("default", colormap.saveState())
             settings.endGroup()
 
         settings.beginGroup("library")
@@ -200,6 +216,49 @@ class ApplicationContext(DataViewHooks):
             dialog.setModal(False)
             self.__defaultColormapDialog = dialog
         return self.__defaultColormapDialog
+
+    def viewWidgetCreated(self, view, widget):
+        """Add a dynamic colormap action to the image plots of the views.
+
+        Override from DataViewHooks
+        """
+        if isinstance(widget, Plot2D):
+            plot = widget
+        elif isinstance(
+            widget, (ArrayImagePlot, ArrayComplexImagePlot, ComplexImageView)
+        ):
+            plot = widget.getPlot()
+        else:
+            return
+
+        action = DynamicColormapAction(plot, parent=plot)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setShortcutContext(qt.Qt.WidgetWithChildrenShortcut)
+        plot.addAction(action)  # Enable the shortcut
+        plot.toolBar().addAction(action)
+        action.toggled.connect(self.__dynamicColormapToggled)
+        self.__dynamicColormapActions.add(action)
+
+    def __dynamicColormapToggled(self, checked: bool):
+        if checked and self.__colormapRangeToRestore is None:
+            self.__colormapRangeToRestore = self.getColormap(None).getVRange()
+
+    def dataChanged(self):
+        """Notify that the displayed data has changed.
+
+        This deactivates the dynamic colormap actions and restores the
+        colormap range as it was before using them.
+        """
+        for action in list(self.__dynamicColormapActions):
+            if action.isChecked():
+                action.trigger()  # Uncheck and stop the interaction
+
+        if self.__colormapRangeToRestore is None:
+            return
+        colormap = self.getColormap(None)
+        if colormap.isEditable():
+            colormap.setVRange(*self.__colormapRangeToRestore)
+        self.__colormapRangeToRestore = None
 
     @staticmethod
     def getDefaultPlotBackend() -> str:
