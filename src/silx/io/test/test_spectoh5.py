@@ -85,18 +85,17 @@ sfdata = b"""#F /tmp/sf.dat
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fd, cls.spec_fname = tempfile.mkstemp(prefix="TestConvertSpecHDF5")
-        os.write(fd, sfdata)
-        os.close(fd)
-
-        fd, cls.h5_fname = tempfile.mkstemp(prefix="TestConvertSpecHDF5")
-        # Close and delete (we just need the name)
-        os.close(fd)
-        os.unlink(cls.h5_fname)
+        # On Windows, another process (e.g. an anti-virus) can lock
+        # the closed files for a short time and make the cleanup fail
+        cls._tmpdir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+        cls.spec_fname = os.path.join(cls._tmpdir.name, "spec")
+        with open(cls.spec_fname, "wb") as f:
+            f.write(sfdata)
+        cls.h5_fname = os.path.join(cls._tmpdir.name, "spec.h5")
 
     @classmethod
     def tearDownClass(cls):
-        os.unlink(cls.spec_fname)
+        cls._tmpdir.cleanup()
 
     def setUp(self):
         convert(self.spec_fname, self.h5_fname)
