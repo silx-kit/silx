@@ -429,6 +429,11 @@ class PlotWindow(PlotWidget):
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
 
+        This is the mask of the mask tool, which is not necessarily the mask
+        of the active image item (see :meth:`.ImageBase.getMaskData`).
+        Both are the same only if synchronisation is enabled with
+        :meth:`.MaskToolsWidget.setItemMaskUpdated` (disabled by default).
+
         :return: The array of the mask with dimension of the 'active' image.
                  If there is no active image, an empty array is returned.
         :rtype: 2D numpy.ndarray of uint8
@@ -440,6 +445,13 @@ class PlotWindow(PlotWidget):
 
         If the provided mask has not the same dimension as the 'active'
         image, it will by cropped or padded.
+
+        By default, this mask is only displayed as an overlay on the plot:
+        it does not set the mask of the active image item
+        (see :meth:`.ImageBase.setMaskData`) and is thus not taken into account
+        by the colormap autoscale and the plot tools (histogram, profile...).
+        To also update the image item mask, enable synchronisation with
+        :meth:`.MaskToolsWidget.setItemMaskUpdated`.
 
         :param mask: The array to use for the mask.
         :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
