@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "02/03/2018"
 
 
-import functools
 import numpy
 
 from silx.utils.testutils import LoggingValidator
@@ -107,17 +106,24 @@ class TestPositionInfo(PlotWidgetTestCase):
         """Test :meth:`PositionInfo.updateInfo`"""
         calls = []
 
-        def update(calls, x, y):  # Get number of calls
+        def convert(x, y):
             calls.append((x, y))
-            return len(calls)
+            return x
 
         positionWidget = tools.PositionInfo(
-            plot=self.plot,
-            converters=[("Call count", functools.partial(update, calls))],
+            plot=self.plot, converters=[("Position", convert)]
         )
+        widget = self.plot.getWidgetHandle()
+        center = widget.rect().center()
+        # updateInfo reads the system cursor position
+        self.mouseMoveWithSystemCursor(widget, checkCursorPos=True)
 
+        calls.clear()
         positionWidget.updateInfo()
-        self.assertEqual(len(calls), 1)
+
+        # updateInfo shows the data position under the system cursor
+        expected = self.plot.pixelToData(center.x(), center.y())
+        numpy.testing.assert_allclose(calls[-1], expected)
 
 
 class TestPlotToolsToolbars(PlotWidgetTestCase):
