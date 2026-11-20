@@ -1,6 +1,7 @@
 import numpy
 import pytest
 
+from ... import qt
 from ...plot.StackView import StackView
 from ...plot.StackView import StackViewMainWindow
 from ...utils.testutils import SignalListener
@@ -171,6 +172,49 @@ def testStackFrameNumber(stack_view, stack_data):
     stack_view.setFrameNumber(1)
     assert stack_view.getFrameNumber() == 1
     assert listener.arguments() == [(1,)]
+
+
+def testControlWidgetCanMoveWithoutReplacingControls(
+    stack_view, stack_data, qWidgetFactory, qapp
+):
+    stack_view.setStack(stack_data)
+    original_data = stack_view.getData(copy=False)
+    controls = stack_view.getControlWidget()
+    assert stack_view.getControlWidget() is controls
+    widgets = tuple(
+        controls.layout().itemAt(index).widget()
+        for index in range(controls.layout().count())
+    )
+    assert len(widgets) == 3
+    assert isinstance(widgets[1], qt.QLabel)
+    stack_view.setOptionVisible(False)
+    qapp.processEvents()
+    assert not controls.isVisible()
+    assert all(not widget.isVisible() for widget in widgets)
+    stack_view.setOptionVisible(True)
+    qapp.processEvents()
+    assert all(widget.isVisible() for widget in widgets)
+
+    original_layout = controls.parentWidget().layout()
+    host = qWidgetFactory(qt.QWidget)
+    host.setLayout(qt.QVBoxLayout())
+    try:
+        host.layout().addWidget(controls)
+        host.show()
+        qapp.processEvents()
+        assert controls.parentWidget() is host
+        assert (
+            tuple(controls.layout().itemAt(index).widget() for index in range(3))
+            == widgets
+        )
+        listener = SignalListener()
+        stack_view.sigFrameChanged.connect(listener)
+        widgets[2].setValue(2)
+        assert stack_view.getFrameNumber() == 2
+        assert listener.arguments() == [(2,)]
+        assert stack_view.getData(copy=False) is original_data
+    finally:
+        original_layout.addWidget(controls, 1, 0, 1, 3)
 
 
 def testStackViewMainWindow(qWidgetFactory, qapp_utils, stack_data):
