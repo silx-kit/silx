@@ -28,6 +28,7 @@ __license__ = "MIT"
 __date__ = "03/01/2019"
 
 
+import gc
 import unittest
 import numpy
 import pytest
@@ -39,6 +40,7 @@ from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
+from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
@@ -2170,3 +2172,26 @@ def test_pan_keeps_limits_constraints(qapp, plotWidget: PlotWidget, direction: s
 
     assert plotWidget.getXAxis().getLimits() == (0, 10)
     assert plotWidget.getYAxis().getLimits() == (0, 10)
+
+
+def test_mpl_replot_with_widget_deleted_during_draw(qapp: qt.QApplication) -> None:
+    parents = [qt.QWidget()]
+    plotWidget = PlotWidget(parent=parents[0], backend="mpl")
+    plotWidget.addCurve(x=(0, 1, 2), y=(0, 1, 2))
+
+    def deleteParent(event: object) -> None:
+        # Delete the parent (and with it the plot widget) in the middle of the draw,
+        # like the garbage collector can do.
+        parents.clear()
+        gc.collect()
+
+    plotWidget.getWidgetHandle().mpl_connect("draw_event", deleteParent)
+
+    # This is the actual test: matplotlib calls `self.update()` on the deleted widget
+    # at the end of its draw. Without the fix, this raises
+    # `RuntimeError: wrapped C/C++ object of type BackendMatplotlibQt has been deleted`.
+    plotWidget.replot()
+    qapp.processEvents()
+
+    # Make sure the widget was really deleted during the draw
+    assert not isValid(plotWidget)

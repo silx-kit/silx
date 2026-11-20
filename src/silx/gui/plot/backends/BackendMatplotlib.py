@@ -1650,6 +1650,12 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
                 "ValueError caught while calling FigureCanvasQTAgg.draw: '%s'",
                 err,
             )
+        except RuntimeError:
+            # The garbage collector can delete the widget during the draw
+            if qt_inspect.isValid(self):
+                raise
+            _logger.info("widget deleted during draw")
+            return
 
         if self._hasOverlays():
             # Save background
