@@ -1,5 +1,6 @@
 import numpy
 import logging
+import threading
 import pytest
 
 from silx.gui import qt
@@ -422,6 +423,41 @@ class TestProfile3DToolBar:
         data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[3, 12], [21, 30], [39, 48]])
         numpy.testing.assert_almost_equal(data, expected)
+
+
+def test_outdated_profile_is_not_displayed(qWidgetFactory, qapp_utils):
+    """Test that a profile computed with outdated ROI properties is not displayed"""
+    computing = threading.Event()
+    release = threading.Event()
+
+    class SlowMeanROI(rois.ProfileImageHorizontalLineROI):
+        def computeProfile(self, item):
+            method = self.getProfileMethod()
+            if method == "mean":
+                # Block the outdated computation until the "sum" one is done
+                computing.set()
+                release.wait(10)
+            return super().computeProfile(item)._replace(title=method)
+
+    plot = qWidgetFactory(Plot2D)
+    plot.addImage([[0, 1], [2, 3]])
+    manager = plot.getProfileToolbar().getProfileManager()
+
+    roi = SlowMeanROI()
+    roi.setPosition(0.5)
+    manager.getRoiManager().addRoi(roi)
+    assert computing.wait(10)
+
+    # Start a new computation while the "mean" one is still running
+    roi.setProfileMethod("sum")
+    qapp_utils.waitAsLongAs(lambda: roi.getProfileWindow() is None)
+    # The outdated "mean" computation now finishes after the "sum" one
+    release.set()
+    qapp_utils.waitAsLongAs(manager.hasPendingOperations)
+
+    profilePlot = roi.getProfileWindow().getCurrentPlotWidget()
+    # The latest requested profile method is the one displayed.
+    assert profilePlot.getGraphTitle() == "sum"
 
 
 @pytest.mark.parametrize("with_mask", (True, False))
