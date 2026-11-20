@@ -1,9 +1,10 @@
 import h5py
 from ...io.commonh5 import Dataset
 
+from ...io.nxdata._utils import AxisDataset
 from ..plot import items
 from ._BaseImagePlot import BaseImagePlot
-from ._utils import ImageAxis, getAxesCalib, setImageCoords
+from ._utils import getAxesCalib, setImageCoords
 
 
 class RgbaImagePlot(BaseImagePlot):
@@ -29,7 +30,7 @@ class RgbaImagePlot(BaseImagePlot):
     def setImageData(
         self,
         signals: list[h5py.Dataset | Dataset],
-        axes: list[h5py.Dataset | Dataset] | None = None,
+        axes: list[AxisDataset] | None = None,
         signalsNames: list[str] | None = None,
         axesNames: list[str] | None = None,
         title: str | None = None,
@@ -41,7 +42,7 @@ class RgbaImagePlot(BaseImagePlot):
         # Disable the RGBA channel axis selected
         self._axesSelector.setNamedAxisSelectorEnabled(-1, False)
 
-    def _addItemToPlot(self, xAxis: ImageAxis, yAxis: ImageAxis):
+    def _addItemToPlot(self, xAxis: AxisDataset, yAxis: AxisDataset):
         self._plot.remove(kind="image")
 
         image = self._getImageToDisplay()

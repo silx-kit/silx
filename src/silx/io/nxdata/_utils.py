@@ -7,7 +7,8 @@ from typing import Literal
 import h5py
 import numpy
 
-from silx.io import is_dataset
+from ..commonh5 import Dataset
+from ..utils import is_dataset
 
 
 nxdata_logger = logging.getLogger("silx.io.nxdata")
@@ -16,6 +17,7 @@ Interpretation = Literal[
     "scalar", "spectrum", "image", "rgb-image", "rgba-image", "vertex"
 ]
 ScaleType = Literal["linear", "log", "asinh"]
+AxisDataset = h5py.Dataset | Dataset | numpy.ndarray | None
 
 
 INTERPDIM: dict[Interpretation, int] = {
@@ -25,7 +27,7 @@ INTERPDIM: dict[Interpretation, int] = {
     "rgb-image": 3,
     "rgba-image": 3,
     "vertex": 1,
-}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same legth
+}  # 3D scatter: 1D signal + 3 axes (x, y, z) of same length
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
