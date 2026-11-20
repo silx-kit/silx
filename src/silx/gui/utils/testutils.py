@@ -90,6 +90,20 @@ class TestCaseQt(unittest.TestCase):
     simulating the event (as QTest does on Mac OSX).
     This was introduced to fix issues with continuous integration tests
     running with Xvfb on Linux.
+
+    Terms used by the mouse move methods:
+
+    - Move event: the message that tells a widget that the mouse moved.
+    - Event queue: the list of events that wait for Qt to send them to widgets.
+    - Process events: Qt sends the events in its event queue to the widgets.
+      The test lets Qt do this with :meth:`qWait`.
+    - System cursor: the mouse pointer of the operating system.
+      ``QCursor.pos()`` returns its position.
+    - Window system: the part of the operating system (X server, Windows,
+      macOS) that puts mouse events in the event queue of the application.
+    - Offscreen platform: the Qt platform without a window system
+      (``QT_QPA_PLATFORM=offscreen``). Qt itself puts the mouse events in the
+      event queue.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -277,14 +291,114 @@ class TestCaseQt(unittest.TestCase):
         QTest.mouseDClick(widget, button, modifier, pos, delay)
         self.qWait(20)
 
-    def mouseMove(self, widget, pos=None, delay=-1):
-        """Simulate moving the mouse.
+    def mouseMove(
+        self, widget: qt.QWidget, pos: tuple[int, int] | None = None, delay: int = -1
+    ) -> None:
+        """Send a move event to the widget at pos (``QApplication.sendEvent``).
 
-        See QTest.mouseMove for details.
+        The widget at pos is the deepest child of widget at pos, or widget if it
+        has no child at pos.
+
+        - System cursor: does not move, so ``QCursor.pos()`` does not change.
+        - Move event with the offscreen platform: the widget receives it during
+          this call.
+        - Move event with a window system: the widget receives it during this
+          call. The event does not go through the window system.
+
+        ::
+
+            test --> widget at pos
+
+        Use it to simulate mouse moves, for example to draw, drag or hover.
+        The widget receives the move events in the same order as the other mouse
+        events that the test sends.
+
+        :param widget: The widget
+        :param pos: Position in widget coordinates (default: widget center)
+        :param delay: Time to wait in milliseconds before the move
         """
-        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
-        QTest.mouseMove(widget, pos, delay)
+        point = self._widgetPoint(widget, pos)
+
+        if delay > 0:
+            QTest.qWait(delay)
+
+        # The widget that a real mouse move at pos would reach
+        target = widget.childAt(point) or widget
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            qt.QPointF(target.mapFrom(widget, point)),
+            qt.QPointF(widget.mapToGlobal(point)),
+            qt.Qt.NoButton,
+            self.qapp.mouseButtons(),
+            self.qapp.keyboardModifiers(),
+        )
+
+        # Qt calls the mouse move handler of target before sendEvent returns
+        qt.QApplication.sendEvent(target, event)
+
+        # Let Qt handle what the move started (repaint, queued signals)
         self.qWait(20)
+
+    def mouseMoveWithSystemCursor(
+        self,
+        widget: qt.QWidget,
+        pos: tuple[int, int] | None = None,
+        delay: int = -1,
+        checkCursorPos: bool = False,
+    ) -> None:
+        """Move the system cursor to pos, then process events (``QTest.mouseMove``).
+
+        - System cursor: moves to pos.
+        - Move event with the offscreen platform: the widget receives it during
+          this call.
+        - Move event with a window system: the widget can receive it late, after
+          the next mouse event that the test sends. Another widget can receive it.
+
+        ::
+
+            test --> system cursor --> window system --> event queue --(maybe later)--> widget under the cursor
+
+        On platforms that cannot move the system cursor (for example Wayland),
+        nothing happens: the system cursor does not move and no move event comes.
+
+        Use it when the tested code reads ``QCursor.pos()``, for example
+        ``PositionInfo.updateInfo``. Do not count the calls of this code: a late
+        move event can run it again. To simulate mouse moves, use :meth:`mouseMove`.
+        If the system cursor is already at pos, no move event comes.
+        ``checkCursorPos`` checks the cursor position only, not the move event.
+
+        :param widget: The widget
+        :param pos: Position in widget coordinates (default: widget center)
+        :param delay: Time to wait in milliseconds before the move
+        :param checkCursorPos: Check that the system cursor is at pos after the call.
+            If not, skip the test on Wayland and fail it on other platforms.
+        """
+        point = self._widgetPoint(widget, pos)
+
+        # Moves the system cursor, then processes events once. With a window
+        # system, the move event can arrive after this.
+        QTest.mouseMove(widget, point, delay)
+
+        # Let Qt handle what the move started (repaint, queued signals)
+        self.qWait(20)
+
+        if checkCursorPos:
+            self._checkCursorAt(widget, point)
+
+    @staticmethod
+    def _widgetPoint(widget: qt.QWidget, pos: tuple[int, int] | None) -> qt.QPoint:
+        """Returns pos as a QPoint, or the widget center if pos is None"""
+        if pos is None:
+            return widget.rect().center()
+        return qt.QPoint(int(pos[0]), int(pos[1]))
+
+    def _checkCursorAt(self, widget: qt.QWidget, point: qt.QPoint) -> None:
+        """Skip the test on Wayland or fail it if the system cursor is not at point"""
+        if widget.mapFromGlobal(qt.QCursor.pos()) == point:
+            return
+        if qt.QGuiApplication.platformName().startswith("wayland"):
+            self.skipTest("Wayland cannot move the system cursor")
+        self.fail(f"The system cursor is not at ({point.x()}, {point.y()})")
 
     def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate pressing a mouse button.
