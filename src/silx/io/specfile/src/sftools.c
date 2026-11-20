@@ -348,7 +348,7 @@ findIndex( void *scan, void *number )
 int
 findFirst( void *scan, void *file_offset )
 {
-     return( ((SpecScan *)scan)->offset > *(long *)file_offset );
+     return( ((SpecScan *)scan)->offset >= *(long *)file_offset );
 }
 
 
