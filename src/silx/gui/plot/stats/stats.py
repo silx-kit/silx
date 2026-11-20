@@ -42,6 +42,7 @@ from ..CurvesROIWidget import ROI
 from ..items.roi import RegionOfInterest
 from ....math.combo import min_max
 from ....utils.proxy import docstring
+from ....utils.deprecation import deprecated, deprecated_warning
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +168,7 @@ class _StatsContext:
         self.kind = kind
         self.min = None
         self.max = None
-        self.data = None
+        self._data = None
         self.roi = None
         self.onlimits = onlimits
 
@@ -187,6 +188,24 @@ class _StatsContext:
         """
 
         self.clipData(item, plot, onlimits, roi=roi)
+
+    @property
+    def data(self):
+        """The data of the item the statistics are computed on."""
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        # TODO (#2367): when removing this setter, also remove the deprecated
+        # xData, yData, origin and scale, then use copy=False in clipData with
+        # read-only views to avoid copying the item data.
+        deprecated_warning(
+            type_="Attribute",
+            name="data setter",
+            reason="The context data is only meant to be set by the context",
+            since_version="3.2.0",
+        )
+        self._data = data
 
     def clear_mask(self):
         """
@@ -304,6 +323,26 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             self, kind="curve", item=item, plot=plot, onlimits=onlimits, roi=roi
         )
 
+    @property
+    @deprecated(replacement="context.data[0]", since_version="3.2.0")
+    def xData(self):
+        return self._xData
+
+    @xData.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def xData(self, xData):
+        self._xData = xData
+
+    @property
+    @deprecated(replacement="context.data[1]", since_version="3.2.0")
+    def yData(self):
+        return self._yData
+
+    @yData.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def yData(self, yData):
+        self._yData = yData
+
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
@@ -339,11 +378,11 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             mask = numpy.zeros_like(yData, dtype=bool)
 
         # Apply mask
-        self.xData = xData
-        self.yData = yData
+        self._xData = xData
+        self._yData = yData
         self.values = numpy.ma.array(yData, mask=mask)
         self.min, self.max = _minmax_masked_array(self.values)
-        self.data = (xData, yData)
+        self._data = (xData, yData)
         self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
@@ -371,6 +410,26 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
         _ScatterCurveHistoMixInContext.__init__(
             self, kind="histogram", item=item, plot=plot, onlimits=onlimits, roi=roi
         )
+
+    @property
+    @deprecated(replacement="context.data[0]", since_version="3.2.0")
+    def xData(self):
+        return self._xData
+
+    @xData.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def xData(self, xData):
+        self._xData = xData
+
+    @property
+    @deprecated(replacement="context.data[1]", since_version="3.2.0")
+    def yData(self):
+        return self._yData
+
+    @yData.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def yData(self, yData):
+        self._yData = yData
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
@@ -406,11 +465,11 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
             mask = numpy.zeros_like(yData, dtype=bool)
 
         # Apply mask
-        self.xData = xData
-        self.yData = yData
+        self._xData = xData
+        self._yData = yData
         self.values = numpy.ma.array(yData, mask=mask)
         self.min, self.max = _minmax_masked_array(self.values)
-        self.data = (xData, yData)
+        self._data = (xData, yData)
         self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
@@ -481,7 +540,7 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
             mask = numpy.zeros_like(xData, dtype=bool)
 
         # Apply mask
-        self.data = (xData, yData, valueData)
+        self._data = (xData, yData, valueData)
         self.values = numpy.ma.array(valueData, mask=mask)
         self.min, self.max = _minmax_masked_array(self.values)
         self.axes = (xData, yData)
@@ -538,6 +597,26 @@ class _ImageContext(_StatsContext):
         self._mask_y_min = None
         self._mask_y_max = None
 
+    @property
+    @deprecated(replacement="context.axes", since_version="3.2.0")
+    def origin(self):
+        return self._origin
+
+    @origin.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def origin(self, origin):
+        self._origin = origin
+
+    @property
+    @deprecated(replacement="context.axes", since_version="3.2.0")
+    def scale(self):
+        return self._scale
+
+    @scale.setter
+    @deprecated(reason="About to be removed", since_version="3.2.0")
+    def scale(self, scale):
+        self._scale = scale
+
     def is_mask_valid(self, xmin, xmax, ymin, ymax):
         return (
             xmin == self._mask_x_min
@@ -550,9 +629,9 @@ class _ImageContext(_StatsContext):
     def clipData(self, item, plot, onlimits, roi):
         self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
 
-        self.origin = item.getOrigin()
-        self.scale = item.getScale()
-        self.data = item.getData(copy=True)
+        self._origin = item.getOrigin()
+        self._scale = item.getScale()
+        self._data = item.getData(copy=True)
 
         if self.data.size == 0:
             self.values = None
@@ -562,8 +641,8 @@ class _ImageContext(_StatsContext):
 
         xsize = self.data.shape[1]
         ysize = self.data.shape[0]
-        xaxis = self.origin[0] + self.scale[0] * numpy.arange(xsize)
-        yaxis = self.origin[1] + self.scale[1] * numpy.arange(ysize)
+        xaxis = self._origin[0] + self._scale[0] * numpy.arange(xsize)
+        yaxis = self._origin[1] + self._scale[1] * numpy.arange(ysize)
 
         # Determine mask
         if onlimits:
@@ -574,16 +653,16 @@ class _ImageContext(_StatsContext):
             minY, maxY = plot.getYAxis().getLimits()
 
             # Indices
-            xmin = int((minX - self.origin[0]) / self.scale[0])
-            ymin = int((minY - self.origin[1]) / self.scale[1])
-            xmax = int((maxX - self.origin[0]) / self.scale[0])
-            ymax = int((maxY - self.origin[1]) / self.scale[1])
+            xmin = int((minX - self._origin[0]) / self._scale[0])
+            ymin = int((minY - self._origin[1]) / self._scale[1])
+            xmax = int((maxX - self._origin[0]) / self._scale[0])
+            ymax = int((maxY - self._origin[1]) / self._scale[1])
 
             xmin, xmax = numpy.clip([xmin, xmax], 0, xsize - 1)
             ymin, ymax = numpy.clip([ymin, ymax], 0, ysize - 1)
 
             if xmax <= xmin or ymax <= ymin:
-                self.data = None
+                self._data = None
                 self.values = None
                 self.min, self.max, self.axes = None, None, None
                 return
