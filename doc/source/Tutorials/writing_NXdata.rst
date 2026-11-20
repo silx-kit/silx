@@ -231,3 +231,114 @@ In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
     If the image axes have the same ``units`` or both have no ``units``, the image aspect ratio will be kept.
 
     In the example above, the two axes ``x`` and ``y`` have different ``units`` so that the image aspect ratio is not conserved.
+
+Other supported NXdata features
+-------------------------------
+
+``@units``
+++++++++++
+
+This attribute can be added to signal or axis datasets.
+
+If present, the units will be added to the name of the axis producing ``name (units)`` as the label.
+
+When displaying an image, the aspect ratio is preserved if both axes have the same ``@units``.
+
+``@long_name``
+++++++++++++++
+
+.. warning::
+
+    Overrides ``@units``
+
+This attribute can be added to signal or axis datasets.
+
+If present, the ``@long_name`` of the signal will be used as label of the Y axis if displayed as a curve or as plot title (for images).
+
+If present, the ``@long_name`` of an axis dataset will be used as label of the corresponding axis.
+
+``@title``
+++++++++++
+
+.. warning::
+
+    Overrides ``@long_name`` for image plots
+
+This attribute can be added to the ``NXdata`` group. If present, it is used as the plot title.
+
+A dataset named ``title`` in the group is also supported, and has precedence over the attribute (unless ``title`` is the name of the signal or of an axis).
+
+``@interpretation``
++++++++++++++++++++
+
+This attribute can be added to the signal dataset. ``silx`` uses this attribute to decide what visualization to show when visualizing the NXdata group.
+
+It can take the following values with the following effect:
+
+- ``spectrum``: the data will be preferably shown as curves, even if it has more than 1 dimension.
+- ``image``: the data will be preferably shown as images, even if it has more than 2 dimensions.
+- ``rgb-image``/``rgba-image``: the last dimension of the data must be interpreted as RGB channels. The data must therefore have at least 3 dimensions (2D image with channel) and the last dimension must be of size 3 (RGB) or 4 (RGBA).
+
+
+``<signal>_errors``
++++++++++++++++++++
+
+This dataset can be added to the ``NXdata`` group. Its name must be the signal dataset name with ``_errors`` appended to it (e.g. for a signal named ``y``, the error dataset must be named ``y_errors``). It must have the same shape as the signal dataset.
+
+If present, the dataset will be used to produce vertical error bars when plotting the signal as a curve.
+
+Auxiliary signals get their errors the same way, from a dataset named after each auxiliary signal.
+
+
+``<axis>_errors``
++++++++++++++++++
+
+This dataset can be added to the ``NXdata`` group, for any axis dataset. It must have the same size as the corresponding axis and its name must be the axis dataset name with ``_errors`` appended to it (e.g for an axis named ``pressure``, the error dataset must be named ``pressure_errors``).
+
+If present, the dataset will be used to produce horizontal error bars when plotting the signal as a curve with the corresponding axis as X axis.
+
+``@default_slice``
+++++++++++++++++++
+
+This attribute can be added to the ``NXdata`` group when the signal has more dimensions than the ones displayed.
+
+If present, it will define the slice that is initially shown. The number of entries should match the signal dimension:
+
+- ``"."`` for the dimensions to display.
+- An index for the other dimensions
+
+For example, a ``NXdata`` group with a 3D signal and a ``@default_slice`` set to ``["1", ".", "."]`` initially shows the slice `1,:,:` of the signal.
+
+If the number of unsliced dimensions does not match the display dimensions of the visualization (2 for image, 1 for curve), the default slice will not be applied.
+
+.. note::
+
+    For axis datasets containing strings, it is possible to replace the index by the string value.
+
+``@first_good`` and ``@last_good``
+++++++++++++++++++++++++++++++++++
+
+These attributes can be added to axis datasets.
+
+If present, they define the range of indices to be considered as valid values of the axis.
+
+``@SILX_style``
++++++++++++++++
+
+.. warning::
+
+    This attribute is not part of the NeXus standard.
+
+This attribute can be added to the ``NXdata`` group. It contains a JSON string defining how to display the data. The following keys are supported:
+
+- ``signal_scale_type``: the scale of the signal values. One of ``"linear"``, ``"log"`` or ``"asinh"``.
+- ``axes_scale_types``: the scale of each axis (same values as above), as a list with one entry per axis in ``@axes``.
+
+.. code-block:: python
+
+    import json
+
+    nxdata.attrs["SILX_style"] = json.dumps(
+        {"signal_scale_type": "log", "axes_scale_types": ["linear"]}
+    )
+
