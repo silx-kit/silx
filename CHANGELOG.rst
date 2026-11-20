@@ -4,6 +4,7 @@ Release Notes
 3.2.0: ????/??/??
 -----------------
 
+* `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views
 * `silx.gui.plot.PlotWidget`: Fixed `pan` and the arrow keys ignoring the axes limits constraints (`Issue #1298 <https://github.com/silx-kit/silx/issues/1298>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)

@@ -249,7 +249,7 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         svgRenderer.setViewBox(viewbox)
 
-        xml_stream = qt.QXmlStreamReader(svgData.encode(errors="replace"))
+        xml_stream = qt.QXmlStreamReader(svgData)
 
         # This is for PyMca compatibility, to share a print preview with PyMca plots
         svgRenderer._viewBox = viewbox
