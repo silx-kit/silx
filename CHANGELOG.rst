@@ -16,6 +16,7 @@ Release Notes
 * `silx.gui.plot.PlotWidget`: Fixed `pan` and the arrow keys ignoring the axes limits constraints (`Issue #1298 <https://github.com/silx-kit/silx/issues/1298>`_)
 * `silx.gui.plot.PlotWidget`: Fixed `RuntimeError` of the matplotlib backend when the widget is deleted during a redraw (`Issue #4836 <https://github.com/silx-kit/silx/issues/4836>`_)
 * `silx.gui.plot.Plot2D`: Added an action to the toolbar to show/hide the axes (`Issue #4793 <https://github.com/silx-kit/silx/issues/4793>`_)
+* `silx.gui.plot.items.Scatter`: Fixed missing scatter profiles when several profiles are computed at the same time (`Issue #4838 <https://github.com/silx-kit/silx/issues/4838>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
 * `silx.gui.widgets.ThreadPoolPushButton`: Fixed crash with PySide6 when the button is deleted (`Issue #4831 <https://github.com/silx-kit/silx/issues/4831>`_)
 * `silx.io.specfile`: Fixed file header containing the first scan header for files without `#F` line (`Issue #3211 <https://github.com/silx-kit/silx/issues/3211>`_)
