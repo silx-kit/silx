@@ -314,24 +314,24 @@ class Viewer(qt.QMainWindow):
         # model.synchronizeH5pyObject(h5)
 
         row = model.h5pyObjectRow(h5)
-        filename = None
+        entryUrl = None
         if row >= 0:
-            # Reuse the url/filename the file was opened with
+            # Reuse the url the entry was opened with
             item = model.data(
                 model.index(row, 0, qt.QModelIndex()),
                 role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE,
             )
-            filename = item._openedPath
-        if filename is None:
-            filename = f"{h5.file.filename}::{h5.name}"
+            entryUrl = item._openedPath
+        if entryUrl is None:
+            entryUrl = f"{h5.file.filename}::{h5.name}"
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
 
-        filePath = DataUrl(filename).file_path()
+        filePath = DataUrl(entryUrl).file_path()
         nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
 
-        model.insertFile(filename, row)
+        model.insertFile(entryUrl, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         self.__expandNodesFromPaths(self.__treeview, index, paths)
 

@@ -638,11 +638,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if node.parent is not self.__root:
             return
 
-        # Reuse the url/filename the file was opened with
-        filename = node._openedPath
-        if filename is None:
-            filename = node.obj.filename
-        self.insertFileAsync(filename, index.row(), synchronizingNode=node)
+        # Reuse the url the file was opened with
+        url = node._openedPath
+        if url is None:
+            url = node.obj.filename
+        self.insertFileAsync(url, index.row(), synchronizingNode=node)
 
     @staticmethod
     def __areH5pyObjectEqual(obj1, obj2):
