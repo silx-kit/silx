@@ -1654,7 +1654,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             # The garbage collector can delete the widget during the draw
             if qt_inspect.isValid(self):
                 raise
-            _logger.info("widget deleted during draw")
+            _logger.info("%s widget deleted during draw", type(self).__name__)
             return
 
         if self._hasOverlays():
