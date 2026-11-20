@@ -8,6 +8,7 @@ Release Notes
 * `silx.gui.plot.PrintPreviewToolButton`: Print sizes larger than the page are refused in the print geometry dialog (`Issue #1229 <https://github.com/silx-kit/silx/issues/1229>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views
 * `silx.gui.plot.PlotWidget`: Fixed `pan` and the arrow keys ignoring the axes limits constraints (`Issue #1298 <https://github.com/silx-kit/silx/issues/1298>`_)
+* `silx.gui.plot.items.Scatter`: Fixed missing scatter profiles when several profiles are computed at the same time (`Issue #4838 <https://github.com/silx-kit/silx/issues/4838>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
 * `silx.io.specfile`: Fixed file header containing the first scan header for files without `#F` line (`Issue #3211 <https://github.com/silx-kit/silx/issues/3211>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
