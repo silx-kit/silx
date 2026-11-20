@@ -162,7 +162,7 @@ class DataPanel(qt.QWidget):
                 # That's an approximation, IS can't be used as h5py generates
                 # To objects for each requests to a node
                 if data.file.filename == root.file.filename:
-                    self.__dataViewer.setData(None)
+                    self.setData(None)
 
     def replaceDatasetsFrom(self, removedH5, loadedH5):
         """
