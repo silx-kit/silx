@@ -337,7 +337,7 @@ findIndex( void *scan, void *number )
 /*********************************************************************
  *   Function:		int findFirst( scan, file_offset )
  *
- *   Description:	Compares if scan offset > file_offset
+ *   Description:	Compares if scan offset >= file_offset
  *
  *   Parameters:
  *		Input :	(1) SpecScan pointer
