@@ -73,16 +73,19 @@ def testInteract(console, qapp_utils):
     qapp_utils.qapp.processEvents()
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 @pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
-def test_bug_538_main_module_kept(qapp):
-    """Creating a console must not replace ``sys.modules["__main__"]`` (#538)"""
+def test_main_module_kept(qapp):
+    """Creating a console must not replace ``sys.modules["__main__"]``"""
     pytest.importorskip("qtconsole")
     from silx.gui.console import IPythonWidget
 
     main = sys.modules["__main__"]
     widget = IPythonWidget()
+    shell_class = type(widget.kernel_manager.kernel.shell)
     try:
         assert sys.modules["__main__"] is main
     finally:
         widget.kernel_client.stop_channels()
         widget.kernel_manager.shutdown_kernel()
+        shell_class.clear_instance()  # the shell is a process-wide singleton
