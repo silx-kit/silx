@@ -34,7 +34,7 @@ import traceback
 from types import TracebackType
 
 import silx.io.nxdata
-from silx.io.url import DataUrl
+from silx.io.utils import _get_local_file_path
 from silx.gui import qt
 from silx.gui import icons
 import silx.gui.hdf5
@@ -328,8 +328,9 @@ class Viewer(qt.QMainWindow):
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
         model.removeH5pyObject(h5)
 
-        filePath = DataUrl(entryUrl).file_path()
-        nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
+        filePath = _get_local_file_path(entryUrl)
+        if filePath is not None:
+            nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
 
         model.insertFile(entryUrl, row)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
