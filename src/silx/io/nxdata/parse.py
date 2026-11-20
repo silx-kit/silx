@@ -27,6 +27,7 @@ from silx.io.utils import is_group, is_file, is_dataset, h5py_read_dataset
 from silx.utils.deprecation import deprecated
 
 from ._utils import (
+    AxisDataset,
     Interpretation,
     ScaleType,
     get_attr_as_unicode,
@@ -136,13 +137,13 @@ class NXdata:
 
     def __init__(self, group: h5py.Group, validate: bool = True):
         super().__init__()
-        self._plot_style = None
+        self._plot_style: _SilxStyle | None = None
 
         self.group = group
         """h5py-like group object with @NX_class=NXdata.
         """
 
-        self.issues = []
+        self.issues: list[str] = []
         """List of error messages for malformed NXdata."""
 
         if validate:
@@ -152,26 +153,26 @@ class NXdata:
         If False, all properties and attributes will be None.
         """
 
-        self._is_scatter = None
-        self._axes = None
+        self._is_scatter: bool | None = None
+        self._axes: list[AxisDataset] | None = None
 
-        self.signal = None
+        self.signal: h5py.Dataset | None = None
         """Main signal dataset in this NXdata group.
         In case more than one signal is present in this group,
         the other ones can be found in :attr:`auxiliary_signals`.
         """
 
-        self.signal_name = None
+        self.signal_name: str | None = None
         """Signal long name, as specified in the @long_name attribute of the
         signal dataset. If not specified, the dataset name is used."""
 
-        self._signal_ndim = None
-        self._signal_is_0d = None
-        self._signal_is_1d = None
-        self._signal_is_2d = None
-        self._signal_is_3d = None
+        self._signal_ndim: int | None = None
+        self._signal_is_0d: bool | None = None
+        self._signal_is_1d: bool | None = None
+        self._signal_is_2d: bool | None = None
+        self._signal_is_3d: bool | None = None
 
-        self.axes_names = None
+        self.axes_names: list[str | None] | None = None
         """List of axes names in a NXdata group.
 
         This attribute is similar to :attr:`axes_dataset_names` except that
@@ -211,22 +212,22 @@ class NXdata:
 
     @property
     @deprecated(since_version="3.0.0")
-    def signal_is_0d(self) -> int:
+    def signal_is_0d(self) -> bool:
         return self._signal_is_0d
 
     @property
     @deprecated(since_version="3.0.0")
-    def signal_is_1d(self) -> int:
+    def signal_is_1d(self) -> bool:
         return self._signal_is_1d
 
     @property
     @deprecated(since_version="3.0.0")
-    def signal_is_2d(self) -> int:
+    def signal_is_2d(self) -> bool:
         return self._signal_is_2d
 
     @property
     @deprecated(since_version="3.0.0")
-    def signal_is_3d(self) -> int:
+    def signal_is_3d(self) -> bool:
         return self._signal_is_3d
 
     def _validate(self):
@@ -525,7 +526,7 @@ class NXdata:
         return interpretation
 
     @property
-    def axes(self) -> list[h5py.Dataset]:
+    def axes(self) -> list[AxisDataset]:
         """List of the axes datasets.
 
         The list typically has as many elements as there are dimensions in the
@@ -552,7 +553,6 @@ class NXdata:
             the output will be a numpy array resulting from slicing that
             axis (*axis[first_good:last_good + 1]*).
 
-        :rtype: List[Dataset or 1D array or None]
         """
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
@@ -560,7 +560,7 @@ class NXdata:
         if self._axes is not None:
             # use cache
             return self._axes
-        axes = []
+        axes: list[AxisDataset] = []
         for axis_name in self.axes_dataset_names:
             if axis_name is None:
                 axes.append(None)
@@ -694,7 +694,7 @@ class NXdata:
             return ""
         return str(title)
 
-    def get_axis_errors(self, axis_name: str) -> h5py.Dataset | numpy.ndarray | None:
+    def get_axis_errors(self, axis_name: str) -> AxisDataset:
         """Return errors (uncertainties) associated with an axis.
 
         If the axis has attributes @first_good or @last_good, the output

@@ -4,12 +4,13 @@ import numpy
 from ...io.commonh5 import Dataset
 from ...io.nxdata import get_attr_as_unicode
 from .. import qt
+from ...io.nxdata._utils import AxisDataset
+from ...io.utils import is_dataset
 from ..plot import Plot2D
 from ..plot.items import ImageBase
 from ..plot.MaskToolsWidget import MaskToolsWidget
 from ..utils import blockSignals
 from ._SignalSelector import SignalSelector
-from ._utils import ImageAxis
 from .NumpyAxesSelector import NumpyAxesSelector
 
 
@@ -26,7 +27,7 @@ class BaseImagePlot(qt.QWidget):
         super().__init__(parent)
 
         self._signals: list[h5py.Dataset | Dataset] = []
-        self._axes: list[h5py.Dataset | Dataset] = []
+        self._axes: list[AxisDataset] = []
         self._axesNames: list[str] = []
         self._title = ""
 
@@ -57,7 +58,7 @@ class BaseImagePlot(qt.QWidget):
     def setImageData(
         self,
         signals: list[h5py.Dataset | Dataset],
-        axes: list[h5py.Dataset | Dataset] | None = None,
+        axes: list[AxisDataset] | None = None,
         signalsNames: list[str] | None = None,
         axesNames: list[str] | None = None,
         title: str | None = None,
@@ -136,8 +137,8 @@ class BaseImagePlot(qt.QWidget):
         if self._axes:
             xAxis = self._axes[xAxisIndex]
             yAxis = self._axes[yAxisIndex]
-            xUnits = get_attr_as_unicode(xAxis, "units") if xAxis else None
-            yUnits = get_attr_as_unicode(yAxis, "units") if yAxis else None
+            xUnits = get_attr_as_unicode(xAxis, "units") if is_dataset(xAxis) else None
+            yUnits = get_attr_as_unicode(yAxis, "units") if is_dataset(yAxis) else None
         else:
             xAxis = None
             yAxis = None
@@ -157,7 +158,7 @@ class BaseImagePlot(qt.QWidget):
         self._plot.setGraphYLabel(self._axesNames[yAxisIndex])
         self._plot.resetZoom()
 
-    def _addItemToPlot(self, xAxis: ImageAxis, yAxis: ImageAxis):
+    def _addItemToPlot(self, xAxis: AxisDataset, yAxis: AxisDataset):
         raise NotImplementedError()
 
     def clear(self):
