@@ -7,6 +7,7 @@ Release Notes
 * `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views
 * `silx.gui.plot.PlotWidget`: Fixed `pan` and the arrow keys ignoring the axes limits constraints (`Issue #1298 <https://github.com/silx-kit/silx/issues/1298>`_)
+* `silx.gui.utils.testutils`: `TestCaseQt.mouseMove` sends the move event to the widget without moving the system cursor (`Issue #4840 <https://github.com/silx-kit/silx/issues/4840>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)

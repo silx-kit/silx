@@ -283,7 +283,23 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseMove for details.
         """
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
-        QTest.mouseMove(widget, pos, delay)
+        if pos.isNull():
+            pos = widget.rect().center()
+        if delay > 0:
+            QTest.qWait(delay)
+        # Send the event to the child under the cursor. QTest.mouseMove(QWidget)
+        # moves the system cursor instead: the window system can deliver the
+        # move event late or to another widget.
+        target = widget.childAt(pos) or widget
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            qt.QPointF(target.mapFrom(widget, pos)),
+            qt.QPointF(widget.mapToGlobal(pos)),
+            qt.Qt.NoButton,
+            self.qapp.mouseButtons(),
+            self.qapp.keyboardModifiers(),
+        )
+        qt.QApplication.sendEvent(target, event)
         self.qWait(20)
 
     def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):

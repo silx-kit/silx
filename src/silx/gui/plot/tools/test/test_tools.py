@@ -116,6 +116,9 @@ class TestPositionInfo(PlotWidgetTestCase):
             converters=[("Call count", functools.partial(update, calls))],
         )
 
+        # updateInfo reads the system cursor position
+        widget = self.plot.getWidgetHandle()
+        qt.QCursor.setPos(widget.mapToGlobal(widget.rect().center()))
         positionWidget.updateInfo()
         self.assertEqual(len(calls), 1)
 
