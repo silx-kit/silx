@@ -209,7 +209,7 @@ class ApplicationContext(DataViewHooks):
         if self.__settings is None:
             return
         modeId = view.modeId()
-        if modeId == DataViews.PLOT2D_MODE:
+        if isinstance(widget, Plot2D):
             plot = widget
         elif isinstance(widget, _BaseImagePlot):
             plot = widget.getPlot()
