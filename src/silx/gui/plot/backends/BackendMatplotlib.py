@@ -1436,6 +1436,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._synchronizeForegroundColors()
         self._plot._setDirtyPlot()
 
+    def _getAspectRatio(self) -> float:
+        width, height = self.getPlotBoundsInPixels()[2:]
+        xmin, xmax = self.ax.get_xbound()
+        ymin, ymax = self.ax.get_ybound()
+        return ((xmax - xmin) / width) / ((ymax - ymin) / height)
+
     def _synchronizeBackgroundColors(self):
         backgroundColor = self._plot.getBackgroundColor().getRgbF()
 
@@ -1624,6 +1630,21 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound()
         )
 
+    def _fixAspectRatioAfterLayout(self):
+        """Layout engines resize the axes during draw, after the bounds
+        were computed for the previous axes size: recompute them."""
+        if not self.isKeepDataAspectRatio() or self.fig.get_layout_engine() is None:
+            return
+        for _ in range(3):
+            if abs(self._getAspectRatio() - 1.0) < 1e-3:
+                return
+            self._setPlotBounds()
+            try:
+                FigureCanvasQTAgg.draw(self)
+            except ValueError as err:
+                _logger.debug("ValueError caught while redrawing: '%s'", err)
+                return
+
     def draw(self):
         """Overload draw
 
@@ -1650,6 +1671,8 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
                 "ValueError caught while calling FigureCanvasQTAgg.draw: '%s'",
                 err,
             )
+
+        self._fixAspectRatioAfterLayout()
 
         if self._hasOverlays():
             # Save background
