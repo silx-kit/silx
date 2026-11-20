@@ -192,7 +192,7 @@ class DataUrl:
         if self.is_valid():
             return f"DataUrl(valid=True, {fields})"
         else:
-            return f"DataUrl(valid=True, {fields}, invalid_reason={_quote_string(self.invalid_reason)})"
+            return f"DataUrl(valid=False, {fields}, invalid_reason={_quote_string(self.invalid_reason)})"
 
     def __check_validity(self):
         """Check the validity of the attributes."""
