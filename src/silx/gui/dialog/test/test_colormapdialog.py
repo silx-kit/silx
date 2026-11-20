@@ -395,3 +395,76 @@ def testUpdateImageData(qapp, qWidgetFactory):
     item.setData([(1, 2), (3, 4)])
 
     assert dialog._histoWidget.getFiniteRange() == (1, 4)
+
+
+@pytest.mark.parametrize(
+    "name, expected",
+    [
+        ("gray", "reversed gray"),
+        ("reversed gray", "gray"),
+    ],
+)
+def testReverseColormapName(qWidgetFactory, name, expected):
+    """Test the reverse button with colormaps having a reversed counterpart"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name=name)
+    dialog.setColormap(colormap)
+
+    button = dialog._reverseColormapButton
+
+    button.click()
+    assert colormap.getName() == expected
+    assert dialog._comboBoxColormap.getCurrentName() == expected
+
+    button.click()
+    assert colormap.getName() == name
+
+
+def testReverseColormapLut(qWidgetFactory):
+    """Test the reverse button with a custom LUT"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    lut = numpy.array([[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]])
+    colormap = Colormap(colors=lut)
+    dialog.setColormap(colormap)
+
+    button = dialog._reverseColormapButton
+
+    button.click()
+    assert colormap.getName() is None
+    numpy.testing.assert_array_equal(colormap.getColormapLUT(), lut[::-1])
+    numpy.testing.assert_array_equal(
+        dialog._comboBoxColormap.getCurrentColors(), lut[::-1]
+    )
+    assert dialog._comboBoxColormap.currentText() == "Custom"
+
+    button.click()
+    numpy.testing.assert_array_equal(colormap.getColormapLUT(), lut)
+
+
+def testReverseColormapWithoutReversedName(qWidgetFactory):
+    """Test the reverse button with a named colormap without reversed counterpart"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name="temperature")
+    dialog.setColormap(colormap)
+    lut = colormap.getNColors()
+    button = dialog._reverseColormapButton
+
+    button.click()
+    assert colormap.getName() is None
+    numpy.testing.assert_array_equal(colormap.getColormapLUT(), lut[::-1])
+    assert dialog._comboBoxColormap.currentText() == "Temperature (reversed)"
+
+    button.click()
+    assert colormap.getName() == "temperature"
+    assert dialog._comboBoxColormap.currentText() == "Temperature"
+
+
+def testReverseColormapNotEditable(qWidgetFactory):
+    """Test the reverse button follows the colormap editable state"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name="gray")
+    dialog.setColormap(colormap)
+
+    for editable in (True, False):
+        colormap.setEditable(editable)
+        assert dialog._reverseColormapButton.isEnabled() is editable
