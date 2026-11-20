@@ -390,7 +390,8 @@ class TestSFLocale(unittest.TestCase):
 def test_no_file_header(tmp_path, leading):
     scan = "#S {n} ascan x 0 1 1 1\n#N 1\n#L x\n0\n"
     path = tmp_path / "no_header.dat"
-    path.write_text(leading + scan.format(n=1) + "\n" + scan.format(n=2))
+    content = leading + scan.format(n=1) + "\n" + scan.format(n=2)
+    path.write_bytes(content.encode())
 
     sf = SpecFile(str(path))
     file_header = sf[-1].file_header
@@ -401,9 +402,10 @@ def test_no_file_header(tmp_path, leading):
 def test_file_header_after_other_file_header(tmp_path):
     scan = "#S {n} ascan x 0 1 1 1\n#N 1\n#L x\n0\n"
     path = tmp_path / "two_blocks.dat"
-    path.write_text(
+    content = (
         scan.format(n=1) + "\n#F second.dat\n#E 1\n#O0 mot1\n\n" + scan.format(n=2)
     )
+    path.write_bytes(content.encode())
 
     sf = SpecFile(str(path))
     last_file_header = sf[-1].file_header
