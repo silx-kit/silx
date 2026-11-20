@@ -102,11 +102,11 @@ def testViewerSynchronizeKeepsOpenedPath(qWidgetFactory, data_h5):
     url = DataUrl(file_path=data_h5, data_path="/arrays", scheme="silx").path()
     viewer = qWidgetFactory(Viewer)
     viewer.appendFile(url)
-    model = viewer._Viewer__treeview.findHdf5TreeModel()
+    model = viewer.getHdf5TreeView().findHdf5TreeModel()
     h5 = model.data(model.index(0, 0, qt.QModelIndex()), role=model.H5PY_OBJECT_ROLE)
     assert h5.name == "/arrays"
 
-    viewer._Viewer__synchronizeH5pyObject(h5)
+    viewer.refreshOpenedRoot(h5)
 
     assert model.rowCount() == 1
     item = model.data(model.index(0, 0, qt.QModelIndex()), role=model.H5PY_ITEM_ROLE)

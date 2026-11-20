@@ -56,6 +56,32 @@ class Viewer(qt.QMainWindow):
     content.
     """
 
+    _dataPanelFactory = DataPanel
+    """Class of the widget displaying the selected data.
+
+    Derived applications can override it with another class, which is
+    instantiated as ``factory(parent, context)`` during ``__init__``, before
+    the panel is added to the layout.
+
+    It has to be a class: a plain function stored here would be bound as a
+    method and receive the viewer as its first argument.
+    """
+
+    sigFileLoaded = qt.Signal(object)
+    """Emitted when a file was opened in the tree, including when it is reloaded.
+
+    Provides the root h5py-like object.
+    The viewer owns this object: listeners can use it but must not close it.
+    """
+
+    sigFileAboutToBeClosed = qt.Signal(object)
+    """Emitted just before the viewer closes a file, including when it is
+    reloaded or when the window is closed.
+
+    Provides the root h5py-like object, which is still open.
+    Listeners must release the references they hold on objects from this file.
+    """
+
     def __init__(self, parent=None, settings=None):
         """
         Constructor
@@ -119,7 +145,7 @@ class Viewer(qt.QMainWindow):
         self._customPlotSelectionWindow = CustomPlotSelectionWindow(self)
         self._customPlotSelectionWindow.setVisible(False)
 
-        self.__dataPanel = DataPanel(self, self.__context)
+        self.__dataPanel = self._dataPanelFactory(self, self.__context)
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(rightPanel)
@@ -160,6 +186,18 @@ class Viewer(qt.QMainWindow):
 
     def createApplicationContext(self, settings):
         return ApplicationContext(self, settings)
+
+    def getDataPanel(self) -> qt.QWidget:
+        """Returns the panel displaying the selected data."""
+        return self.__dataPanel
+
+    def getHdf5TreeView(self) -> silx.gui.hdf5.Hdf5TreeView:
+        """Returns the tree view browsing the opened files."""
+        return self.__treeview
+
+    def getBrowserSplitter(self) -> qt.QSplitter:
+        """Returns the splitter holding the file tree and the custom NXdata panel."""
+        return self.__splitter2
 
     def __createTreeWindow(self, treeView):
         toolbar = qt.QToolBar(self)
@@ -291,7 +329,7 @@ class Viewer(qt.QMainWindow):
 
         model = self.__treeview.findHdf5TreeModel()
         for h5 in h5files:
-            self.__synchronizeH5pyObject(h5)
+            self.refreshOpenedRoot(h5)
 
         model = self.__treeview.model()
         itemSelection = qt.QItemSelection()
@@ -306,7 +344,15 @@ class Viewer(qt.QMainWindow):
 
         qt.QApplication.restoreOverrideCursor()
 
-    def __synchronizeH5pyObject(self, h5):
+    def refreshOpenedRoot(self, h5):
+        """Reload a root opened in the tree, through the normal close/reopen
+        lifecycle.
+
+        :attr:`sigFileAboutToBeClosed` is emitted for the root being closed,
+        then :attr:`sigFileLoaded` for the one that replaces it.
+
+        :param h5: An h5py-like root currently opened in the tree.
+        """
         model = self.__treeview.findHdf5TreeModel()
         # This is buggy right now while h5py do not allow to close a file
         # while references are still used.
@@ -475,6 +521,7 @@ class Viewer(qt.QMainWindow):
         return widget
 
     def __h5FileLoaded(self, loadedH5, filename):
+        self.sigFileLoaded.emit(loadedH5)
         self.__context.pushRecentFile(loadedH5.file.filename)
         if filename == self.__displayIt:
             self.__displayIt = None
@@ -483,12 +530,15 @@ class Viewer(qt.QMainWindow):
     def __h5FileRemoved(self, removedH5):
         self.__dataPanel.removeDatasetsFrom(removedH5)
         self.__customNxdata.removeDatasetsFrom(removedH5)
+        self.sigFileAboutToBeClosed.emit(removedH5)
         removedH5.close()
 
     def __h5FileSynchonized(self, removedH5, loadedH5):
         self.__dataPanel.replaceDatasetsFrom(removedH5, loadedH5)
         self.__customNxdata.replaceDatasetsFrom(removedH5, loadedH5)
+        self.sigFileAboutToBeClosed.emit(removedH5)
         removedH5.close()
+        self.sigFileLoaded.emit(loadedH5)
 
     def closeEvent(self, event):
         self.__context.saveSettings()
@@ -499,6 +549,7 @@ class Viewer(qt.QMainWindow):
         customModel.clear()
         hdf5Model = self.__treeview.findHdf5TreeModel()
         hdf5Model.clear()
+        super().closeEvent(event)
 
     def saveSettings(self, settings):
         """Save the window settings to this settings object
@@ -941,7 +992,7 @@ class Viewer(qt.QMainWindow):
         if len(selected) == 1:
             # Update the viewer for a single selection
             data = selected[0]
-            self.__dataPanel.setData(data)
+            self.displayData(data)
         else:
             _logger.debug("Too many data selected")
 
@@ -1056,7 +1107,7 @@ class Viewer(qt.QMainWindow):
                 action = qt.QAction(
                     "Synchronize %s" % obj.local_filename, event.source()
                 )
-                action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
+                action.triggered.connect(lambda: self.refreshOpenedRoot(h5))
                 menu.addAction(action)
 
             if silx.io.is_group(h5) or silx.io.is_dataset(h5):

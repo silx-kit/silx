@@ -25,6 +25,8 @@
 package `silx.gui.hdf5` package.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "17/01/2019"
@@ -33,10 +35,14 @@ __date__ = "17/01/2019"
 from html import escape
 import logging
 import os.path
+from typing import TYPE_CHECKING
 from silx.gui import constants
 import silx.io.utils
 import silx.io.url
 from .. import qt
+
+if TYPE_CHECKING:
+    from .Hdf5Item import Hdf5Item
 
 _logger = logging.getLogger(__name__)
 
@@ -220,6 +226,11 @@ class H5Node:
         :rtype: h5py.File or h5py.Group or h5py.Dataset
         """
         return self.__h5py_object
+
+    @property
+    def h5py_item(self) -> Hdf5Item:
+        """Returns the tree item this node was created from."""
+        return self.__h5py_item
 
     @property
     def h5type(self):
