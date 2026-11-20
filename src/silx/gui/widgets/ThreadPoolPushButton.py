@@ -31,6 +31,7 @@ import weakref
 import logging
 from typing import Any
 from .. import qt
+from ..qt.inspect import isValid
 from .WaitingPushButton import WaitingPushButton
 
 _logger = logging.getLogger(__name__)
@@ -48,16 +49,11 @@ class _Wrapper(qt.QRunnable):
         self.__args = args
         self.__kwargs = kwargs
 
-        # connect signal / slots
-        signalHolder.destroyed.connect(self._clearSignalHolder)
-
     def _getSignalHolder(self):
-        if self.__signalHolder is None:
+        holder = self.__signalHolder()
+        if holder is None or not isValid(holder):
             return None
-        return self.__signalHolder()
-
-    def _clearSignalHolder(self):
-        self.__signalHolder = None
+        return holder
 
     def run(self):
         holder = self._getSignalHolder()
