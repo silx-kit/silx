@@ -1,161 +1,82 @@
 
-Writing NXdata
-==============
+Writing HDF5 groups to produce specific plots in silx view
+==========================================================
 
-This tutorial explains how to write a *NXdata* group into a HDF5 file.
+.. image:: img/nxcurve.png
+    :width: 50%
 
-A basic knowledge of the HDF5 file format, including understanding
-the concepts of *group*, *dataset* and *attribute*,
-is a prerequisite for this tutorial. You should also be able to read
-a Python script using the *h5py* library to write HDF5 data.
+
+In this tutorial, you will write HDF5 groups describing data relationships so that they can be displayed in ``silx view``.
+
+To follow the tutorial, you need to be able to:
+
+- understand the concepts of *group*, *dataset* and *attribute* in HDF5
+- use the *h5py* library to write HDF5 data.
+
 You can find some information on these topics at the beginning of the
 :doc:`io` tutorial.
 
-Definitions
------------
-
 NeXus Data Format
-+++++++++++++++++
+-----------------
 
-NeXus is a common data format for neutron, x-ray, and muon science.
-It is being developed as an international standard by scientists and programmers
-representing major scientific facilities in order to facilitate greater
-cooperation in the analysis and visualization of neutron, x-ray, and muon data.
+So that ``silx`` produces the specific plots, the relationships between the different datasets must be described according to the `NeXus standard <https://www.nexusformat.org/>`_.
 
-It uses the HDF5 format, adding additional rules and structure to help
-people and software understand how to read a data file.
+NeXus is a common data format for neutron, x-ray, and muon science. The NeXus format can be applied to HDF5 groups by adding a ``NX_class`` attribute to implement `NeXus base classes <https://manual.nexusformat.org/classes/base_classes/index.html>`_.
 
-The name of a group in a NeXus data file can be any string of characters,
-but it must have a `NX_class` attribute defining a
-`*class type* <http://download.nexusformat.org/doc/html/introduction.html#important-classes>`_.
+NeXus files are often structured this way:
 
-Examples of such classes are:
+- The file root is defined as **NXroot** (``NX_class`` attribute set to ``NXroot``, often omitted)
+- The file root contains **NXentry** groups (``NX_class`` attribute set to ``NXentry``)
+- The NXentry groups contain **NXdata** groups (``NX_class`` attribute set to ``NXdata``).
 
- - *NXroot*: root group of the file (may be implicit, if the `NX_class` attribute is omitted)
- - *NXentry*: describes a measurement; it is mandatory that there is at least one
-   group of this type in the NeXus file
- - *NXsample*: contains information pertaining to the sample, such as its chemical composition,
-   mass, and environment variables (temperature, pressure, magnetic field, etc.)
- - *NXinstrument*: encapsulates all the instrumental information that might be relevant to a measurement
- - *NXdata*: describes the plottable data and related dimension scales
+The **NXdata** group is the group we will write. It describes the data to be plotted and the related dimension scales.
 
-You can find all the specifications about the NeXus format on the
-`nexusformat.org website <https://www.nexusformat.org/>`_. The rest of this tutorial will
-focus exclusively on *NXdata*.
-
-NXdata groups
-+++++++++++++
-
-NXdata describes the plottable data and related dimension scales.
-
-It is mandatory that there is at least one NXdata group in each NXentry group.
-Note that the variable and data can be defined with different names.
-The `signal` and `axes` attributes of the group define which items
-are plottable data and which are dimension scales, respectively.
-
-In the case of a curve, for instance, you would have a 1D signal
-dataset (*y* values) and optionally another 1D signal of identical
-size as axis (*x* values). In the case of an image, you would have
-a 2D dataset as signal and optionally two 1D datasets to scale
-the X and Y axes.
-
-A NXdata group should define all the information needed to
-provide a sensible plot, including axis labels and a plot title.
-It can also include additional metadata such as standard deviations
-of data values, or errors an axes.
+Creating a basic NXdata
+-----------------------
 
 .. note::
 
+    From now on, attributes will be written with a leading ``@``.
 
-    The NXdata specification evolved slightly over the course of time.
-    The `complete documentation for the *NXdata* class
-    <http://download.nexusformat.org/doc/html/classes/base_classes/NXdata.html>`_ mentions
-    older rules that you will probably have to take into account
-    if you intend to write a program that reads NeXus files.
+To create a ``NXdata`` group, create an HDF5 group with an attribute ``@NX_class`` set to ``NXdata``.
 
-    If you only need to write such files and only need to read back files
-    you have yourself written, you should adhere to the most recent rules.
-    We will only mention these most recent specifications in this tutorial.
-
-Main elements in a NXdata group
--------------------------------
+The datasets needed for the plot will be added to the group while the attributes of the group define the relationship between the datasets.
 
 Signal
 ++++++
 
-The `@signal` attribute of the NXdata group provides the name of a dataset
-containing the plottable data. The name of this dataset can be freely chosen
-by the writer.
+The ``@signal`` attribute of the ``NXdata`` group contains the name of the dataset inside the group containing the data to be plotted.
 
-This signal dataset may have a `@long_name` attribute, that can be used as
-an axis label (e.g. for the Y axis of a curve) or a plot title (e.g. for an image).
+A ``NXdata`` group needs at least a **signal** dataset to produce a plot.
 
 Axes
 ++++
 
-The `@axes` attributes of the NXdata group provides a list of names of datasets
-to be used as *dimension scales*. The number of axes in this list
-should match the number of dimensions of the signal data, in the general case.
-But in some specific cases, such as scatter plots or stack of images or curves,
-the number of axes may differ from the number of signal dimensions.
+Even though this is optional, ``NXdata`` can also contain datasets to be used as *dimension scales*. The list of those dataset names should be added to the ``@axes`` attribute of the ``NXdata`` group.
 
-An axis should be a 1D dataset, whose length matches the size of the corresponding
-signal dimension.
+The number of names should match the number of dimensions of the signal data. If there is no matching dataset for a particular dimension, a ``"."`` should be written in place of the dataset name.
 
-Silx supports also an axis being a dataset with 2 values :math:`(a, b)`.
-In such a case, it is interpreted as an affine scaling of the indices
-(:math:`i \mapsto a + i * b`).
+The axis dataset should be a 1D dataset, whose length matches the size of the corresponding signal dimension.
 
-An axis dataset may have a `@long_name` attribute, that can be used as
-an axis label.
+Auxiliary signals
++++++++++++++++++
 
-An axis dataset may also define a `@first_good` and `@last_good` attribute.
-These can be used to define a range of indices to be considered valid values
-in the axis.
+The ``NXdata`` group can optionally contain datasets that should be displayed along the main signal, called **auxiliary signals**.
 
-The name of the dataset can be freely chosen by the writer.
+The corresponding dataset names should be added to the ``@auxiliary_signals`` attribute of the ``NXdata`` group.
 
-An axis may be omitted for one or more dimensions of the signal. In this
-case, a `"."` should be written in place of the dataset name in the
-list of axes names.
+There can be any number of auxiliary signals (even none) but all must have the same shape as the main signal (whose name is contained in the ``@signal`` attribute).
 
-
-Signal errors
+Default plots
 +++++++++++++
 
-A dataset named `errors` can be present in a NXdata group. It provides
-the standard deviation of data values. This dataset must have the same
-shape as the signal dataset.
+``silx view`` will produce a plot when opening a NXdata group. This plot can also be produced when opening the parent of the NXdata group (often ``NXentry``) by setting the ``NXdata`` group as the default group.
 
-Axes errors
-+++++++++++
+For this, the parent group should have a ``@default`` attribute that contains the relative path to the ``NXdata`` group (e.g. its name if the ``NXdata`` group is a direct child).
 
-An axis may have associated errors (uncertainties). These axis errors
-must be provided in a dataset whose name is the axis name with `_errors`
-appended to it.
+Default groups can be defined up to the file root to produce a plot when opening the file in ``silx view``.
 
-For instance, an axis whose dataset name is `pressure` may provide errors
-in an another dataset whose name is `pressure_errors`.
-
-This dataset must have the same size as the corresponding axis.
-
-Interpretation
-++++++++++++++
-
-Silx supports an attribute `@interpretation` attached to the signal dataset.
-The supported values for this attribute are `scalar`, `spectrum` or `image`.
-
-This attribute must be provided when the number of axes is lower than the
-number of signal dimensions. For instance, a 3D signal with
-`@interpretation="image"` is interpreted as a stack of images.
-The axes always apply to the last dimensions of the signal, so in this example
-of a 3D stack of images, the first dimension is not scaled and is interpreted as
-a *frame number*.
-
-.. note::
-
-   This attribute is documented in the official NeXus `description <https://manual.nexusformat.org/nxdl_desc.html>`_
-
+See the section below for some examples.
 
 Examples of NXdata with h5py
 ----------------------------
@@ -257,7 +178,7 @@ A 3D scatter plot can be generated likewise
 
 .. image:: img/nxscatter3d.png
 
-.. note:: 
+.. note::
 
     When producing the 3D scatter plot, ``silx view`` will scale the markers according to the first auxiliary signal.
 
@@ -305,8 +226,8 @@ In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
 
 .. image:: img/nximage.png
 
-.. note:: 
+.. note::
 
-    If the image axes have the same ``units`` or both have no ``units``, the image aspect ratio will kept.
-    
+    If the image axes have the same ``units`` or both have no ``units``, the image aspect ratio will be kept.
+
     In the example above, the two axes ``x`` and ``y`` have different ``units`` so that the image aspect ratio is not conserved.
