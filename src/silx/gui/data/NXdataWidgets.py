@@ -385,11 +385,9 @@ class ArrayComplexImagePlot(qt.QWidget):
             ):
                 self._plot.setColormap(colormap, mode)
 
-        plot = self._plot.getPlot()
-        plot.getIntensityHistogramAction().setVisible(True)
-        plot.toolBar().addAction(plot.getShowAxisAction())
+        self._plot.getPlot().getIntensityHistogramAction().setVisible(True)
         self._plot.setKeepDataAspectRatio(True)
-        maskToolWidget = plot.getMaskToolsDockWidget().widget()
+        maskToolWidget = self._plot.getPlot().getMaskToolsDockWidget().widget()
         maskToolWidget.setItemMaskUpdated(True)
 
         # not closable
