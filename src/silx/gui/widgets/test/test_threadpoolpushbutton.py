@@ -96,3 +96,15 @@ def testFail(button, listener, qapp):
         qapp.processEvents()
     result = listener.karguments(argumentName="test")
     assert result == ["be", "s", "exception", "f"]
+
+
+def testDeleteAfterExecution(qapp, qapp_utils):
+    """Delete buttons after their callables are executed"""
+    for _ in range(20):
+        button = ThreadPoolPushButton()
+        button.setCallable(lambda: None)
+        for _ in range(qt.silxGlobalThreadPool().maxThreadCount()):
+            button.executeCallable()
+        qapp_utils.waitAsLongAs(button.hasPendingOperations)
+        button.deleteLater()
+        qapp.sendPostedEvents(None, qt.QEvent.DeferredDelete)
