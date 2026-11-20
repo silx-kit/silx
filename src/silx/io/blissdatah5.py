@@ -1,4 +1,5 @@
 import logging
+import math
 import numbers
 from typing import Generator, Literal
 
@@ -10,6 +11,9 @@ from blissdata.h5api import abstract as _abstract
 from blissdata.h5api import redis_hdf5 as _redis_hdf5
 
 _logger = logging.getLogger(__name__)
+
+_ITER_CHUNK_NBYTES = 16 * 1024**2
+"""Maximum size of data read at once when iterating over a dataset"""
 
 
 class BlissDataH5(commonh5.File):
@@ -132,6 +136,22 @@ class BlissDataDataset(commonh5.Dataset):
                 f"Index ({index}) out of range for axis 0 of size {length}"
             )
         return data[position]
+
+    def __iter__(self):
+        """Iterate over the first axis, on data available when iteration starts.
+
+        Contrary to blissdata datasets, it does not wait for new data.
+        """
+        data = self._get_data()
+        if data.ndim == 0:
+            raise TypeError("Can't iterate over a scalar dataset")
+
+        length = len(data)
+        itemNBytes = data.dtype.itemsize * math.prod(data.shape[1:])
+        chunkLength = max(1, _ITER_CHUNK_NBYTES // max(1, itemNBytes))
+        for start in range(0, length, chunkLength):
+            stop = min(start + chunkLength, length)
+            yield from self.__getFirstAxis(slice(start, stop))
 
     @property
     def value(self) -> numpy.ndarray:
