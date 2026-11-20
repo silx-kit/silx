@@ -1654,37 +1654,43 @@ _DRAW_MODES = {
 class _FocusManagerWithMiddlePan(FocusManager):
     """FocusManager providing pan with the middle mouse button.
 
-    Middle button events are handled before dispatching events to the
+    Events of the pan buttons are handled before dispatching events to the
     event handlers, so that panning is available at any time,
     including while a drawing is in progress (e.g., between the clicks
     defining the 2 points of a line).
+
+    :param plot: The plot to pan
+    :param eventHandlers: Event handlers receiving the other events
+    :param dragButtons: Mouse buttons triggering the pan
     """
 
-    def __init__(self, plot, eventHandlers=()):
+    def __init__(self, plot, eventHandlers, dragButtons):
         super().__init__(eventHandlers)
-        self._pan = Pan(plot)
-        self._isPanning = False
+        self._dragButtons = tuple(dragButtons)
+        self._pan = Pan(plot, clickButtons=(), dragButtons=self._dragButtons)
+        self._panButton = None
+        """Button used for the pan in progress, None if not panning"""
 
     def handleEvent(self, eventName, *args, **kwargs):
-        if eventName == "press" and args[2] == MIDDLE_BTN:
-            if not self._isPanning:
-                self._isPanning = True
+        if eventName == "press" and args[2] in self._dragButtons:
+            if self._panButton is None:
+                self._panButton = args[2]
                 self._pan.beginDrag(*args)
-            return  # Consume middle click events
-        if eventName == "release" and args[2] == MIDDLE_BTN:
-            if self._isPanning:
-                self._isPanning = False
-                self._pan.endDrag(None, args[:2], MIDDLE_BTN)
-            return  # Consume middle click events
-        if eventName == "move" and self._isPanning:
+            return  # Consume pan button events
+        if eventName == "release" and args[2] in self._dragButtons:
+            if args[2] == self._panButton:
+                self._panButton = None
+                self._pan.endDrag(None, args[:2], args[2])
+            return  # Consume pan button events
+        if eventName == "move" and self._panButton is not None:
             x, y = args[:2]
-            self._pan.drag(x, y, MIDDLE_BTN)
+            self._pan.drag(x, y, self._panButton)
 
         return super().handleEvent(eventName, *args, **kwargs)
 
     def cancel(self):
-        if self._isPanning:
-            self._isPanning = False
+        if self._panButton is not None:
+            self._panButton = None
             self._pan.cancel()
         super().cancel()
 
@@ -1700,7 +1706,11 @@ class DrawMode(_FocusManagerWithMiddlePan):
             "color": color,
             "width": width,
         }
-        super().__init__(plot, (eventHandlerClass(plot, parameters),))
+        super().__init__(
+            plot,
+            (eventHandlerClass(plot, parameters),),
+            dragButtons=(MIDDLE_BTN,),
+        )
 
     def getDescription(self):
         """Returns the dict describing this interactive mode"""
@@ -1723,6 +1733,7 @@ class DrawSelectMode(_FocusManagerWithMiddlePan):
         super().__init__(
             plot,
             (ItemsInteractionForCombo(plot), eventHandlerClass(plot, parameters)),
+            dragButtons=(MIDDLE_BTN,),
         )
 
     def getDescription(self):
