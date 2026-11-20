@@ -27,7 +27,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/09/2017"
 
-import numpy
 import pytest
 
 from silx.gui import qt
