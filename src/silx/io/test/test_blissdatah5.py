@@ -3,6 +3,7 @@ import pytest
 
 pytest.importorskip("blissdata")
 
+from .. import blissdatah5  # noqa: E402
 from ..blissdatah5 import BlissDataDataset  # noqa: E402
 
 
@@ -37,6 +38,9 @@ class _StreamLikeDataset:
 
     def __len__(self):
         return len(self._array)
+
+    def __iter__(self):
+        raise AssertionError("Blocking iteration until the end of the stream")
 
     def __getitem__(self, idx):
         self.calls.append(idx)
@@ -148,3 +152,33 @@ def testValueAndArray(array):
     dataset = BlissDataDataset("data", _StreamLikeDataset(array))
     numpy.testing.assert_array_equal(dataset.value, array)
     numpy.testing.assert_array_equal(numpy.asarray(dataset), array)
+
+
+def testIter(monkeypatch, array):
+    """Iteration reads chunks of available data and does not wait"""
+    monkeypatch.setattr(blissdatah5, "_ITER_CHUNK_NBYTES", 2 * array[0].nbytes)
+    data = _StreamLikeDataset(array)
+    dataset = BlissDataDataset("data", data)
+
+    items = list(dataset)
+
+    assert len(items) == len(array)
+    for item, expected in zip(items, array):
+        numpy.testing.assert_array_equal(item, expected)
+    assert data.calls == [slice(0, 2, 1), slice(2, 4, 1), slice(4, 5, 1)]
+
+
+def testIter1D():
+    array = numpy.arange(10)
+    assert list(BlissDataDataset("data", _StreamLikeDataset(array))) == list(array)
+
+
+def testIterEmpty():
+    dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.empty((0, 2))))
+    assert list(dataset) == []
+
+
+def testIterScalar():
+    dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.array(42)))
+    with pytest.raises(TypeError):
+        list(dataset)
