@@ -3,10 +3,11 @@ Writing HDF5 groups to produce specific plots in silx view
 ==========================================================
 
 .. image:: img/nxcurve.png
-    :width: 50%
+    :width: 75%
+    :align: center
 
 
-In this tutorial, you will write HDF5 groups describing data relationships so that they can be displayed in ``silx view``.
+In this tutorial, you will write HDF5 groups describing data relationships so that ``silx view`` produces specific plots: curve, image, or scatter plots whose axes, labels and errors can be extracted automatically from the group.
 
 To follow the tutorial, you need to be able to:
 
@@ -25,9 +26,20 @@ NeXus is a common data format for neutron, x-ray, and muon science. The NeXus fo
 
 NeXus files are often structured this way:
 
-- The file root is defined as **NXroot** (``NX_class`` attribute set to ``NXroot``, often omitted)
-- The file root contains **NXentry** groups (``NX_class`` attribute set to ``NXentry``)
-- The NXentry groups contain **NXdata** groups (``NX_class`` attribute set to ``NXdata``).
+- The file root is defined as `NXroot <https://manual.nexusformat.org/classes/base_classes/NXroot.html>`_ (``NX_class`` attribute set to ``NXroot``, often omitted)
+- The file root contains `NXentry <https://manual.nexusformat.org/classes/base_classes/NXentry.html>`_ groups (``NX_class`` attribute set to ``NXentry``)
+- The NXentry groups contain `NXdata <https://manual.nexusformat.org/classes/base_classes/NXdata.html>`_ groups (``NX_class`` attribute set to ``NXdata``).
+
+For example (attributes are prefixed with ``@``):
+
+.. code-block:: text
+
+    myfile.h5                   @NX_class = "NXroot" (often omitted)
+    ├── entry_1                 @NX_class = "NXentry"
+    │   ├── data_a              @NX_class = "NXdata"
+    │   └── data_b              @NX_class = "NXdata"
+    └── entry_2                 @NX_class = "NXentry"
+        └── data_c              @NX_class = "NXdata"
 
 The **NXdata** group is the group we will write. It describes the data to be plotted and the related dimension scales.
 
@@ -92,10 +104,15 @@ The simplest NXdata example would be a 1D signal to be plotted as a curve.
     import numpy
 
     with h5py.File("myfile.h5", "w") as h5file:
+        # Default group to plot when opening the file (optional)
+        h5file.attrs["default"] = "entry"
+
         # It is mandatory to have at least one NXentry
         # https://manual.nexusformat.org/classes/base_classes/NXentry.html#nxentry
         entry = h5file.create_group("entry")
         entry.attrs["NX_class"] = "NXentry"
+        # Default group to plot when opening the entry (optional)
+        entry.attrs["default"] = "my_curve"
 
         nxdata = entry.create_group("my_curve")
         nxdata.attrs["NX_class"] = "NXdata"
@@ -115,6 +132,21 @@ The simplest NXdata example would be a 1D signal to be plotted as a curve.
         nxdata.create_dataset("y3", data=numpy.array([1, 0.7, 0.4, 0.1]))
         nxdata.attrs["auxiliary_signals"] = ["y2", "y3"]
 
+The resulting file has the following structure (attributes are prefixed with ``@``, datasets show their dtype and shape):
+
+.. code-block:: text
+
+    myfile.h5                       @default = "entry"
+    └── entry                       @NX_class = "NXentry"
+        │                           @default = "my_curve"
+        └── my_curve                @NX_class = "NXdata"
+            │                       @signal = "y"
+            │                       @axes = ["x"]
+            │                       @auxiliary_signals = ["y2", "y3"]
+            ├── x    float64 (4,)   @units = "deg"
+            ├── y    float64 (4,)   @units = "mm"
+            ├── y2   float64 (4,)
+            └── y3   float64 (4,)
 
 This will give the following plot in ``silx view``:
 
@@ -138,8 +170,11 @@ To generate a 2D scatter plot:
     import numpy
 
     with h5py.File("myfile.h5", "w") as h5file:
+        h5file.attrs["default"] = "entry"
+
         entry = h5file.create_group("entry")
         entry.attrs["NX_class"] = "NXentry"
+        entry.attrs["default"] = "my_scatter"
 
         nxdata = entry.create_group("my_scatter")
         nxdata.attrs["NX_class"] = "NXdata"
@@ -148,6 +183,18 @@ To generate a 2D scatter plot:
         nxdata.create_dataset("values", data=numpy.array([0.1, 0.2, 0.15, 0.44]))
         nxdata.create_dataset("x", data=numpy.array([101.1, 101.2, 101.3, 101.4]))
         nxdata.create_dataset("y", data=numpy.array([2, 4, 6, 8]))
+
+.. code-block:: text
+
+    myfile.h5                       @default = "entry"
+    └── entry                       @NX_class = "NXentry"
+        │                           @default = "my_scatter"
+        └── my_scatter              @NX_class = "NXdata"
+            │                       @signal = "values"
+            │                       @axes = ["x", "y"]
+            ├── values   float64 (4,)
+            ├── x        float64 (4,)
+            └── y        int64   (4,)
 
 Again, in ``silx view``:
 
@@ -164,8 +211,11 @@ A 3D scatter plot can be generated likewise
     import numpy
 
     with h5py.File("myfile.h5", "w") as h5file:
+        h5file.attrs["default"] = "entry"
+
         entry = h5file.create_group("entry")
         entry.attrs["NX_class"] = "NXentry"
+        entry.attrs["default"] = "my_3D_scatter"
 
         nxdata = entry.create_group("my_3D_scatter")
         nxdata.attrs["NX_class"] = "NXdata"
@@ -175,6 +225,19 @@ A 3D scatter plot can be generated likewise
         nxdata.create_dataset("x", data=numpy.array([101.1, 101.2, 101.3, 101.4]))
         nxdata.create_dataset("y", data=numpy.array([2, 4, 6, 8]))
         nxdata.create_dataset("z", data=numpy.array([-10, -8, -6, -4]))
+
+.. code-block:: text
+
+    myfile.h5                       @default = "entry"
+    └── entry                       @NX_class = "NXentry"
+        │                           @default = "my_3D_scatter"
+        └── my_3D_scatter           @NX_class = "NXdata"
+            │                       @signal = "values"
+            │                       @axes = ["x", "y", "z"]
+            ├── values   float64 (4,)
+            ├── x        float64 (4,)
+            ├── y        int64   (4,)
+            └── z        int64   (4,)
 
 .. image:: img/nxscatter3d.png
 
@@ -202,8 +265,11 @@ In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
     import numpy
 
     with h5py.File("myfile.h5", "w") as h5file:
+        h5file.attrs["default"] = "entry"
+
         entry = h5file.create_group("entry")
         entry.attrs["NX_class"] = "NXentry"
+        entry.attrs["default"] = "image"
 
         nxdata = entry.create_group("image")
         nxdata.attrs["NX_class"] = "NXdata"
@@ -223,6 +289,18 @@ In this case, we use ``.`` as a placeholder in ``axes`` for this dimension:
         x.attrs["units"] = "mm"
         y = nxdata.create_dataset("y", data=numpy.array([2, 4, 6]))
         y.attrs["units"] = "s"
+
+.. code-block:: text
+
+    myfile.h5                           @default = "entry"
+    └── entry                           @NX_class = "NXentry"
+        │                               @default = "image"
+        └── image                       @NX_class = "NXdata"
+            │                           @signal = "frames"
+            │                           @axes = [".", "y", "x"]
+            ├── frames   float64 (2, 3, 4)
+            ├── x        float64 (4,)       @units = "mm"
+            └── y        int64   (3,)       @units = "s"
 
 .. image:: img/nximage.png
 
@@ -249,7 +327,7 @@ When displaying an image, the aspect ratio is preserved if both axes have the sa
 
 .. warning::
 
-    Overrides ``@units``
+    Takes precedence over ``@units`` for axis labels or plot titles.
 
 This attribute can be added to signal or axis datasets.
 
@@ -262,11 +340,9 @@ If present, the ``@long_name`` of an axis dataset will be used as label of the c
 
 .. warning::
 
-    Overrides ``@long_name`` for image plots
+    Takes precedence over ``@units`` or ``@long_name`` for plot titles.
 
 This attribute can be added to the ``NXdata`` group. If present, it is used as the plot title.
-
-A dataset named ``title`` in the group is also supported, and has precedence over the attribute (unless ``title`` is the name of the signal or of an axis).
 
 ``@interpretation``
 +++++++++++++++++++
@@ -320,7 +396,12 @@ If the number of unsliced dimensions does not match the display dimensions of th
 
 These attributes can be added to axis datasets.
 
-If present, they define the range of indices to be considered as valid values of the axis.
+If present, the axis will be only considered over the defined range of indices. 
+
+This means that:
+
+- The axis can only be sliced in this range
+- When using this axis for display, it will be displayed only on this range and the corresponding signal dimension must **have as many points as this range**.
 
 ``@SILX_style``
 +++++++++++++++
