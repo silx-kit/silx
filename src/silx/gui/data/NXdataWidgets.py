@@ -28,27 +28,20 @@ __license__ = "MIT"
 __date__ = "12/11/2018"
 
 import logging
-from typing import Sequence
 
-import h5py
-import numpy
 
 from silx.gui import qt
-from silx.gui.colors import Colormap
-from silx.gui.data._RgbaImagePlot import BaseImagePlot
 from silx.gui.data._SignalSelector import SignalSelector
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.plot import ScatterView, StackView
-from silx.gui.plot.actions.image import AggregationModeAction
+from silx.gui.plot import StackView
 from silx.gui.plot.ComplexImageView import ComplexImageView
-from silx.gui.plot.items.image_aggregated import ImageDataAggregated
-from silx.io.commonh5 import Dataset
 from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
 
-from ._utils import getAxesCalib, setImageCoords
-from ..plot.items.types import AxisScaleType
-from ...utils.deprecation import deprecated, deprecated_warning
+from ._utils import getAxesCalib
+from ...utils.deprecation import deprecated_warning
 from .ArrayCurvePlot import ArrayCurvePlot as _ArrayCurvePlot
+from ._NxImagePlot import NxImagePlot
+from ._NxScatterPlot import NxScatterPlot
 
 _logger = logging.getLogger(__name__)
 
@@ -58,290 +51,32 @@ class ArrayCurvePlot(_ArrayCurvePlot):
         deprecated_warning(
             type_="Class",
             name="ArrayCurvePlot",
-            reason="ArrayCurvePlot was moved to silx.gui.data.ArrayCurvePlot. Please import it from here.",
-            replacement="from silx.gui.data.ArrayCurvePlot import ArrayCurvePlot",
+            reason="ArrayCurvePlot will be removed in a future version.",
             since_version="3.0.2",
         )
         super().__init__(*args, **kwargs)
 
 
-class XYVScatterPlot(qt.QWidget):
-    """
-    Widget for plotting one or more scatters
-    (with identical x, y coordinates).
-    """
-
-    def __init__(self, parent=None):
-        """
-
-        :param parent: Parent QWidget
-        """
-        super().__init__(parent)
-
-        self.__y_axis = None
-        """1D array"""
-        self.__y_axis_name = None
-        self.__values = None
-        """List of 1D arrays (for multiple scatters with identical
-        x, y coordinates)"""
-
-        self.__x_axis = None
-        self.__x_axis_name = None
-        self.__x_axis_errors = None
-        self.__y_axis = None
-        self.__y_axis_name = None
-        self.__y_axis_errors = None
-
-        self._plot = ScatterView(self)
-        self._plot.setColormap(
-            Colormap(
-                name="viridis", vmin=None, vmax=None, normalization=Colormap.LINEAR
-            )
+class XYVScatterPlot(NxScatterPlot):
+    def __init__(self, *args, **kwargs):
+        deprecated_warning(
+            type_="Class",
+            name="XYVScatterPlot",
+            reason="XYVScatterPlot will be removed in a future version.",
+            since_version="3.2.0",
         )
+        super().__init__(*args, **kwargs)
 
-        self._signalSelector = SignalSelector(parent=self)
-        self._signalSelector.selectionChanged.connect(self._signalChanges)
-        self._signalSelector.setToolTip("Select signal")
 
-        layout = qt.QGridLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._plot, 0, 0)
-        layout.addWidget(self._signalSelector, 1, 0)
-
-        self.setLayout(layout)
-
-    def _signalChanges(self, value):
-        self._updateScatter()
-
-    def getScatterView(self):
-        """Returns the :class:`ScatterView` used for the display
-
-        :rtype: ScatterView
-        """
-        return self._plot
-
-    def getPlot(self):
-        """Returns the plot used for the display
-
-        :rtype: PlotWidget
-        """
-        return self._plot.getPlotWidget()
-
-    def setScattersData(
-        self,
-        y: numpy.ndarray,
-        x: numpy.ndarray,
-        values: Sequence[numpy.ndarray],
-        yerror: numpy.ndarray | None = None,
-        xerror: numpy.ndarray | None = None,
-        ylabel: numpy.ndarray | None = None,
-        xlabel: numpy.ndarray | None = None,
-        title: str = "",
-        scatter_titles: Sequence[str] | None = None,
-        xscale: AxisScaleType | None = None,
-        yscale: AxisScaleType | None = None,
-    ):
-        """
-
-        :param y: 1D array for y (vertical) coordinates.
-        :param x: 1D array for x coordinates.
-        :param values: List of 1D arrays of values.
-            This will be used to compute the color map and assign colors
-            to the points. There should be as many arrays in the list as
-            scatters to be represented.
-        :param yerror: 1D array of errors for y (same shape), or None.
-        :param xerror: 1D array of errors for x, or None
-        :param ylabel: Label for Y axis
-        :param xlabel: Label for X axis
-        :param title: Main graph title
-        :param scatter_titles:  Subtitles (one per scatter)
-        :param xscale: Scale of X axis
-        :param yscale: Scale of Y axis
-        """
-        self.__y_axis = y
-        self.__x_axis = x
-        self.__x_axis_name = xlabel or "X"
-        self.__y_axis_name = ylabel or "Y"
-        self.__x_axis_errors = xerror
-        self.__y_axis_errors = yerror
-        self.__values = values
-
-        self.__graph_title = title or ""
-        self.__scatter_titles = scatter_titles
-
-        self._signalSelector.selectionChanged.disconnect(self._signalChanges)
-        self._signalSelector.setSignalNames(scatter_titles)
-        if len(scatter_titles) > 1:
-            self._signalSelector.show()
-        else:
-            self._signalSelector.hide()
-        self._signalSelector.setSignalIndex(0)
-        self._signalSelector.selectionChanged.connect(self._signalChanges)
-
-        if xscale is not None:
-            self._plot.getXAxis().setScale(xscale)
-        if yscale is not None:
-            self._plot.getYAxis().setScale(yscale)
-
-        self._updateScatter()
-
-    def _updateScatter(self):
-        x = self.__x_axis
-        y = self.__y_axis
-
-        idx = self._signalSelector.getSignalIndex()
-
-        if self.__graph_title:
-            title = self.__graph_title  # main NXdata @title
-            if len(self.__scatter_titles) > 1:
-                # Append dataset name only when there is many datasets
-                title += "\n" + self.__scatter_titles[idx]
-        else:
-            title = self.__scatter_titles[idx]  # scatter dataset name
-
-        self._plot.setGraphTitle(title)
-        self._plot.setData(
-            x,
-            y,
-            self.__values[idx],
-            xerror=self.__x_axis_errors,
-            yerror=self.__y_axis_errors,
+class ArrayImagePlot(NxImagePlot):
+    def __init__(self, *args, **kwargs):
+        deprecated_warning(
+            type_="Class",
+            name="ArrayImagePlot",
+            reason="ArrayImagePlot will be removed in a future version.",
+            since_version="3.2.0",
         )
-        self._plot.resetZoom()
-        self._plot.getXAxis().setLabel(self.__x_axis_name)
-        self._plot.getYAxis().setLabel(self.__y_axis_name)
-
-    def clear(self):
-        self._plot.getPlotWidget().clear()
-
-
-class ArrayImagePlot(BaseImagePlot):
-    """
-    Widget for plotting an image from a multi-dimensional signal array
-    and two 1D axes array.
-
-    Sliders are provided to select indices on the first (n - 2) dimensions of
-    the signal array, and the plot is updated to show the image corresponding
-    to the selection.
-
-    The dimensions can be changed when the signal array has more than 2 dimensions.
-
-    If one or both of the axes does not have regularly spaced values, the
-    the image is plotted as a coloured scatter plot.
-    """
-
-    def __init__(self, parent=None):
-        """
-
-        :param parent: Parent QWidget
-        """
-        super().__init__(parent)
-        self._axesScales = None
-
-        self._plot.setDefaultColormap(
-            Colormap(
-                name="viridis", vmin=None, vmax=None, normalization=Colormap.LINEAR
-            )
-        )
-        self._plot.getIntensityHistogramAction().setVisible(True)
-        self._plot.setKeepDataAspectRatio(True)
-
-        self.__aggregationModeAction = AggregationModeAction(parent=self)
-        self.getPlot().toolBar().addAction(self.__aggregationModeAction)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(
-            self._aggregationModeChanged
-        )
-
-    def getAggregationModeAction(self) -> AggregationModeAction:
-        """Action toggling the aggregation mode action"""
-        return self.__aggregationModeAction
-
-    def _aggregationModeChanged(self):
-        item = self.getPlot()._getItem("image")
-
-        if item is None:
-            return
-
-        if isinstance(item, ImageDataAggregated):
-            item.setAggregationMode(
-                self.getAggregationModeAction().getAggregationMode()
-            )
-
-    def setImageData(
-        self,
-        signals: list[h5py.Dataset | Dataset],
-        axes: list[h5py.Dataset | Dataset] | None = None,
-        signals_names: list[str] | None = None,
-        axes_names: list[str] | None = None,
-        axes_scales: list[AxisScaleType | None] | None = None,
-        title: str | None = None,
-        selection: tuple[int | slice, ...] | None = None,
-    ):
-        """
-        Sets signals, axes and axes metadata that will be used to set the displayed image.
-
-        :param signals: list of n-D datasets or list of 3D datasets interpreted as RGBA image.
-        :param axes: list of 1D datasets to be used as axes
-        :param signals_names: Names for each image, used as subtitle and legend.
-        :param axes_names: Names for each axis, used as graph label.
-        :param axes_scales: Scale of axes
-        :param title: Graph title
-        :param selection: Initial selection of the dimensions.
-        """
-        self._axesScales = axes_scales
-        super().setImageData(
-            signals,
-            axes=axes,
-            signalsNames=signals_names,
-            axesNames=axes_names,
-            title=title,
-            selection=selection,
-        )
-
-    def _addItemToPlot(self, xAxis, yAxis):
-        """Updates the image axes. Called when the user selects a different axis than the displayed one."""
-
-        self._plot.remove(
-            kind=(
-                "scatter",
-                "image",
-            )
-        )
-        image = self._getImageToDisplay()
-        xCalib, yCalib = getAxesCalib(image.shape[:2], xAxis, yAxis)
-        if xCalib.is_affine() and yCalib.is_affine():
-            if image.ndim != 2:
-                raise ValueError(f"image dims should be 2. Got {image.ndim}")
-            imageItem = ImageDataAggregated()
-            imageItem.setColormap(self._plot.getDefaultColormap())
-            imageItem.setAggregationMode(
-                self.getAggregationModeAction().getAggregationMode()
-            )
-            setImageCoords(imageItem, xCalib, yCalib)
-            imageItem.setName(self._signalSelector.getCurrentSignalName())
-            imageItem.setData(image)
-
-            self._plot.addItem(imageItem)
-            self._plot.setActiveImage(imageItem)
-            self._plot.getXAxis().setScale("linear")
-            self._plot.getYAxis().setScale("linear")
-        else:
-            if self._axesScales:
-                xAxisIndex, yAxisIndex = self._getXYIndices()
-                xAxisScale = self._axesScales[xAxisIndex]
-                if xAxisScale is not None:
-                    self._plot.getXAxis().setScale(xAxisScale)
-                yAxisScale = self._axesScales[yAxisIndex]
-                if yAxisScale is not None:
-                    self._plot.getYAxis().setScale(yAxisScale)
-
-            xScatter, yScatter = numpy.meshgrid(xAxis, yAxis)
-            self._plot.addScatter(
-                numpy.ravel(xScatter),
-                numpy.ravel(yScatter),
-                numpy.ravel(image),
-                legend=self._signalSelector.getCurrentSignalName(),
-            )
+        super().__init__(*args, **kwargs)
 
 
 class ArrayComplexImagePlot(qt.QWidget):
@@ -366,6 +101,12 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
+        deprecated_warning(
+            type_="Class",
+            name="ArrayComplexImagePlot",
+            reason="ArrayComplexImagePlot will be removed in a future version.",
+            since_version="3.2.0",
+        )
         super().__init__(parent)
 
         self.__signals = None
@@ -522,7 +263,6 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setData(None)
 
 
-@deprecated(since_version="3.0.0")
 class ArrayStackPlot(qt.QWidget):
     """
     Widget for plotting a n-D array (n >= 3) as a stack of images.
@@ -542,6 +282,12 @@ class ArrayStackPlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
+        deprecated_warning(
+            type_="Class",
+            name="ArrayStackPlot",
+            reason="ArrayStackPlot will be removed in a future version.",
+            since_version="3.2.0",
+        )
         super().__init__(parent)
 
         self.__signal = None
@@ -727,6 +473,12 @@ class ArrayVolumePlot(qt.QWidget):
 
         :param parent: Parent QWidget
         """
+        deprecated_warning(
+            type_="Class",
+            name="ArrayVolumePlot",
+            reason="ArrayVolumePlot will be removed in a future version.",
+            since_version="3.2.0",
+        )
         super().__init__(parent)
 
         self.__signal = None

@@ -4,10 +4,8 @@ import pytest
 from silx.io.nxdata.parse import _get_default_slice_selection
 from .._NxComplexImagePlot import NxComplexImagePlot
 from .._NxCurvePlot import NxCurvePlot
+from .._NxImagePlot import NxImagePlot
 from .._NxVolumePlot import NxVolumePlot
-
-
-from .. import NXdataWidgets
 
 
 def test_image_view_axis_permutation(qapp):
@@ -17,7 +15,7 @@ def test_image_view_axis_permutation(qapp):
     # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
     data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
 
-    widget = NXdataWidgets.ArrayImagePlot()
+    widget = NxImagePlot()
 
     widget.setImageData(
         signals=[data],
@@ -143,7 +141,7 @@ def test_image_view_default_slice(qapp):
 
     data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
 
-    widget = NXdataWidgets.ArrayImagePlot()
+    widget = NxImagePlot()
 
     # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
     # selects index 1 along dim2 (x).
