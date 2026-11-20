@@ -28,6 +28,8 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
+import sys
+
 import pytest
 from silx.gui import qt
 
@@ -69,3 +71,18 @@ def testInteract(console, qapp_utils):
     qapp_utils.keyClicks(console, "import silx")
     qapp_utils.keyClick(console, qt.Qt.Key_Enter)
     qapp_utils.qapp.processEvents()
+
+
+@pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")
+def test_bug_538_main_module_kept(qapp):
+    """Creating a console must not replace ``sys.modules["__main__"]`` (#538)"""
+    pytest.importorskip("qtconsole")
+    from silx.gui.console import IPythonWidget
+
+    main = sys.modules["__main__"]
+    widget = IPythonWidget()
+    try:
+        assert sys.modules["__main__"] is main
+    finally:
+        widget.kernel_client.stop_channels()
+        widget.kernel_manager.shutdown_kernel()

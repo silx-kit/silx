@@ -69,6 +69,8 @@ __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "24/05/2016"
 
+import sys
+
 from . import qt
 
 # This widget cannot be used inside an interactive IPython shell.
@@ -119,7 +121,10 @@ class IPythonWidget(_RichJupyterWidget):
             self.banner = custom_banner
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
+        # The kernel replaces `__main__` by its own module: restore the original
+        main_module = sys.modules["__main__"]
         kernel_manager.start_kernel()
+        sys.modules["__main__"] = main_module
 
         # Monkey-patch to workaround issue:
         # https://github.com/ipython/ipykernel/issues/370
