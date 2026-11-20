@@ -31,6 +31,7 @@ import locale
 import logging
 import numpy
 import os
+import pytest
 import tempfile
 import unittest
 
@@ -383,3 +384,32 @@ class TestSFLocale(unittest.TestCase):
     def test_locale_C(self):
         locale.setlocale(locale.LC_NUMERIC, "C")  # use default (C) locale
         self.crunch_data()
+
+
+@pytest.mark.parametrize("leading", ["", "\n"])
+def test_no_file_header(tmp_path, leading):
+    scan = "#S {n} ascan x 0 1 1 1\n#N 1\n#L x\n0\n"
+    path = tmp_path / "no_header.dat"
+    content = leading + scan.format(n=1) + "\n" + scan.format(n=2)
+    path.write_bytes(content.encode())
+
+    sf = SpecFile(str(path))
+    file_header = sf[-1].file_header
+    sf.close()
+    assert file_header == []
+
+
+def test_file_header_after_other_file_header(tmp_path):
+    scan = "#S {n} ascan x 0 1 1 1\n#N 1\n#L x\n0\n"
+    path = tmp_path / "two_blocks.dat"
+    content = (
+        scan.format(n=1) + "\n#F second.dat\n#E 1\n#O0 mot1\n\n" + scan.format(n=2)
+    )
+    path.write_bytes(content.encode())
+
+    sf = SpecFile(str(path))
+    last_file_header = sf[-1].file_header
+    first_file_header = sf[0].file_header
+    sf.close()
+    assert last_file_header == ["#F second.dat", "#E 1", "#O0 mot1"]
+    assert first_file_header == []

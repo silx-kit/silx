@@ -167,6 +167,8 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
      */
      if (!sfSameFile(sf,list)) {
         if (sf->filebuffer != ( char * ) NULL) free(sf->filebuffer);
+        sf->filebuffer     = ( char * ) NULL;
+        sf->filebuffersize = 0;
 
         start        = scan->file_header;
         flist        = findFirstInFile(&(sf->list),scan->file_header);
@@ -335,7 +337,7 @@ findIndex( void *scan, void *number )
 /*********************************************************************
  *   Function:		int findFirst( scan, file_offset )
  *
- *   Description:	Compares if scan offset > file_offset
+ *   Description:	Compares if scan offset >= file_offset
  *
  *   Parameters:
  *		Input :	(1) SpecScan pointer
@@ -348,7 +350,7 @@ findIndex( void *scan, void *number )
 int
 findFirst( void *scan, void *file_offset )
 {
-     return( ((SpecScan *)scan)->offset > *(long *)file_offset );
+     return( ((SpecScan *)scan)->offset >= *(long *)file_offset );
 }
 
 
