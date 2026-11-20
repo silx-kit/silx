@@ -283,18 +283,15 @@ class Viewer(qt.QMainWindow):
             h5 = model.data(
                 rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE
             )
-            item = model.data(
-                rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE
-            )
-            h5files.append((h5, item._openedPath))
+            h5files.append(h5)
 
         if len(h5files) == 0:
             qt.QApplication.restoreOverrideCursor()
             return
 
         model = self.__treeview.findHdf5TreeModel()
-        for h5, filename in h5files:
-            self.__synchronizeH5pyObject(h5, filename)
+        for h5 in h5files:
+            self.__synchronizeH5pyObject(h5)
 
         model = self.__treeview.model()
         itemSelection = qt.QItemSelection()
@@ -309,7 +306,7 @@ class Viewer(qt.QMainWindow):
 
         qt.QApplication.restoreOverrideCursor()
 
-    def __synchronizeH5pyObject(self, h5, filename: str | None = None):
+    def __synchronizeH5pyObject(self, h5):
         model = self.__treeview.findHdf5TreeModel()
         # This is buggy right now while h5py do not allow to close a file
         # while references are still used.
@@ -317,7 +314,8 @@ class Viewer(qt.QMainWindow):
         # model.synchronizeH5pyObject(h5)
 
         row = model.h5pyObjectRow(h5)
-        if filename is None and row >= 0:
+        filename = None
+        if row >= 0:
             # Reuse the url/filename the file was opened with
             item = model.data(
                 model.index(row, 0, qt.QModelIndex()),
