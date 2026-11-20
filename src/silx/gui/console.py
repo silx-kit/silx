@@ -95,11 +95,26 @@ except ImportError:
         )
 
 from qtconsole.inprocess import QtInProcessKernelManager
+from ipykernel.inprocess.ipkernel import InProcessInteractiveShell, InProcessKernel
 
 try:
     from ipykernel import version_info as _ipykernel_version_info
 except ImportError:
     _ipykernel_version_info = None
+
+
+class _InProcessInteractiveShell(InProcessInteractiveShell):
+    """In-process IPython shell that leaves the host interpreter state untouched."""
+
+    def init_sys_modules(self):
+        # This is the way InteractiveShellEmbed does it:
+        # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L230-L233
+        pass
+
+    def init_prompts(self):
+        # Avoid setting sys.ps1|2|3 rather than reverting it
+        # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L467-L494
+        pass
 
 
 class IPythonWidget(_RichJupyterWidget):
@@ -119,7 +134,12 @@ class IPythonWidget(_RichJupyterWidget):
             self.banner = custom_banner
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
-        kernel_manager.start_kernel()
+        # Equivalent to kernel_manager.start_kernel() with a custom shell class
+        kernel_manager.kernel = InProcessKernel(
+            parent=kernel_manager,
+            session=kernel_manager.session,
+            shell_class=_InProcessInteractiveShell,
+        )
 
         # Monkey-patch to workaround issue:
         # https://github.com/ipython/ipykernel/issues/370
@@ -137,11 +157,20 @@ class IPythonWidget(_RichJupyterWidget):
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 
-        def stop():
-            kernel_client.stop_channels()
-            kernel_manager.shutdown_kernel()
+        self.exit_requested.connect(self._exitRequested)
 
-        self.exit_requested.connect(stop)
+    def _exitRequested(self, widget):
+        self.shutdownKernel()
+
+    def shutdownKernel(self):
+        """Stop the kernel: The console cannot run code afterwards."""
+        kernel = self.kernel_manager.kernel
+        if kernel is None:
+            return  # Already stopped
+        self.kernel_client.stop_channels()
+        self.kernel_manager.shutdown_kernel()
+        # The shell is a process-wide singleton: release it
+        type(kernel.shell).clear_instance()
 
     def sizeHint(self):
         """Return a reasonable default size for usage in :class:`PlotWindow`"""
