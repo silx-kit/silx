@@ -103,6 +103,7 @@ plots on the same page. The plots all instantiate a
 
 import logging
 from io import StringIO
+from typing import Any
 
 from .. import qt
 from .. import icons
@@ -245,7 +246,7 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         svgRenderer = qt.QSvgRenderer()
 
-        viewbox = self._getViewBox()
+        viewbox = self._getViewBox(self._printGeometry)
 
         svgRenderer.setViewBox(viewbox)
 
@@ -261,15 +262,14 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         return svgRenderer, viewbox
 
-    def _getViewBox(self):
-        """ """
+    def _getViewBox(self, config: dict[str, Any]) -> qt.QRectF:
+        """Return the viewbox for a print geometry."""
         printer = self.printPreviewDialog.printer
         dpix = printer.logicalDpiX()
         dpiy = printer.logicalDpiY()
         availableWidth = printer.width()
         availableHeight = printer.height()
 
-        config = self._printGeometry
         width = config["width"]
         height = config["height"]
         xOffset = config["xOffset"]
@@ -337,7 +337,13 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         self._printConfigurationDialog.setPrintGeometry(self._printGeometry)
         if self._printConfigurationDialog.exec():
-            self._printGeometry = self._printConfigurationDialog.getPrintGeometry()
+            geometry = self._printConfigurationDialog.getPrintGeometry()
+            try:
+                self._getViewBox(geometry)
+            except ValueError as e:
+                qt.QMessageBox.warning(self, "Invalid print size", str(e))
+                return
+            self._printGeometry = geometry
 
     def _getPlotAspectRatio(self):
         widget = self._plot.centralWidget()
