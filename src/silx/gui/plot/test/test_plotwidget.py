@@ -2158,3 +2158,15 @@ def testDataToPixelOutsideValidRange(qapp, plotWidget: PlotWidget):
 
     plotWidget.getXAxis().setScale("log")
     assert plotWidget.dataToPixel(0, 0) is None
+
+
+@pytest.mark.parametrize("direction", ("left", "right", "up", "down"))
+def test_pan_keeps_limits_constraints(qapp, plotWidget: PlotWidget, direction: str):
+    plotWidget.getXAxis().setLimitsConstraints(0, 10)
+    plotWidget.getYAxis().setLimitsConstraints(0, 10)
+    plotWidget.setLimits(0, 10, 0, 10)
+
+    plotWidget.pan(direction, factor=0.5)
+
+    assert plotWidget.getXAxis().getLimits() == (0, 10)
+    assert plotWidget.getYAxis().getLimits() == (0, 10)

@@ -2219,7 +2219,7 @@ class PlotWidget(qt.QMainWindow):
 
     def pan(
         self, direction: Literal["up", "down", "left", "right"], factor: float = 0.1
-    ):
+    ) -> None:
         """Pan the graph in the given direction by the given factor.
 
         Warning: Pan of right Y axis not implemented!
@@ -2231,26 +2231,24 @@ class PlotWidget(qt.QMainWindow):
         assert direction in ("up", "down", "left", "right")
         assert factor > 0.0
 
+        xMin, xMax = self._xAxis.getLimits()
+        yMin, yMax = self._yAxis.getLimits()
+        y2Min, y2Max = self._yRightAxis.getLimits()
+
         if direction in ("left", "right"):
             xFactor = factor if direction == "right" else -factor
-            xMin, xMax = self._xAxis.getLimits()
-
             xMin, xMax = _utils.applyPan(self._xAxis.getScale(), xMin, xMax, xFactor)
-            self._xAxis.setLimits(xMin, xMax)
 
         else:  # direction in ('up', 'down')
             sign = -1.0 if self._yAxis.isInverted() else 1.0
             yFactor = sign * (factor if direction == "up" else -factor)
 
-            yMin, yMax = self._yAxis.getLimits()
             yMin, yMax = _utils.applyPan(self._yAxis.getScale(), yMin, yMax, yFactor)
-            self._yAxis.setLimits(yMin, yMax)
-
-            y2Min, y2Max = self._yRightAxis.getLimits()
             y2Min, y2Max = _utils.applyPan(
                 self._yRightAxis.getScale(), y2Min, y2Max, yFactor
             )
-            self._yRightAxis.setLimits(y2Min, y2Max)
+
+        self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
     # Active Curve/Image
 
