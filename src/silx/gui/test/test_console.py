@@ -32,6 +32,8 @@ import sys
 
 import pytest
 from silx.gui import qt
+from silx.gui.console import IPythonDockWidget, IPythonWidget
+
 
 # ipykernel 7 warns about its own synchronous IPythonKernel.do_history (called when
 # qtconsole requests history at startup), do_complete, do_inspect and do_shutdown
@@ -51,11 +53,6 @@ def _f():
 @pytest.fixture
 def console(qapp_utils):
     """Create a console widget"""
-    try:
-        from silx.gui.console import IPythonDockWidget
-    except ImportError:
-        pytest.skip("IPythonDockWidget is not available")
-
     console = IPythonDockWidget(
         available_vars={"a": _a, "f": _f}, custom_banner="Welcome!\n"
     )
@@ -81,11 +78,6 @@ def testInteract(console, qapp_utils):
 
 def test_host_interpreter_unchanged(qWidgetFactory):
     """Creating an IPythonWidget must not alter the host interpreter (#538)"""
-    try:
-        from silx.gui.console import IPythonWidget
-    except ImportError:
-        pytest.skip("IPythonWidget is not available")
-
     main_module = sys.modules["__main__"]
     prompts = {name: getattr(sys, name, None) for name in ("ps1", "ps2", "ps3")}
 

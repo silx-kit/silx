@@ -107,9 +107,13 @@ class _InProcessInteractiveShell(InProcessInteractiveShell):
     """In-process IPython shell that leaves the host interpreter state untouched."""
 
     def init_sys_modules(self):
+        # This is the way InteractiveShellEmbed does it:
+        # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L230-L233
         pass
 
     def init_prompts(self):
+        # Avoid setting sys.ps1|2|3 rather than reverting it
+        # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L467-L494
         pass
 
 
