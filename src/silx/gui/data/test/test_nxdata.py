@@ -2,12 +2,10 @@ import numpy
 import pytest
 
 from silx.io.nxdata.parse import _get_default_slice_selection
-from .._NxComplexImagePlot import NxComplexImagePlot
-from .._NxCurvePlot import NxCurvePlot
-from .._NxVolumePlot import NxVolumePlot
-
-
-from .. import NXdataWidgets
+from .._NXComplexImagePlot import NXComplexImagePlot
+from .._NXCurvePlot import NXCurvePlot
+from .._NXImagePlot import NXImagePlot
+from .._NXVolumePlot import NXVolumePlot
 
 
 def test_image_view_axis_permutation(qapp):
@@ -17,7 +15,7 @@ def test_image_view_axis_permutation(qapp):
     # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
     data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
 
-    widget = NXdataWidgets.ArrayImagePlot()
+    widget = NXImagePlot()
 
     widget.setImageData(
         signals=[data],
@@ -143,7 +141,7 @@ def test_image_view_default_slice(qapp):
 
     data = numpy.arange(3 * 4 * 5).reshape(3, 4, 5)
 
-    widget = NXdataWidgets.ArrayImagePlot()
+    widget = NXImagePlot()
 
     # dim0 -> z (3), dim1 -> y (4), dim2 -> x (5).
     # selects index 1 along dim2 (x).
@@ -167,7 +165,7 @@ def test_complex_image_view_default_slice(qapp):
     data = (numpy.arange(3 * 4 * 5) * (1 + 1j)).reshape(3, 4, 5)
     selection = slice(None), 2, slice(None)
 
-    widget = NxComplexImagePlot()
+    widget = NXComplexImagePlot()
     widget.setImageData(
         signals=[data],
         signalsNames=["signal"],
@@ -185,7 +183,7 @@ def test_curve_view_default_slice(qapp):
     data = numpy.arange(3 * 4).reshape(3, 4).astype(float)
     selection = 1, slice(None)
 
-    widget = NxCurvePlot()
+    widget = NXCurvePlot()
     widget.setCurvesData(signals=[data], signal_names=["signal"], selection=selection)
 
     assert widget._axesSelector.selection() == selection
@@ -198,7 +196,7 @@ def test_curve_view_default_slice(qapp):
 )
 def test_curve_view_scale_on_data_change(qapp, nxdata_scale, expected):
     """Test that a new NXdata keeps the user scale, unless it defines a scale."""
-    widget = NxCurvePlot()
+    widget = NXCurvePlot()
     x = numpy.linspace(0.1, 1.0, 10)
     widget.setCurvesData(signals=[x], signal_names=["s1"], axes=[x])
 
@@ -222,7 +220,7 @@ def test_volume_view_default_slice(qapp):
     data = numpy.arange(2 * 3 * 4 * 5, dtype=numpy.float32).reshape(2, 3, 4, 5)
     selection = 1, slice(None), slice(None), slice(None)
 
-    widget = NxVolumePlot()
+    widget = NXVolumePlot()
     widget.setVolumeData(signal=data, selection=selection)
 
     assert widget._axesSelector.selection() == selection

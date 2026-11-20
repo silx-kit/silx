@@ -27,7 +27,7 @@ def _get_matching_axes_names(
     return [*axes_names] + [None] * (nb_axes - len(axes_names))
 
 
-class NxVolumePlot(qt.QWidget):
+class NXVolumePlot(qt.QWidget):
     """
     Widget for plotting a NXdata with a nD signal (n >= 3) as a 3D scalar field.
 

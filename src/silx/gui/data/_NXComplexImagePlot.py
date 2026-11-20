@@ -13,7 +13,7 @@ from ._utils import getAxesCalib
 _logger = logging.getLogger(__name__)
 
 
-class NxComplexImagePlot(BaseImagePlot):
+class NXComplexImagePlot(BaseImagePlot):
     """
     Widget for plotting a NXdata with a complex signal array as an image
 
