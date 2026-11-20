@@ -248,6 +248,29 @@ class TestImageFileDialogInteraction:
         qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         assert_same_path(url.text(), tmp_directory)
 
+    def test_pending_events_until_parent_directory_is_loaded(
+        self, dialog, qapp_utils, tmp_directory
+    ):
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+
+        # Going to the parent of a file loads its directory without a request from
+        # the dialog. Wait for this load to finish.
+        loaded = []
+        dialog.findChild(qt.QFileSystemModel).directoryLoaded.connect(loaded.append)
+        dialog.selectUrl(tmp_directory + "/data/data.h5")
+        action.trigger()
+        qapp_utils.waitAsLongAs(lambda: not loaded)
+        assert_same_path(url.text(), tmp_directory + "/data")
+
+        # Request the parent directory: its load is now pending
+        action.trigger()
+        # The load of the parent directory is now pending.
+        assert dialog.hasPendingEvents()
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), tmp_directory)
+
     def testClickOnBackToRootTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
         qapp_utils.qWaitForWindowExposed(dialog)
