@@ -1,9 +1,11 @@
 from typing import Sequence
 
+import h5py
 import numpy
 
 from silx.gui import qt
 
+from ...io.nxdata._utils import AxisDataset
 from ..plot import Plot1D
 from ..plot.items import Curve
 from ..plot.items import types
@@ -44,13 +46,13 @@ class NxCurvePlot(qt.QWidget):
 
     def setCurvesData(
         self,
-        signals: Sequence[numpy.ndarray],
-        signal_names: Sequence[str],
-        signal_errors: Sequence[numpy.ndarray | None] | None = None,
+        signals: Sequence[h5py.Dataset | numpy.ndarray],
+        signal_names: Sequence[str | None],
+        signal_errors: Sequence[h5py.Dataset | numpy.ndarray | None] | None = None,
         signal_scale: types.AxisScaleType | None = None,
-        axes: Sequence[numpy.ndarray] | None = None,
-        axes_names: Sequence[str] | None = None,
-        axes_errors: Sequence[numpy.ndarray | None] | None = None,
+        axes: Sequence[AxisDataset] | None = None,
+        axes_names: Sequence[str | None] | None = None,
+        axes_errors: Sequence[AxisDataset] | None = None,
         axes_scales: Sequence[types.AxisScaleType | None] | None = None,
         title: str | None = None,
         selection: tuple[int | slice, ...] | None = None,

@@ -1,9 +1,8 @@
 import numbers
 
-import h5py
 import numpy
 
-from ...io.commonh5 import Dataset
+from ...io.nxdata._utils import AxisDataset
 from ...io.nxdata.parse import NXdata
 from ...math.calibration import (
     AbstractCalibration,
@@ -13,8 +12,6 @@ from ...math.calibration import (
 )
 from ..hdf5 import H5Node
 from ..plot.items import ImageBase
-
-ImageAxis = h5py.Dataset | Dataset | None
 
 
 def normalizeData(data):
@@ -62,7 +59,7 @@ def isScatter(nxd: NXdata, naxes: int) -> bool:
     return len(nxd.axes) == naxes
 
 
-def _getAxisCalib(axis: ImageAxis, axis_length: int) -> AbstractCalibration:
+def _getAxisCalib(axis: AxisDataset, axis_length: int) -> AbstractCalibration:
     if axis is None:
         return ArrayCalibration(numpy.arange(axis_length))
     if numpy.isscalar(axis) or len(axis) == 1:
@@ -76,7 +73,7 @@ def _getAxisCalib(axis: ImageAxis, axis_length: int) -> AbstractCalibration:
 
 
 def getAxesCalib(
-    image_shape: tuple[int, int], x_axis: ImageAxis, y_axis: ImageAxis
+    image_shape: tuple[int, int], x_axis: AxisDataset, y_axis: AxisDataset
 ) -> tuple[AbstractCalibration, AbstractCalibration]:
     if x_axis is None and y_axis is None:
         return NoCalibration(), NoCalibration()

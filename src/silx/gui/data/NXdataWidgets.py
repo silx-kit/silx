@@ -45,6 +45,7 @@ from silx.gui.plot.items.image_aggregated import ImageDataAggregated
 from silx.io.commonh5 import Dataset
 from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
 
+from ...io.nxdata._utils import AxisDataset
 from ._utils import getAxesCalib, setImageCoords
 from ..plot.items.types import AxisScaleType
 from ...utils.deprecation import deprecated, deprecated_warning
@@ -270,7 +271,7 @@ class ArrayImagePlot(BaseImagePlot):
     def setImageData(
         self,
         signals: list[h5py.Dataset | Dataset],
-        axes: list[h5py.Dataset | Dataset] | None = None,
+        axes: list[AxisDataset] | None = None,
         signals_names: list[str] | None = None,
         axes_names: list[str] | None = None,
         axes_scales: list[AxisScaleType | None] | None = None,
