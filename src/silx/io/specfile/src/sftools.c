@@ -167,6 +167,8 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
      */
      if (!sfSameFile(sf,list)) {
         if (sf->filebuffer != ( char * ) NULL) free(sf->filebuffer);
+        sf->filebuffer     = ( char * ) NULL;
+        sf->filebuffersize = 0;
 
         start        = scan->file_header;
         flist        = findFirstInFile(&(sf->list),scan->file_header);
