@@ -839,6 +839,13 @@ class TestH5Node(_TestModelBase):
         h5node = hdf5.H5Node(item)
         return h5node
 
+    def testH5pyItem(self):
+        path = ["base.h5", "group", "dataset"]
+        item = self.getH5ItemFromPath(self.model, path)
+        h5node = hdf5.H5Node(item)
+
+        self.assertIs(h5node.h5py_item, item)
+
     def testFile(self):
         path = ["base.h5"]
         h5node = self.getH5NodeFromPath(self.model, path)
