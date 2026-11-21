@@ -12,6 +12,7 @@ Release Notes
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
 * `silx.gui.widgets.ThreadPoolPushButton`: Fixed crash with PySide6 when the button is deleted (`Issue #4831 <https://github.com/silx-kit/silx/issues/4831>`_)
 * `silx.io.specfile`: Fixed file header containing the first scan header for files without `#F` line (`Issue #3211 <https://github.com/silx-kit/silx/issues/3211>`_)
+* `silx.math.fit.bgtheories`: Fixed stale Strip and Snip backgrounds being returned after changing `StripThresholdFactor`, the smoothing or anchors settings, or the data in place (`Issue #4609 <https://github.com/silx-kit/silx/issues/4609>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 
