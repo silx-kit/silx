@@ -282,3 +282,54 @@ def testLoadSave(widgets, qapp, qapp_utils, tmp_path, draw, file_format):
 
     maskWidget.load(mask_filename)
     assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), ref_mask))
+
+
+@pytest.mark.parametrize("scale", [(1.0, 1.0), (0.25, 0.25), (0.1, 0.2)])
+def testPencilPreviewScaledWithImageScale(widgets, qapp, qapp_utils, scale):
+    """The pencil preview is an ellipse of the pencil footprint in data units.
+
+    The pencil width is given in image pixels, and the preview size follows
+    the image scale.
+    """
+    plot, _, maskWidget = widgets
+
+    plot.addImage(numpy.arange(100.0).reshape(10, 10), legend="pencil", scale=scale)
+    qapp.processEvents()
+
+    maskWidget.pencilAction.trigger()
+    width = 8
+    maskWidget.pencilSpinBox.setValue(width)
+    qapp.processEvents()
+
+    # Send mouse move events directly to the canvas instead of moving the
+    # system cursor: the latter is unreliable with an offscreen display and
+    # depends on the order of the tests.
+    canvas = plot.getWidgetHandle()
+    qapp = qt.QApplication.instance()
+    x, y = canvas.width() // 2, canvas.height() // 2
+    for posX, posY in ((0, 0), (x, y)):
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            qt.QPointF(posX, posY),
+            qt.QPointF(posX, posY),
+            qt.Qt.NoButton,
+            qt.Qt.NoButton,
+            qt.Qt.NoModifier,
+        )
+        qapp.sendEvent(canvas, event)
+        qapp.processEvents()
+
+    # The preview is the pencil footprint: a circle of the pencil width in
+    # image pixels, mapped to data coordinates, so it spans width * scale in
+    # each direction.
+    previews = [
+        i for i in plot.getItems() if i.getName().startswith("__SELECTION_AREA__")
+    ]
+    assert len(previews) == 1
+    points = previews[0].getPoints()
+    # The circle is approximated by a 13-vertex polygon, so compare with a
+    # tolerance.
+    xSpan = points[:, 0].max() - points[:, 0].min()
+    ySpan = points[:, 1].max() - points[:, 1].min()
+    assert xSpan == pytest.approx(width * scale[0], rel=0.05)
+    assert ySpan == pytest.approx(width * scale[1], rel=0.05)
