@@ -1332,13 +1332,23 @@ class _Points(Geometry):
     varying float vSize;
     varying $valueType vValue;
 
+    uniform mat4 projectionInverse;
+    uniform vec2 viewportOrigin;
+    uniform vec2 viewportSize;
+
     $valueToColorDecl
     $sceneDecl
     $alphaSymbolDecl
 
     void main(void)
     {
-        $scenePreCall(vCameraPosition);
+        // Clip with the camera position of the fragment, not of the sprite
+        // center, so that the clip plane cuts the symbol
+        vec3 ndc = vec3(
+            (gl_FragCoord.xy - viewportOrigin) / viewportSize,
+            gl_FragCoord.z) * 2.0 - 1.0;
+        vec4 position = projectionInverse * vec4(ndc, 1.0);
+        $scenePreCall(position / position.w);
 
         float alpha = alphaSymbol(gl_PointCoord, vSize);
 
@@ -1412,6 +1422,17 @@ class _Points(Geometry):
 
         program.setUniformMatrix("matrix", ctx.objectToNDC.matrix)
         program.setUniformMatrix("transformMat", ctx.objectToCamera.matrix, safe=True)
+
+        program.setUniformMatrix(
+            "projectionInverse", ctx.projection.getInverseMatrix(), safe=True
+        )
+        for name, value in (
+            ("viewportOrigin", ctx.viewport.origin),
+            ("viewportSize", ctx.viewport.size),
+        ):
+            location = program.uniforms.get(name)
+            if location is not None:
+                gl.glUniform2f(location, *value)
 
         ctx.setupProgram(program)
 
