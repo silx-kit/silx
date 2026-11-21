@@ -73,6 +73,7 @@ from ..colors import Colormap, cursorColorForColormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
 from ..plot.items import BoundingRect
+from ..plot._utils.image import imageIndexSlices
 from ._ColormapPercentileWidget import ColormapPercentilesWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
@@ -1505,15 +1506,12 @@ class ColormapDialog(qt.QDialog):
             if data.ndim != 2:
                 return  # no-op
 
-            ox, oy = item.getOrigin()
-            sx, sy = item.getScale()
-
-            ystart = max(0, int((ymin - oy) / sy))
-            ystop = max(0, int(numpy.ceil((ymax - oy) / sy)))
-            xstart = max(0, int((xmin - ox) / sx))
-            xstop = max(0, int(numpy.ceil((xmax - ox) / sx)))
-
-            subset = data[ystart:ystop, xstart:xstop]
+            slices = imageIndexSlices(
+                item.getOrigin(), item.getScale(), data.shape, bounds
+            )
+            if slices is None:
+                return  # no-op
+            subset = data[slices]
 
         elif isinstance(item, items.Scatter):
             x = item.getXData(copy=False)
@@ -1524,6 +1522,9 @@ class ColormapDialog(qt.QDialog):
                     numpy.logical_and(ymin <= y, y <= ymax),
                 )
             ]
+
+        else:
+            return  # no-op
 
         if subset.size == 0:
             return  # no-op
