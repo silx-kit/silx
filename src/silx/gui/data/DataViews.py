@@ -27,7 +27,7 @@ import logging
 from typing import Any
 import numpy
 
-from silx.gui.data.NXdataWidgets import ArrayImagePlot
+from silx.gui.data._NxImagePlot import NxImagePlot
 from silx.gui.plot3d import items
 from silx.gui.plot3d.SceneWindow import SceneWindow
 import silx.io
@@ -1232,9 +1232,9 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import XYVScatterPlot
+        from silx.gui.data._NxScatterPlot import NxScatterPlot
 
-        widget = XYVScatterPlot(parent)
+        widget = NxScatterPlot(parent)
         widget.getScatterView().setColormap(self.defaultColormap())
         widget.getScatterView().getScatterToolBar().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
@@ -1305,9 +1305,9 @@ class _NXdataImageView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayImagePlot
+        from silx.gui.data._NxImagePlot import NxImagePlot
 
-        widget = ArrayImagePlot(parent)
+        widget = NxImagePlot(parent)
         widget.getPlot().setDefaultColormap(self.defaultColormap())
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
@@ -1328,7 +1328,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return
         self._updateColormap(nxd)
 
-        widget: ArrayImagePlot = self.getWidget()
+        widget: NxImagePlot = self.getWidget()
         widget.setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             axes=nxd.axes,
