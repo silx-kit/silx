@@ -413,6 +413,9 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         if self.eventHandler is not None and angle != 0 and self.isValid():
             self.makeCurrent()
+            if self._updating:
+                # The zoom reads the depth buffer: render the pending changes first
+                self.paintGL()
             self.eventHandler.handleEvent("wheel", xpixel, ypixel, angle)
 
     def keyPressEvent(self, event):

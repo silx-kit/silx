@@ -31,6 +31,7 @@ import pytest
 
 import numpy
 
+from silx.gui import qt
 from silx.gui.plot3d.SceneWidget import SceneWidget
 
 
@@ -73,3 +74,39 @@ class TestPlot3DWidget:
         sceneWidget.setLightMode("directional")
         qapp.processEvents()
         assert sceneWidget.getLightMode() == "directional"
+
+    def testWheelZoomStepsShrinkWithoutRepaint(self, qWidgetFactory, qapp):
+        # Scene with an object under the zoom position and a rendered frame
+        sceneWidget = qWidgetFactory(SceneWidget)
+        sceneWidget.resize(600, 600)
+        sceneWidget.add3DScatter(*numpy.random.default_rng(0).random((4, 2000)) * 10)
+        sceneWidget.resetZoom()
+        for _ in range(30):
+            qapp.processEvents()
+
+        camera = sceneWidget.viewport.camera.extrinsic
+        steps = []
+        for _ in range(4):
+            before = numpy.array(camera.position)
+            pos = qt.QPoint(100, 100)
+            # Send the wheel event at once, without a repaint after the previous one
+            event = qt.QWheelEvent(
+                qt.QPointF(pos),
+                qt.QPointF(sceneWidget.mapToGlobal(pos)),
+                qt.QPoint(0, 0),
+                qt.QPoint(0, 120),
+                qt.Qt.NoButton,
+                qt.Qt.NoModifier,
+                qt.Qt.NoScrollPhase,
+                False,
+            )
+            qt.QApplication.sendEvent(sceneWidget, event)
+            steps.append(numpy.linalg.norm(camera.position - before))
+
+        # A zoom step moves the camera by a fraction of its distance to the object
+        # under the cursor. This distance comes from the depth buffer, which must
+        # show the scene as of the previous zoom step, even without a repaint in
+        # between. So each step is smaller than the one before.
+        assert steps[1] < steps[0]
+        assert steps[2] < steps[1]
+        assert steps[3] < steps[2]
