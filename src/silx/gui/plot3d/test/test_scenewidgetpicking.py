@@ -324,3 +324,36 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
                 self.assertEqual(len(picking), 0)
+
+    def testClickDetectedUnderOrientationIndicator(self):
+        """Clicking an object under the orientation indicator is detected."""
+        # Dense grid of big squares covering the whole widget so the
+        # orientation indicator (top-right corner) hides an object.
+        x, y = numpy.meshgrid(numpy.linspace(0, 1, 40), numpy.linspace(0, 1, 40))
+        scatter = self.widget.add3DScatter(
+            x.ravel(), y.ravel(), numpy.zeros(x.size), numpy.ones(x.size)
+        )
+        scatter.setSymbol("s")
+        scatter.setSymbolSize(12)
+        self.qapp.processEvents()
+
+        # Zoom in so that the scatter fills the whole widget
+        camera = self.widget.viewport.camera.extrinsic
+        camera.position = camera.position * (1, 1, 0.5)
+        self.qapp.processEvents()
+        self.widget.grab()  # Force a render so the depth buffer is filled
+
+        # Position inside the 100x100 px indicator area (top-right corner),
+        # chosen away from the indicator's axes so it lands on a background
+        # pixel.
+        position = self.widget.width() - 100 + 15, 85
+        picking = list(self.widget.pickItems(*position))
+        self.assertEqual(len(picking), 1)  # An object is behind the indicator
+
+        # The click is detected on the object under the indicator: the
+        # indicator is an overlay that does not hide the scene behind it.
+        clicked = []
+        self.widget.sigSceneClicked.connect(lambda x, y: clicked.append((x, y)))
+        self.mouseClick(self.widget, qt.Qt.LeftButton, pos=position)
+        self.qapp.processEvents()
+        self.assertTrue(clicked)
