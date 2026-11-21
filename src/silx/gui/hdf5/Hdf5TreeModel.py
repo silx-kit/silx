@@ -38,6 +38,7 @@ from . import _utils
 from ... import io as silx_io
 from ...io._sliceh5 import DatasetSlice
 from ...io.url import DataUrl
+from ...io.utils import _get_local_file_path, _LOCAL_FILE_SCHEMES
 from ..._utils import nfs_cache_refresh as _nfs_cache_refresh
 from ..._utils import NoArgPartial as _Partial
 
@@ -752,11 +753,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         :param filename: file path or URL (e.g., ``file.h5::/path``)
         """
-        filePath = filename
-        if not os.path.isfile(filePath):
-            filePath = DataUrl(filename).file_path()
-            if not os.path.isfile(filePath):
-                raise OSError("Filename '%s' must be a file path" % filename)
+        filePath = _get_local_file_path(filename)
+        if filePath is None and DataUrl(filename).scheme() in _LOCAL_FILE_SCHEMES:
+            raise OSError("Filename '%s' must be an existing file path" % filename)
 
         # create temporary item
         if synchronizingNode is None:
@@ -771,8 +770,8 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         else:
             item = synchronizingNode
 
-            # Only refresh NFS cache for updates
-            _nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
+            if filePath is not None:
+                _nfs_cache_refresh(os.path.dirname(os.path.realpath(filePath)))
 
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)

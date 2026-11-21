@@ -1173,3 +1173,30 @@ def test_open_h5pyd(httpserver):
 
     f = utils._open_url_with_h5pyd(httpserver.url_for("/"))
     assert str(f) == '<HDF5 file "" (mode r)>'
+
+
+def test_get_local_file_path(tmp_path):
+    filename = str(tmp_path / "file.h5")
+    open(filename, "w").close()
+    assert utils._get_local_file_path(filename) == filename
+    assert utils._get_local_file_path(f"{filename}::/entry") == filename
+    assert utils._get_local_file_path(f"silx://{filename}?path=/entry") == filename
+
+    # File name containing URL special characters
+    special_filename = str(tmp_path / "scan#1.h5")
+    open(special_filename, "w").close()
+    assert utils._get_local_file_path(special_filename) == special_filename
+
+    assert utils._get_local_file_path(str(tmp_path / "missing.h5")) is None
+    assert utils._get_local_file_path(str(tmp_path)) is None
+
+
+def test_get_local_file_path_remote_url(tmp_path, monkeypatch):
+    """Remote URLs never refer to a local file"""
+    # Create a local file matching the URL netloc+path
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "example.com" / "dir").mkdir(parents=True)
+    (tmp_path / "example.com" / "dir" / "file.h5").touch()
+
+    assert utils._get_local_file_path("http://example.com/dir/file.h5") is None
+    assert utils._get_local_file_path("https://example.com/dir/file.h5") is None

@@ -54,6 +54,9 @@ logger = logging.getLogger(__name__)
 NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
 """List of possible extensions for HDF5 file formats."""
 
+_LOCAL_FILE_SCHEMES = (None, "file", "silx")
+"""URL schemes referring to local files"""
+
 
 class H5Type(enum.Enum):
     """Identify a set of HDF5 concepts"""
@@ -622,6 +625,24 @@ def _open_url_with_h5pyd(url: str):
     return h5pyd.File(url, "r")
 
 
+def _get_local_file_path(filename: str) -> str | None:
+    """Returns the path of the local file `filename` refers to.
+
+    :param filename: A file path or a URL (e.g., ``file.h5::/path``)
+    :returns: The path of the file on disk, or None if `filename` does not
+        refer to an existing local file (e.g., remote ``http(s)://`` URL).
+    """
+    # Check the file path first to support file names with URL special characters
+    if os.path.isfile(filename):
+        return filename
+
+    url = DataUrl(filename)
+    if url.scheme() not in _LOCAL_FILE_SCHEMES or not url.is_valid():
+        return None
+    file_path = url.file_path()
+    return file_path if os.path.isfile(file_path) else None
+
+
 class _MainNode(Proxy):
     """A main node is a sub node of the HDF5 tree which is responsible of the
     closure of the file.
@@ -692,7 +713,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     """
     url = DataUrl(filename)
 
-    if url.scheme() in [None, "file", "silx"]:
+    if url.scheme() in _LOCAL_FILE_SCHEMES:
         # That's a local file
         if not url.is_valid():
             raise OSError("URL '%s' is not valid" % filename)
