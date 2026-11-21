@@ -1748,8 +1748,6 @@ class Spheres(Geometry):
 
     void main(void)
     {
-        $scenePreCall(vCameraPosition);
-
         /* Get normal from point coords */
         vec3 normal;
         normal.xy = 2.0 * gl_PointCoord - vec2(1.0);
@@ -1762,6 +1760,8 @@ class Spheres(Geometry):
 
         /*Lighting performed in camera*/
         vec3 position = vCameraPosition.xyz + vViewRadius * normal;
+        $scenePreCall(vec4(position, 1.0));
+
         gl_FragColor = $lightingCall(vColor, position, normal);
 
         /*Offset depth*/
