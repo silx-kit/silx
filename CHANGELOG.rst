@@ -30,6 +30,7 @@ Release Notes
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.gui.plot`: Fixed the mask pencil preview size with a scaled image (`Issue #1797 <https://github.com/silx-kit/silx/issues/1797>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `BitshuffleLz4.decompress` returning wrong values for 64-bit data that uses its high bits (e.g. `float64` and large integers) (`Issue #4661 <https://github.com/silx-kit/silx/issues/4661>`_)
+* `silx.gui.plot3d`: Fixed the camera reset not being applied on the first display of a scene (`Issue #2650 <https://github.com/silx-kit/silx/issues/2650>`_)
 
 3.1.2: 2026/09/03
 -----------------

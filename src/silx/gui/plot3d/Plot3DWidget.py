@@ -366,6 +366,10 @@ class Plot3DWidget(glu.OpenGLWidget):
         # Mark as updating.
         self._updating = True
 
+        if self._firstRender:  # TODO remove this ugly hack
+            self._firstRender = False
+            self.centerScene()
+
         # Update near and far planes only if viewport needs refresh
         if self.viewport.dirty:
             self.viewport.adjustCameraDepthExtent()
@@ -374,9 +378,6 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.context(), self.getDotsPerInch(), self.getDevicePixelRatio()
         )
 
-        if self._firstRender:  # TODO remove this ugly hack
-            self._firstRender = False
-            self.centerScene()
         self._updating = False
 
     def resizeGL(self, width, height):
