@@ -78,6 +78,47 @@ def testErrorInInsertFilenameAsync(tmp_path, caplog, qapp_utils):
     assert "can't be read as HDF5" in caplog.records[0].getMessage()
 
 
+def testTreeModelToleratesEmptyNameDataset(qapp_utils, tmp_path):
+    """A SPEC counter with an empty name must not make the tree model crash.
+
+    A ``#L`` line followed by trailing spaces creates a counter with an
+    empty name in the measurement group. The counter has no accessible HDF5
+    object, but displaying the whole file must not raise.
+    """
+    spec = (
+        "#F spec.dat\n#E 1\n#D Mon Jan 01 00:00:00 2024\n\n"
+        "#S 1 ascan x 0 1 2 1\n"
+        "#D Mon Jan 01 00:00:00 2024\n#T 1 (Seconds)\n"
+        "#N 2\n#L x  Seconds  \n0 1\n1 1\n2 1\n\n"
+    )
+    filename = str(tmp_path / "fault.spec")
+    with open(filename, "w") as f:
+        f.write(spec)
+
+    # The empty-named counter is a child of the measurement group. Its item
+    # is created with the empty string as key, which is falsy, so Hdf5Item
+    # never resolved the underlying object.
+    model = hdf5.Hdf5TreeModel()
+    model.insertFile(filename)
+
+    def fill(index):
+        # Populate the children of a lazy group node.
+        if model.canFetchMore(index):
+            model.fetchMore(index)
+        for row in range(model.rowCount(index)):
+            # Ask every column for its display text and tooltip, as an
+            # expanded tree view does.
+            for column in range(model.columnCount(index)):
+                child = model.index(row, column, index)
+                for role in (qt.Qt.DisplayRole, qt.Qt.ToolTipRole):
+                    # Every item, including one with an empty name, must
+                    # resolve its display text and tooltip without error.
+                    model.data(child, role)
+            fill(model.index(row, 0, index))
+
+    fill(qt.QModelIndex())
+
+
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
     def setUp(self):

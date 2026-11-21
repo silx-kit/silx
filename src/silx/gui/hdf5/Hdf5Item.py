@@ -107,7 +107,7 @@ class Hdf5Item(Hdf5Node):
 
     @property
     def obj(self):
-        if self.__key:
+        if self.__key is not None:
             self.__initH5Object()
         return self.__obj
 
