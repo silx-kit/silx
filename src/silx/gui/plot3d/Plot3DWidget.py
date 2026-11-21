@@ -126,8 +126,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         """Linear fog through the whole scene"""
 
     def __init__(self, parent=None, f=qt.Qt.Widget):
-        self._firstRender = True
-
         super().__init__(
             parent,
             alphaBufferSize=8,
@@ -366,10 +364,6 @@ class Plot3DWidget(glu.OpenGLWidget):
         # Mark as updating.
         self._updating = True
 
-        if self._firstRender:  # TODO remove this ugly hack
-            self._firstRender = False
-            self.centerScene()
-
         # Update near and far planes only if viewport needs refresh
         if self.viewport.dirty:
             self.viewport.adjustCameraDepthExtent()
@@ -383,8 +377,12 @@ class Plot3DWidget(glu.OpenGLWidget):
     def resizeGL(self, width, height):
         width *= self.getDevicePixelRatio()
         height *= self.getDevicePixelRatio()
+        firstSize = self._window.size == (0, 0)
         self._window.size = width, height
         self.viewport.size = self._window.size
+        if firstSize:
+            # The camera distance depends on the viewport size
+            self.centerScene()
         overviewWidth, overviewHeight = self.overview.size
         self.overview.origin = width - overviewWidth, height - overviewHeight
 
