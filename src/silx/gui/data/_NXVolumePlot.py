@@ -5,7 +5,7 @@ import numpy
 
 from silx.gui import qt
 from silx.io.nxdata._utils import AxisDataset
-from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
+from silx.math.calibration import ArrayCalibration, NoCalibration
 from .NumpyAxesSelector import NumpyAxesSelector
 from ..utils import blockSignals
 
@@ -112,8 +112,6 @@ class NXVolumePlot(qt.QWidget):
         for axis in [x_axis, y_axis, z_axis]:
             if axis is None:
                 calibration = NoCalibration()
-            elif len(axis) == 2:
-                calibration = LinearCalibration(y_intercept=axis[0], slope=axis[1])
             else:
                 calibration = ArrayCalibration(axis)
             if not calibration.is_affine():
