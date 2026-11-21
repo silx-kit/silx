@@ -282,3 +282,56 @@ def testLoadSave(widgets, qapp, qapp_utils, tmp_path, draw, file_format):
 
     maskWidget.load(mask_filename)
     assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), ref_mask))
+
+
+@pytest.mark.parametrize("scale", [(1.0, 1.0), (0.25, 0.25), (0.1, 0.2)])
+def testPencilPreviewScaledWithImageScale(widgets, qapp, qapp_utils, scale):
+    """The pencil preview size follows the image scale.
+
+    The pencil width is given in image pixels. Without the fix the preview
+    uses the width directly in data units, so it is too large by a factor
+    1/scale when the image is scaled down.
+    """
+    plot, _, maskWidget = widgets
+
+    plot.addImage(numpy.arange(100.0).reshape(10, 10), legend="pencil", scale=scale)
+    qapp.processEvents()
+
+    maskWidget.pencilAction.trigger()
+    width = 8
+    maskWidget.pencilSpinBox.setValue(width)
+    qapp.processEvents()
+
+    # Send mouse move events directly to the canvas instead of moving the
+    # system cursor: the latter is unreliable with an offscreen display and
+    # depends on the order of the tests.
+    canvas = plot.getWidgetHandle()
+    qapp = qt.QApplication.instance()
+    x, y = canvas.width() // 2, canvas.height() // 2
+    for posX, posY in ((0, 0), (x, y)):
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            qt.QPointF(posX, posY),
+            qt.QPointF(posX, posY),
+            qt.Qt.NoButton,
+            qt.Qt.NoButton,
+            qt.Qt.NoModifier,
+        )
+        qapp.sendEvent(canvas, event)
+        qapp.processEvents()
+
+    # The preview is a circle of the pencil width in image pixels, converted
+    # to data coordinates: it spans width * scale in each direction. Without
+    # the fix it spans width (a single data-unit circle), so it is too large
+    # by 1/scale when the scale is below one.
+    previews = [
+        i for i in plot.getItems() if i.getName().startswith("__SELECTION_AREA__")
+    ]
+    assert len(previews) == 1
+    points = previews[0].getPoints()
+    # The circle is approximated by a 13-vertex polygon, so compare with a
+    # tolerance.
+    xSpan = points[:, 0].max() - points[:, 0].min()
+    ySpan = points[:, 1].max() - points[:, 1].min()
+    assert xSpan == pytest.approx(width * scale[0], rel=0.05)
+    assert ySpan == pytest.approx(width * scale[1], rel=0.05)
