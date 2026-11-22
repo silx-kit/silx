@@ -137,6 +137,10 @@ class DataViewer(qt.QFrame):
         self.__index = {}
         """store stack index for each views"""
 
+        self.__updateTimer = qt.QTimer(self)
+        self.__updateTimer.setSingleShot(True)
+        self.__updateTimer.timeout.connect(self.__setDataInView)
+
         self._initializeViews()
 
     def _initializeViews(self):
@@ -292,7 +296,7 @@ class DataViewer(qt.QFrame):
         )
 
         # TODO: would be good to avoid that, it should be synchonous
-        qt.QTimer.singleShot(10, self.__setDataInView)
+        self.__updateTimer.start(10)
 
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
