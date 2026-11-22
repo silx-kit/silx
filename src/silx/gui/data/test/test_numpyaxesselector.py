@@ -145,3 +145,46 @@ class TestNumpyAxesSelector(TestCaseQt):
         widget.setData(None)
         self.assertEqual(listener.callCount(), 3)
         listener.clear()
+
+
+def test_selection_read_failure_discards_previous_data(tmp_path):
+    """A selection whose data cannot be read shows a blank instead of stale data.
+
+    Frame 0 is stored uncompressed and can be read; frame 2 needs the HDF5
+    filter 32033 which is not installed, so reading it raises OSError.
+    """
+    from h5py import h5d, h5p, h5s, h5t, h5z
+
+    filename = str(tmp_path / "missing_filter.h5")
+    dcpl = h5p.create(h5p.DATASET_CREATE)
+    dcpl.set_chunk((1, 4, 4))
+    dcpl.set_filter(32033, h5z.FLAG_OPTIONAL)
+    with h5py.File(filename, "w") as h5file:
+        h5d.create(
+            h5file.id,
+            b"data",
+            h5t.NATIVE_UINT16,
+            h5s.create_simple((3, 4, 4)),
+            dcpl,
+        )
+        raw = numpy.ones((4, 4), numpy.uint16).tobytes()
+        dataset = h5file["data"]
+        dataset.id.write_direct_chunk((0, 0, 0), raw, filter_mask=1)
+        dataset.id.write_direct_chunk((2, 0, 0), b"\0" * 100, filter_mask=0)
+
+    with h5py.File(filename, "r") as h5file:
+        widget = NumpyAxesSelector()
+        widget.setAxisNames(["x", "y"])
+        widget.setData(h5file["data"])
+
+        # Frame 0 can be read.
+        widget.setSelection((0, slice(None), slice(None)))
+        assert widget.selectedData().sum() == 16
+
+        # Frame 2 needs the missing filter: the read raises. The widget must
+        # not keep the previous selection nor let the exception escape.
+        widget.setSelection((2, slice(None), slice(None)))
+        selected = widget.selectedData()
+        assert selected is not None
+        assert selected.shape == (4, 4)
+        assert selected.sum() == 0

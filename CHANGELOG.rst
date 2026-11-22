@@ -7,6 +7,7 @@ Release Notes
 * `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Print sizes larger than the page are refused in the print geometry dialog (`Issue #1229 <https://github.com/silx-kit/silx/issues/1229>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views
+* `silx.gui.data`: Fixed a frame showing stale data when it needs an unavailable HDF5 filter (`Issue #4720 <https://github.com/silx-kit/silx/issues/4720>`_)
 * `silx.gui.plot.PlotWidget`: Fixed `pan` and the arrow keys ignoring the axes limits constraints (`Issue #1298 <https://github.com/silx-kit/silx/issues/1298>`_)
 * `silx.gui.plot.PlotWidget`: Fixed `RuntimeError` of the matplotlib backend when the widget is deleted during a redraw (`Issue #4836 <https://github.com/silx-kit/silx/issues/4836>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
