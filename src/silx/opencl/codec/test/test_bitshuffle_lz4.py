@@ -101,6 +101,28 @@ class TestBitshuffleLz4:
 
     _create_test_data = staticmethod(_create_test_data)
 
+    @pytest.mark.parametrize("dtype", ["float64", "int64", "uint64"])
+    def test_decompress_high_bits(self, dtype):
+        """Decompression preserves the high bits of 64-bit data."""
+        # Data that sets bits above the 32-bit int range (float64 sign and
+        # exponent, large integers).
+        rng = numpy.random.default_rng(0)
+        shape = (100, 500)
+        if dtype == "float64":
+            ref = rng.random(shape)
+        else:
+            ref = rng.integers(0, 2**62, shape, dtype=dtype)
+        # Build the bitshuffle-LZ4 stream that `BitshuffleLz4.decompress`
+        # expects.
+        raw = (
+            struct.pack(">Q", ref.nbytes)
+            + b"\x00" * 4
+            + bitshuffle.compress_lz4(ref).tobytes()
+        )
+        bs = BitshuffleLz4(len(raw), ref.size, dtype=dtype)
+        res = bs.decompress(raw).get()
+        assert numpy.array_equal(res, ref.ravel())
+
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress(self, dtype, shape):
         """
