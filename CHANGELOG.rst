@@ -4,6 +4,7 @@ Release Notes
 3.2.0: ????/??/??
 -----------------
 
+* `silx.gui.plot.PlotWidget`: Fixed marker text not displayed when the marker point is outside the view but its text overlaps the view (`Issue #3914 <https://github.com/silx-kit/silx/issues/3914>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Print sizes larger than the page are refused in the print geometry dialog (`Issue #1229 <https://github.com/silx-kit/silx/issues/1229>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views

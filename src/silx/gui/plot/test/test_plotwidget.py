@@ -44,6 +44,7 @@ from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
+from silx.gui.utils.image import convertQImageToArray
 
 from .utils import PlotWidgetTestCase
 
@@ -946,6 +947,31 @@ class TestPlotMarker(PlotWidgetTestCase):
         self.assertEqual(item.getYAxis(), "left")
 
         self.plot.resetZoom()
+
+    def test_marker_text_overlapping_view_is_displayed(self):
+        self.plot.getXAxis().setAutoScale(False)
+        self.plot.getYAxis().setAutoScale(False)
+
+        def redPixelCount():
+            # Number of red pixels drawn in the widget
+            for _ in range(10):
+                self.qapp.processEvents()
+            image = convertQImageToArray(self.plot.getWidgetHandle().grab().toImage())
+            red = image[..., 0].astype(int)
+            green = image[..., 1].astype(int)
+            return int(((red > 200) & (green < 60)).sum())
+
+        # Red marker with a long text, far outside a wide view
+        self.plot.setLimits(1000.0, 3000.0, 0.0, 10.0)
+        self.plot.addMarker(
+            -1, 5, legend="m", text="a long marker label", color="red", symbol="o"
+        )
+        self.assertEqual(redPixelCount(), 0)
+
+        # Zoom in: the marker symbol is outside the view (x starts at 0),
+        # but its text extends into the view: the text is drawn.
+        self.plot.setLimits(0.0, 10.0, 0.0, 10.0)
+        self.assertGreater(redPixelCount(), 0)
 
 
 # TestPlotItem ################################################################

@@ -49,6 +49,7 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
+from matplotlib.transforms import Bbox
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, Locator
 from matplotlib.tri import Triangulation
@@ -301,6 +302,10 @@ class _TextWithOffset(Text):
         self.__cache = None
         return Text.draw(self, renderer)
 
+    def get_window_extent(self, renderer=None, dpi: float | None = None) -> Bbox:
+        self.__cache = None
+        return Text.get_window_extent(self, renderer, dpi)
+
     def __get_xy(self):
         if self.__cache is not None:
             return self.__cache
@@ -392,10 +397,9 @@ class _MarkerContainer(_PickableContainer):
         :param yinverted: True if the y axis is inverted
         """
         if self.text is not None:
-            visible = (self.x is None or xmin <= self.x <= xmax) and (
-                self.y is None or ymin <= self.y <= ymax
-            )
-            self.text.set_visible(visible)
+            xInView = self.x is None or xmin <= self.x <= xmax
+            yInView = self.y is None or ymin <= self.y <= ymax
+            markerInView = xInView and yInView
 
             if self.x is not None and self.y is not None:
                 if self.symbol is None:
@@ -418,6 +422,13 @@ class _MarkerContainer(_PickableContainer):
                     xmax = xmin
                 xmax -= 0.005 * delta
                 self.text.set_x(xmax)
+
+            # The extent of a hidden text is empty: show the text before the test.
+            self.text.set_visible(True)
+            if not markerInView:
+                textExtent = self.text.get_window_extent()
+                textInView = textExtent.overlaps(self.text.axes.bbox)
+                self.text.set_visible(textInView)
 
     def contains(self, mouseevent):
         """Mimic Artist.contains, and call it on the line Artist.
