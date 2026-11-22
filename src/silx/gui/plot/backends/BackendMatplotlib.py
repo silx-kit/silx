@@ -49,7 +49,7 @@ from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
-from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.collections import PathCollection, LineCollection, PolyCollection
 from matplotlib.ticker import Formatter, Locator
 from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
@@ -282,6 +282,8 @@ class _PickableContainer(Container):
         """
         # Goes through children from front to back and return first picked one.
         for child in reversed(self.get_children()):
+            if isinstance(child, PolyCollection):
+                continue  # The filled area of a curve is picked by the item
             picked, info = child.contains(mouseevent)
             if picked:
                 return picked, info

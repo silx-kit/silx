@@ -649,6 +649,32 @@ class TestPlotCurve(PlotWidgetTestCase):
         curve.setLineGapColor("red")
         assert curve.getLineGapColor() == (1.0, 0.0, 0.0, 1.0)
 
+    def testPickFilledCurveArea(self):
+        """Test picking in the filled area of a curve, with linear and log Y axis"""
+        # A horizontal curve at y=10 from x=0 to x=10, filled down to the baseline
+        x = numpy.arange(11.0)
+        y = numpy.full(11, 10.0)
+        curve = self.plot.addCurve(x, y, legend="curve", fill=True)
+        self.plot.setLimits(0, 10, 0.1, 12)
+
+        for scale in ("linear", "log"):
+            self.plot.getYAxis().setScale(scale)
+            self.qapp.processEvents()
+
+            # Inside the fill, far below the line: the point at the clicked X is picked
+            result = curve.pick(*self.plot.dataToPixel(7.8, 0.5))
+            self.assertIsNotNone(result, scale)
+            self.assertEqual(result.getIndices().tolist(), [8], scale)
+
+            # Just above the line, outside the fill: the line picks the point
+            xPixel, yPixel = self.plot.dataToPixel(3, 10)
+            result = curve.pick(xPixel, yPixel - 2)
+            self.assertIsNotNone(result, scale)
+            self.assertEqual(result.getIndices().tolist(), [3], scale)
+
+            # Far above the line: nothing is picked
+            self.assertIsNone(curve.pick(*self.plot.dataToPixel(7.8, 11.9)), scale)
+
 
 class TestPlotHistogram(PlotWidgetTestCase):
     """Basic tests for add Histogram"""

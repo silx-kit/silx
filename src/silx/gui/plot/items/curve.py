@@ -33,6 +33,7 @@ import logging
 import numpy
 
 from ....utils.deprecation import deprecated_warning
+from ....utils.proxy import docstring
 from ... import colors
 from .core import (
     PointsBase,
@@ -48,6 +49,8 @@ from .core import (
     HighlightedMixIn,
     _Style,
 )
+from ._pick import PickingResult
+from .._utils import axis_scale
 from silx._utils import NP_OPTIONAL_COPY
 
 _logger = logging.getLogger(__name__)
@@ -307,6 +310,54 @@ class Curve(
                 symbolsize=self.getSymbolSize(),
                 gapcolor=self.getLineGapColor(),
             )
+
+    @docstring(PointsBase)
+    def pick(self, x: float, y: float) -> PickingResult | None:
+        if self.isFill():
+            result = self._pickFill(x, y)
+            if result is not None:
+                return result
+        return super().pick(x, y)
+
+    def _pickFill(self, x: float, y: float) -> PickingResult | None:
+        """Pick the filled area at a pixel position.
+
+        :return: The indices of the curve points nearest to x, or None if not picked
+        """
+        plot = self.getPlot()
+        if not self.isVisible() or self._backendRenderer is None or plot is None:
+            return None
+
+        xScale, yScale = (axis.getScale() for axis in self._getAxisInstances(plot))
+        baseline = self.getBaseline(copy=False)
+        if baseline is None:
+            baseline = 0.0
+        if yScale == "log":
+            # The backends draw the fill down to the smallest float32
+            baseline = numpy.maximum(baseline, axis_scale.FLOAT32_MINPOS)
+        xPick, yPick = plot.pixelToData(x, y, axis=self.getYAxis())
+
+        # Work in the scaled data space where the fill segments are straight lines
+        xPick = axis_scale.apply(xScale, xPick)
+        yPick = axis_scale.apply(yScale, yPick)
+        xData = axis_scale.apply(xScale, self.getXData(copy=False))
+        yData = axis_scale.apply(yScale, self.getYData(copy=False))
+        yBase = axis_scale.apply(yScale, numpy.broadcast_to(baseline, xData.shape))
+
+        with numpy.errstate(divide="ignore", invalid="ignore"):
+            ratio = (xPick - xData[:-1]) / numpy.diff(xData)
+            yCurveAt = yData[:-1] + ratio * numpy.diff(yData)
+            yBaseAt = yBase[:-1] + ratio * numpy.diff(yBase)
+            isPicked = (
+                (0 <= ratio)
+                & (ratio <= 1)
+                & (numpy.minimum(yCurveAt, yBaseAt) <= yPick)
+                & (yPick <= numpy.maximum(yCurveAt, yBaseAt))
+            )
+        segments = numpy.flatnonzero(isPicked)
+        if segments.size == 0:
+            return None
+        return PickingResult(self, numpy.unique(segments + (ratio[segments] > 0.5)))
 
     def setData(
         self,
