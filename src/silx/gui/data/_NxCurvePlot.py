@@ -135,10 +135,12 @@ class NxCurvePlot(qt.QWidget):
                 )
             )
         mainSignal = self.__signals[0]
-        self._plot.getYAxis().setScale(mainSignal.scale)
+        if mainSignal.scale is not None:
+            self._plot.getYAxis().setScale(mainSignal.scale)
         self._plot.setActiveCurve(mainSignal.name)
 
-        self._plot.getXAxis().setScale(axis.scale)
+        if axis.scale is not None:
+            self._plot.getXAxis().setScale(axis.scale)
         self._plot.setGraphXLabel(axis.name)
         self._plot.resetZoom()
 

@@ -9,11 +9,10 @@ from ..plot.items import types
 class _BaseNxField:
     errors: numpy.ndarray | None
     name: str
-    scale: types.AxisScaleType = "linear"
+    scale: types.AxisScaleType | None = None
 
     def __post_init__(self):
         self.name = "" if self.name is None else self.name
-        self.scale = "linear" if self.scale is None else self.scale
 
     def get_errors(self, selection):
         if self.errors is None:

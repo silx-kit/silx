@@ -193,6 +193,30 @@ def test_curve_view_default_slice(qapp):
     numpy.testing.assert_array_equal(curve.getYData(), data[selection])
 
 
+@pytest.mark.parametrize(
+    "nxdata_scale, expected", [(None, "log"), ("linear", "linear")]
+)
+def test_curve_view_scale_on_data_change(qapp, nxdata_scale, expected):
+    """Test that the user scale is kept when the new NXdata does not define a scale."""
+    widget = NxCurvePlot()
+    x = numpy.linspace(0.1, 1.0, 10)
+    widget.setCurvesData(signals=[x], signal_names=["s1"], axes=[x])
+
+    widget._plot.getYAxis().setScale("log")
+    widget._plot.getXAxis().setScale("log")
+
+    widget.setCurvesData(
+        signals=[x],
+        signal_names=["s2"],
+        axes=[x],
+        signal_scale=nxdata_scale,
+        axes_scales=[nxdata_scale],
+    )
+
+    assert widget._plot.getYAxis().getScale() == expected
+    assert widget._plot.getXAxis().getScale() == expected
+
+
 @pytest.mark.usefixtures("use_opengl")
 def test_volume_view_default_slice(qapp):
     data = numpy.arange(2 * 3 * 4 * 5, dtype=numpy.float32).reshape(2, 3, 4, 5)
