@@ -1383,3 +1383,35 @@ class TestROIStatValues(TestCaseQt):
             exp_value = expected[stat.name]
             error_msg = f"expected {stat.name} is {exp_value}, got {value}"
             assert numpy.isclose(value, exp_value), error_msg
+
+
+def test_stats_table_build_does_not_scan_rows_per_curve(
+    qapp, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Building a stats table does not scan the existing rows for each added
+    item, which would be quadratic in the number of items."""
+    plot = Plot1D()
+    x = numpy.arange(50)
+    y = x**2
+    nCurves = 50
+    for i in range(nCurves):
+        plot.addCurve(x, y, legend=f"curve_{i}", resetzoom=False)
+
+    scanCalls = []
+    original = StatsWidget.StatsTable._itemToRow
+
+    def itemToRow(self, item):
+        scanCalls.append(1)
+        return original(self, item)
+
+    monkeypatch.setattr(StatsWidget.StatsTable, "_itemToRow", itemToRow)
+
+    table = StatsWidget.StatsTable(plot=plot)
+    assert table.rowCount() == nCurves
+    table.setAttribute(qt.Qt.WA_DeleteOnClose)
+    table.close()
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
+
+    # Scanning all rows for each added item is quadratic
+    assert len(scanCalls) < nCurves

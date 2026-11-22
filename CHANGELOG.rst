@@ -4,6 +4,8 @@ Release Notes
 3.2.0: ????/??/??
 -----------------
 
+* `silx.gui.plot.PlotWidget`: Fixed resetting the zoom being slow when adding many curves (`Issue #4673 <https://github.com/silx-kit/silx/issues/4673>`_)
+* `silx.gui.plot.StatsWidget`: Fixed the statistics table being slow to fill for plots with many curves (`Issue #4673 <https://github.com/silx-kit/silx/issues/4673>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Print sizes larger than the page are refused in the print geometry dialog (`Issue #1229 <https://github.com/silx-kit/silx/issues/1229>`_)
 * `silx.gui.data`: Support the NXdata `@default_slice` attribute in the curve, complex image and volume views

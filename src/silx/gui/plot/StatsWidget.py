@@ -595,6 +595,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.setHorizontalHeaderItem(1, headerItem)
 
         self.setSortingEnabled(True)
+        self.__itemsInTable = set()
         self.setPlot(plot)
 
     @contextmanager
@@ -664,8 +665,10 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             items = self._plotWrapper.getItems()
 
         # Add items to the plot
-        for item in items:
-            self._addItem(item)
+        # Disable sorting while adding rows to avoid re-sorting on every add
+        with self._disableSorting():
+            for item in items:
+                self._addItem(item)
 
     def _updateCurrentItem(self, *args):
         """specific callback for the sigCurrentChanged and with the
@@ -730,16 +733,20 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                 return row
         return None
 
-    def _itemToTableItems(self, item):
+    def _itemToTableItems(
+        self, item: qt.QObject, row: int | None = None
+    ) -> dict[str, qt.QTableWidgetItem]:
         """Find all table items corresponding to a plot item
 
         :param item: The plot item
+        :param row: The row of the item in the table, if already known.
         :return: An ordered dict of column name to QTableWidgetItem mapping
             for the given plot item.
         :rtype: dict
         """
         result = {}
-        row = self._itemToRow(item)
+        if row is None:
+            row = self._itemToRow(item)
         if row is not None:
             for column in range(self.columnCount()):
                 tableItem = self.item(row, column)
@@ -779,7 +786,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         :returns: True if the item is added to the widget.
         :rtype: bool
         """
-        if self._itemToRow(item) is not None:
+        if id(item) in self.__itemsInTable:
             _logger.info("Item already present in the table")
             self._updateStats(item)
             return True
@@ -821,8 +828,10 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                 tableItem.setTextAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
                 self.setItem(row, column, tableItem)
 
+            self.__itemsInTable.add(id(item))
+
             # Update table items content
-            self._updateStats(item, data_changed=True)
+            self._updateStats(item, data_changed=True, row=row)
 
         # Listen for item changes
         # Using queued connection to avoid issue with sender
@@ -842,6 +851,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             if kind in statsmdl.BASIC_COMPATIBLE_KINDS:
                 _logger.error("Removing item that is not in table: %s", str(item))
             return
+        self.__itemsInTable.discard(id(item))
         item.sigItemChanged.disconnect(self._plotItemChanged)
         self.removeRow(row)
 
@@ -853,13 +863,21 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             item.sigItemChanged.disconnect(self._plotItemChanged)
         self.clearContents()
         self.setRowCount(0)
+        self.__itemsInTable.clear()
 
-    def _updateStats(self, item, data_changed=False, roi_changed=False):
+    def _updateStats(
+        self,
+        item: qt.QObject | None,
+        data_changed: bool = False,
+        roi_changed: bool = False,
+        row: int | None = None,
+    ) -> None:
         """Update displayed information for given plot item
 
         :param item: The plot item
         :param bool data_changed: is the item data changed.
         :param bool roi_changed: is the associated roi changed.
+        :param row: The row of the item in the table, if already known.
         """
         if item is None:
             return
@@ -868,10 +886,11 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             _logger.info("Plot not available")
             return
 
-        row = self._itemToRow(item)
         if row is None:
-            _logger.error("This item is not in the table: %s", str(item))
-            return
+            row = self._itemToRow(item)
+            if row is None:
+                _logger.error("This item is not in the table: %s", str(item))
+                return
 
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
@@ -892,7 +911,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             stats = {}
 
         with self._disableSorting():
-            for name, tableItem in self._itemToTableItems(item).items():
+            for name, tableItem in self._itemToTableItems(item, row=row).items():
                 if name == self._LEGEND_HEADER_DATA:
                     text = self._plotWrapper.getLabel(item)
                     tableItem.setText(text)
@@ -917,7 +936,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item, data_changed=is_request)
+                self._updateStats(item, data_changed=is_request, row=row)
 
     def _currentItemChanged(self, current, previous):
         """Handle change of selection in table and sync plot selection
