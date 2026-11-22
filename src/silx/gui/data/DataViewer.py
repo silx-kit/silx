@@ -295,7 +295,7 @@ class DataViewer(qt.QFrame):
             filename, datapath, slicing, permutation
         )
 
-        # TODO: would be good to avoid that, it should be synchonous
+        # Deferred so that successive changes (e.g. setData then setDisplayMode) update the view once
         self.__updateTimer.start(10)
 
     def __setDataInView(self):
