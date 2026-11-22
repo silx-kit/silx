@@ -710,8 +710,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 else:
                     xmin, xmax = self._plot.getXAxis().getLimits()
                     ymin, ymax = self._plot.getYAxis(axis=yAxis).getLimits()
-                    if not xmin < xCoord < xmax or not ymin < yCoord < ymax:
-                        # Do not render markers outside visible plot area
+                    if item["text"] is None and (
+                        not xmin < xCoord < xmax or not ymin < yCoord < ymax
+                    ):
+                        # Skip markers without text outside the plot area.
+                        # The scissor clips the text of other markers.
                         continue
                     pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
 
