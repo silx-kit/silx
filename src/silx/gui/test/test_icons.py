@@ -150,7 +150,7 @@ class TestAnimatedIcons(TestCaseQt):
         self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
 
 
-def test_svg_icon_freed_with_its_engine(qapp):
+def test_svg_engine_still_available_after_icon_freed(qapp):
     """Free SVG icons and their engines while Qt can still use the engines"""
     icon = qt.QIcon(icons._SvgIconEngine("zoom"))
 

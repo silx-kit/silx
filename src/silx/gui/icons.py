@@ -93,11 +93,14 @@ class _SvgIconEngine(qt.QIconEngine):
             # when the garbage collector frees the engine with its QIcon,
             # or when clone() returns. Keep it until Qt deletes it.
             # Remove this workaround when PySide6 is fixed and silx requires
-            # the fixed version: https://github.com/silx-kit/silx/issues/4852
+            # the fixed version. PySide6 bug report draft:
+            # https://github.com/silx-kit/silx/issues/4852#issuecomment-7049056072
+            _svgIconEngines.add(self)
+            # Release the engines that Qt already deleted, so that the set
+            # does not grow forever
             _svgIconEngines.difference_update(
                 [engine for engine in _svgIconEngines if not qt_inspect.isValid(engine)]
             )
-            _svgIconEngines.add(self)
 
     @staticmethod
     def _readSVG(name: str) -> bytes:
