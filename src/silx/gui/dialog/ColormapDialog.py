@@ -1742,7 +1742,7 @@ class ColormapDialog(qt.QDialog):
             if name is not None:
                 # Case the name is already know.
                 name, isReversed = _unreversedColormapName(name)
-                comboBox.setCurrentName(name)
+                comboBox._setCurrentName(name)
                 button.setChecked(isReversed)
                 return
 
@@ -1788,7 +1788,7 @@ class ColormapDialog(qt.QDialog):
             if isReversed:
                 # e.g. 'Reversed Gray' is displayed as 'Gray' + reversed
                 with utils.blockSignals(comboBox):
-                    comboBox.setCurrentName(name)
+                    comboBox._setCurrentName(name)
                 with utils.blockSignals(self._reverseColormapButton):
                     self._reverseColormapButton.setChecked(True)
         self._updateColormapLut()

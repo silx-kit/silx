@@ -138,7 +138,7 @@ class ColormapNameComboBox(qt.QComboBox):
     def setCurrentLut(self, colormap):
         name = colormap.getName()
         if name is not None:
-            self.setCurrentName(name)
+            self._setCurrentName(name)
         else:
             lut = colormap.getColormapLUT()
             self.setCurrentColors(lut)
@@ -157,7 +157,7 @@ class ColormapNameComboBox(qt.QComboBox):
             self.setItemData(index, lut, role=self.LUT_COLORS)
         self.setCurrentIndex(index)
 
-    def setCurrentName(self, name: str):
+    def _setCurrentName(self, name: str):
         """Select the LUT with the given name, add it if needed.
 
         :param name: Name of the colormap

@@ -49,7 +49,7 @@ def testGUIEdition(qWidgetFactory):
     dialog2 = qWidgetFactory(ColormapDialog.ColormapDialog)
     dialog2.setColormap(colormap)
 
-    dialog._comboBoxColormap.setCurrentName("red")
+    dialog._comboBoxColormap._setCurrentName("red")
     dialog._comboBoxNormalization.setCurrentIndex(
         dialog._comboBoxNormalization.findData(Colormap.LOGARITHM)
     )
@@ -199,7 +199,7 @@ def testColormapDel(qapp, qWidgetFactory):
 
     colormap = None
     assert dialog.getColormap() is None
-    dialog._comboBoxColormap.setCurrentName("blue")
+    dialog._comboBoxColormap._setCurrentName("blue")
 
 
 def testColormapEditedOutside(qapp, qWidgetFactory):
