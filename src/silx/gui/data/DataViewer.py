@@ -137,9 +137,9 @@ class DataViewer(qt.QFrame):
         self.__index = {}
         """store stack index for each views"""
 
-        self.__updateTimer = qt.QTimer(self)
-        self.__updateTimer.setSingleShot(True)
-        self.__updateTimer.timeout.connect(self.__setDataInView)
+        self.__setDataInViewTimer = qt.QTimer(self)
+        self.__setDataInViewTimer.setSingleShot(True)
+        self.__setDataInViewTimer.timeout.connect(self.__setDataInView)
 
         self._initializeViews()
 
@@ -297,7 +297,7 @@ class DataViewer(qt.QFrame):
 
         # Deferred, not synchronous: successive changes (e.g. setData then
         # setDisplayMode) restart the timer, so the view is updated only once
-        self.__updateTimer.start(10)
+        self.__setDataInViewTimer.start(10)
 
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
