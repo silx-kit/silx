@@ -69,6 +69,7 @@ __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "24/05/2016"
 
+from typing import Any
 from . import qt
 
 # This widget cannot be used inside an interactive IPython shell.
@@ -106,12 +107,12 @@ except ImportError:
 class _InProcessInteractiveShell(InProcessInteractiveShell):
     """In-process IPython shell that leaves the host interpreter state untouched."""
 
-    def init_sys_modules(self):
+    def init_sys_modules(self) -> None:
         # This is the way InteractiveShellEmbed does it:
         # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L230-L233
         pass
 
-    def init_prompts(self):
+    def init_prompts(self) -> None:
         # Avoid setting sys.ps1|2|3 rather than reverting it
         # https://github.com/ipython/ipython/blob/80b623833fd0c472f7df80795b5affb406bc4001/IPython/terminal/embed.py#L467-L494
         pass
@@ -126,7 +127,13 @@ class IPythonWidget(_RichJupyterWidget):
        the console.
     """
 
-    def __init__(self, parent=None, custom_banner=None, *args, **kwargs):
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+        custom_banner: str | None = None,
+        *args,
+        **kwargs,
+    ) -> None:
         if parent is not None:
             kwargs["parent"] = parent
         super().__init__(*args, **kwargs)
@@ -159,10 +166,10 @@ class IPythonWidget(_RichJupyterWidget):
 
         self.exit_requested.connect(self._exitRequested)
 
-    def _exitRequested(self, widget):
+    def _exitRequested(self, widget: qt.QWidget) -> None:
         self.shutdownKernel()
 
-    def shutdownKernel(self):
+    def shutdownKernel(self) -> None:
         """Stop the kernel: The console cannot run code afterwards."""
         kernel = self.kernel_manager.kernel
         if kernel is None:
@@ -172,11 +179,11 @@ class IPythonWidget(_RichJupyterWidget):
         # The shell is a process-wide singleton: release it
         type(kernel.shell).clear_instance()
 
-    def sizeHint(self):
+    def sizeHint(self) -> qt.QSize:
         """Return a reasonable default size for usage in :class:`PlotWindow`"""
         return qt.QSize(500, 300)
 
-    def pushVariables(self, variable_dict):
+    def pushVariables(self, variable_dict: dict[str, Any]) -> None:
         """Given a dictionary containing name / value pairs, push those
         variables to the IPython console widget.
 
@@ -202,8 +209,12 @@ class IPythonDockWidget(qt.QDockWidget):
     """
 
     def __init__(
-        self, parent=None, available_vars=None, custom_banner=None, title="Console"
-    ):
+        self,
+        parent: qt.QWidget | None = None,
+        available_vars: dict[str, Any] = None,
+        custom_banner: str | None = None,
+        title: str = "Console",
+    ) -> None:
         super().__init__(title, parent)
 
         self.ipyconsole = IPythonWidget(custom_banner=custom_banner)
@@ -215,7 +226,7 @@ class IPythonDockWidget(qt.QDockWidget):
             self.ipyconsole.pushVariables(available_vars)
 
 
-def main():
+def main() -> None:
     """Run a Qt app with an IPython console"""
     app = qt.QApplication([])
     widget = IPythonDockWidget()
