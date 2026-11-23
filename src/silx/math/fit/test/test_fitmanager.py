@@ -479,13 +479,18 @@ class TestPolynomials(unittest.TestCase):
         self._testPoly([1, -2, 3, -4, -5, 6], "Degree 5 Polynomial", places=4)
 
 
+@pytest.mark.parametrize("not_finite_in", ["x", "y"])
 @pytest.mark.parametrize("weighted", [False, True])
 @pytest.mark.parametrize("background", ["Constant", "Strip", "Snip"])
-def test_fit_ignores_not_finite_data(background, weighted):
+def test_fit_ignores_not_finite_data(background, weighted, not_finite_in):
     """Fit and fit curve skip the data points that are not finite."""
     x = numpy.arange(500.0)
     y = 1000 * numpy.exp(-((x - 250) ** 2) / (2 * 8.5**2)) + 50 + 0.1 * x
-    y[10] = numpy.nan  # for example a point that is not acquired yet
+    # for example a point that is not acquired yet
+    if not_finite_in == "x":
+        x[10] = numpy.nan
+    else:
+        y[10] = numpy.nan
 
     fm = fitmanager.FitManager()
     fm.setdata(x, y)

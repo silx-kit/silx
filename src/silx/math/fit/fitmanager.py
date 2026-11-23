@@ -527,7 +527,7 @@ class FitManager:
         and the fitted parameters.
 
         :param x: Independent variable where the function is calculated.
-            If ``None``, use :attr:`xdata`. The result is NaN where
+            If ``None``, use :attr:`xdata`. In that case, the result is NaN where
             :attr:`xdata` or :attr:`ydata` is not finite.
         :param paramlist: List of dictionaries, each dictionary item being a
             fit parameter. The dictionary's format is documented in
