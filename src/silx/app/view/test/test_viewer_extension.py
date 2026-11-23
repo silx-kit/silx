@@ -13,7 +13,7 @@ def test_viewer_uses_the_overridden_data_panel(qWidgetFactory, tmp_path):
         pass
 
     class DerivedViewer(Viewer):
-        _dataPanelFactory = Panel
+        _DATA_PANEL_FACTORY = Panel
 
     window = qWidgetFactory(DerivedViewer)
     panel = window.getDataPanel()

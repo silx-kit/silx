@@ -56,7 +56,7 @@ class Viewer(qt.QMainWindow):
     content.
     """
 
-    _dataPanelFactory = DataPanel
+    _DATA_PANEL_FACTORY = DataPanel
     """Class of the widget displaying the selected data.
 
     Derived applications can override it with another class, which is
@@ -145,7 +145,7 @@ class Viewer(qt.QMainWindow):
         self._customPlotSelectionWindow = CustomPlotSelectionWindow(self)
         self._customPlotSelectionWindow.setVisible(False)
 
-        self.__dataPanel = self._dataPanelFactory(self, self.__context)
+        self.__dataPanel = self._DATA_PANEL_FACTORY(self, self.__context)
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(rightPanel)
