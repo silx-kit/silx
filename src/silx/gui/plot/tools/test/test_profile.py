@@ -427,16 +427,16 @@ class TestProfile3DToolBar:
 
 def test_outdated_profile_is_not_displayed(qWidgetFactory, qapp_utils):
     """Test that a profile computed with outdated ROI properties is not displayed"""
-    computing = threading.Event()
-    release = threading.Event()
+    meanComputing = threading.Event()
+    releaseMeanComputing = threading.Event()
 
     class SlowMeanROI(rois.ProfileImageHorizontalLineROI):
         def computeProfile(self, item):
             method = self.getProfileMethod()
             if method == "mean":
                 # Block the outdated computation until the "sum" one is done
-                computing.set()
-                release.wait(10)
+                meanComputing.set()
+                releaseMeanComputing.wait(10)
             return super().computeProfile(item)._replace(title=method)
 
     plot = qWidgetFactory(Plot2D)
@@ -446,13 +446,13 @@ def test_outdated_profile_is_not_displayed(qWidgetFactory, qapp_utils):
     roi = SlowMeanROI()
     roi.setPosition(0.5)
     manager.getRoiManager().addRoi(roi)
-    assert computing.wait(10)
+    assert meanComputing.wait(10)
 
     # Start a new computation while the "mean" one is still running
     roi.setProfileMethod("sum")
     qapp_utils.waitAsLongAs(lambda: roi.getProfileWindow() is None)
     # The outdated "mean" computation now finishes after the "sum" one
-    release.set()
+    releaseMeanComputing.set()
     qapp_utils.waitAsLongAs(manager.hasPendingOperations)
 
     profilePlot = roi.getProfileWindow().getCurrentPlotWidget()

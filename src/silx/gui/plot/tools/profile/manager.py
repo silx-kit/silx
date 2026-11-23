@@ -853,7 +853,7 @@ class ProfileManager(qt.QObject):
 
         roi = runner.getRoi()
         if self.__lastRunners.get(roi) is not runner:
-            # The ROI changed after this request
+            # Another computation was requested for this ROI
             return
         del self.__lastRunners[roi]
 
