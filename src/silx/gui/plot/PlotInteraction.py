@@ -983,10 +983,10 @@ class DrawFreeHand(Select):
             self.__isOut = True
 
     def __init__(self, plot, parameters):
-        # Circle used for pencil preview
+        # Radius-1 circle (cos/sin directions) used as the pencil preview
+        # template; the radius is applied in updatePencilShape.
         angle = numpy.arange(13.0) * numpy.pi * 2.0 / 13.0
-        size = parameters.get("width", 1.0) * 0.5
-        self._circle = size * numpy.array((numpy.cos(angle), numpy.sin(angle))).T
+        self._circle = numpy.array((numpy.cos(angle), numpy.sin(angle))).T
 
         states = {"idle": DrawFreeHand.Idle, "select": DrawFreeHand.Select}
         super().__init__(plot, parameters, states, "idle")
@@ -1000,10 +1000,19 @@ class DrawFreeHand(Select):
         self.select(x, y)
 
     def updatePencilShape(self, x, y):
+        # The pencil width is expressed in image pixels. The preview is a
+        # circle of that width in the image space, which becomes an ellipse
+        # in data coordinates once scaled by the image scale.
+        radius = self.parameters.get("width", 1.0) * 0.5
+        image = self.plot.getActiveImage()
+        scale = image.getScale() if image is not None else (1.0, 1.0)
         center = self.plot.pixelToData(x, y, check=False)
-        assert center is not None
-
-        polygon = center + self._circle
+        polygon = numpy.column_stack(
+            (
+                center[0] + radius * abs(scale[0]) * self._circle[:, 0],
+                center[1] + radius * abs(scale[1]) * self._circle[:, 1],
+            )
+        )
 
         self.setSelectionArea(polygon, fill="none", color=self.color)
 
