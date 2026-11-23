@@ -120,16 +120,47 @@ class TestBitshuffleLz4:
         res = bs.decompress(raw).get()
         assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
 
+    @pytest.mark.parametrize("unblock_on_device", (False, True))
     @pytest.mark.parametrize("dec_size_factor", (0.5, 2))
-    def test_decompress_other_size(self, dec_size_factor):
+    def test_decompress_other_size(self, dec_size_factor, unblock_on_device):
         """Test decompression of a chunk whose size differs from `dec_size` (#4777)"""
         ref, raw = self._create_test_data(shape=(101, 509), dtype="uint32")
 
         bs = BitshuffleLz4(len(raw), int(ref.size * dec_size_factor), dtype=ref.dtype)
-        res = bs.decompress(raw).get()
+        res = bs.decompress(raw, force_unblock_on_device=unblock_on_device).get()
         assert numpy.array_equal(res[: ref.size], ref.ravel()), (
             "Checks decompression works"
         )
+
+    @pytest.mark.parametrize("on_device", (False, True))
+    @pytest.mark.parametrize("dtype,shape", TESTCASES[::3])
+    def test_decompress_block_position(self, dtype, shape, on_device):
+        """Test decompression with block positions computed on the host (#4777)"""
+        ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+        bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
+        block_position = unblock_bslz4(raw, ref.itemsize)
+        if on_device:
+            block_position = pyopencl.array.to_device(bs.queue, block_position)
+        raw_np = numpy.frombuffer(raw, dtype=numpy.uint8)
+        raw_array = pyopencl.array.to_device(bs.queue, raw_np)
+        raw_buffer = pyopencl.Buffer(
+            bs.ctx,
+            flags=pyopencl.mem_flags.COPY_HOST_PTR | pyopencl.mem_flags.READ_ONLY,
+            hostbuf=raw,
+        )
+        for data in (raw, raw_np, raw_array, raw_buffer):
+            bs.set_profiling(True)
+            bs.reset_log()
+            res = bs.decompress(data, block_position=block_position).get()
+            assert numpy.array_equal(res, ref.ravel()), f"decompression of {type(data)}"
+            assert not any(e.name == "LZ4 unblock" for e in bs.events), (
+                "unblock kernel skipped"
+            )
+
+        # a decompressor allocated for a smaller chunk grows its buffers
+        bs = BitshuffleLz4(len(raw), numpy.prod(shape) // 2, dtype=dtype)
+        res = bs.decompress(raw_array, block_position=block_position).get()
+        assert numpy.array_equal(res[: ref.size], ref.ravel())
 
     @pytest.mark.parametrize("dtype,shape", TESTCASES)
     def test_decompress_from_buffer(self, dtype, shape):
