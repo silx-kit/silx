@@ -1040,13 +1040,15 @@ class Plot2D(PlotWindow):
         self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
-        # Put colorbar action after colormap action
-        actions = self.toolBar().actions()
-        for action in actions:
-            if action is self.getColormapAction():
-                break
+        self._showAxisAction = actions_control.ShowAxisAction(self, parent=self)
+        self.toolBar().insertAction(self.colorbarAction, self._showAxisAction)
 
+        # Connect signals / slots
         self.sigActiveImageChanged.connect(self.__activeImageChanged)
+
+    def getShowAxisAction(self) -> actions_control.ShowAxisAction:
+        """Action toggling the display of the plot axes."""
+        return self._showAxisAction
 
     def __activeImageChanged(self, previous, legend):
         """Handle change of active image
