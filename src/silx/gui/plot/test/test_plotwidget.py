@@ -42,7 +42,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent, Axis
+from silx.gui.plot.items import BoundingRect, Curve, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -2195,3 +2195,22 @@ def test_mpl_replot_with_widget_deleted_during_draw(qapp: qt.QApplication) -> No
 
     # Make sure the widget was really deleted during the draw
     assert not isValid(plotWidget)
+
+
+def test_data_range_ignores_added_hidden_item(qapp: qt.QApplication) -> None:
+    """Adding a hidden item does not change the data range."""
+    plot = PlotWidget(backend="none")
+    plot.addCurve((0, 1), (0, 1), legend="visible")
+    # The data range is now cached
+    assert plot.getDataRange().x == (0, 1)
+
+    hidden = Curve()
+    hidden.setData((0, 100), (0, 100))
+    hidden.setVisible(False)
+    plot.addItem(hidden)
+
+    # The hidden curve does not extend the cached data range
+    assert plot.getDataRange() == plot._computeDataRange()
+    assert plot.getDataRange().x == (0, 1)
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()

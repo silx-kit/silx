@@ -846,6 +846,33 @@ class PlotWidget(qt.QMainWindow):
         """
         self._dataRange = None
 
+    def _addItemToDataRange(self, item: items.Item) -> None:
+        """Extend the cached data range with the bounds of an added item."""
+        if self._dataRange is None or not item.isVisible():
+            return
+        bounds = item.getBounds()
+        if bounds is None:
+            return
+        if numpy.isnan(bounds).any():
+            self._invalidateDataRange()
+            return
+        xmin, xmax, ymin, ymax = bounds
+        x = self.__extendRange(self._dataRange.x, xmin, xmax)
+        y, yright = self._dataRange.y, self._dataRange.yright
+        if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
+            yright = self.__extendRange(yright, ymin, ymax)
+        else:
+            y = self.__extendRange(y, ymin, ymax)
+        self._dataRange = types.PlotDataRange(x=x, y=y, yright=yright)
+
+    @staticmethod
+    def __extendRange(
+        current: tuple[float, float] | None, vmin: float, vmax: float
+    ) -> tuple[float, float]:
+        if current is None:
+            return vmin, vmax
+        return min(current[0], vmin), max(current[1], vmax)
+
     def getDataRange(self) -> types.PlotDataRange:
         """
         Returns this PlotWidget's data range.
@@ -998,7 +1025,7 @@ class PlotWidget(qt.QMainWindow):
         item._setPlot(self)
         self._itemRequiresUpdate(item)
         if isinstance(item, items.DATA_ITEMS):
-            self._invalidateDataRange()  # TODO handle this automatically
+            self._addItemToDataRange(item)
 
         self._notifyContentChanged(item)
         self.sigItemAdded.emit(item)
