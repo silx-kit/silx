@@ -96,8 +96,6 @@ _colormapIconPreview = {}
 def _reversedColormapName(name: str) -> str | None:
     """Returns the name of the reversed counterpart of a colormap if it exists.
 
-    ('gray' <-> 'reversed gray', 'name' <-> 'name_r')
-
     :param name: Name of the colormap
     """
     if name == "gray":
@@ -115,9 +113,6 @@ def _reversedColormapName(name: str) -> str | None:
 
 def _unreversedColormapName(name: str) -> tuple[str, bool]:
     """Returns the name of the non-reversed colormap and whether name is reversed.
-
-    ('reversed gray' -> ('gray', True), 'name_r' -> ('name', True),
-    'name' -> ('name', False))
 
     :param name: Name of the colormap
     """
