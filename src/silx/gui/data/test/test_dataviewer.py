@@ -26,6 +26,8 @@ __license__ = "MIT"
 __date__ = "19/02/2019"
 
 
+import sys
+
 import pytest
 
 import numpy
@@ -374,3 +376,24 @@ def testCubeLoadConfirmation(qapp, qapp_utils):
 
     widget.close()
     qapp.processEvents()
+
+
+def test_deferred_update_cancelled_when_widget_deleted(qapp_utils):
+    """Deleting the widget cancels the deferred update of the view."""
+    errors = []
+    old_excepthook = sys.excepthook
+    sys.excepthook = lambda exc_type, value, tb: errors.append(value)
+    try:
+        viewer = DataViewerFrame()
+        viewer.setAttribute(qt.Qt.WA_DeleteOnClose)
+        viewer.show()
+        # A data change schedules a deferred update of the view
+        viewer.setData(numpy.arange(10))
+        # Delete the widget before the deferred update runs
+        viewer.close()
+        qapp_utils.qWait(100)
+    finally:
+        sys.excepthook = old_excepthook
+
+    # No deferred update ran on the deleted widget
+    assert errors == []

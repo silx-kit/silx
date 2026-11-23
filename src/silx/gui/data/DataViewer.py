@@ -137,6 +137,10 @@ class DataViewer(qt.QFrame):
         self.__index = {}
         """store stack index for each views"""
 
+        self.__setDataInViewTimer = qt.QTimer(self)
+        self.__setDataInViewTimer.setSingleShot(True)
+        self.__setDataInViewTimer.timeout.connect(self.__setDataInView)
+
         self._initializeViews()
 
     def _initializeViews(self):
@@ -291,8 +295,9 @@ class DataViewer(qt.QFrame):
             filename, datapath, slicing, permutation
         )
 
-        # TODO: would be good to avoid that, it should be synchonous
-        qt.QTimer.singleShot(10, self.__setDataInView)
+        # Deferred, not synchronous: successive changes (e.g. setData then
+        # setDisplayMode) restart the timer, so the view is updated only once
+        self.__setDataInViewTimer.start(10)
 
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
