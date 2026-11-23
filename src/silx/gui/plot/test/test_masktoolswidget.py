@@ -301,22 +301,9 @@ def testPencilPreviewScaledWithImageScale(widgets, qapp, qapp_utils, scale):
     maskWidget.pencilSpinBox.setValue(width)
     qapp.processEvents()
 
-    # Send mouse move events directly to the canvas instead of moving the
-    # system cursor: the latter is unreliable with an offscreen display and
-    # depends on the order of the tests.
     canvas = plot.getWidgetHandle()
-    x, y = canvas.width() // 2, canvas.height() // 2
-    for posX, posY in ((0, 0), (x, y)):
-        event = qt.QMouseEvent(
-            qt.QEvent.MouseMove,
-            qt.QPointF(posX, posY),
-            qt.QPointF(posX, posY),
-            qt.Qt.NoButton,
-            qt.Qt.NoButton,
-            qt.Qt.NoModifier,
-        )
-        qapp.sendEvent(canvas, event)
-        qapp.processEvents()
+    qapp_utils.mouseMove(canvas, (0, 0))
+    qapp_utils.mouseMove(canvas, (canvas.width() // 2, canvas.height() // 2))
 
     # The preview is the pencil footprint: a circle of the pencil width in
     # image pixels, mapped to data coordinates, so it spans width * scale in
