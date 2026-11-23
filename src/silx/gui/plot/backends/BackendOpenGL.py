@@ -714,7 +714,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         not xmin < xCoord < xmax or not ymin < yCoord < ymax
                     ):
                         # Skip markers without text outside the plot area.
-                        # The scissor clips the text of other markers.
+                        # For other markers, OpenGL drawing is limited to the
+                        # plot area, so only the visible part of the text shows.
                         continue
                     pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
 
