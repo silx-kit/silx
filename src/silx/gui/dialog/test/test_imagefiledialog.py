@@ -273,6 +273,19 @@ class TestImageFileDialogInteraction:
         qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         assert_same_path(url.text(), tmp_directory)
 
+    def test_no_pending_events_when_selecting_the_current_directory(
+        self, dialog, qapp_utils, tmp_directory
+    ):
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        dialog.setDirectory(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+
+        # Select the directory that the dialog already shows: Qt does not load it
+        # again, so there is nothing to wait for.
+        dialog.selectUrl(tmp_directory)
+        assert not dialog.hasPendingEvents()
+        assert_same_path(url.text(), tmp_directory)
+
     def testClickOnBackToRootTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
         qapp_utils.qWaitForWindowExposed(dialog)

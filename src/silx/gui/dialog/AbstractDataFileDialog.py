@@ -1075,6 +1075,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__processing = True
         if self.__fileModel is None:
             return
+        isRootPath = qt.QDir(self.__fileModel.rootPath()) == qt.QDir(path)
         index = self.__fileModel.setRootPath(path)
         if not index.isValid():
             # There is a problem with this path
@@ -1083,6 +1084,9 @@ class AbstractDataFileDialog(qt.QDialog):
             self.__browser.setRootIndex(index, model=self.__fileModel)
             self.__clearData()
             self.__updatePath()
+        elif isRootPath:
+            # Qt emits no directoryLoaded signal for its current root path
+            self.__directoryLoaded(path)
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
