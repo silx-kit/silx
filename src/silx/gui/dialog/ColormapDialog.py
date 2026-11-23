@@ -113,6 +113,21 @@ def _reversedColormapName(name: str) -> str | None:
     return None
 
 
+def _unreversedColormapName(name: str) -> tuple[str, bool]:
+    """Returns the name of the non-reversed colormap and whether name is reversed.
+
+    ('reversed gray' -> ('gray', True), 'name_r' -> ('name', True),
+    'name' -> ('name', False))
+
+    :param name: Name of the colormap
+    """
+    if name == "reversed gray":
+        return "gray", True
+    if name.endswith("_r") and name[:-2] in Colormap.getSupportedColormaps():
+        return name[:-2], True
+    return name, False
+
+
 class _DataRefHolder(items.Item, items.ColormapMixIn):
     """Holder for a weakref of a numpy array.
 
@@ -946,7 +961,8 @@ class ColormapDialog(qt.QDialog):
         self._reverseColormapButton = qt.QToolButton(parent=self)
         self._reverseColormapButton.setIcon(qtawesome.icon("mdi.invert-colors"))
         self._reverseColormapButton.setToolTip("Reverse the colormap colors")
-        self._reverseColormapButton.clicked.connect(self._reverseColormap)
+        self._reverseColormapButton.setCheckable(True)
+        self._reverseColormapButton.toggled.connect(self._updateColormapLut)
 
         # Normalization row
         self._comboBoxNormalization = qt.QComboBox(parent=self)
@@ -1655,7 +1671,7 @@ class ColormapDialog(qt.QDialog):
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             with utils.blockSignals(self._comboBoxColormap):
-                self._comboBoxColormap.setCurrentLut(colormap)
+                self._updateColormapLutWidgets(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
             self._reverseColormapButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
@@ -1705,55 +1721,77 @@ class ColormapDialog(qt.QDialog):
                 self._histoWidget.setFiniteRange(dataRange)
                 self._histoWidget.updateNormalization()
 
+    def _getComboBoxColors(self) -> numpy.ndarray:
+        """Returns the colors of the colormap selected in the combo box"""
+        name = self._comboBoxColormap.getCurrentName()
+        if name is None:
+            return self._comboBoxColormap.getCurrentColors()
+        return Colormap(name=name).getNColors()
+
+    def _updateColormapLutWidgets(self, colormap: Colormap):
+        """Update the colormap combo box and the reverse button from colormap.
+
+        Reversed colormaps are displayed as the non-reversed colormap
+        with the reverse button checked.
+        The signals of the combo box are expected to be blocked by the caller.
+        """
+        comboBox = self._comboBoxColormap
+        button = self._reverseColormapButton
+        with utils.blockSignals(button):
+            name = colormap.getName()
+            if name is not None:
+                # Case the name is already know.
+                name, isReversed = _unreversedColormapName(name)
+                comboBox.setCurrentName(name)
+                button.setChecked(isReversed)
+                return
+
+            lut = colormap.getColormapLUT(copy=False)
+            if button.isChecked() and numpy.array_equal(
+                lut[::-1], self._getComboBoxColors()
+            ):
+                return  # Already displayed (e.g., a reversed 'temperature')
+
+            index = comboBox.findLutColors(lut[::-1])
+            if index >= 0:
+                comboBox.setCurrentIndex(index)
+                button.setChecked(True)
+            else:
+                comboBox.setCurrentColors(lut)
+                button.setChecked(False)
+
+    def _updateColormapLut(self):
+        """Update the colormap LUT from the combo box and the reverse button"""
+        colormap = self.getColormap()
+        if colormap is not None and colormap.isEditable():
+            isReversed = self._reverseColormapButton.isChecked()
+            name = self._comboBoxColormap.getCurrentName()
+            if isReversed and name is not None:
+                # Use the reversed counterpart if it exists
+                name = _reversedColormapName(name)
+            with self._colormapChange:
+                if name is not None:
+                    colormap.setName(name)
+                else:
+                    colors = self._getComboBoxColors()
+                    colormap.setColormapLUT(colors[::-1] if isReversed else colors)
+        self._histoWidget.updateLut()
+
     def _comboBoxColormapUpdated(self):
         """Callback executed when the combo box with the colormap LUT
         is updated by user input.
         """
-        colormap = self.getColormap()
-        if colormap is not None:
-            with self._colormapChange:
-                name = self._comboBoxColormap.getCurrentName()
-                if name is not None:
-                    colormap.setName(name)
-                else:
-                    lut = self._comboBoxColormap.getCurrentColors()
-                    colormap.setColormapLUT(lut)
-        self._histoWidget.updateLut()
-
-    def _reverseColormap(self):
-        """Callback executed when the reverse colormap button is clicked.
-
-        retrieve the current colormap and reverse it.
-        """
-
-        colormap = self.getColormap()
-        if colormap is None or not colormap.isEditable():
-            return
-        name = colormap.getName()
-        reversedName = None if name is None else _reversedColormapName(name)
-        # Name of the reversed counterpart of the colormap if it exists
-        if reversedName is not None:
-            colormap.setName(reversedName)
-        else:
-            comboBox = self._comboBoxColormap
-            originalName = None
-            # Name of the colormap this custom LUT is the reverse of, if any (stored in the combobox)
-            if name is None:
-                originalName = comboBox.itemData(
-                    comboBox.currentIndex(), role=comboBox.REVERSED_NAME
-                )
-            if originalName is not None:
-                colormap.setName(originalName)
-            else:
-                # Case of a custom LUT, just reverse the colors
-                lut = colormap.getNColors()[::-1]
-                colormap.setColormapLUT(lut)
-                if name is not None:
-                    index = comboBox.findLutColors(lut)
-                    if index >= 0:
-                        comboBox.setItemText(index, f"{str.title(name)} (reversed)")
-                        comboBox.setItemData(index, name, role=comboBox.REVERSED_NAME)
-        self._histoWidget.updateLut()
+        comboBox = self._comboBoxColormap
+        name = comboBox.getCurrentName()
+        if name is not None:
+            name, isReversed = _unreversedColormapName(name)
+            if isReversed:
+                # e.g. 'Reversed Gray' is displayed as 'Gray' + reversed
+                with utils.blockSignals(comboBox):
+                    comboBox.setCurrentName(name)
+                with utils.blockSignals(self._reverseColormapButton):
+                    self._reverseColormapButton.setChecked(True)
+        self._updateColormapLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):
         """Callback executed when the autoscale buttons widget

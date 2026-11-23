@@ -47,7 +47,6 @@ class ColormapNameComboBox(qt.QComboBox):
 
     LUT_NAME = qt.Qt.UserRole + 1
     LUT_COLORS = qt.Qt.UserRole + 2
-    REVERSED_NAME = qt.Qt.UserRole + 3
 
     def __initItems(self):
         for colormapName in colors_mdl.preferredColormaps():
@@ -139,12 +138,16 @@ class ColormapNameComboBox(qt.QComboBox):
     def setCurrentLut(self, colormap):
         name = colormap.getName()
         if name is not None:
-            self._setCurrentName(name)
+            self.setCurrentName(name)
         else:
             lut = colormap.getColormapLUT()
-            self._setCurrentLut(lut)
+            self.setCurrentColors(lut)
 
-    def _setCurrentLut(self, lut):
+    def setCurrentColors(self, lut):
+        """Select the custom LUT with the given colors, add it if needed.
+
+        :param numpy.ndarray lut: Colors of the LUT
+        """
         index = self.findLutColors(lut)
         if index == -1:
             index = self.count()
@@ -154,7 +157,11 @@ class ColormapNameComboBox(qt.QComboBox):
             self.setItemData(index, lut, role=self.LUT_COLORS)
         self.setCurrentIndex(index)
 
-    def _setCurrentName(self, name):
+    def setCurrentName(self, name: str):
+        """Select the LUT with the given name, add it if needed.
+
+        :param name: Name of the colormap
+        """
         index = self.findLutName(name)
         if index < 0:
             index = self.count()

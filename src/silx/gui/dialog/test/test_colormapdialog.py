@@ -31,6 +31,7 @@ __date__ = "09/11/2018"
 import pytest
 
 from silx.gui import qt
+from silx.gui.utils import blockSignals
 from silx.gui.dialog import ColormapDialog
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.gui.plot.items.image import ImageData
@@ -48,7 +49,7 @@ def testGUIEdition(qWidgetFactory):
     dialog2 = qWidgetFactory(ColormapDialog.ColormapDialog)
     dialog2.setColormap(colormap)
 
-    dialog._comboBoxColormap._setCurrentName("red")
+    dialog._comboBoxColormap.setCurrentName("red")
     dialog._comboBoxNormalization.setCurrentIndex(
         dialog._comboBoxNormalization.findData(Colormap.LOGARITHM)
     )
@@ -198,7 +199,7 @@ def testColormapDel(qapp, qWidgetFactory):
 
     colormap = None
     assert dialog.getColormap() is None
-    dialog._comboBoxColormap._setCurrentName("blue")
+    dialog._comboBoxColormap.setCurrentName("blue")
 
 
 def testColormapEditedOutside(qapp, qWidgetFactory):
@@ -416,22 +417,39 @@ def testReversedColormapName(name, expected):
     assert ColormapDialog._reversedColormapName(name) == expected
 
 
+@pytest.mark.parametrize(
+    "name, expected",
+    [
+        ("gray", ("gray", False)),
+        ("reversed gray", ("gray", True)),
+        ("viridis", ("viridis", False)),
+        ("viridis_r", ("viridis", True)),
+        ("temperature", ("temperature", False)),
+    ],
+)
+def testUnreversedColormapName(name, expected):
+    """Test the name of the non-reversed colormap"""
+    if name == "viridis_r" and "viridis_r" not in Colormap.getSupportedColormaps():
+        pytest.skip("matplotlib is required for 'viridis_r'")
+    assert ColormapDialog._unreversedColormapName(name) == expected
+
+
 _LUT = numpy.array([[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]])
 
 
 @pytest.mark.parametrize(
-    "kwargs, reversedName, reversedText",
+    "kwargs, reversedName, text",
     [
         # Colormap with a reversed counterpart
-        ({"name": "gray"}, "reversed gray", "Reversed Gray"),
+        ({"name": "gray"}, "reversed gray", "Gray"),
         # Colormap without reversed counterpart: reversed as a custom LUT
-        ({"name": "temperature"}, None, "Temperature (reversed)"),
+        ({"name": "temperature"}, None, "Temperature"),
         # Custom LUT
         ({"colors": _LUT}, None, "Custom"),
     ],
 )
 @pytest.mark.parametrize("editable", (True, False))
-def testReverseColormap(qWidgetFactory, kwargs, reversedName, reversedText, editable):
+def testReverseColormap(qWidgetFactory, kwargs, reversedName, text, editable):
     """Test reversing the colormap from the dialog (back and forth)"""
     dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
     colormap = Colormap(**kwargs)
@@ -440,21 +458,78 @@ def testReverseColormap(qWidgetFactory, kwargs, reversedName, reversedText, edit
 
     name = colormap.getName()
     lut = colormap.getNColors()
-    text = dialog._comboBoxColormap.currentText()
+    comboBox = dialog._comboBoxColormap
+    nbItems = comboBox.count()
 
     button = dialog._reverseColormapButton
+    assert button.isCheckable()
     assert button.isEnabled() is editable
+    assert not button.isChecked()
+    assert comboBox.currentText() == text
 
-    dialog._reverseColormap()
-    if editable:
-        assert colormap.getName() == reversedName
-        numpy.testing.assert_array_equal(colormap.getNColors(), lut[::-1])
-        assert dialog._comboBoxColormap.currentText() == reversedText
-    else:
-        assert colormap.getName() == name
-        numpy.testing.assert_array_equal(colormap.getNColors(), lut)
+    if not editable:
+        return
 
-    dialog._reverseColormap()
+    button.setChecked(True)
+    assert colormap.getName() == reversedName
+    numpy.testing.assert_array_equal(colormap.getNColors(), lut[::-1])
+    # The reversed colormap is not added to the combo box
+    assert comboBox.currentText() == text
+    assert comboBox.count() == nbItems
+
+    # Updating the widgets from the colormap keeps the same state
+    with blockSignals(comboBox):
+        dialog._updateColormapLutWidgets(colormap)
+    assert button.isChecked()
+    assert comboBox.currentText() == text
+
+    button.setChecked(False)
     assert colormap.getName() == name
     numpy.testing.assert_array_equal(colormap.getNColors(), lut)
+    assert comboBox.currentText() == text
+    assert comboBox.count() == nbItems
+
+
+@pytest.mark.parametrize(
+    "name, text, checked",
+    [
+        ("gray", "Gray", False),
+        ("reversed gray", "Gray", True),
+        ("viridis_r", "Viridis", True),
+    ],
+)
+def testReversedColormapDisplay(qWidgetFactory, name, text, checked):
+    """Test reversed colormaps are displayed as the non-reversed one + checked"""
+    if name not in Colormap.getSupportedColormaps():
+        pytest.skip(f"matplotlib is required for '{name}'")
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name=name)  # The dialog only keeps a weakref
+    dialog.setColormap(colormap)
     assert dialog._comboBoxColormap.currentText() == text
+    assert dialog._reverseColormapButton.isChecked() is checked
+
+
+def testReverseColormapKeptOnSelection(qWidgetFactory):
+    """Test that the reverse state is kept when selecting another colormap"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name="gray")
+    dialog.setColormap(colormap)
+    comboBox = dialog._comboBoxColormap
+    button = dialog._reverseColormapButton
+
+    button.setChecked(True)
+    assert colormap.getName() == "reversed gray"
+
+    comboBox.setCurrentIndex(comboBox.findLutName("temperature"))
+    assert button.isChecked()
+    assert colormap.getName() is None
+    numpy.testing.assert_array_equal(
+        colormap.getNColors(), Colormap(name="temperature").getNColors()[::-1]
+    )
+
+    # Selecting 'Reversed Gray' is displayed as 'Gray' + reversed
+    button.setChecked(False)
+    comboBox.setCurrentIndex(comboBox.findLutName("reversed gray"))
+    assert colormap.getName() == "reversed gray"
+    assert comboBox.currentText() == "Gray"
+    assert button.isChecked()
