@@ -295,11 +295,8 @@ class DataViewer(qt.QFrame):
             filename, datapath, slicing, permutation
         )
 
-        # Not synchronous on purpose:
-        # - Qt first paints the new view empty, so the old view does not stay
-        #   on screen while the data is loaded and rendered
-        # - successive changes (e.g. setData then setDisplayMode) restart the
-        #   timer, so the view is updated only once
+        # Deferred, not synchronous: successive changes (e.g. setData then
+        # setDisplayMode) restart the timer, so the view is updated only once
         self.__updateTimer.start(10)
 
     def __setDataInView(self):
