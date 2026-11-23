@@ -305,6 +305,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__triangulationFuture = None
         # Cache interpolator future object
         self.__interpolatorFuture = None
+        # Several threads can request the futures at the same time (e.g. the 2
+        # profiles of a cross ROI). Reentrant because the interpolator future
+        # requests the triangulation future.
         self.__futureLock = threading.RLock()
         self.__executor = None
 
