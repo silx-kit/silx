@@ -305,7 +305,6 @@ def testPencilPreviewScaledWithImageScale(widgets, qapp, qapp_utils, scale):
     # system cursor: the latter is unreliable with an offscreen display and
     # depends on the order of the tests.
     canvas = plot.getWidgetHandle()
-    qapp = qt.QApplication.instance()
     x, y = canvas.width() // 2, canvas.height() // 2
     for posX, posY in ((0, 0), (x, y)):
         event = qt.QMouseEvent(
@@ -329,7 +328,7 @@ def testPencilPreviewScaledWithImageScale(widgets, qapp, qapp_utils, scale):
     points = previews[0].getPoints()
     # The circle is approximated by a 13-vertex polygon, so compare with a
     # tolerance.
-    xSpan = points[:, 0].max() - points[:, 0].min()
-    ySpan = points[:, 1].max() - points[:, 1].min()
+    xSpan = numpy.ptp(points[:, 0])
+    ySpan = numpy.ptp(points[:, 1])
     assert xSpan == pytest.approx(width * scale[0], rel=0.05)
     assert ySpan == pytest.approx(width * scale[1], rel=0.05)
