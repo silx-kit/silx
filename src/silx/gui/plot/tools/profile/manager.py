@@ -493,6 +493,9 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self.__lastRunners = {}
+        """Store the last requested runner of each ROI"""
+
         self.__reentrantResults = {}
         """Store reentrant result to avoid to skip some of them
         cause the implementation uses a QEventLoop."""
@@ -830,6 +833,7 @@ class ProfileManager(qt.QObject):
         if item is None or not isinstance(item, profileRoi.ITEM_KIND):
             # This item is not compatible with this profile
             profileRoi._setPlotItem(None)
+            self.__lastRunners.pop(profileRoi, None)
             profileWindow = profileRoi.getProfileWindow()
             if profileWindow is not None:
                 profileWindow.setProfile(None)
@@ -839,6 +843,7 @@ class ProfileManager(qt.QObject):
         runner = _RunnableComputeProfile(item, profileRoi)
         runner.runnerFinished.connect(self.__runnerFinished)
         self._pendingRunners.append(runner)
+        self.__lastRunners[profileRoi] = runner
         threadPool.start(runner)
 
     def __runnerFinished(self, runner: _RunnableComputeProfile):
@@ -847,6 +852,11 @@ class ProfileManager(qt.QObject):
             self._pendingRunners.remove(runner)
 
         roi = runner.getRoi()
+        if self.__lastRunners.get(roi) is not runner:
+            # Another computation was requested for this ROI
+            return
+        del self.__lastRunners[roi]
+
         profileData = runner.getProfileData()
         if profileData is None:
             return
@@ -881,6 +891,7 @@ class ProfileManager(qt.QObject):
         self._plotRef = None
         self._roiManagerRef = None
         self._pendingRunners = []
+        self.__lastRunners = {}
 
     def setPlotItem(self, item):
         """Set the plot item focused by the profile manager.
