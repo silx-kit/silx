@@ -305,6 +305,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__triangulationFuture = None
         # Cache interpolator future object
         self.__interpolatorFuture = None
+        # Several threads can request the futures at the same time (e.g. the 2
+        # profiles of a cross ROI). Reentrant because the interpolator future
+        # requests the triangulation future.
+        self.__futureLock = threading.RLock()
         self.__executor = None
 
         # Cache triangles: x, y, indices
@@ -874,17 +878,21 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         :rtype: concurrent.futures.Future
         """
-        if self.__triangulationFuture is None or self.__triangulationFuture.cancelled():
-            # Need to init a new delaunay
-            x, y = self.getData(copy=False)[:2]
-            # Remove not finite points
-            mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
+        with self.__futureLock:
+            if (
+                self.__triangulationFuture is None
+                or self.__triangulationFuture.cancelled()
+            ):
+                # Need to init a new delaunay
+                x, y = self.getData(copy=False)[:2]
+                # Remove not finite points
+                mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
 
-            self.__triangulationFuture = self.__getExecutor().submit_greedy(
-                "Triangulation", Triangulation, x[mask], y[mask]
-            )
+                self.__triangulationFuture = self.__getExecutor().submit_greedy(
+                    "Triangulation", Triangulation, x[mask], y[mask]
+                )
 
-        return self.__triangulationFuture
+            return self.__triangulationFuture
 
     @staticmethod
     def __initInterpolator(triangulationFuture, values):
@@ -915,20 +923,24 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         :rtype: concurrent.futures.Future
         """
-        if self.__interpolatorFuture is None or self.__interpolatorFuture.cancelled():
-            # Need to init a new interpolator
-            x, y, values = self.getData(copy=False)[:3]
-            # Remove not finite points
-            mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
-            x, y, values = x[mask], y[mask], values[mask]
+        with self.__futureLock:
+            if (
+                self.__interpolatorFuture is None
+                or self.__interpolatorFuture.cancelled()
+            ):
+                # Need to init a new interpolator
+                x, y, values = self.getData(copy=False)[:3]
+                # Remove not finite points
+                mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
+                x, y, values = x[mask], y[mask], values[mask]
 
-            self.__interpolatorFuture = self.__getExecutor().submit_greedy(
-                "interpolator",
-                self.__initInterpolator,
-                self._getTriangulationFuture(),
-                values,
-            )
-        return self.__interpolatorFuture
+                self.__interpolatorFuture = self.__getExecutor().submit_greedy(
+                    "interpolator",
+                    self.__initInterpolator,
+                    self._getTriangulationFuture(),
+                    values,
+                )
+            return self.__interpolatorFuture
 
     def _filterData(self, xPositive: bool, yPositive: bool):
         """Filter out errors<0 and values with x or y <= 0 on log axes
@@ -1035,12 +1047,13 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             value = numpy.absolute(value)
 
         # Reset triangulation and interpolator
-        if self.__triangulationFuture is not None:
-            self.__triangulationFuture.cancel()
-            self.__triangulationFuture = None
-        if self.__interpolatorFuture is not None:
-            self.__interpolatorFuture.cancel()
-            self.__interpolatorFuture = None
+        with self.__futureLock:
+            if self.__triangulationFuture is not None:
+                self.__triangulationFuture.cancel()
+                self.__triangulationFuture = None
+            if self.__interpolatorFuture is not None:
+                self.__interpolatorFuture.cancel()
+                self.__interpolatorFuture = None
 
         # Data changed, this needs update
         self.__cacheRegularGridInfo = None

@@ -28,6 +28,9 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import numpy
 import pytest
 
@@ -564,3 +567,25 @@ def testLineStyle(qapp_utils, plotWidget, linestyle):
 
     plotWidget.replot()
     qapp_utils.qWait(100)
+
+
+def test_scatter_interpolator_shared_between_threads():
+    class SlowScatter(items.Scatter):
+        # Widen the race window: both threads see "no interpolator yet"
+        def getData(self, *args, **kwargs):
+            time.sleep(0.1)
+            return super().getData(*args, **kwargs)
+
+    scatter = SlowScatter()
+    x, y = numpy.meshgrid(numpy.arange(5.0), numpy.arange(4.0))
+    scatter.setData(x.ravel(), y.ravel(), numpy.arange(20.0))
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = list(
+            executor.map(lambda _: scatter._getInterpolatorFuture(), range(2))
+        )
+
+    # The interpolator is shared between concurrent calls.
+    assert futures[0] is futures[1]
+    # A second concurrent call does not cancel the first interpolator.
+    assert futures[0].result() is not None
