@@ -255,8 +255,10 @@ class TestImageFileDialogInteraction:
         action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
         qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
 
-        # Going to the parent of a file loads its directory without a request from
-        # the dialog. Wait for this load to finish.
+        # From the root of an HDF5 file, "to parent" shows the directory of the
+        # file. The dialog does not request this load, so hasPendingEvents() is
+        # already False. Wait for the directoryLoaded signal of this load: the
+        # dialog must ignore it.
         loaded = []
         dialog.findChild(qt.QFileSystemModel).directoryLoaded.connect(loaded.append)
         dialog.selectUrl(tmp_directory + "/data/data.h5")
@@ -264,9 +266,9 @@ class TestImageFileDialogInteraction:
         qapp_utils.waitAsLongAs(lambda: not loaded)
         assert_same_path(url.text(), tmp_directory + "/data")
 
-        # Request the parent directory: its load is now pending
+        # From a directory, "to parent" requests the load of the parent
+        # directory. hasPendingEvents() is True until this load is done.
         action.trigger()
-        # The load of the parent directory is now pending.
         assert dialog.hasPendingEvents()
         qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         assert_same_path(url.text(), tmp_directory)
