@@ -449,10 +449,32 @@ class NumpyAxesSelector(qt.QWidget):
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
-        self.__selectedData = numpy.transpose(
-            self.__data[self.selection()], permutation
-        )
+        try:
+            selectedData = numpy.transpose(self.__data[self.selection()], permutation)
+        except Exception:
+            # Reading the data can fail (e.g. a dataset needs an unavailable
+            # HDF5 filter). Show a blank of the expected shape instead of
+            # keeping the previous selection or letting the exception escape.
+            _logger.warning("Failed to read the selected data", exc_info=True)
+            selectedData = self.__createBlankData()
+        self.__selectedData = selectedData
         self.selectionChanged.emit()
+
+    def __createBlankData(self) -> numpy.ndarray:
+        """Return an all-zero array with the shape of the current selection.
+
+        The data read failed, so the shape is computed from the dataset shape,
+        the selection and the permutation.
+        """
+        shape = self.__data.shape
+        outputShape = [
+            size
+            for sel, size in zip(self.selection(), shape)
+            if not isinstance(sel, int)
+        ]
+        return numpy.zeros(
+            tuple(outputShape[i] for i in self.permutation()), dtype=self.__data.dtype
+        )
 
     def data(self):
         """Returns the input data.
