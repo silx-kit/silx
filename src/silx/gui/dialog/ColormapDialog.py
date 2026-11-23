@@ -946,8 +946,6 @@ class ColormapDialog(qt.QDialog):
         self._reverseColormapButton = qt.QToolButton(parent=self)
         self._reverseColormapButton.setIcon(qtawesome.icon("mdi.invert-colors"))
         self._reverseColormapButton.setToolTip("Reverse the colormap colors")
-        self._reversedLut: tuple[str, numpy.ndarray] | None = None
-        """Name of the colormap reversed as a custom LUT and the resulting LUT"""
         self._reverseColormapButton.clicked.connect(self._reverseColormap)
 
         # Normalization row
@@ -1737,28 +1735,25 @@ class ColormapDialog(qt.QDialog):
         reversedName = None if name is None else _reversedColormapName(name)
         if reversedName is not None:
             colormap.setName(reversedName)
-        elif (
-            name is None
-            and self._reversedLut is not None
-            and numpy.array_equal(
-                colormap.getColormapLUT(copy=False), self._reversedLut[1]
-            )
-        ):
-            # Restore the named colormap that was reversed as a custom LUT
-            originalName = self._reversedLut[0]
-            self._reversedLut = None
-            colormap.setName(originalName)
         else:
-            lut = colormap.getNColors()[::-1]
-            if name is not None:
-                self._reversedLut = name, lut
-            colormap.setColormapLUT(lut)
-            if name is not None:
-                index = self._comboBoxColormap.findLutColors(lut)
-                if index >= 0:
-                    self._comboBoxColormap.setItemText(
-                        index, f"{str.title(name)} (reversed)"
-                    )
+            comboBox = self._comboBoxColormap
+            originalName = None
+            if name is None:
+                # The combo box item of a named colormap reversed as a custom LUT
+                # stores the name of the original colormap
+                originalName = comboBox.itemData(
+                    comboBox.currentIndex(), role=comboBox.REVERSED_NAME
+                )
+            if originalName is not None:
+                colormap.setName(originalName)
+            else:
+                lut = colormap.getNColors()[::-1]
+                colormap.setColormapLUT(lut)
+                if name is not None:
+                    index = comboBox.findLutColors(lut)
+                    if index >= 0:
+                        comboBox.setItemText(index, f"{str.title(name)} (reversed)")
+                        comboBox.setItemData(index, name, role=comboBox.REVERSED_NAME)
         self._histoWidget.updateLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):

@@ -47,6 +47,7 @@ class ColormapNameComboBox(qt.QComboBox):
 
     LUT_NAME = qt.Qt.UserRole + 1
     LUT_COLORS = qt.Qt.UserRole + 2
+    REVERSED_NAME = qt.Qt.UserRole + 3
 
     def __initItems(self):
         for colormapName in colors_mdl.preferredColormaps():
