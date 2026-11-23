@@ -31,11 +31,11 @@ import logging
 from collections.abc import Sequence
 
 import silx
-from silx.gui.data import DataViews
 from silx.gui.data._BaseImagePlot import BaseImagePlot as _BaseImagePlot
 from silx.gui.data.DataViews import DataViewHooks
 from silx.gui.colors import Colormap
 from silx.gui.dialog.ColormapDialog import ColormapDialog
+from silx.gui.plot import Plot2D
 
 _logger = logging.getLogger(__name__)
 
@@ -208,7 +208,6 @@ class ApplicationContext(DataViewHooks):
         """Initialize the axes visibility of the image views from the settings."""
         if self.__settings is None:
             return
-        modeId = view.modeId()
         if isinstance(widget, Plot2D):
             plot = widget
         elif isinstance(widget, _BaseImagePlot):
