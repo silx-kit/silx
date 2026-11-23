@@ -1047,6 +1047,8 @@ class Plot2D(PlotWindow):
         self.colorbarAction.setVisible(True)
         self.getColorBarWidget().setVisible(True)
 
+        self.toolBar().insertAction(self.colorbarAction, self.getShowAxisAction())
+
         # Put colorbar action after colormap action
         actions = self.toolBar().actions()
         for action in actions:

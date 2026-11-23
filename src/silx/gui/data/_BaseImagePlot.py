@@ -32,7 +32,6 @@ class BaseImagePlot(qt.QWidget):
 
         self._plot = Plot2D(self)
         self._plot.setKeepDataAspectRatio(True)
-        self._plot.toolBar().addAction(self._plot.getShowAxisAction())
         maskToolWidget = self._plot.getMaskToolsDockWidget().widget()
         if isinstance(maskToolWidget, MaskToolsWidget):
             maskToolWidget.setItemMaskUpdated(True)
