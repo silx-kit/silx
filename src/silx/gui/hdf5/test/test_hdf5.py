@@ -78,6 +78,14 @@ def testErrorInInsertFilenameAsync(tmp_path, caplog, qapp_utils):
     assert "can't be read as HDF5" in caplog.records[0].getMessage()
 
 
+def testItemWithEmptyNameLoadsObject(qapp_utils):
+    """A child item with an empty name loads its HDF5 object."""
+    h5 = commonh5.File("/foo/bar/1.mock", "w")
+    dataset = h5.create_dataset("", data=numpy.arange(3))
+    root = hdf5.Hdf5Item.Hdf5Item(text="1.mock", obj=h5, parent=None)
+    assert root.child(0).obj is dataset
+
+
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
     def setUp(self):
