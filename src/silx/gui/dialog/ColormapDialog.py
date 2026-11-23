@@ -1726,9 +1726,9 @@ class ColormapDialog(qt.QDialog):
     def _updateColormapLutWidgets(self, colormap: Colormap):
         """Update the colormap combo box and the reverse button from colormap.
 
-        Reversed colormaps are displayed as the non-reversed colormap
-        with the reverse button checked.
-        The signals of the combo box are expected to be blocked by the caller.
+        .. warning::
+
+            The signals of the combo box are expected to be blocked by the caller.
         """
         comboBox = self._comboBoxColormap
         button = self._reverseColormapButton
@@ -1779,6 +1779,7 @@ class ColormapDialog(qt.QDialog):
         comboBox = self._comboBoxColormap
         name = comboBox.getCurrentName()
         if name is not None:
+            # **not** a custom colormap case
             name, isReversed = _unreversedColormapName(name)
             if isReversed:
                 # e.g. 'Reversed Gray' is displayed as 'Gray' + reversed
