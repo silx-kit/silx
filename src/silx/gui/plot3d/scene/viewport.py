@@ -366,8 +366,15 @@ class Viewport(event.Notifier):
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        if self.background is None:
-            gl.glClear(gl.GL_STENCIL_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        # A viewport without a background is an overlay rendered on top of
+        # another viewport (e.g. the scene under the orientation indicator).
+        # It must not clear the framebuffer nor test/write depth, so that the
+        # content and depth of whatever is behind it stay available (e.g. for
+        # picking an object under the orientation indicator).
+        overlay = self.background is None
+        if overlay:
+            gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glDepthMask(gl.GL_FALSE)
         else:
             gl.glClearColor(*self.background)
 
@@ -378,9 +385,14 @@ class Viewport(event.Notifier):
                 | gl.GL_DEPTH_BUFFER_BIT
             )
 
-        ctx = RenderContext(self, glContext)
-        self.scene.render(ctx)
-        self.scene.postRender(ctx)
+        try:
+            ctx = RenderContext(self, glContext)
+            self.scene.render(ctx)
+            self.scene.postRender(ctx)
+        finally:
+            if overlay:
+                gl.glDepthMask(gl.GL_TRUE)
+                gl.glEnable(gl.GL_DEPTH_TEST)
 
     def adjustCameraDepthExtent(self):
         """Update camera depth extent to fit the scene bounds.

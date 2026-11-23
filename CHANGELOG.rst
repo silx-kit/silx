@@ -18,6 +18,7 @@ Release Notes
 * `silx.io.specfile`: Fixed file header containing the first scan header for files without `#F` line (`Issue #3211 <https://github.com/silx-kit/silx/issues/3211>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `TypeError` in `BitshuffleLz4.decompress` for host data (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
 * `silx.opencl.codec.bitshuffle_lz4`: `unblock_bslz4` and `BitshuffleLz4.decompress` accept any contiguous buffer (numpy array, pinned memory) as compressed input, not only `bytes` (`Issue #4777 <https://github.com/silx-kit/silx/issues/4777>`_)
+* `silx.gui.plot3d`: Fixed mouse click not detected on an object under the orientation indicator (`Issue #2361 <https://github.com/silx-kit/silx/issues/2361>`_)
 
 3.1.2: 2026/09/03
 -----------------
