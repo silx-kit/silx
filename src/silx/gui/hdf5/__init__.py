@@ -36,6 +36,7 @@ __date__ = "23/09/2016"
 
 from .Hdf5TreeView import Hdf5TreeView  # noqa
 from ._utils import H5Node
+from ._utils import Hdf5DatasetMimeData
 from ._utils import Hdf5ContextMenuEvent  # noqa
 from .NexusSortFilterProxyModel import NexusSortFilterProxyModel  # noqa
 from .Hdf5TreeModel import Hdf5TreeModel  # noqa
@@ -43,6 +44,7 @@ from .Hdf5TreeModel import Hdf5TreeModel  # noqa
 __all__ = [
     "Hdf5TreeView",
     "H5Node",
+    "Hdf5DatasetMimeData",
     "Hdf5ContextMenuEvent",
     "NexusSortFilterProxyModel",
     "Hdf5TreeModel",
