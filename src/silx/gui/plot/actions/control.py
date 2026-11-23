@@ -369,8 +369,20 @@ class ColormapAction(PlotAction):
             checkable=True,
             parent=parent,
         )
-        self.plot.sigActiveImageChanged.connect(self._updateColormap)
-        self.plot.sigActiveScatterChanged.connect(self._updateColormap)
+        self.plot.sigActiveImageChanged.connect(self._activeItemChanged)
+        self.plot.sigActiveScatterChanged.connect(self._activeItemChanged)
+
+    def _activeItemChanged(self, previous, legend):
+        if (
+            previous == legend
+            and self._dialog is not None
+            and self._dialog._getItem()
+            not in (self.plot.getActiveImage(), self.plot.getActiveScatter())
+        ):
+            # Update of an item not displayed by the dialog: The dialog can be
+            # shared with other plots and the colormap with their items
+            return
+        self._updateColormap()
 
     def setColormapDialog(self, dialog):
         """Set a specific colormap dialog instead of using the default one."""

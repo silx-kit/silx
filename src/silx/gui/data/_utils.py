@@ -11,10 +11,38 @@ from ...math.calibration import (
     LinearCalibration,
     NoCalibration,
 )
+from .. import qt
 from ..hdf5 import H5Node
+from ..plot import PlotWidget
 from ..plot.items import ImageBase
 
 ImageAxis = h5py.Dataset | Dataset | None
+
+
+class _ScaleToCursorShortcut(qt.QAction):
+    """Toggle the colormap dialog "Cursor" mode of the parent plot"""
+
+    def __init__(self, plot: PlotWidget):
+        super().__init__(plot)
+        self.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        self.setShortcutContext(qt.Qt.WidgetWithChildrenShortcut)
+        self.triggered.connect(self._toggle)
+
+    def _toggle(self):
+        colormapAction = self.parent().getColormapAction()
+        action = colormapAction.getColormapDialog().getScaleToCursorAction()
+        if not action.isChecked():
+            # The dialog can be shared with other plots: target this one
+            colormapAction._updateColormap()
+        action.trigger()
+
+
+def addScaleToCursorShortcut(plot: PlotWidget):
+    """Toggle the colormap dialog "Cursor" mode with the W key.
+
+    The shortcut is active when the plot has the keyboard focus.
+    """
+    plot.addAction(_ScaleToCursorShortcut(plot))
 
 
 def normalizeData(data):
