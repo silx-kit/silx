@@ -57,15 +57,7 @@ class Viewer(qt.QMainWindow):
     """
 
     _DATA_PANEL_FACTORY = DataPanel
-    """Class of the widget displaying the selected data.
-
-    Derived applications can override it with another class, which is
-    instantiated as ``factory(parent, context)`` during ``__init__``, before
-    the panel is added to the layout.
-
-    It has to be a class: a plain function stored here would be bound as a
-    method and receive the viewer as its first argument.
-    """
+    """Class of the widget displaying the selected data."""
 
     sigFileLoaded = qt.Signal(object)
     """Emitted when a file was opened in the tree, including when it is reloaded.
