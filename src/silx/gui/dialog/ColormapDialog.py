@@ -1723,30 +1723,29 @@ class ColormapDialog(qt.QDialog):
     def _reverseColormap(self):
         """Callback executed when the reverse colormap button is clicked.
 
-        For a named colormap, its reversed counterpart is used when it exists.
-        Otherwise the colormap is set to a custom LUT with the colors in
-        reverse order, displayed as '<Name> (reversed)'.
-        Reversing it again restores the named colormap.
+        retrieve the current colormap and reverse it.
         """
+
         colormap = self.getColormap()
         if colormap is None or not colormap.isEditable():
             return
         name = colormap.getName()
         reversedName = None if name is None else _reversedColormapName(name)
+        # Name of the reversed counterpart of the colormap if it exists
         if reversedName is not None:
             colormap.setName(reversedName)
         else:
             comboBox = self._comboBoxColormap
             originalName = None
+            # Name of the colormap this custom LUT is the reverse of, if any (stored in the combobox)
             if name is None:
-                # The combo box item of a named colormap reversed as a custom LUT
-                # stores the name of the original colormap
                 originalName = comboBox.itemData(
                     comboBox.currentIndex(), role=comboBox.REVERSED_NAME
                 )
             if originalName is not None:
                 colormap.setName(originalName)
             else:
+                # Case of a custom LUT, just reverse the colors
                 lut = colormap.getNColors()[::-1]
                 colormap.setColormapLUT(lut)
                 if name is not None:
