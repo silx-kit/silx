@@ -2116,6 +2116,102 @@ class TestPlotMarkerLog_Pygfx(TestPlotMarkerLog):
     backend = "pygfx"
 
 
+def _renderPygfx(plot: PlotWidget):
+    """Draw the pygfx backend now, return the RGB image and its pixel ratio"""
+    widget = plot.getWidgetHandle()
+    widget.force_draw()
+    image = numpy.asarray(widget._renderer.snapshot())[..., :3]
+    return image, image.shape[0] / widget.height()
+
+
+def _rgbImage(color, size=10):
+    image = numpy.zeros((size, size, 3), dtype=numpy.uint8)
+    image[...] = color
+    return image
+
+
+_RED, _BLUE = (255, 0, 0), (0, 0, 255)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "zFirst,zSecond,expected",
+    [(0, 0, _BLUE), (5, 0, _RED)],
+)
+def testPygfxItemOrder(qWidgetFactory, zFirst, zSecond, expected):
+    """Higher z is painted on top, then the item added last"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addImage(_rgbImage(_RED), legend="first", z=zFirst)
+    plot.addImage(_rgbImage(_BLUE), legend="second", z=zSecond)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == expected
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCurveAddedAfterImage(qWidgetFactory):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addImage(_rgbImage(_BLUE), legend="image")
+    plot.addCurve((0, 10), (5, 5), legend="curve", color="red", linewidth=5, z=0)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxPlotAreaLayers(qWidgetFactory):
+    """Grid and data background are under items, markers are over them"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setGraphGrid("both")
+    plot.setDataBackgroundColor("yellow")
+    plot.addImage(_rgbImage(_BLUE), legend="image")
+    marker = plot.addYMarker(2, legend="marker", color="red")
+    marker.setLineWidth(5)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 2)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+    # Center of the plot area: crosses grid lines, away from ticks and marker
+    left, top, width, height = (v * ratio for v in plot.getPlotBoundsInPixels())
+    center = image[
+        int(top + height * 0.3) : int(top + height * 0.7),
+        int(left + width * 0.3) : int(left + width * 0.7),
+    ]
+    assert numpy.all(center == _BLUE)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("scale,inverted", [("linear", True), ("log", False)])
+def testPygfxOverlayShapePosition(qWidgetFactory, scale, inverted):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setDataBackgroundColor("yellow")
+    plot.getXAxis().setScale(scale)
+    plot.getYAxis().setScale(scale)
+    plot.getYAxis().setInverted(inverted)
+    plot.addShape(
+        (10, 40),
+        (10, 40),
+        legend="overlay",
+        shape="rectangle",
+        color="blue",
+        fill=True,
+        overlay=True,
+    )
+    plot.setLimits(1, 100, 1, 100)
+
+    image, ratio = _renderPygfx(plot)
+    for (x, y), inside in (((20, 20), True), ((20, 70), False), ((70, 20), False)):
+        px, py = plot.dataToPixel(x, y)
+        isYellow = tuple(image[int(py * ratio), int(px * ratio)]) == (255, 255, 0)
+        assert isYellow != inside, (x, y)
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 

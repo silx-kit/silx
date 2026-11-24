@@ -147,6 +147,22 @@ def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarra
     return rgba
 
 
+def _material(cls, *args, **kwargs):
+    """Create a pygfx material that ignores the depth buffer.
+
+    Items are drawn in silx order, so the paint order alone decides what is on
+    top: with depth testing, the first object drawn would win at equal depth.
+    """
+    return cls(*args, depth_test=False, **kwargs)
+
+
+def _setChildren(group: gfx.Group, objects: list) -> None:
+    """Make objects the children of group, in this order"""
+    if group.children != tuple(objects):
+        group.clear()
+        group.add(*objects)
+
+
 # Item classes ################################################################
 
 
@@ -189,6 +205,30 @@ class _PygfxCurveItem:
             rgba = colors.rgba(color)
             uniformColor = gfx.Color(rgba[0], rgba[1], rgba[2], rgba[3] * alpha)
 
+        # Sub-objects are drawn in the order they are added, as in GLPlotCurve:
+        # fill, error bars, lines (gap color under the dashes), then symbols
+
+        # Fill between curve and baseline
+        if fill and len(x) >= 2:
+            fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
+            if fillObj is not None:
+                self.group.add(fillObj)
+
+        # Error bars
+        if xerror is not None or yerror is not None:
+            errorGroup = gfx.Group()
+            errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
+            if len(errSegments) > 0:
+                errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
+                errMat = _material(
+                    gfx.LineSegmentMaterial,
+                    thickness=1.0,
+                    color=uniformColor,
+                )
+                errLine = gfx.Line(errGeom, errMat)
+                errorGroup.add(errLine)
+            self.group.add(errorGroup)
+
         # Line
         dashPattern = _lineStyleToDashPattern(linestyle)
         hasLine = linestyle not in (None, "", " ")
@@ -202,7 +242,19 @@ class _PygfxCurveItem:
                 lineKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **lineKwargs)
-            mat = gfx.LineMaterial(
+
+            # Gap color line under the dashed line
+            if gapcolor is not None and dashPattern:
+                gapRgba = colors.rgba(gapcolor)
+                gapMat = _material(
+                    gfx.LineMaterial,
+                    thickness=max(linewidth, 1.0),
+                    color=gfx.Color(*gapRgba),
+                )
+                self.group.add(gfx.Line(geom, gapMat))
+
+            mat = _material(
+                gfx.LineMaterial,
                 thickness=max(linewidth, 1.0),
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
@@ -210,18 +262,6 @@ class _PygfxCurveItem:
             )
             self._lineObj = gfx.Line(geom, mat)
             self.group.add(self._lineObj)
-
-            # Gap color line (behind the dashed line via z-offset)
-            if gapcolor is not None and dashPattern:
-                gapPositions = positions.copy()
-                gapPositions[:, 2] = -0.1  # slightly behind
-                gapRgba = colors.rgba(gapcolor)
-                gapMat = gfx.LineMaterial(
-                    thickness=max(linewidth, 1.0),
-                    color=gfx.Color(*gapRgba),
-                )
-                gapLineObj = gfx.Line(gfx.Geometry(positions=gapPositions), gapMat)
-                self.group.add(gapLineObj)
 
         # Symbol / Points
         hasSymbol = symbol not in (None, "", " ")
@@ -240,7 +280,8 @@ class _PygfxCurveItem:
                 pointKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **pointKwargs)
-            mat = gfx.PointsMarkerMaterial(
+            mat = _material(
+                gfx.PointsMarkerMaterial,
                 marker=markerShape,
                 size=pointSize,
                 color=uniformColor,
@@ -250,27 +291,6 @@ class _PygfxCurveItem:
             )
             self._pointsObj = gfx.Points(geom, mat)
             self.group.add(self._pointsObj)
-
-        # Error bars
-        if xerror is not None or yerror is not None:
-            errorGroup = gfx.Group()
-            errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
-            if len(errSegments) > 0:
-                errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
-                errMat = gfx.LineSegmentMaterial(
-                    thickness=1.0,
-                    color=uniformColor,
-                )
-                errLine = gfx.Line(errGeom, errMat)
-                errorGroup.add(errLine)
-            self.group.add(errorGroup)
-
-        # Fill between curve and baseline
-        if fill and len(x) >= 2:
-            fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
-            if fillObj is not None:
-                fillObj.local.z = -0.2  # behind curve line
-                self.group.add(fillObj)
 
     @staticmethod
     def _buildErrorBarSegments(x, y, xerror, yerror):
@@ -358,7 +378,7 @@ class _PygfxCurveItem:
 
         fillColor = gfx.Color(color.r, color.g, color.b, alpha * 0.5)
         geom = gfx.Geometry(positions=vertices, indices=indices)
-        mat = gfx.MeshBasicMaterial(color=fillColor, side="both")
+        mat = _material(gfx.MeshBasicMaterial, color=fillColor, side="both")
         return gfx.Mesh(geom, mat)
 
 
@@ -435,7 +455,9 @@ class _PygfxImageItem:
             geom = gfx.Geometry(grid=gfx.Texture(rgba, dim=2))
             # uint8 textures are sampled as unorm and scaled by 255 in the
             # shader, so contrast limits must match the uint8 range
-            mat = gfx.ImageBasicMaterial(interpolation="nearest", clim=(0, 255))
+            mat = _material(
+                gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)
+            )
             self._imageObj = gfx.Image(geom, mat)
             self.group.add(self._imageObj)
         else:
@@ -471,11 +493,12 @@ class _PygfxTrianglesItem:
         if not isinstance(color, str) and numpy.ndim(color) == 2:
             color = _vertexColorsToFloatRGBA(color, alpha)
             geom = gfx.Geometry(positions=positions, indices=triangles, colors=color)
-            mat = gfx.MeshBasicMaterial(color_mode="vertex", side="both")
+            mat = _material(gfx.MeshBasicMaterial, color_mode="vertex", side="both")
         else:
             rgba = colors.rgba(color)
             geom = gfx.Geometry(positions=positions, indices=triangles)
-            mat = gfx.MeshBasicMaterial(
+            mat = _material(
+                gfx.MeshBasicMaterial,
                 color=gfx.Color(rgba[0], rgba[1], rgba[2], rgba[3] * alpha),
                 side="both",
             )
@@ -553,36 +576,30 @@ class _PygfxShapeItem(dict):
             positions[:, 0] = x
             positions[:, 1] = y
 
+        # Fill, then the gap color line under the dashed line, as in OpenGL
+        if fill and shape in ("polygon", "rectangle") and len(x) >= 3:
+            fillObj = self._buildPolygonFill(x, y, rgba)
+            if fillObj is not None:
+                self.group.add(fillObj)
+
         if len(positions) >= 2:
-            # Gap color line: solid line behind the dashed foreground line.
-            # Must be at a lower z to pass the strict '<' depth test.
+            geom = gfx.Geometry(positions=positions)
             if gapcolor is not None and dashPattern:
-                gapPositions = positions.copy()
-                gapPositions[:, 2] = -0.1  # slightly behind
                 gapRgba = colors.rgba(gapcolor)
-                gapMat = gfx.LineMaterial(
+                gapMat = _material(
+                    gfx.LineMaterial,
                     thickness=max(linewidth, 1.0),
                     color=gfx.Color(*gapRgba),
                 )
-                gapLineObj = gfx.Line(gfx.Geometry(positions=gapPositions), gapMat)
-                self.group.add(gapLineObj)
+                self.group.add(gfx.Line(geom, gapMat))
 
-            # Foreground line (dashed or solid) at z=0 (in front of gap line)
-            geom = gfx.Geometry(positions=positions)
-            mat = gfx.LineMaterial(
+            mat = _material(
+                gfx.LineMaterial,
                 thickness=max(linewidth, 1.0),
                 color=gfxColor,
                 dash_pattern=dashPattern if dashPattern else (),
             )
-            lineObj = gfx.Line(geom, mat)
-            self.group.add(lineObj)
-
-        # Build fill for closed shapes
-        if fill and shape in ("polygon", "rectangle") and len(x) >= 3:
-            fillObj = self._buildPolygonFill(x, y, rgba)
-            if fillObj is not None:
-                fillObj.local.z = -0.2  # behind lines
-                self.group.add(fillObj)
+            self.group.add(gfx.Line(geom, mat))
 
     @staticmethod
     def _buildPolygonFill(x, y, rgba):
@@ -609,10 +626,10 @@ class _PygfxShapeItem(dict):
 
         fillColor = gfx.Color(rgba[0], rgba[1], rgba[2], 0.3)
         geom = gfx.Geometry(indices=indices, positions=positions)
-        mat = gfx.MeshBasicMaterial(
+        mat = _material(
+            gfx.MeshBasicMaterial,
             color=fillColor,
             side="both",
-            depth_write=False,
         )
         return gfx.Mesh(geom, mat)
 
@@ -666,8 +683,6 @@ class _PygfxMarkerItem(dict):
         )
 
         self.group = gfx.Group()
-        self._lineObj = None
-        self._textObj = None
         rgba = colors.rgba(color)
         gfxColor = gfx.Color(*rgba)
 
@@ -676,7 +691,8 @@ class _PygfxMarkerItem(dict):
             positions = numpy.array([[x, y, 0]], dtype=numpy.float32)
             markerShape = _SYMBOL_MAP.get(symbol, "plus")
             geom = gfx.Geometry(positions=positions)
-            mat = gfx.PointsMarkerMaterial(
+            mat = _material(
+                gfx.PointsMarkerMaterial,
                 marker=markerShape,
                 size=symbolsize,
                 color=gfxColor,
@@ -748,27 +764,28 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # pygfx rendering objects
         _restrictWgpuToPrimaryBackends()  # Must be done before creating the renderer
-        self._renderer = gfx.WgpuRenderer(self)
-        self._scene = gfx.Scene()
+        # No distance sorting: objects are drawn in scene order
+        self._renderer = gfx.WgpuRenderer(self, sort_objects=False)
 
         # Camera: orthographic for 2D plotting
         self._camera = gfx.OrthographicCamera(640, 480, maintain_aspect=False)
+        # Widget pixels over the plot area, and the transform to them from
+        # the data camera's coordinates: both updated by _syncCamera
+        self._plotCamera = gfx.OrthographicCamera(maintain_aspect=False)
+        self._dataToPixelMatrix = numpy.identity(4)
 
-        # Scene hierarchy
         # Data area background: updated by setBackgroundColors
         self._bgObj = gfx.Background(
-            None, gfx.BackgroundMaterial(gfx.Color(*self._dataBackgroundColor))
+            None,
+            _material(gfx.BackgroundMaterial, gfx.Color(*self._dataBackgroundColor)),
         )
-        self._dataGroup = gfx.Group()
-        self._overlayGroup = gfx.Group()
+        self._gridGroup = gfx.Group()
+        self._plotBackgroundScene = gfx.Scene()
+        self._plotBackgroundScene.add(self._bgObj, self._gridGroup)
 
-        # Shift overlays forward in z so they always render in front of data.
-        # Camera z-range is wide (near=-100..far=100), so z=10 is safe.
-        self._overlayGroup.local.z = 10
-
-        self._scene.add(self._bgObj)
-        self._scene.add(self._dataGroup)
-        self._scene.add(self._overlayGroup)
+        # Filled by _syncItemScenes in back to front order
+        self._dataScene = gfx.Scene()
+        self._overlayScene = gfx.Scene()
 
         # PlotFrame for coordinate transforms
         self._plotFrame = PlotFrame2DCore(
@@ -782,20 +799,17 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             int(self.getDevicePixelRatio() * 480),
         )
 
-        # Screen-space scene for frame/axes rendering (PR 9)
-        self._screenScene = gfx.Scene()
+        # Screen-space scenes for the widget background and the frame/axes
         self._screenBg = gfx.Background(
-            None, gfx.BackgroundMaterial(gfx.Color(1, 1, 1, 1))
+            None, _material(gfx.BackgroundMaterial, gfx.Color(1, 1, 1, 1))
         )
+        self._screenScene = gfx.Scene()
         self._screenScene.add(self._screenBg)
         self._screenFrameGroup = gfx.Group()
-        self._screenScene.add(self._screenFrameGroup)
+        self._frameScene = gfx.Scene()
+        self._frameScene.add(self._screenFrameGroup)
         self._screenCamera = gfx.OrthographicCamera(maintain_aspect=False)
         self._cachedBgColor = (1.0, 1.0, 1.0, 1.0)
-
-        # Crosshair cursor lines
-        self._crosshairHLine = None
-        self._crosshairVLine = None
 
         self._reusableImageItem = None  # Pool for image item reuse
 
@@ -849,21 +863,30 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             self._syncPlotFrame()
             self._syncCamera()
             self._updateFrame()
-            self._updateMarkers()
-            self._updateCrosshair()
+            self._syncItemScenes()
 
-            # First pass: render frame (background + axes) in full widget
-            self._renderer.render(self._screenScene, self._screenCamera, flush=False)
-
-            # Second pass: render data scene in plot area viewport only
             dpr = self.getDevicePixelRatio()
             left, top = self._plotFrame.plotOrigin
             pw, ph = self._plotFrame.plotSize
             # Viewport rect is in logical pixels
             plotRect = (left / dpr, top / dpr, pw / dpr, ph / dpr)
-            self._renderer.render(
-                self._scene, self._camera, rect=plotRect, flush=True, clear=False
+
+            # Same paint order as the OpenGL backend
+            passes = (
+                (self._screenScene, self._screenCamera, None),
+                (self._plotBackgroundScene, self._plotCamera, plotRect),
+                (self._dataScene, self._camera, plotRect),
+                (self._frameScene, self._screenCamera, None),
+                (self._overlayScene, self._plotCamera, plotRect),
             )
+            for index, (scene, camera, rect) in enumerate(passes):
+                self._renderer.render(
+                    scene,
+                    camera,
+                    rect=rect,
+                    clear=index == 0,
+                    flush=index == len(passes) - 1,
+                )
 
     def _syncPlotFrame(self):
         """Sync plot frame size with widget size."""
@@ -900,20 +923,40 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         extent = max(abs(xMax - xMin), abs(yMax - yMin), 1.0)
         self._camera.show_rect(xMin, xMax, yMin, yMax, depth=extent)
 
+        # Plot area in widget pixels, y downward
+        left, top = self._plotFrame.plotOrigin
+        width, height = self._plotFrame.plotSize
+        self._plotCamera.show_rect(
+            left, left + width, top + height, top, depth=max(width, height, 1)
+        )
+
+        sx = width / (xMax - xMin)
+        sy = -height / (yMax - yMin)
+        self._dataToPixelMatrix = numpy.array(
+            (
+                (sx, 0, 0, left - xMin * sx),
+                (0, sy, 0, top - yMax * sy),
+                (0, 0, 1, 0),
+                (0, 0, 0, 1),
+            ),
+            dtype=numpy.float64,
+        )
+
     def _updateFrame(self):
         """Update axes, ticks, grid, labels in screen space."""
         # Update background color only when changed
         bgColor = self._backgroundColor
         if self._cachedBgColor != bgColor:
-            self._screenBg.material = gfx.BackgroundMaterial(gfx.Color(*bgColor))
+            self._screenBg.material = _material(
+                gfx.BackgroundMaterial, gfx.Color(*bgColor)
+            )
             self._cachedBgColor = bgColor
 
         if not self._plotFrame.isDirty:
             return  # Frame unchanged, keep cached objects
 
-        # Clear previous frame objects (frame group only, not markers/crosshair)
-        for child in list(self._screenFrameGroup.children):
-            self._screenFrameGroup.remove(child)
+        self._screenFrameGroup.clear()
+        self._gridGroup.clear()
 
         if self._plotFrame.margins == self._plotFrame._NoDisplayMargins:
             return
@@ -941,9 +984,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     [gridVertices, numpy.zeros(len(gridVertices), dtype=numpy.float32)]
                 )
             )
-            mat = gfx.LineSegmentMaterial(thickness=1.0, color=gridColor)
-            gridLine = gfx.Line(geom, mat)
-            self._screenFrameGroup.add(gridLine)
+            mat = _material(gfx.LineSegmentMaterial, thickness=1.0, color=gridColor)
+            self._gridGroup.add(gfx.Line(geom, mat))
 
         # Render frame lines (axes)
         if len(vertices) >= 2:
@@ -953,7 +995,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     [vertices, numpy.zeros(len(vertices), dtype=numpy.float32)]
                 )
             )
-            mat = gfx.LineSegmentMaterial(thickness=1.0, color=fgColor)
+            mat = _material(gfx.LineSegmentMaterial, thickness=1.0, color=fgColor)
             frameLine = gfx.Line(geom, mat)
             self._screenFrameGroup.add(frameLine)
 
@@ -988,7 +1030,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
             textObj = gfx.Text(
                 text=text,
-                material=gfx.TextMaterial(color=gfx.Color(*labelColor)),
+                material=_material(gfx.TextMaterial, color=gfx.Color(*labelColor)),
                 font_size=fontSize,
                 anchor=anchor,
                 screen_space=True,
@@ -1001,160 +1043,130 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
             self._screenFrameGroup.add(textObj)
 
-    def _updateMarkers(self):
-        """Update marker lines and text labels in screen space."""
-        plot = self._plotRef()
-        if plot is None:
-            return
+    def _syncItemScenes(self):
+        """Fill the data and overlay scenes with the visible items, back to front.
 
+        As in the OpenGL backend, overlay items are drawn over the frame,
+        followed by the marker labels and the crosshair.
+        Overlay scene objects are in plot area pixels.
+        """
+        dataObjects = []
+        overlayObjects = []
+        labels = []
+        for plotItem in self.getItemsFromBackToFront(condition=lambda i: i.isVisible()):
+            item = plotItem._backendRenderer
+            if item is None:
+                continue
+            if not plotItem.isOverlay():
+                dataObjects.append(item.group)
+            elif isinstance(item, _PygfxMarkerItem):
+                objects, label = self._markerObjects(item)
+                overlayObjects.extend(objects)
+                if label is not None:
+                    labels.append(label)
+            else:
+                item.group.local.matrix = self._dataToPixelMatrix
+                overlayObjects.append(item.group)
+
+        _setChildren(self._dataScene, dataObjects)
+        _setChildren(
+            self._overlayScene, overlayObjects + labels + self._crosshairObjects()
+        )
+
+    def _markerObjects(self, item):
+        """Return the scene objects of a marker and its text label or None"""
+        xCoord = item["x"]
+        yCoord = item["y"]
+        yAxis = item.get("yaxis", "left")
+        gfxColor = gfx.Color(*item["color"])
+        text = item["text"]
         pixelOffset = 3
 
-        for plotItem in self.getItemsFromBackToFront(condition=lambda i: i.isVisible()):
-            if plotItem._backendRenderer is None:
-                continue
-            item = plotItem._backendRenderer
-            if not isinstance(item, _PygfxMarkerItem):
-                continue
+        if xCoord is not None and yCoord is not None:
+            # Point marker: the symbol is in data coordinates
+            item.group.local.matrix = self._dataToPixelMatrix
+            pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
+            if text is None or pixelPos is None:
+                return [item.group], None
+            label = self._markerLabel(
+                text,
+                gfxColor,
+                (pixelPos[0] + pixelOffset, pixelPos[1] + pixelOffset),
+                "top-left",
+            )
+            return [item.group], label
 
-            xCoord = item["x"]
-            yCoord = item["y"]
-            yAxis = item.get("yaxis", "left")
-            color = item["color"]
-            linewidth = item["linewidth"]
-            dashPattern = item["dashpattern"]
-
-            # Remove old line and text from the screen scene
-            if item._lineObj is not None:
-                if item._lineObj.parent is not None:
-                    item._lineObj.parent.remove(item._lineObj)
-                item._lineObj = None
-            if item._textObj is not None:
-                if item._textObj.parent is not None:
-                    item._textObj.parent.remove(item._textObj)
-                item._textObj = None
-
-            gfxColor = gfx.Color(*color)
-
-            if xCoord is None or yCoord is None:
-                # hline or vline marker — render in screen space
-                if xCoord is None:
-                    # Horizontal line at y
-                    pixelPos = self._plotFrame.dataToPixel(
-                        0.5 * sum(self._plotFrame.dataRanges[0]),
-                        yCoord,
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    left = self._plotFrame.margins.left
-                    right = self._plotFrame.size[0] - self._plotFrame.margins.right
-                    positions = numpy.array(
-                        [
-                            [left, pixelPos[1], 0],
-                            [right, pixelPos[1], 0],
-                        ],
-                        dtype=numpy.float32,
-                    )
-
-                    if item["text"] is not None:
-                        tx = right - pixelOffset
-                        ty = pixelPos[1] - pixelOffset
-                        textObj = gfx.Text(
-                            material=gfx.TextMaterial(color=gfxColor),
-                            text=item["text"],
-                            font_size=self._getDefaultFont().pointSizeF() or 10,
-                            anchor="bottom-right",
-                            screen_space=True,
-                        )
-                        textObj.local.position = (tx, ty, 0)
-                        item._textObj = textObj
-                        self._screenScene.add(textObj)
-                else:
-                    # Vertical line at x
-                    yRange = self._plotFrame.dataRanges[1 if yAxis == "left" else 2]
-                    pixelPos = self._plotFrame.dataToPixel(
-                        xCoord,
-                        0.5 * sum(yRange),
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    top = self._plotFrame.margins.top
-                    bottom = self._plotFrame.size[1] - self._plotFrame.margins.bottom
-                    positions = numpy.array(
-                        [
-                            [pixelPos[0], top, 0],
-                            [pixelPos[0], bottom, 0],
-                        ],
-                        dtype=numpy.float32,
-                    )
-
-                    if item["text"] is not None:
-                        tx = pixelPos[0] + pixelOffset
-                        ty = top + pixelOffset
-                        textObj = gfx.Text(
-                            material=gfx.TextMaterial(color=gfxColor),
-                            text=item["text"],
-                            font_size=self._getDefaultFont().pointSizeF() or 10,
-                            anchor="top-left",
-                            screen_space=True,
-                        )
-                        textObj.local.position = (tx, ty, 0)
-                        item._textObj = textObj
-                        self._screenScene.add(textObj)
-
-                geom = gfx.Geometry(positions=positions)
-                mat = gfx.LineMaterial(
-                    thickness=max(linewidth, 1.0),
-                    color=gfxColor,
-                    dash_pattern=dashPattern if dashPattern else (),
+        label = None
+        if xCoord is None:
+            # Horizontal line at y
+            pixelPos = self._plotFrame.dataToPixel(
+                0.5 * sum(self._plotFrame.dataRanges[0]),
+                yCoord,
+                axis=yAxis,
+            )
+            if pixelPos is None:
+                return [], None
+            left = self._plotFrame.margins.left
+            right = self._plotFrame.size[0] - self._plotFrame.margins.right
+            positions = [[left, pixelPos[1], 0], [right, pixelPos[1], 0]]
+            if text is not None:
+                label = self._markerLabel(
+                    text,
+                    gfxColor,
+                    (right - pixelOffset, pixelPos[1] - pixelOffset),
+                    "bottom-right",
                 )
-                item._lineObj = gfx.Line(geom, mat)
-                self._screenScene.add(item._lineObj)
+        else:
+            # Vertical line at x
+            yRange = self._plotFrame.dataRanges[1 if yAxis == "left" else 2]
+            pixelPos = self._plotFrame.dataToPixel(
+                xCoord,
+                0.5 * sum(yRange),
+                axis=yAxis,
+            )
+            if pixelPos is None:
+                return [], None
+            top = self._plotFrame.margins.top
+            bottom = self._plotFrame.size[1] - self._plotFrame.margins.bottom
+            positions = [[pixelPos[0], top, 0], [pixelPos[0], bottom, 0]]
+            if text is not None:
+                label = self._markerLabel(
+                    text,
+                    gfxColor,
+                    (pixelPos[0] + pixelOffset, top + pixelOffset),
+                    "top-left",
+                )
 
-            else:
-                # Point marker — text label in screen space
-                if item["text"] is not None:
-                    pixelPos = self._plotFrame.dataToPixel(
-                        xCoord,
-                        yCoord,
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    tx = pixelPos[0] + pixelOffset
-                    ty = pixelPos[1] + pixelOffset
-                    textObj = gfx.Text(
-                        material=gfx.TextMaterial(color=gfxColor),
-                        text=item["text"],
-                        font_size=self._getDefaultFont().pointSizeF() or 10,
-                        anchor="top-left",
-                        screen_space=True,
-                    )
-                    textObj.local.position = (tx, ty, 0)
-                    item._textObj = textObj
-                    self._screenScene.add(textObj)
+        dashPattern = item["dashpattern"]
+        geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
+        mat = _material(
+            gfx.LineMaterial,
+            thickness=max(item["linewidth"], 1.0),
+            color=gfxColor,
+            dash_pattern=dashPattern if dashPattern else (),
+        )
+        return [gfx.Line(geom, mat)], label
 
-    def _updateCrosshair(self):
-        """Update crosshair cursor lines."""
-        # Remove old crosshair
-        if self._crosshairHLine is not None:
-            if self._crosshairHLine in self._screenScene.children:
-                self._screenScene.remove(self._crosshairHLine)
-            self._crosshairHLine = None
-        if self._crosshairVLine is not None:
-            if self._crosshairVLine in self._screenScene.children:
-                self._screenScene.remove(self._crosshairVLine)
-            self._crosshairVLine = None
+    def _markerLabel(self, text, color, position, anchor):
+        label = gfx.Text(
+            material=_material(gfx.TextMaterial, color=color),
+            text=text,
+            font_size=self._getDefaultFont().pointSizeF() or 10,
+            anchor=anchor,
+            screen_space=True,
+        )
+        label.local.position = (*position, 0)
+        return label
 
+    def _crosshairObjects(self):
+        """Return the crosshair cursor lines"""
         if self._crosshairCursor is None or self._mousePosInPixels is None:
-            return
+            return []
 
         color, linewidth = self._crosshairCursor
         gfxColor = gfx.Color(*color)
         mx, my = self._mousePosInPixels
 
-        w, h = self._plotFrame.size
         left, top = self._plotFrame.plotOrigin
         pw, ph = self._plotFrame.plotSize
 
@@ -1167,9 +1179,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             dtype=numpy.float32,
         )
         hGeom = gfx.Geometry(positions=hPositions)
-        hMat = gfx.LineMaterial(thickness=linewidth, color=gfxColor)
-        self._crosshairHLine = gfx.Line(hGeom, hMat)
-        self._screenScene.add(self._crosshairHLine)
+        hMat = _material(gfx.LineMaterial, thickness=linewidth, color=gfxColor)
+        hLine = gfx.Line(hGeom, hMat)
 
         # Vertical line
         vPositions = numpy.array(
@@ -1180,9 +1191,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             dtype=numpy.float32,
         )
         vGeom = gfx.Geometry(positions=vPositions)
-        vMat = gfx.LineMaterial(thickness=linewidth, color=gfxColor)
-        self._crosshairVLine = gfx.Line(vGeom, vMat)
-        self._screenScene.add(self._crosshairVLine)
+        vMat = _material(gfx.LineMaterial, thickness=linewidth, color=gfxColor)
+        vLine = gfx.Line(vGeom, vMat)
+        return [hLine, vLine]
 
     @staticmethod
     def _mapAnchor(align, valign):
@@ -1372,7 +1383,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             symbolsize,
             baseline,
         )
-        self._dataGroup.add(item.group)
         return item
 
     def addImage(self, data, origin, scale, colormap, alpha):
@@ -1410,20 +1420,15 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         if reuse is not None and data.ndim == 2 and reuse._scalarShape == data.shape:
             self._reusableImageItem = None
             reuse._build(data, (ox, oy), (sx, sy), colormap, alpha)
-            self._dataGroup.add(reuse.group)
             return reuse
 
         self._reusableImageItem = None
-        item = _PygfxImageItem(data, (ox, oy), (sx, sy), colormap, alpha)
-        self._dataGroup.add(item.group)
-        return item
+        return _PygfxImageItem(data, (ox, oy), (sx, sy), colormap, alpha)
 
     def addTriangles(self, x, y, triangles, color, alpha):
         x = self._plotFrame.xAxis.applyScale(numpy.asarray(x, dtype=numpy.float64))
         y = self._plotFrame.yAxis.applyScale(numpy.asarray(y, dtype=numpy.float64))
-        item = _PygfxTrianglesItem(x, y, triangles, color, alpha)
-        self._dataGroup.add(item.group)
-        return item
+        return _PygfxTrianglesItem(x, y, triangles, color, alpha)
 
     def addShape(
         self,
@@ -1460,7 +1465,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         # Ensure overlay outlines (e.g. zoom selection) are clearly visible
         if overlay and linewidth < 2.0:
             linewidth = 2.0
-        item = _PygfxShapeItem(
+        return _PygfxShapeItem(
             x,
             y,
             shape,
@@ -1471,11 +1476,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             linestyle,
             gapcolor,
         )
-        if overlay:
-            self._overlayGroup.add(item.group)
-        else:
-            self._dataGroup.add(item.group)
-        return item
 
     def addMarker(
         self,
@@ -1501,7 +1501,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             )
             y = yAxis.applyScale(y)
 
-        item = _PygfxMarkerItem(
+        return _PygfxMarkerItem(
             x,
             y,
             text,
@@ -1515,9 +1515,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             font,
             bgcolor,
         )
-
-        self._overlayGroup.add(item.group)
-        return item
 
     # Backend API: Remove ####################################################
 
@@ -1535,10 +1532,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             # Pool scalar image items for reuse (avoids GPU object recreation)
             if isinstance(item, _PygfxImageItem) and item._scalarShape is not None:
                 self._reusableImageItem = item
-
-            group = item.group
-            if group.parent is not None:
-                group.parent.remove(group)
 
     # Backend API: Interaction ###############################################
 
