@@ -2442,7 +2442,8 @@ def testPygfxSymbolEdges(qWidgetFactory, monkeypatch):
 
 @pytest.mark.usefixtures("use_pygfx")
 @pytest.mark.parametrize(
-    "kind,points", [("curve", 3), ("errorbar", 1), ("shape", 3), ("marker", 3)]
+    "kind,points",
+    [("curve", 3), ("errorbar", 1), ("shape", 3), ("overlay", 1), ("marker", 3)],
 )
 def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
     """Line widths are in points, as in the OpenGL backend"""
@@ -2458,8 +2459,15 @@ def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
         plot.addCurve(
             (50,), (50,), xerror=20, color="red", linestyle=" ", resetzoom=False
         )
-    elif kind == "shape":
-        plot.addShape((10, 90), (50, 50), shape="polylines", color="red", linewidth=3)
+    elif kind in ("shape", "overlay"):
+        plot.addShape(
+            (10, 90),
+            (50, 50),
+            shape="polylines",
+            color="red",
+            overlay=kind == "overlay",
+            linewidth=points,
+        )
     else:
         plot.addYMarker(50, color="red").setLineWidth(3)
     image, ratio = _renderPygfx(plot)

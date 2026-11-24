@@ -1581,9 +1581,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         x = self._plotFrame.xAxis.applyScale(x)
         y = self._plotFrame.yAxis.applyScale(y)
-        # Ensure overlay outlines (e.g. zoom selection) are clearly visible
-        if overlay and linewidth < 2.0:
-            linewidth = 2.0
         return _PygfxShapeItem(
             x,
             y,
