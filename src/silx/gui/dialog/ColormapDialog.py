@@ -1731,8 +1731,8 @@ class ColormapDialog(qt.QDialog):
             name = colormap.getName()
             if name is not None:
                 # Case the name is already know.
-                name, isReversed = _unreversedColormapName(name)
-                comboBox._setCurrentName(name)
+                unreversedName, isReversed = _unreversedColormapName(name)
+                comboBox._setCurrentName(unreversedName)
                 button.setChecked(isReversed)
                 return
 
