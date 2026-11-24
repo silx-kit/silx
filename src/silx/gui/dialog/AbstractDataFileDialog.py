@@ -1086,7 +1086,7 @@ class AbstractDataFileDialog(qt.QDialog):
             self.__updatePath()
         elif isRootPath:
             # Qt emits no directoryLoaded signal for its current root path
-            self.__directoryLoaded(path)
+            self.__fileModel.directoryLoaded.emit(path)
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
