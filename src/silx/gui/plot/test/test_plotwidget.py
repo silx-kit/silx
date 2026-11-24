@@ -2212,6 +2212,23 @@ def testPygfxOverlayShapePosition(qWidgetFactory, scale, inverted):
         assert isYellow != inside, (x, y)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("inverted", [False, True])
+def testPygfxRightAxisCurve(qWidgetFactory, inverted):
+    """A curve on the right Y axis uses its limits and shows that axis"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getYAxis().setInverted(inverted)
+    plot.addCurve(
+        (0, 10), (80, 80), legend="curve", color="red", linewidth=5, yaxis="right"
+    )
+    plot.setLimits(0, 10, 0, 10, 0, 100)
+
+    image, ratio = _renderPygfx(plot)
+    assert plot.getYAxis(axis="right").isVisible()
+    x, y = plot.dataToPixel(5, 80, axis="right")
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+
 def _logPlot(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     plot.getXAxis().setScale("log")

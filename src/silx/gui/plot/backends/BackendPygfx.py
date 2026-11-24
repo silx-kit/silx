@@ -553,6 +553,7 @@ class _PygfxShapeItem(dict):
         )
 
         self.group = gfx.Group()
+        self.yaxis = "left"
 
         gfxColor = gfx.Color(*rgba)
 
@@ -750,12 +751,13 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         # No distance sorting: objects are drawn in scene order
         self._renderer = gfx.WgpuRenderer(self, sort_objects=False)
 
-        # Camera: orthographic for 2D plotting
-        self._camera = gfx.OrthographicCamera(640, 480, maintain_aspect=False)
-        # Widget pixels over the plot area, and the transform to them from
-        # the data camera's coordinates: both updated by _syncCamera
+        # Widget pixels over the plot area, and the transforms to them from
+        # each Y axis' scaled data coordinates: both updated by _syncCamera
         self._plotCamera = gfx.OrthographicCamera(maintain_aspect=False)
-        self._dataToPixelMatrix = numpy.identity(4)
+        self._dataToPixelMatrices = {
+            "left": numpy.identity(4),
+            "right": numpy.identity(4),
+        }
 
         # Data area background: updated by setBackgroundColors
         self._bgObj = gfx.Background(
@@ -858,7 +860,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             passes = (
                 (self._screenScene, self._screenCamera, None),
                 (self._plotBackgroundScene, self._plotCamera, plotRect),
-                (self._dataScene, self._camera, plotRect),
+                (self._dataScene, self._plotCamera, plotRect),
                 (self._frameScene, self._screenCamera, None),
                 (self._overlayScene, self._plotCamera, plotRect),
             )
@@ -882,30 +884,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._plotFrame.dotsPerInch = self.getDotsPerInch()
 
     def _syncCamera(self):
-        """Update camera to match the current data ranges."""
-        trRanges = self._plotFrame.transformedDataRanges
-        xMin, xMax = trRanges.x
-        yMin, yMax = trRanges.y
-
-        if self._plotFrame.isXAxisInverted:
-            xMin, xMax = xMax, xMin
-        if self._plotFrame.isYAxisInverted:
-            yMin, yMax = yMax, yMin
-
-        # Ensure non-zero extent to avoid camera errors
-        if xMin == xMax:
-            xMin -= 0.5
-            xMax += 0.5
-        if yMin == yMax:
-            yMin -= 0.5
-            yMax += 0.5
-
-        # show_rect(left, right, top, bottom)
-        # height = bottom - top; positive height means Y increases upward
-        # top=yMin, bottom=yMax → yMax at top of viewport, yMin at bottom
-        extent = max(abs(xMax - xMin), abs(yMax - yMin), 1.0)
-        self._camera.show_rect(xMin, xMax, yMin, yMax, depth=extent)
-
+        """Update the plot area camera and the data to pixel transforms."""
         # Plot area in widget pixels, y downward
         left, top = self._plotFrame.plotOrigin
         width, height = self._plotFrame.plotSize
@@ -913,17 +892,28 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             left, left + width, top + height, top, depth=max(width, height, 1)
         )
 
+        def displayedRange(range_, inverted):
+            """(first, last) data values along the pixel axis, never empty"""
+            first, last = range_
+            if first == last:
+                first, last = first - 0.5, last + 0.5
+            return (last, first) if inverted else (first, last)
+
+        trRanges = self._plotFrame.transformedDataRanges
+        xMin, xMax = displayedRange(trRanges.x, self._plotFrame.isXAxisInverted)
         sx = width / (xMax - xMin)
-        sy = -height / (yMax - yMin)
-        self._dataToPixelMatrix = numpy.array(
-            (
-                (sx, 0, 0, left - xMin * sx),
-                (0, sy, 0, top - yMax * sy),
-                (0, 0, 1, 0),
-                (0, 0, 0, 1),
-            ),
-            dtype=numpy.float64,
-        )
+        for axis, yRange in (("left", trRanges.y), ("right", trRanges.y2)):
+            yMin, yMax = displayedRange(yRange, self._plotFrame.isYAxisInverted)
+            sy = -height / (yMax - yMin)
+            self._dataToPixelMatrices[axis] = numpy.array(
+                (
+                    (sx, 0, 0, left - xMin * sx),
+                    (0, sy, 0, top - yMax * sy),
+                    (0, 0, 1, 0),
+                    (0, 0, 0, 1),
+                ),
+                dtype=numpy.float64,
+            )
 
     def _updateFrame(self):
         """Update axes, ticks, grid, labels in screen space."""
@@ -1031,7 +1021,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         As in the OpenGL backend, overlay items are drawn over the frame,
         followed by the marker labels and the crosshair.
-        Overlay scene objects are in plot area pixels.
+        Both scenes are in plot area pixels: item groups hold scaled data,
+        mapped through the transform of their Y axis.
         """
         dataObjects = []
         overlayObjects = []
@@ -1040,16 +1031,17 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             item = plotItem._backendRenderer
             if item is None:
                 continue
-            if not plotItem.isOverlay():
-                dataObjects.append(item.group)
-            elif isinstance(item, _PygfxMarkerItem):
+            if isinstance(item, _PygfxMarkerItem):
                 objects, label = self._markerObjects(item)
                 overlayObjects.extend(objects)
                 if label is not None:
                     labels.append(label)
-            else:
-                item.group.local.matrix = self._dataToPixelMatrix
+                continue
+            item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+            if plotItem.isOverlay():
                 overlayObjects.append(item.group)
+            else:
+                dataObjects.append(item.group)
 
         _setChildren(self._dataScene, dataObjects)
         _setChildren(
@@ -1379,6 +1371,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             symbolsize,
             baseline,
         )
+        if yaxis == "right":
+            self._plotFrame.isY2Axis = True
         return item
 
     def addImage(self, data, origin, scale, colormap, alpha):
