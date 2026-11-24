@@ -1665,8 +1665,8 @@ class ColormapDialog(qt.QDialog):
             self._histoWidget.setFiniteRange((None, None))
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
+            self._updateColormapLutWidgets(colormap)
             with utils.blockSignals(self._comboBoxColormap):
-                self._updateColormapLutWidgets(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
             self._reverseColormapButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
@@ -1724,15 +1724,10 @@ class ColormapDialog(qt.QDialog):
         return Colormap(name=name).getNColors()
 
     def _updateColormapLutWidgets(self, colormap: Colormap):
-        """Update the colormap combo box and the reverse button from colormap.
-
-        .. warning::
-
-            The signals of the combo box are expected to be blocked by the caller.
-        """
+        """Update the colormap combo box and the reverse button from colormap."""
         comboBox = self._comboBoxColormap
         button = self._reverseColormapButton
-        with utils.blockSignals(button):
+        with utils.blockSignals(button, comboBox):
             name = colormap.getName()
             if name is not None:
                 # Case the name is already know.
