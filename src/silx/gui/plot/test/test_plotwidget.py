@@ -2522,7 +2522,10 @@ def testPygfxFrameLineWidth(qWidgetFactory, grid):
 
 
 def _renderDashedRow(qWidgetFactory, kind, linestyle):
-    """Draw a horizontal dashed line across the plot area, return its middle row"""
+    """Draw a 4 points wide horizontal dashed line across the plot area.
+
+    Return its middle row and its width, both in device pixels.
+    """
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     plot.setLimits(0, 1, 0, 1)
     if kind == "curve":
@@ -2544,17 +2547,28 @@ def _renderDashedRow(qWidgetFactory, kind, linestyle):
 
     frame = plot._backend._plotFrame  # In device pixels
     left, width = frame.plotOrigin[0], frame.plotSize[0]
-    return image[frame.dataToPixel(0.5, 0.5)[1], left : left + width].min(axis=1)
+    row = image[frame.dataToPixel(0.5, 0.5)[1], left : left + width].min(axis=1)
+    return row, 4 / 72 * frame.dotsPerInch
 
 
 @pytest.mark.usefixtures("use_pygfx")
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashEnds(qWidgetFactory, kind):
     """Dashes end square at their length, as in the OpenGL backend"""
-    row = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
+    row = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))[0]
     runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
     # Dashes as long as the gaps
     assert runs.max() - runs.min() <= 1
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashLength(qWidgetFactory, kind):
+    """Dash lengths scale with the line width, as in the OpenGL backend"""
+    row, width = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
+    runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
+    # Dashes and gaps twice the line width
+    assert numpy.abs(runs - 2 * width).max() <= 1
 
 
 def _inkCrop(coverage):

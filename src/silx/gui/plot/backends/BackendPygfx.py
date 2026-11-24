@@ -128,6 +128,11 @@ class _DashedLineShader(LineShader):
             )
         )
 
+    def bake_function(self, wobject, camera, logical_size):
+        # pygfx measures dashes over the canvas size instead of the render
+        # rect the shader draws into, which shrinks them in the plot area
+        super().bake_function(wobject, camera, camera._view_size)
+
 
 def _lineStyleToDashPattern(linestyle):
     """Convert silx linestyle to pygfx dash_pattern tuple."""
