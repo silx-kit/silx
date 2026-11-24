@@ -1102,7 +1102,11 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         pixelOffset = 3
 
         if xCoord is not None and yCoord is not None:
-            # Point marker
+            # Point marker, drawn only strictly inside the limits as in OpenGL
+            xmin, xmax = self._plot.getXAxis().getLimits()
+            ymin, ymax = self._plot.getYAxis(axis=yAxis).getLimits()
+            if not xmin < xCoord < xmax or not ymin < yCoord < ymax:
+                return [], None
             pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
             if pixelPos is None:
                 return [], None

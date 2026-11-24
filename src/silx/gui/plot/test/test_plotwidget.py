@@ -2344,6 +2344,17 @@ def testPygfxPointMarkerLabelPosition(qWidgetFactory, inverted):
         assert rows.min() == int(py + 3)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxPointMarkerOnLimit(qWidgetFactory):
+    """A point marker is not drawn unless strictly inside the axes limits"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    marker = plot.addMarker(50, 100, text="Label", color="red", symbol="o")
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+    assert not numpy.any(numpy.all(image == _RED, axis=2))
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
