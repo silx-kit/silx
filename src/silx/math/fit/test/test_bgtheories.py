@@ -21,59 +21,133 @@
 #
 # ############################################################################*/
 import copy
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+
 import numpy
+import pytest
 import random
 
 from silx.math.fit import bgtheories
 from silx.math.fit.functions import sum_gauss
 
 
-def test_snip_cache_changed_data_lengths(monkeypatch):
-    config = dict(bgtheories.CONFIG, SmoothingFlag=False, AnchorsFlag=False)
-    monkeypatch.setattr(bgtheories, "CONFIG", config)
-    for name in (
-        "_BG_SNIP_OLDY",
-        "_BG_SNIP_OLDWIDTH",
-        "_BG_SNIP_OLDBG",
-        "_BG_SMOOTH_OLDWIDTH",
-        "_BG_SMOOTH_OLDFLAG",
-        "_BG_OLD_ANCHORS",
-        "_BG_OLD_ANCHORS_FLAG",
-    ):
-        monkeypatch.setattr(bgtheories, name, getattr(bgtheories, name))
-    bgtheories._BG_SNIP_OLDWIDTH = None
+def _strip(x, y):
+    return bgtheories.strip_bg(x, y, 4, 20)
 
+
+def _snip(x, y):
+    return bgtheories.snip_bg(x, y, 16)
+
+
+def _noise(length, seed=0):
+    return numpy.random.default_rng(seed).random(length) * 10
+
+
+@pytest.mark.parametrize("bg", [_strip, _snip])
+def test_bg_cache_changed_data_lengths(bg):
     for length in (200, 100, 200):
-        x = numpy.arange(length)
-        y = numpy.linspace(2.0, 8.0, length)
-        actual = bgtheories.snip_bg(x, y, 16)
+        x = numpy.arange(float(length))
+        y = _noise(length)
+        # Same input again: the cached background is returned
+        actual = bg(x, y)
         assert actual.shape == y.shape
-        assert bgtheories.snip_bg(x, y.copy(), 16) is actual
-        # Compare a cache miss with the same calculation from an empty cache.
-        bgtheories._BG_SNIP_OLDWIDTH = None
-        expected = bgtheories.snip_bg(x, y, 16)
-        numpy.testing.assert_array_equal(actual, expected)
+        assert bg(x, y.copy()) is actual
 
 
-def test_snip_cache_does_not_broadcast(monkeypatch):
-    config = dict(bgtheories.CONFIG, SmoothingFlag=False, AnchorsFlag=False)
-    monkeypatch.setattr(bgtheories, "CONFIG", config)
-    state = {
-        "_BG_SNIP_OLDY": numpy.array([1.0]),
-        "_BG_SNIP_OLDWIDTH": 16,
-        "_BG_SNIP_OLDBG": numpy.array([1.0]),
-        "_BG_SMOOTH_OLDWIDTH": config["SmoothingWidth"],
-        "_BG_SMOOTH_OLDFLAG": config["SmoothingFlag"],
-        "_BG_OLD_ANCHORS": config["AnchorsList"],
-        "_BG_OLD_ANCHORS_FLAG": config["AnchorsFlag"],
-    }
-    for name, value in state.items():
-        monkeypatch.setattr(bgtheories, name, value)
-    y = numpy.ones(100)
-    result = bgtheories.snip_bg(numpy.arange(len(y)), y, 16)
-    assert result.shape == y.shape
-    numpy.testing.assert_array_equal(result, y)
+@pytest.mark.parametrize("bg", [_strip, _snip])
+def test_bg_cache_input_modified_in_place(bg):
+    x = numpy.arange(200.0)
+    y = _noise(200, seed=2)
+    before = bg(x, y).copy()
+    # Without a copy of y in the cache, the modified y looks unchanged
+    y += 100.0
+    assert not numpy.array_equal(bg(x, y), before)
+
+
+def test_strip_cache_threshold_factor():
+    x = numpy.arange(200.0)
+    y = _noise(200)
+    bgtheories.CONFIG["StripThresholdFactor"] = 1.0
+    before = _strip(x, y).copy()
+    # Without the factor in the cache key, the result of factor 1.0 is returned
+    bgtheories.CONFIG["StripThresholdFactor"] = 5.0
+    assert not numpy.array_equal(_strip(x, y), before)
+
+
+def test_bg_cache_not_shared_between_strip_and_snip():
+    x = numpy.arange(200.0)
+    y = _noise(200)
+    bgtheories.CONFIG["SmoothingFlag"] = False
+    unsmoothed = _snip(x, y)
+    bgtheories.CONFIG["SmoothingFlag"] = True
+    # strip_bg must not make the unsmoothed snip result look valid
+    _strip(x, y)
+    smoothed = _snip(x, y)
+    assert not numpy.array_equal(smoothed, unsmoothed)
+
+
+@pytest.mark.parametrize("bg", [_strip, _snip])
+def test_bg_cache_unchanged_when_computation_fails(bg):
+    x = numpy.arange(200.0)
+    y1 = _noise(200)
+    y2 = _noise(200, seed=1)
+    cached = bg(x, y1)
+    bgtheories.CONFIG["AnchorsFlag"] = True
+    bgtheories.CONFIG["AnchorsList"] = ["not a number"]
+    for _ in range(2):
+        # Without computing before publishing the cache, the second call
+        # returns the cached background of y1 instead of raising
+        with pytest.raises(TypeError):
+            bg(x, y2)
+    bgtheories.CONFIG.update(AnchorsFlag=False, AnchorsList=[])
+    assert bg(x, y1) is cached
+
+
+class _BlockingAnchor:
+    """Anchor that blocks its first comparison until released, then is ignored"""
+
+    def __init__(self) -> None:
+        self.entered = threading.Event()
+        self.release = threading.Event()
+
+    def __le__(self, other: float) -> bool:
+        if not self.entered.is_set():
+            self.entered.set()
+            self.release.wait(timeout=10)
+        return True
+
+    def __deepcopy__(self, memo: dict) -> "_BlockingAnchor":
+        return self
+
+
+@pytest.mark.parametrize("bg", [_strip, _snip])
+def test_bg_cache_while_computed_in_other_thread(bg):
+    x = numpy.arange(200.0)
+    y_old = _noise(200, seed=3)
+    y_new = _noise(200, seed=4)
+    bg(x, y_old)
+    anchor = _BlockingAnchor()
+    bgtheories.CONFIG.update(AnchorsFlag=True, AnchorsList=[anchor])
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        try:
+            # The other thread computes the background of y_new and blocks
+            # in the anchor comparison
+            future = executor.submit(bg, x, y_new)
+            assert anchor.entered.wait(timeout=10)
+            # Same call in this thread during that computation
+            during = bg(x, y_new)
+        finally:
+            anchor.release.set()
+        after = future.result(timeout=10)
+    # The anchor is ignored, so the result is the background without anchors
+    bgtheories.CONFIG.update(AnchorsFlag=False, AnchorsList=[])
+    expected = bg(x, y_new)
+    # Without publishing the cache after the computation, `during` is the
+    # cached background of y_old
+    numpy.testing.assert_array_equal(during, expected)
+    numpy.testing.assert_array_equal(after, expected)
 
 
 class TestBgTheories(unittest.TestCase):

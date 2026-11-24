@@ -70,6 +70,10 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "16/01/2017"
 
+import copy
+import functools
+from collections.abc import Callable
+
 import numpy
 from silx.math.fit.filters import strip, snip1d, savitsky_golay
 from silx.math.fit.fittheory import FitTheory
@@ -85,22 +89,6 @@ CONFIG = {
     "SnipWidth": 16,
     "EstimatePolyOnStrip": True,
 }
-
-# to avoid costly computations when parameters stay the same
-_BG_STRIP_OLDY = numpy.array([])
-_BG_STRIP_OLDPARS = [0, 0]
-_BG_STRIP_OLDBG = numpy.array([])
-
-_BG_SNIP_OLDY = numpy.array([])
-_BG_SNIP_OLDWIDTH = None
-_BG_SNIP_OLDBG = numpy.array([])
-
-
-_BG_OLD_ANCHORS = []
-_BG_OLD_ANCHORS_FLAG = None
-
-_BG_SMOOTH_OLDWIDTH = None
-_BG_SMOOTH_OLDFLAG = None
 
 
 def _convert_anchors_to_indices(x):
@@ -131,6 +119,35 @@ def _convert_anchors_to_indices(x):
     return anchors_indices
 
 
+def _reuse_last_result(
+    func: Callable[..., numpy.ndarray],
+) -> Callable[..., numpy.ndarray]:
+    """Decorator: return the last result again when `func` is called with the
+    same arguments and the same CONFIG.
+    """
+    last_call = None  # (x, y0, other arguments and CONFIG, result)
+
+    @functools.wraps(func)
+    def wrapper(x: numpy.ndarray, y0: numpy.ndarray, *args, **kwargs) -> numpy.ndarray:
+        nonlocal last_call
+        others = copy.deepcopy((args, kwargs, CONFIG))
+        previous = last_call  # Read once: another thread can replace it
+        if (
+            previous is not None
+            and numpy.array_equal(previous[0], x)
+            and numpy.array_equal(previous[1], y0)
+            and previous[2] == others
+        ):
+            return previous[3]
+        result = func(x, y0, *args, **kwargs)
+        # Copies of x and y0: the caller can modify them in place
+        last_call = (numpy.array(x), numpy.array(y0), others, result)
+        return result
+
+    return wrapper
+
+
+@_reuse_last_result
 def strip_bg(x, y0, width, niter):
     """Extract and return the strip bg from y0.
 
@@ -143,36 +160,6 @@ def strip_bg(x, y0, width, niter):
     :param width: strip width
     :param niter: strip niter
     """
-    global _BG_STRIP_OLDY
-    global _BG_STRIP_OLDPARS
-    global _BG_STRIP_OLDBG
-    global _BG_SMOOTH_OLDWIDTH
-    global _BG_SMOOTH_OLDFLAG
-    global _BG_OLD_ANCHORS
-    global _BG_OLD_ANCHORS_FLAG
-
-    parameters_changed = (
-        _BG_STRIP_OLDPARS != [width, niter]
-        or _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"]
-        or _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"]
-        or _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"]
-        or _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
-    )
-
-    # same parameters
-    if not parameters_changed:
-        # same data
-        if numpy.array_equal(_BG_STRIP_OLDY, y0):
-            # same result
-            return _BG_STRIP_OLDBG
-
-    _BG_STRIP_OLDY = y0
-    _BG_STRIP_OLDPARS = [width, niter]
-    _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
-    _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
-    _BG_OLD_ANCHORS = CONFIG["AnchorsList"]
-    _BG_OLD_ANCHORS_FLAG = CONFIG["AnchorsFlag"]
-
     y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
 
     anchors_indices = _convert_anchors_to_indices(x)
@@ -185,43 +172,12 @@ def strip_bg(x, y0, width, niter):
         anchors=anchors_indices,
     )
 
-    _BG_STRIP_OLDBG = background
-
     return background
 
 
+@_reuse_last_result
 def snip_bg(x, y0, width):
     """Compute the snip bg for y0"""
-    global _BG_SNIP_OLDY
-    global _BG_SNIP_OLDWIDTH
-    global _BG_SNIP_OLDBG
-    global _BG_SMOOTH_OLDWIDTH
-    global _BG_SMOOTH_OLDFLAG
-    global _BG_OLD_ANCHORS
-    global _BG_OLD_ANCHORS_FLAG
-
-    parameters_changed = (
-        _BG_SNIP_OLDWIDTH != width
-        or _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"]
-        or _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"]
-        or _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"]
-        or _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
-    )
-
-    # same parameters
-    if not parameters_changed:
-        # same data
-        if numpy.array_equal(_BG_SNIP_OLDY, y0):
-            # same result
-            return _BG_SNIP_OLDBG
-
-    _BG_SNIP_OLDY = y0
-    _BG_SNIP_OLDWIDTH = width
-    _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
-    _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
-    _BG_OLD_ANCHORS = CONFIG["AnchorsList"]
-    _BG_OLD_ANCHORS_FLAG = CONFIG["AnchorsFlag"]
-
     y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
 
     anchors_indices = _convert_anchors_to_indices(x)
@@ -240,8 +196,6 @@ def snip_bg(x, y0, width):
 
     if previous_anchor < len(y1):
         background[previous_anchor:] = snip1d(y1[previous_anchor:], width)
-
-    _BG_SNIP_OLDBG = background
 
     return background
 
