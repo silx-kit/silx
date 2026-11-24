@@ -230,3 +230,48 @@ def testZoomOnWheelEnabled(qapp, qWidgetFactory, zoomOnWheel, scale):
     assert xZoomed == zoomOnWheel
     assert yZoomed == zoomOnWheel
     assert y2Zoomed == zoomOnWheel
+
+
+@pytest.mark.parametrize(
+    "mode,shape",
+    [
+        ("draw", "line"),
+        ("draw", "rectangle"),
+        ("draw", "polygon"),
+        ("select-draw", "line"),
+        ("zoom", None),
+        ("pan", None),
+    ],
+)
+def testPanWithMiddleButton(qapp, qWidgetFactory, mode, shape):
+    """Test that dragging with the middle button pans the plot (issue #4029)"""
+    plotWidget = qWidgetFactory(PlotWidget)
+    plotWidget.setLimits(0.0, 10.0, 0.0, 10.0)
+    kwargs = {} if shape is None else {"shape": shape}
+    plotWidget.setInteractiveMode(mode, **kwargs)
+    qapp.processEvents()
+
+    xLimits = plotWidget.getXAxis().getLimits()
+
+    cx, cy = plotWidget.width() // 2, plotWidget.height() // 2
+    plotWidget.onMousePress(cx, cy, "middle")
+    for offset in range(10, 110, 10):
+        plotWidget.onMouseMove(cx + offset, cy)
+    plotWidget.onMouseRelease(cx + 100, cy, "middle")
+    qapp.processEvents()
+
+    newXLimits = plotWidget.getXAxis().getLimits()
+    assert newXLimits[0] < xLimits[0]
+    assert newXLimits[1] < xLimits[1]
+
+    # Left button drawing still works after panning
+    if mode == "draw" and shape == "line":
+        events = []
+        plotWidget.sigPlotSignal.connect(events.append)
+        plotWidget.onMousePress(cx, cy, "left")
+        for offset in range(10, 60, 10):
+            plotWidget.onMouseMove(cx, cy + offset)
+        plotWidget.onMouseRelease(cx, cy + 50, "left")
+        qapp.processEvents()
+        plotWidget.sigPlotSignal.disconnect(events.append)
+        assert "drawingFinished" in [event["event"] for event in events]
