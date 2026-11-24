@@ -323,10 +323,10 @@ class _PygfxCurveItem:
         baseline,
     ):
         self.yaxis = yaxis
-        self.symbol = symbol
-        self.symbolSize = symbolsize
         self.lineMaterials = []
         """Line materials with their width in points, sized at draw time"""
+        self.pointMaterials = []
+        """Points materials with their symbol and size in points, sized at draw time"""
         self.group = gfx.Group()
         self._lineObj = None
         self._pointsObj = None
@@ -354,17 +354,24 @@ class _PygfxCurveItem:
             if fillObj is not None:
                 self.group.add(fillObj)
 
-        # Error bars
+        # Error bars, then their ticks
         if xerror is not None or yerror is not None:
-            errorGroup = gfx.Group()
-            errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
-            if len(errSegments) > 0:
-                errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
+            xVertices, yVertices = self._errorBarVertices(x, y, xerror, yerror)
+            segments = numpy.concatenate((xVertices, yVertices)).reshape(-1, 2, 3)
+            segments = segments[numpy.isfinite(segments).all(axis=(1, 2))]
+            if len(segments) > 0:
+                errGeom = gfx.Geometry(positions=segments.reshape(-1, 3))
                 errMat = _material(gfx.LineSegmentMaterial, aa=True, color=uniformColor)
                 self.lineMaterials.append((errMat, 1.0))
-                errLine = gfx.Line(errGeom, errMat)
-                errorGroup.add(errLine)
-            self.group.add(errorGroup)
+                self.group.add(gfx.Line(errGeom, errMat))
+            for tickSymbol, vertices in (("|", xVertices), ("_", yVertices)):
+                vertices = vertices[numpy.isfinite(vertices).all(axis=1)]
+                if len(vertices) > 0:
+                    tickMat = _symbolMaterial(tickSymbol, uniformColor, "uniform")
+                    self.pointMaterials.append((tickMat, tickSymbol, 7))
+                    self.group.add(
+                        gfx.Points(gfx.Geometry(positions=vertices), tickMat)
+                    )
 
         # Line
         dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
@@ -412,63 +419,41 @@ class _PygfxCurveItem:
                 pointKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **pointKwargs)
+            self.pointMaterials.append((mat, symbol, symbolsize))
             self._pointsObj = gfx.Points(geom, mat)
             self.group.add(self._pointsObj)
 
     @staticmethod
-    def _buildErrorBarSegments(x, y, xerror, yerror):
-        """Build line segments for error bars."""
-        parts = []
+    def _errorBarVertices(x, y, xerror, yerror):
+        """X and Y error bars vertices, laid out as in GLPlotCurve's _ErrorBars.
 
-        if yerror is not None:
-            yerror = numpy.asarray(yerror, dtype=numpy.float64)
-            if yerror.ndim == 2 and yerror.shape[1] == 1:
-                yerror = numpy.ravel(yerror)
-            if yerror.ndim == 0:
-                yErrMinus = numpy.full_like(y, yerror)
-                yErrPlus = yErrMinus
-            elif yerror.ndim == 1:
-                yErrMinus = yerror
-                yErrPlus = yerror
-            else:
-                yErrMinus = yerror[0]
-                yErrPlus = yerror[1]
-            n = len(x)
-            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
-            seg[0::2, 0] = x
-            seg[0::2, 1] = y - yErrMinus
-            seg[0::2, 2] = 0
-            seg[1::2, 0] = x
-            seg[1::2, 1] = y + yErrPlus
-            seg[1::2, 2] = 0
-            parts.append(seg)
+        Each data point has the 4 vertices: high, point, point, low, as 2
+        segments and 4 ticks. A missing error gives NaN high and low vertices,
+        leaving only the ticks on the data point.
+        """
 
-        if xerror is not None:
-            xerror = numpy.asarray(xerror, dtype=numpy.float64)
-            if xerror.ndim == 2 and xerror.shape[1] == 1:
-                xerror = numpy.ravel(xerror)
-            if xerror.ndim == 0:
-                xErrMinus = numpy.full_like(x, xerror)
-                xErrPlus = xErrMinus
-            elif xerror.ndim == 1:
-                xErrMinus = xerror
-                xErrPlus = xerror
-            else:
-                xErrMinus = xerror[0]
-                xErrPlus = xerror[1]
-            n = len(x)
-            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
-            seg[0::2, 0] = x - xErrMinus
-            seg[0::2, 1] = y
-            seg[0::2, 2] = 0
-            seg[1::2, 0] = x + xErrPlus
-            seg[1::2, 1] = y
-            seg[1::2, 2] = 0
-            parts.append(seg)
+        def bounds(values, error):
+            if error is None:
+                error = numpy.nan
+            error = numpy.asarray(error, dtype=numpy.float32)
+            if error.ndim == 2 and error.shape[1] == 1:
+                error = numpy.ravel(error)
+            minus, plus = (error[0], error[1]) if error.ndim == 2 else (error, error)
+            with numpy.errstate(invalid="ignore"):
+                return numpy.stack(
+                    numpy.broadcast_arrays(
+                        values + plus, values, values, values - minus
+                    ),
+                    axis=1,
+                ).ravel()
 
-        if parts:
-            return numpy.concatenate(parts)
-        return numpy.empty((0, 3), dtype=numpy.float64)
+        xVertices = numpy.zeros((4 * len(x), 3), dtype=numpy.float32)
+        xVertices[:, 0] = bounds(x, xerror)
+        xVertices[:, 1] = numpy.repeat(y, 4)
+        yVertices = numpy.zeros((4 * len(x), 3), dtype=numpy.float32)
+        yVertices[:, 0] = numpy.repeat(x, 4)
+        yVertices[:, 1] = bounds(y, yerror)
+        return xVertices, yVertices
 
     @staticmethod
     def _buildFill(x, y, baseline, color, alpha):
@@ -1192,10 +1177,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if isinstance(item, (_PygfxCurveItem, _PygfxShapeItem)):
                 for material, width in item.lineMaterials:
                     material.thickness = self._lineWidth(width)
-            if isinstance(item, _PygfxCurveItem) and item._pointsObj is not None:
-                item._pointsObj.material.size = self._symbolSize(
-                    item.symbol, item.symbolSize
-                )
+            if isinstance(item, _PygfxCurveItem):
+                for material, symbol, size in item.pointMaterials:
+                    material.size = self._symbolSize(symbol, size)
             if plotItem.isOverlay():
                 overlayObjects.append(item.group)
             else:

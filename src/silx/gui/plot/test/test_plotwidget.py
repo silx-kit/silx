@@ -2633,6 +2633,32 @@ def testPygfxShapeAxisLine(qWidgetFactory, shape):
     assert line.max() < 128
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxErrorBarTicks(qWidgetFactory):
+    """Error bars have 7 points ticks at their ends and at the data point"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve((0.5,), (0.5,), xerror=0.2, yerror=0.2, color="black", linestyle=" ")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    half = int(7 / 72 * frame.dotsPerInch) // 2 - 1
+    for x, y, vertical in (
+        (0.3, 0.5, True),
+        (0.5, 0.5, True),
+        (0.7, 0.5, True),
+        (0.5, 0.3, False),
+        (0.5, 0.5, False),
+        (0.5, 0.7, False),
+    ):
+        px, py = frame.dataToPixel(x, y)
+        if vertical:
+            tick = image[py - half : py + half + 1, px]
+        else:
+            tick = image[py, px - half : px + half + 1]
+        assert tick.max() < 128, (x, y)
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
