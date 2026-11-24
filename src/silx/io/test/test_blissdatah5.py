@@ -4,7 +4,7 @@ import pytest
 pytest.importorskip("blissdata")
 
 from .. import blissdatah5  # noqa: E402
-from ..blissdatah5 import BlissDataDataset  # noqa: E402
+from ..blissdatah5 import BlissDataDataset, BlissDataLima1Dataset  # noqa: E402
 
 
 class _StreamLikeDataset:
@@ -182,3 +182,92 @@ def testIterScalar():
     dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.array(42)))
     with pytest.raises(TypeError):
         list(dataset)
+
+
+class _FakeStream:
+    """Mimics a blissdata stream with images"""
+
+    kind = "array"
+
+    def __init__(self, array: numpy.ndarray, plugin: str):
+        self._array = array
+        self.plugin = plugin
+        self.sealed = False
+        self.isSealedCallCount = 0
+
+    @property
+    def shape(self):
+        return self._array.shape[1:]
+
+    @property
+    def dtype(self):
+        return self._array.dtype
+
+    def is_sealed(self):
+        self.isSealedCallCount += 1
+        return self.sealed
+
+    def __len__(self):
+        return len(self._array)
+
+    def __getitem__(self, idx):
+        return self._array[idx]
+
+
+class _Group(dict):
+    """Minimal group: a dict which can be weakly referenced"""
+
+
+def _createStreamDataset(array: numpy.ndarray, plugin: str):
+    """Create a dataset from a stream through `_children`"""
+    from blissdata.h5api import redis_hdf5
+
+    stream = _FakeStream(array, plugin)
+    data = redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    (dataset,) = blissdatah5._children(_Group(data=data))
+    return dataset, stream
+
+
+def testLima1Unsealed(array):
+    """Dataset of an unsealed lima1 stream is empty"""
+    dataset, stream = _createStreamDataset(array, plugin="lima")
+    assert isinstance(dataset, BlissDataLima1Dataset)
+
+    assert len(dataset) == 0
+    assert dataset.shape == (0, 3, 4)
+    assert dataset.size == 0
+    assert dataset[()].shape == (0, 3, 4)
+    assert dataset[1:].shape == (0, 3, 4)
+    assert list(dataset) == []
+    with pytest.raises(IndexError):
+        dataset[0]
+
+
+def testLima1Sealed(array):
+    """Dataset of a lima1 stream exposes data once sealed"""
+    dataset, stream = _createStreamDataset(array, plugin="lima")
+    assert len(dataset) == 0
+
+    stream.sealed = True
+    assert len(dataset) == len(array)
+    assert dataset.shape == array.shape
+    assert dataset.size == array.size
+    numpy.testing.assert_array_equal(dataset[()], array)
+    numpy.testing.assert_array_equal(dataset[-1], array[-1])
+
+    # Sealed state is cached
+    count = stream.isSealedCallCount
+    len(dataset)
+    assert stream.isSealedCallCount == count
+
+
+@pytest.mark.parametrize("plugin", [None, "lima2"])
+def testNotLima1Unsealed(array, plugin):
+    """Dataset of other unsealed streams exposes available data"""
+    dataset, stream = _createStreamDataset(array, plugin=plugin)
+    assert type(dataset) is BlissDataDataset
+
+    assert len(dataset) == len(array)
+    assert dataset.shape == array.shape
+    numpy.testing.assert_array_equal(dataset[:2], array[:2])
+    assert stream.isSealedCallCount == 0

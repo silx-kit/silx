@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import math
 import numbers
@@ -9,6 +11,7 @@ from . import commonh5
 
 from blissdata.h5api import abstract as _abstract
 from blissdata.h5api import redis_hdf5 as _redis_hdf5
+from blissdata.streams import BaseStream as _BaseStream
 
 _logger = logging.getLogger(__name__)
 
@@ -116,12 +119,12 @@ class BlissDataDataset(commonh5.Dataset):
         For integer index, the first axis is removed from the result.
         """
         data = self._get_data()
-        length = len(data)
+        length = len(self)
 
         if isinstance(index, slice):
             indices = range(*index.indices(length))
             if len(indices) == 0:
-                return numpy.empty((0,) + tuple(data.shape[1:]), dtype=data.dtype)
+                return numpy.empty((0,) + tuple(self.shape[1:]), dtype=data.dtype)
             if indices.step < 0:
                 # Not supported by blissdata streams: read in increasing order and reverse
                 reverse = slice(indices[-1], indices[0] + 1, -indices.step)
@@ -146,7 +149,7 @@ class BlissDataDataset(commonh5.Dataset):
         if data.ndim == 0:
             raise TypeError("Can't iterate over a scalar dataset")
 
-        length = len(data)
+        length = len(self)
         itemNBytes = data.dtype.itemsize * math.prod(data.shape[1:])
         chunkLength = max(1, _ITER_CHUNK_NBYTES // max(1, itemNBytes))
         for start in range(0, length, chunkLength):
@@ -158,12 +161,65 @@ class BlissDataDataset(commonh5.Dataset):
         return self[()]
 
 
+class BlissDataLima1Dataset(BlissDataDataset):
+    """Dataset wrapping a lima1 stream.
+
+    During the scan, lima1 images may not be immediately available,
+    so they are not exposed until the stream is sealed.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        data: _abstract.Dataset,
+        stream: _BaseStream,
+        parent: BlissDataH5 | BlissDataGroup | None = None,
+        attrs: dict | None = None,
+    ) -> None:
+        super().__init__(name, data, parent, attrs)
+        self.__stream = stream
+        self.__sealed = False
+
+    def __isSealed(self) -> bool:
+        if not self.__sealed:  # Once sealed, no need to query it again
+            self.__sealed = self.__stream.is_sealed()
+        return self.__sealed
+
+    def __len__(self) -> int:
+        return super().__len__() if self.__isSealed() else 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        if self.__isSealed():
+            return super().shape
+        return (0,) + tuple(self.__stream.shape)
+
+    @property
+    def size(self) -> int:
+        return super().size if self.__isSealed() else 0
+
+
+def _lima1Stream(data: _abstract.Dataset) -> _BaseStream | None:
+    """Returns the lima1 stream wrapped by a blissdata dataset if any, else None"""
+    array = getattr(data, "_array", None)
+    if not isinstance(array, _redis_hdf5.StreamAsArray):
+        return None
+    stream = array._stream
+    return stream if stream.plugin == "lima" else None
+
+
 def _children(group: _abstract.Group) -> Generator[BlissDataDataset | BlissDataGroup]:
     for name in group.keys():
         item = group[name]
         if isinstance(item, _abstract.Group):
             yield BlissDataGroup(name, item, parent=group, attrs=item.attrs)
         elif isinstance(item, _abstract.Dataset):
-            yield BlissDataDataset(name, item, parent=group, attrs=item.attrs)
+            stream = _lima1Stream(item)
+            if stream is None:
+                yield BlissDataDataset(name, item, parent=group, attrs=item.attrs)
+            else:
+                yield BlissDataLima1Dataset(
+                    name, item, stream, parent=group, attrs=item.attrs
+                )
         else:
             _logger.warning(f"Cannot map child {name}: Ignored")
