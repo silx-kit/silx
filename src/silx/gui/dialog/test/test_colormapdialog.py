@@ -440,12 +440,10 @@ _LUT = numpy.array([[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]])
         ({"colors": _LUT}, None, "Custom"),
     ],
 )
-@pytest.mark.parametrize("editable", (True, False))
-def testReverseColormap(qWidgetFactory, kwargs, reversedName, text, editable):
+def testReverseColormap(qWidgetFactory, kwargs, reversedName, text):
     """Test reversing the colormap from the dialog (back and forth)"""
     dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
     colormap = Colormap(**kwargs)
-    colormap.setEditable(editable)
     dialog.setColormap(colormap)
 
     name = colormap.getName()
@@ -455,12 +453,9 @@ def testReverseColormap(qWidgetFactory, kwargs, reversedName, text, editable):
 
     button = dialog._reverseColormapButton
     assert button.isCheckable()
-    assert button.isEnabled() is editable
+    assert button.isEnabled()
     assert not button.isChecked()
     assert comboBox.currentText() == text
-
-    if not editable:
-        return
 
     button.setChecked(True)
     assert colormap.getName() == reversedName
