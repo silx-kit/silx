@@ -2521,8 +2521,8 @@ def testPygfxFrameLineWidth(qWidgetFactory, grid):
     assert columns.tolist() == [x]
 
 
-def _renderDashedRow(qWidgetFactory, kind, linestyle):
-    """Draw a 4 points wide horizontal dashed line across the plot area.
+def _renderLineRow(qWidgetFactory, kind, linestyle):
+    """Draw a 4 points wide horizontal line across the plot area.
 
     Return its middle row and its width, both in device pixels.
     """
@@ -2555,7 +2555,7 @@ def _renderDashedRow(qWidgetFactory, kind, linestyle):
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashEnds(qWidgetFactory, kind):
     """Dashes end square at their length, as in the OpenGL backend"""
-    row = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))[0]
+    row = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))[0]
     runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
     # Dashes as long as the gaps
     assert runs.max() - runs.min() <= 1
@@ -2565,7 +2565,7 @@ def testPygfxDashEnds(qWidgetFactory, kind):
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashLength(qWidgetFactory, kind):
     """Dash lengths scale with the line width, as in the OpenGL backend"""
-    row, width = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
+    row, width = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))
     runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
     # Dashes and gaps twice the line width
     assert numpy.abs(runs - 2 * width).max() <= 1
@@ -2575,12 +2575,20 @@ def testPygfxDashLength(qWidgetFactory, kind):
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashOffset(qWidgetFactory, kind):
     """The dash offset moves the pattern back along the line, as in OpenGL"""
-    row, width = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
-    offsetRow = _renderDashedRow(qWidgetFactory, kind, (1, (2, 2)))[0]
+    row, width = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))
+    offsetRow = _renderLineRow(qWidgetFactory, kind, (1, (2, 2)))[0]
     # An offset of 1 line width moves the dashes 1 line width to the left
     shift = round(width)
     mismatch = (offsetRow[:-shift] < 128) != (row[shift:] < 128)
     assert mismatch.mean() < 0.2
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxNoLineStyle(qWidgetFactory, kind):
+    """An empty linestyle draws no line, as in the OpenGL backend"""
+    row = _renderLineRow(qWidgetFactory, kind, "")[0]
+    assert row.min() >= 128
 
 
 def _inkCrop(coverage):

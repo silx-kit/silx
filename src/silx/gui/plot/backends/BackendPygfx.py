@@ -368,8 +368,7 @@ class _PygfxCurveItem:
 
         # Line
         dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
-        hasLine = linestyle not in (None, "", " ")
-        if hasLine and len(x) > 1:
+        if dashPattern is not None and len(x) > 1:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
             positions[:, 1] = y
@@ -709,7 +708,7 @@ class _PygfxShapeItem(dict):
             if fillObj is not None:
                 self.group.add(fillObj)
 
-        if len(positions) >= 2:
+        if dashPattern is not None and len(positions) >= 2:
             geom = gfx.Geometry(positions=positions)
             if gapcolor is not None and dashPattern:
                 gapRgba = colors.rgba(gapcolor)
@@ -1311,6 +1310,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     padding=self._TEXT_MARKER_PADDING,
                 )
 
+        if item["dashpattern"] is None:
+            return [], label
         geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
         mat = _material(
             _DashedLineMaterial,
