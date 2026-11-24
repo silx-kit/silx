@@ -129,5 +129,10 @@ def test_3d_scatter(qapp_utils, qWidgetFactory, tmp_path):
 
         plotItem = plotItems[0]
         assert isinstance(plotItem, Scatter3D)
+        # The DataViewer sets the data asynchronously (QTimer.singleShot),
+        # so wait until the scatter item is populated (raises after 10 s).
+        qapp_utils.waitAsLongAs(
+            lambda: len(plotItem.getXData()) == 0, msecs=100, nretries=100
+        )
         numpy.testing.assert_equal(plotItem.getXData(), x)
         assert len(plotItem.getSymbolSize()) == len(x)
