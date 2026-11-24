@@ -624,27 +624,33 @@ class _PygfxCurveItem:
 
     @staticmethod
     def _buildFill(x, y, baseline, color):
-        """Build a filled mesh between curve and baseline, in scaled coordinates."""
-        n = len(x)
-        # Create triangle strip: for each segment, two triangles
-        vertices = []
-        indices = []
-        for i in range(n):
-            vertices.append([x[i], y[i], 0])
-            vertices.append([x[i], baseline[i], 0])
+        """Build the mesh between curve and baseline, in scaled coordinates.
 
-        for i in range(n - 1):
-            idx = i * 2
-            indices.append([idx, idx + 1, idx + 2])
-            indices.append([idx + 1, idx + 3, idx + 2])
-
-        if not indices:
+        Each finite segment fills the area between its curve and baseline edges,
+        split where they cross. Where segments overlap along x, as when x goes
+        back, their areas add up, whereas OpenGL's even-odd stencil empties them.
+        """
+        finite = numpy.isfinite(x) & numpy.isfinite(y) & numpy.isfinite(baseline)
+        i = numpy.nonzero(finite[:-1] & finite[1:])[0]
+        if len(i) == 0:
             return None
 
-        vertices = numpy.array(vertices, dtype=numpy.float32)
-        indices = numpy.array(indices, dtype=numpy.int32)
+        # Segment corners: A, C on the curve and B, D on the baseline, at x0, x1
+        x0, x1, y0, y1 = x[i], x[i + 1], y[i], y[i + 1]
+        b0, b1 = baseline[i], baseline[i + 1]
+        d0, d1 = y0 - b0, y1 - b1
+        crossing = d0 * d1 < 0
+        # Triangles ABP and QDC, with P the crossing point and Q = P, or else
+        # P = D and Q = A, the two halves of quadrilateral ABDC
+        t = numpy.where(crossing, d0 / numpy.where(crossing, d0 - d1, 1), 1)
+        px, py = x0 + t * (x1 - x0), b0 + t * (b1 - b0)
+        qx, qy = numpy.where(crossing, px, x0), numpy.where(crossing, py, y0)
 
-        geom = gfx.Geometry(positions=vertices, indices=indices)
+        positions = numpy.zeros((6 * len(i), 3), dtype=numpy.float32)
+        positions[:, 0] = numpy.stack((x0, x0, px, qx, x1, x1), axis=1).ravel()
+        positions[:, 1] = numpy.stack((y0, b0, py, qy, b1, y1), axis=1).ravel()
+        indices = numpy.arange(len(positions), dtype=numpy.int32).reshape(-1, 3)
+        geom = gfx.Geometry(positions=positions, indices=indices)
         mat = _material(gfx.MeshBasicMaterial, color=color, side="both")
         return gfx.Mesh(geom, mat)
 

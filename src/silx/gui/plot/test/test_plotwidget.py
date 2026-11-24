@@ -2876,6 +2876,25 @@ def testPygfxCurveFillLogBaseline(qWidgetFactory, baseline):
         assert tuple(image[py, px]) == (255, 0, 0), y
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("x, y", [((0, 1), (1, -1)), ((1, 0), (-1, 1))])
+def testPygfxCurveFillCrossing(qWidgetFactory, x, y):
+    """A fill crossing its baseline covers each side between curve and baseline"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve(x, y, color="red", fill=True, baseline=0, linestyle=" ")
+    plot.setLimits(0, 1, -1, 1)
+    image = _renderPygfx(plot)[0]
+    points = (
+        (0.25, 0.1, True),
+        (0.25, -0.1, False),
+        (0.75, -0.1, True),
+        (0.75, 0.1, False),
+    )
+    for x, y, filled in points:
+        px, py = plot._backend._plotFrame.dataToPixel(x, y)
+        assert (tuple(image[py, px]) == (255, 0, 0)) == filled, (x, y)
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
