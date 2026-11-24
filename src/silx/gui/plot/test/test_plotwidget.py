@@ -2659,6 +2659,21 @@ def testPygfxErrorBarTicks(qWidgetFactory):
         assert tick.max() < 128, (x, y)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("color", ["red", numpy.array(((1.0, 0.0, 0.0, 1.0),))])
+def testPygfxErrorBarColor(qWidgetFactory, color):
+    """Error bars are black whatever the curve color"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve((0.5,), (0.5,), xerror=0.2, yerror=0.2, color=color)
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+    frame = plot._backend._plotFrame  # In device pixels
+    px, py = frame.dataToPixel(0.5, 0.4)
+    assert image[py, px - 2 : px + 3].max(axis=1).min() < 128
+    px, py = frame.dataToPixel(0.4, 0.5)
+    assert image[py - 2 : py + 3, px].max(axis=1).min() < 128
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

@@ -354,20 +354,21 @@ class _PygfxCurveItem:
             if fillObj is not None:
                 self.group.add(fillObj)
 
-        # Error bars, then their ticks
+        # Error bars, then their ticks, in OpenGL's black whatever the curve color
         if xerror is not None or yerror is not None:
+            errorColor = gfx.Color(0, 0, 0, 1)
             xVertices, yVertices = self._errorBarVertices(x, y, xerror, yerror)
             segments = numpy.concatenate((xVertices, yVertices)).reshape(-1, 2, 3)
             segments = segments[numpy.isfinite(segments).all(axis=(1, 2))]
             if len(segments) > 0:
                 errGeom = gfx.Geometry(positions=segments.reshape(-1, 3))
-                errMat = _material(gfx.LineSegmentMaterial, aa=True, color=uniformColor)
+                errMat = _material(gfx.LineSegmentMaterial, aa=True, color=errorColor)
                 self.lineMaterials.append((errMat, 1.0))
                 self.group.add(gfx.Line(errGeom, errMat))
             for tickSymbol, vertices in (("|", xVertices), ("_", yVertices)):
                 vertices = vertices[numpy.isfinite(vertices).all(axis=1)]
                 if len(vertices) > 0:
-                    tickMat = _symbolMaterial(tickSymbol, uniformColor, "uniform")
+                    tickMat = _symbolMaterial(tickSymbol, errorColor, "uniform")
                     self.pointMaterials.append((tickMat, tickSymbol, 7))
                     self.group.add(
                         gfx.Points(gfx.Geometry(positions=vertices), tickMat)
