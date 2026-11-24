@@ -109,9 +109,6 @@ else:
                 format_.setSwapBehavior(qt.QSurfaceFormat.DoubleBuffer)
                 self.setFormat(format_)
 
-            # Enable receiving mouse move events when no buttons are pressed
-            self.setMouseTracking(True)
-
         def getDevicePixelRatio(self):
             """Returns the ratio device-independent / device pixel size
 
@@ -308,6 +305,9 @@ class OpenGLWidget(qt.QWidget):
             version=version,
             f=f,
         )
+        # Qt rounds the position of a mouse event it passes from a child to
+        # its parent, so mouse events go to this widget directly.
+        self.__openGLWidget.setAttribute(qt.Qt.WA_TransparentForMouseEvents)
         # Async connection need, otherwise issue when hiding OpenGL
         # widget while doing the rendering..
         self.__openGLWidget.sigOpenGLContextError.connect(
