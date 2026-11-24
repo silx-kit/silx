@@ -112,20 +112,26 @@ _DASH_PATTERNS = {
 }
 
 
-class _DashedLineMaterial(gfx.LineMaterial):
-    """Line material whose dashes are drawn as in GLLines2D"""
+class _GLLineMaterial(gfx.LineMaterial):
+    """Line material drawn as GLLines2D, which ends lines and dashes square"""
 
 
-@register_wgpu_render_function(gfx.Line, _DashedLineMaterial)
-class _DashedLineShader(LineShader):
+@register_wgpu_render_function(gfx.Line, _GLLineMaterial)
+class _GLLineShader(LineShader):
     def get_code(self):
-        # pygfx rounds dash ends, which lengthens dashes by the line width
+        # pygfx rounds dash ends, which lengthens dashes by the line width,
+        # and caps lines beyond their end points and broken joins
         return (
             super()
             .get_code()
             .replace(
                 "let dist_to_stroke_dash_p = length(vec_to_dash_p) - half_thickness_p;",
                 "let dist_to_stroke_dash_p = select(-1e9, 1e9, dist_to_dash_p > 0.0);",
+            )
+            .replace(
+                "var dist_to_stroke_p = length(segment_coord_p) - half_thickness_p;",
+                "var dist_to_stroke_p = length(segment_coord_p) - half_thickness_p;\n"
+                "if (!is_join && segment_coord_p.x != 0.0) { discard; }",
             )
         )
 
@@ -438,12 +444,12 @@ class _PygfxCurveItem:
             # Gap color line under the dashed line
             if gapcolor is not None and dashPattern:
                 gapRgba = colors.rgba(gapcolor)
-                gapMat = _material(gfx.LineMaterial, aa=True, color=gfx.Color(*gapRgba))
+                gapMat = _material(_GLLineMaterial, aa=True, color=gfx.Color(*gapRgba))
                 self.lineMaterials.append((gapMat, linewidth))
                 self.group.add(gfx.Line(geom, gapMat))
 
             mat = _material(
-                _DashedLineMaterial,
+                _GLLineMaterial,
                 aa=True,
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
@@ -1265,7 +1271,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             return [], label
         geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
         mat = _material(
-            _DashedLineMaterial,
+            _GLLineMaterial,
             aa=True,
             thickness=self._lineWidth(item["linewidth"]),
             color=gfxColor,
@@ -1334,14 +1340,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             # The gap color line under the dashed line, as in OpenGL
             if item["gapcolor"] is not None and item["dashpattern"]:
                 gapMaterial = _material(
-                    gfx.LineMaterial,
+                    _GLLineMaterial,
                     aa=True,
                     thickness=thickness,
                     color=gfx.Color(*item["gapcolor"]),
                 )
                 objects.append(gfx.Line(geometry, gapMaterial))
             material = _material(
-                _DashedLineMaterial,
+                _GLLineMaterial,
                 aa=True,
                 thickness=thickness,
                 color=color,

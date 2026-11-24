@@ -2555,6 +2555,30 @@ def _renderLineRow(qWidgetFactory, kind, linestyle):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "gapcolor", "shape"])
+def testPygfxLineEnds(qWidgetFactory, kind):
+    """Lines end at their points without cap, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    if kind == "shape":
+        plot.addShape(
+            (0.2, 0.8), (0.5, 0.5), shape="polylines", color="black", linewidth=8
+        )
+    else:
+        plot.addCurve((0.2, 0.8), (0.5, 0.5), color="black", linewidth=8)
+        if kind == "gapcolor":
+            plot.getCurve().setLineStyle("--")
+            plot.getCurve().setLineGapColor("black")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, row = frame.dataToPixel(0.2, 0.5)
+    right = frame.dataToPixel(0.8, 0.5)[0]
+    assert image[row, left + 2] < 128 and image[row, right - 2] < 128
+    assert image[row, left - 2] > 250 and image[row, right + 2] > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashEnds(qWidgetFactory, kind):
     """Dashes end square at their length, as in the OpenGL backend"""
