@@ -2279,3 +2279,29 @@ def testGlProgramUseDisablesAttributeArrays(qWidgetFactory):
         for location in range(gl.glGetIntegerv(gl.GL_MAX_VERTEX_ATTRIBS)):
             gl.glGetVertexAttribiv(location, gl.GL_VERTEX_ATTRIB_ARRAY_ENABLED, enabled)
             assert enabled[0] == gl.GL_FALSE, f"location {location}"
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlTrianglesLargeCoordinates(qWidgetFactory):
+    """Triangles at large coordinates are drawn and picked as precisely as near 0"""
+    large = 1.79e9  # A timestamp, where float32 steps are 128
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    corners = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+    plot.addScatter(
+        large + corners[0],
+        large + corners[1],
+        (0,) * 4,
+        colormap=Colormap(colors=((1.0, 0.0, 0.0),), vmin=0, vmax=1),
+    )
+    plot.getScatter().setVisualization("solid")
+    plot.setLimits(large, large + 1, large, large + 1)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, inside in ((0.5, 0.5, True), (0.1, 0.9, False), (0.9, 0.1, False)):
+        col, row = frame.dataToPixel(large + x, large + y)
+        assert numpy.array_equal(image[row, col], (255, 0, 0)) == inside, (x, y)
+
+    px, py = plot.dataToPixel(large + 0.7, large + 0.3)
+    results = [list(r.getIndices()) for r in plot.pickItems(px, py)]
+    assert len(results) == 1 and 1 in results[0], results
