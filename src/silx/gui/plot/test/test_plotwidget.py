@@ -43,6 +43,7 @@ from silx.gui import qt
 from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, Curve, XAxisExtent, YAxisExtent, Axis
+from silx.gui.plot.items.axis import TickMode
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -2523,6 +2524,25 @@ def testPygfxFrameLineWidth(qWidgetFactory, grid):
         x = frame.plotOrigin[0] - 1
     columns = numpy.nonzero(image[y, x - 5 : x + 5].min(axis=1) < 250)[0] + x - 5
     assert columns.tolist() == [x]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxTimeSeriesTickDensity(qWidgetFactory, monkeypatch):
+    """Time series have 1 tick per inch, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 101.6 * backend.getDevicePixelRatio()
+    )
+    plot.getXAxis().setTickMode(TickMode.TIME_SERIES)
+    plot.getXAxis().setTimeZone("UTC")
+    plot.getXAxis().setLimits(0, 48 * 3600)
+    _renderPygfx(plot)
+
+    frame = backend._plotFrame  # In device pixels
+    assert round(frame.plotSize[0] / frame.dotsPerInch) == 5
+    hours = [dataPos / 3600 for _, dataPos, _ in frame.xAxis.ticks]
+    assert hours == [0, 12, 24, 36, 48]
 
 
 def _renderLineRow(qWidgetFactory, kind, linestyle):
