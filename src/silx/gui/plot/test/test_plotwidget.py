@@ -2299,6 +2299,40 @@ def testPygfxLogAxesCurvePick(qWidgetFactory):
     assert results == [("curve", [1])]
 
 
+def _inkCrop(coverage):
+    """coverage cropped to its pixels with ink"""
+    rows, columns = numpy.nonzero(coverage > 0.1)
+    return coverage[rows.min() : rows.max() + 1, columns.min() : columns.max() + 1]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("text", ["HHHH", "\u22121.5", r"$2\theta^2$"])
+def testPygfxTextRaster(qWidgetFactory, text):
+    """The title is the OpenGL backend raster of the text, pixel for pixel"""
+    from silx.gui.utils.matplotlib import rasterMathText
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setGraphTitle(text)
+    image, _ = _renderPygfx(plot)
+
+    backend = plot._backend
+    top = int(backend._plotFrame.plotOrigin[1] - 2)  # Above the frame
+    width = image.shape[1]
+    value = image[:top, width // 4 : 3 * width // 4].min(axis=2) / 255
+    # pygfx blends black over white in linear light
+    linear = numpy.where(
+        value <= 0.04045, value / 12.92, ((value + 0.055) / 1.055) ** 2.4
+    )
+    coverage = _inkCrop(1 - linear)
+
+    glImage, _ = rasterMathText(
+        text, backend._getDefaultFont(), backend.getDotsPerInch()
+    )
+    glCoverage = _inkCrop(glImage / 255)
+    assert coverage.shape == glCoverage.shape
+    assert numpy.allclose(coverage, glCoverage, atol=0.02)
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 

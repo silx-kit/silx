@@ -29,12 +29,13 @@ from __future__ import annotations
 __authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
+from collections import OrderedDict
 import functools
 import logging
 import math
-import re
 
 import numpy
+from matplotlib.font_manager import FontProperties, findfont
 
 from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
@@ -47,6 +48,7 @@ from . import BackendBase
 from ... import colors
 from ... import qt
 from ..._geometry import segmentTrianglesIntersection
+from ...utils.matplotlib import rasterMathText
 from ._PlotFrameCore import PlotFrame2DCore
 from ._PlotImageFile import saveImageToFile
 from .utils import findDimToKeep, ensureAspectRatio
@@ -77,14 +79,22 @@ def _logDpiOnce(message: str) -> None:
     _logger.error(message)
 
 
-_MATHDEFAULT_RE = re.compile(r"\$\\mathdefault\{([^}]*)\}\$")
+_TEXT_RASTERS: OrderedDict = OrderedDict()
+"""Least recently used text rasters, as cached by the OpenGL backend"""
 
 
-def _stripMathDefault(text):
-    """Strip matplotlib's $\\mathdefault{...}$ LaTeX wrapping from tick labels."""
-    if text is None:
-        return text
-    return _MATHDEFAULT_RE.sub(r"\1", text)
+def _rasterText(
+    text: str, font: qt.QFont, dotsPerInch: float
+) -> tuple[numpy.ndarray, float]:
+    """rasterMathText of the text, the raster of the OpenGL backend"""
+    key = text, font.key(), dotsPerInch
+    raster = _TEXT_RASTERS.pop(key, None)
+    if raster is None:
+        raster = rasterMathText(text, font, dotsPerInch)
+        if len(_TEXT_RASTERS) >= 128:
+            _TEXT_RASTERS.popitem(last=False)
+    _TEXT_RASTERS[key] = raster
+    return raster
 
 
 # Dash pattern mapping: silx linestyle -> pygfx dash_pattern
@@ -813,13 +823,57 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self.setMouseTracking(True)
 
     def _getDefaultFont(self):
+        """Returns the default font, the one of the OpenGL backend"""
         if self._defaultFont is None:
-            app = qt.QApplication.instance()
-            if app is not None:
-                self._defaultFont = app.font()
-            else:
-                self._defaultFont = qt.QFont()
+            fontId = qt.QFontDatabase.addApplicationFont(
+                findfont(FontProperties(family=["sans-serif"]))
+            )
+            family = qt.QFontDatabase.applicationFontFamilies(fontId)[0]
+            font = qt.QFont(family, 10, qt.QFont.Normal, False)
+            font.setStyleStrategy(qt.QFont.PreferAntialias)
+            self._defaultFont = font
         return self._defaultFont
+
+    def _textObject(
+        self,
+        text: str,
+        font: qt.QFont,
+        color: RGBAColorType,
+        x: float,
+        y: float,
+        align: str,
+        valign: str,
+        rotate: float = 0.0,
+    ) -> gfx.Group | None:
+        """Text in device pixels drawn as the OpenGL backend Text2D draws it,
+        or None for blank text"""
+        if not text.strip():
+            return None
+        coverage, baseline = _rasterText(text, font, self._plotFrame.dotsPerInch)
+        height, width = coverage.shape
+        rgba = numpy.empty((height, width, 4), dtype=numpy.uint8)
+        rgba[..., :3] = numpy.round(numpy.asarray(color[:3]) * 255)
+        rgba[..., 3] = numpy.round(coverage * color[3])
+
+        xOrig = {"left": 0, "right": -width, "center": -width // 2}[align]
+        yOrig = {
+            "baseline": -baseline,
+            "top": 0,
+            "bottom": -height,
+            "center": -height // 2,
+        }[valign]
+
+        image = gfx.Image(
+            gfx.Geometry(grid=gfx.Texture(rgba, dim=2)),
+            _material(gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)),
+        )
+        # Texel centers are on integer coordinates
+        image.local.position = (xOrig + 0.5, yOrig + 0.5, 0)
+        group = gfx.Group()
+        group.add(image)
+        group.local.position = (int(x), int(y), 0)
+        group.local.euler_z = math.radians(rotate)
+        return group
 
     def getDevicePixelRatio(self):
         return self.devicePixelRatioF()
@@ -984,47 +1038,18 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # Render text labels (tick labels, axis titles, main title)
         for labelDict in labelDicts:
-            text = labelDict.get("text", "")
-            if not text:
-                continue
-            # Strip matplotlib LaTeX formatting
-            text = _stripMathDefault(text)
-
-            lx = labelDict["x"]
-            ly = labelDict["y"]
-            labelColor = labelDict.get("color", (0, 0, 0, 1))
-            rotate = labelDict.get("rotate", 0)
-
-            # Map alignment strings to pygfx anchor
-            align = labelDict.get("align", "center")
-            valign = labelDict.get("valign", "center")
-            anchor = self._mapAnchor(align, valign)
-
-            fontSize = 12.0
-            font = labelDict.get("font")
-            if font is not None:
-                ps = font.pointSizeF()
-                if ps > 0:
-                    fontSize = ps
-                else:
-                    px = font.pixelSize()
-                    if px > 0:
-                        fontSize = px * 72.0 / self.getDotsPerInch()
-
-            textObj = gfx.Text(
-                text=text,
-                material=_material(gfx.TextMaterial, color=gfx.Color(*labelColor)),
-                font_size=fontSize,
-                anchor=anchor,
-                screen_space=True,
+            textObj = self._textObject(
+                labelDict["text"],
+                labelDict["font"],
+                labelDict["color"],
+                labelDict["x"],
+                labelDict["y"],
+                labelDict["align"],
+                labelDict["valign"],
+                labelDict["rotate"],
             )
-            textObj.local.position = (lx, ly, 0)
-
-            if rotate:
-                # Negate angle because screen camera flips Y
-                textObj.local.euler_z = math.radians(-rotate)
-
-            self._screenFrameGroup.add(textObj)
+            if textObj is not None:
+                self._screenFrameGroup.add(textObj)
 
     def _syncItemScenes(self):
         """Fill the data and overlay scenes with the visible items, back to front.
@@ -1087,11 +1112,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             symbol = gfx.Points(geom, mat)
             if text is None:
                 return [symbol], None
-            label = self._markerLabel(
+            label = self._textObject(
                 text,
-                gfxColor,
-                (pixelPos[0] + pixelOffset, pixelPos[1] + pixelOffset),
-                "top-left",
+                self._getDefaultFont(),
+                item["color"],
+                pixelPos[0] + pixelOffset,
+                pixelPos[1] + pixelOffset,
+                "left",
+                "top",
             )
             return [symbol], label
 
@@ -1109,11 +1137,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             right = self._plotFrame.size[0] - self._plotFrame.margins.right
             positions = [[left, pixelPos[1], 0], [right, pixelPos[1], 0]]
             if text is not None:
-                label = self._markerLabel(
+                label = self._textObject(
                     text,
-                    gfxColor,
-                    (right - pixelOffset, pixelPos[1] - pixelOffset),
-                    "bottom-right",
+                    self._getDefaultFont(),
+                    item["color"],
+                    right - pixelOffset,
+                    pixelPos[1] - pixelOffset,
+                    "right",
+                    "bottom",
                 )
         else:
             # Vertical line at x
@@ -1129,11 +1160,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             bottom = self._plotFrame.size[1] - self._plotFrame.margins.bottom
             positions = [[pixelPos[0], top, 0], [pixelPos[0], bottom, 0]]
             if text is not None:
-                label = self._markerLabel(
+                label = self._textObject(
                     text,
-                    gfxColor,
-                    (pixelPos[0] + pixelOffset, top + pixelOffset),
-                    "top-left",
+                    self._getDefaultFont(),
+                    item["color"],
+                    pixelPos[0] + pixelOffset,
+                    top + pixelOffset,
+                    "left",
+                    "top",
                 )
 
         dashPattern = item["dashpattern"]
@@ -1146,17 +1180,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             dash_pattern=dashPattern if dashPattern else (),
         )
         return [gfx.Line(geom, mat)], label
-
-    def _markerLabel(self, text, color, position, anchor):
-        label = gfx.Text(
-            material=_material(gfx.TextMaterial, color=color),
-            text=text,
-            font_size=self._getDefaultFont().pointSizeF() or 10,
-            anchor=anchor,
-            screen_space=True,
-        )
-        label.local.position = (*position, 0)
-        return label
 
     def _crosshairObjects(self):
         """Return the crosshair cursor lines"""
@@ -1194,15 +1217,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         vMat = _material(gfx.LineMaterial, thickness=linewidth, color=gfxColor)
         vLine = gfx.Line(vGeom, vMat)
         return [hLine, vLine]
-
-    @staticmethod
-    def _mapAnchor(align, valign):
-        """Map silx align/valign strings to pygfx anchor string."""
-        vmap = {"top": "top", "bottom": "bottom", "center": "middle"}
-        hmap = {"left": "left", "right": "right", "center": "center"}
-        v = vmap.get(str(valign), "middle")
-        h = hmap.get(str(align), "center")
-        return f"{v}-{h}"
 
     # QWidget events ########################################################
 
