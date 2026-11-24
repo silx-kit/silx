@@ -2503,6 +2503,24 @@ def testPygfxCrosshair(qapp, qWidgetFactory):
     assert numpy.nonzero(isRed[:, x + 10])[0].tolist() == [y]
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("grid", [False, True])
+def testPygfxFrameLineWidth(qWidgetFactory, grid):
+    """Frame and grid lines are 1 device pixel wide, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    # Puts the grid line at 40 inside the pixel that dataToPixel truncates to
+    plot.setLimits(0, 99, 0, 99)
+    plot.setGraphGrid(grid)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(40, 45)  # Off the ticks at both pixel ratios
+    if not grid:  # Left border, on the pixel left of the plot area
+        x = frame.plotOrigin[0] - 1
+    columns = numpy.nonzero(image[y, x - 5 : x + 5].min(axis=1) < 250)[0] + x - 5
+    assert columns.tolist() == [x]
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

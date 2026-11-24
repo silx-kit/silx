@@ -243,6 +243,31 @@ def _material(cls, *args, **kwargs):
     return cls(*args, depth_test=False, **kwargs)
 
 
+def _pixelLines(vertices, width: float, color) -> gfx.Mesh:
+    """Segments between pairs of screen vertices, filled as glLineWidth draws them.
+
+    pygfx lines get no thinner than 1.415 pixels, so a 1 pixel line covers 1
+    or 2 pixels depending on where it falls: fill rectangles of width instead.
+    """
+    start, end = numpy.asarray(vertices, numpy.float64).reshape(-1, 2, 2).swapaxes(0, 1)
+    direction = end - start
+    length = numpy.linalg.norm(direction, axis=1, keepdims=True)
+    normal = (
+        direction[:, ::-1] * (-0.5 * width, 0.5 * width) / numpy.maximum(length, 1e-12)
+    )
+    corners = numpy.stack(
+        (start - normal, start + normal, end + normal, end - normal), 1
+    )
+    positions = numpy.zeros((corners.size // 2, 3), numpy.float32)
+    positions[:, :2] = corners.reshape(-1, 2)
+    quads = numpy.arange(len(positions), dtype=numpy.uint32).reshape(-1, 4)
+    indices = numpy.concatenate((quads[:, (0, 1, 2)], quads[:, (0, 2, 3)]))
+    return gfx.Mesh(
+        gfx.Geometry(positions=positions, indices=indices),
+        _material(gfx.MeshBasicMaterial, color=color, side="both"),
+    )
+
+
 def _setChildren(group: gfx.Group, objects: list) -> None:
     """Make objects the children of group, in this order"""
     if group.children != tuple(objects):
@@ -1080,28 +1105,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         vertices, gridVertices, labelDicts = self._plotFrame._buildVerticesAndLabels()
         self._plotFrame._clearDirty()
 
-        # Render grid lines
+        # Grid and frame lines are 1 device pixel wide, as in GLPlotFrame
         if len(gridVertices) >= 2:
             gridColor = gfx.Color(*self._plotFrame.gridColor)
-            geom = gfx.Geometry(
-                positions=numpy.column_stack(
-                    [gridVertices, numpy.zeros(len(gridVertices), dtype=numpy.float32)]
-                )
-            )
-            mat = _material(gfx.LineSegmentMaterial, thickness=1.0, color=gridColor)
-            self._gridGroup.add(gfx.Line(geom, mat))
+            self._gridGroup.add(_pixelLines(gridVertices, 1.0, gridColor))
 
-        # Render frame lines (axes)
         if len(vertices) >= 2:
             fgColor = gfx.Color(*self._plotFrame.foregroundColor)
-            geom = gfx.Geometry(
-                positions=numpy.column_stack(
-                    [vertices, numpy.zeros(len(vertices), dtype=numpy.float32)]
-                )
-            )
-            mat = _material(gfx.LineSegmentMaterial, thickness=1.0, color=fgColor)
-            frameLine = gfx.Line(geom, mat)
-            self._screenFrameGroup.add(frameLine)
+            self._screenFrameGroup.add(_pixelLines(vertices, 1.0, fgColor))
 
         # Render text labels (tick labels, axis titles, main title)
         for labelDict in labelDicts:
@@ -1297,30 +1308,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         left, top = self._plotFrame.plotOrigin
         pw, ph = self._plotFrame.plotSize
 
-        # Horizontal line
-        hPositions = numpy.array(
-            [
-                [left, my, 0],
-                [left + pw, my, 0],
-            ],
-            dtype=numpy.float32,
-        )
-        hGeom = gfx.Geometry(positions=hPositions)
-        hMat = _material(gfx.LineMaterial, thickness=linewidth, color=gfxColor)
-        hLine = gfx.Line(hGeom, hMat)
-
-        # Vertical line
-        vPositions = numpy.array(
-            [
-                [mx, top, 0],
-                [mx, top + ph, 0],
-            ],
-            dtype=numpy.float32,
-        )
-        vGeom = gfx.Geometry(positions=vPositions)
-        vMat = _material(gfx.LineMaterial, thickness=linewidth, color=gfxColor)
-        vLine = gfx.Line(vGeom, vMat)
-        return [hLine, vLine]
+        # linewidth is in device pixels, as BackendOpenGL glLineWidth
+        segments = ((left, my), (left + pw, my), (mx, top), (mx, top + ph))
+        return [_pixelLines(segments, linewidth, gfxColor)]
 
     # QWidget events ########################################################
 
