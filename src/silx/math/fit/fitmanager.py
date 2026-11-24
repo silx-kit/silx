@@ -546,7 +546,7 @@ class FitManager:
             finite_mask = self._finite_mask
         else:
             x = numpy.asarray(x)
-            # Mask x with not finite (support nD x)
+            # Mask not finite x values (with support of nD x)
             finite_mask = numpy.all(numpy.isfinite(x), axis=tuple(range(1, x.ndim)))
 
         if paramlist is None:
