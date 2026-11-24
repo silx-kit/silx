@@ -94,7 +94,7 @@ _colormapIconPreview = {}
 
 
 def _reversedColormapName(name: str) -> str | None:
-    """Returns the name of the reversed counterpart of a colormap if it exists.
+    """Returns the name of the reversed colormap if it exists.
 
     :param name: Name of the colormap
     """
