@@ -568,8 +568,8 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__currentHistoryLocation = -1
         """Store the location in the history. Bigger is older"""
 
-        self.__processing = 0
-        """Number of asynchronous processing tasks"""
+        self.__processing = False
+        """True while the last requested directory is not loaded"""
         self.__h5 = None
         self.__fabio = None
 
@@ -652,7 +652,7 @@ class AbstractDataFileDialog(qt.QDialog):
     def hasPendingEvents(self):
         """Returns true if the dialog have asynchronous tasks working on the
         background."""
-        return self.__processing > 0
+        return self.__processing
 
     # User interface
 
@@ -1072,31 +1072,34 @@ class AbstractDataFileDialog(qt.QDialog):
             if utils.samefile(self.__directoryLoadedFilter, path):
                 return
         self.__directoryLoadedFilter = path
-        self.__processing += 1
+        self.__processing = True
         if self.__fileModel is None:
             return
+        isRootPath = qt.QDir(self.__fileModel.rootPath()) == qt.QDir(path)
         index = self.__fileModel.setRootPath(path)
         if not index.isValid():
             # There is a problem with this path
             # No asynchronous process will be waked up
-            self.__processing -= 1
+            self.__processing = False
             self.__browser.setRootIndex(index, model=self.__fileModel)
             self.__clearData()
             self.__updatePath()
+        elif isRootPath:
+            # Qt emits no directoryLoaded signal for its current root path
+            self.__fileModel.directoryLoaded.emit(path)
 
     def __directoryLoaded(self, path):
         if self.__directoryLoadedFilter is not None:
             if not utils.samefile(self.__directoryLoadedFilter, path):
-                # Filter event which should not arrive in PyQt4
-                # The first click on the sidebar sent 2 events
-                self.__processing -= 1
+                # Not the last requested directory: an older request or a
+                # directory loaded by a view
                 return
         if self.__fileModel is None:
             return
         index = self.__fileModel.index(path)
         self.__browser.setRootIndex(index, model=self.__fileModel)
         self.__updatePath()
-        self.__processing -= 1
+        self.__processing = False
 
     def __closeFile(self):
         self.__openedFiles[:] = []
@@ -1581,6 +1584,7 @@ class AbstractDataFileDialog(qt.QDialog):
     def selectFile(self, filename):
         """Sets the data dialog's current file."""
         self.__directoryLoadedFilter = ""
+        self.__processing = False
         old = self.__pathEdit.blockSignals(True)
         try:
             self.__pathEdit.setText(filename)
@@ -1599,6 +1603,7 @@ class AbstractDataFileDialog(qt.QDialog):
         if isinstance(url, silx.io.url.DataUrl):
             url = url.path()
         self.__directoryLoadedFilter = ""
+        self.__processing = False
         old = self.__pathEdit.blockSignals(True)
         try:
             self.__pathEdit.setText(url)

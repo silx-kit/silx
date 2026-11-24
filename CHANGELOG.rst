@@ -9,6 +9,7 @@ Release Notes
 * `silx.gui.data`: Fixed the axis scales chosen by the user being reset when another NXdata is displayed (`Issue #4739 <https://github.com/silx-kit/silx/issues/4739>`_)
 * `silx.gui.data`: Fixed `RuntimeError` "Signal source has been deleted" when closing a widget with PySide6 (`Issue #4740 <https://github.com/silx-kit/silx/issues/4740>`_)
 * `silx.gui.hdf5`: Fixed exceptions raised for tree items with no accessible HDF5 object (for example a malformed SPEC file with an empty-named counter) (`Issue #4395 <https://github.com/silx-kit/silx/issues/4395>`_)
+* `silx.gui.dialog.DataFileDialog`, `silx.gui.dialog.ImageFileDialog`: Fixed `hasPendingEvents` returning `False` while a directory loads, and `True` after selecting the current directory (`Issue #4846 <https://github.com/silx-kit/silx/issues/4846>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Fixed "Print preview" failing with PySide6 (`Issue #4827 <https://github.com/silx-kit/silx/issues/4827>`_)
 * `silx.gui.plot.PrintPreviewToolButton`: Print sizes larger than the page are refused in the print geometry dialog (`Issue #1229 <https://github.com/silx-kit/silx/issues/1229>`_)
 * `silx.gui.icons`: Fixed crash with PySide6 when an SVG icon is freed or a copy of it is modified (`Issue #4852 <https://github.com/silx-kit/silx/issues/4852>`_)

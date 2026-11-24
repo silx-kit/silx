@@ -248,6 +248,44 @@ class TestImageFileDialogInteraction:
         qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
         assert_same_path(url.text(), tmp_directory)
 
+    def test_pending_events_until_parent_directory_is_loaded(
+        self, dialog, qapp_utils, tmp_directory
+    ):
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        action = testutils.findChildren(dialog, qt.QAction, name="toParentAction")[0]
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+
+        # From the root of an HDF5 file, "to parent" shows the directory of the
+        # file. The dialog does not request this load, so hasPendingEvents() is
+        # already False. Wait for the directoryLoaded signal of this load: the
+        # dialog must ignore it.
+        loaded = []
+        dialog.findChild(qt.QFileSystemModel).directoryLoaded.connect(loaded.append)
+        dialog.selectUrl(tmp_directory + "/data/data.h5")
+        action.trigger()
+        qapp_utils.waitAsLongAs(lambda: not loaded)
+        assert_same_path(url.text(), tmp_directory + "/data")
+
+        # From a directory, "to parent" requests the load of the parent
+        # directory. hasPendingEvents() is True until this load is done.
+        action.trigger()
+        assert dialog.hasPendingEvents()
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+        assert_same_path(url.text(), tmp_directory)
+
+    def test_no_pending_events_when_selecting_the_current_directory(
+        self, dialog, qapp_utils, tmp_directory
+    ):
+        url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
+        dialog.setDirectory(tmp_directory)
+        qapp_utils.waitAsLongAs(dialog.hasPendingEvents)
+
+        # Select the directory that the dialog already shows: Qt does not load it
+        # again, so there is nothing to wait for.
+        dialog.selectUrl(tmp_directory)
+        assert not dialog.hasPendingEvents()
+        assert_same_path(url.text(), tmp_directory)
+
     def testClickOnBackToRootTool(self, dialog, qapp_utils, tmp_directory):
         dialog.show()
         qapp_utils.qWaitForWindowExposed(dialog)
