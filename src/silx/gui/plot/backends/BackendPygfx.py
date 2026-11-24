@@ -276,6 +276,8 @@ class _PygfxCurveItem:
         self.yaxis = yaxis
         self.symbol = symbol
         self.symbolSize = symbolsize
+        self.lineMaterials = []
+        """Line materials with their width in points, sized at draw time"""
         self.group = gfx.Group()
         self._lineObj = None
         self._pointsObj = None
@@ -309,12 +311,8 @@ class _PygfxCurveItem:
             errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
             if len(errSegments) > 0:
                 errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
-                errMat = _material(
-                    gfx.LineSegmentMaterial,
-                    aa=True,
-                    thickness=1.0,
-                    color=uniformColor,
-                )
+                errMat = _material(gfx.LineSegmentMaterial, aa=True, color=uniformColor)
+                self.lineMaterials.append((errMat, 1.0))
                 errLine = gfx.Line(errGeom, errMat)
                 errorGroup.add(errLine)
             self.group.add(errorGroup)
@@ -336,22 +334,18 @@ class _PygfxCurveItem:
             # Gap color line under the dashed line
             if gapcolor is not None and dashPattern:
                 gapRgba = colors.rgba(gapcolor)
-                gapMat = _material(
-                    gfx.LineMaterial,
-                    aa=True,
-                    thickness=max(linewidth, 1.0),
-                    color=gfx.Color(*gapRgba),
-                )
+                gapMat = _material(gfx.LineMaterial, aa=True, color=gfx.Color(*gapRgba))
+                self.lineMaterials.append((gapMat, linewidth))
                 self.group.add(gfx.Line(geom, gapMat))
 
             mat = _material(
                 gfx.LineMaterial,
                 aa=True,
-                thickness=max(linewidth, 1.0),
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
                 dash_pattern=dashPattern if dashPattern else (),
             )
+            self.lineMaterials.append((mat, linewidth))
             self._lineObj = gfx.Line(geom, mat)
             self.group.add(self._lineObj)
 
@@ -632,6 +626,8 @@ class _PygfxShapeItem(dict):
             }
         )
 
+        self.lineMaterials = []
+        """Line materials with their width in points, sized at draw time"""
         self.group = gfx.Group()
         self.yaxis = "left"
 
@@ -667,21 +663,17 @@ class _PygfxShapeItem(dict):
             geom = gfx.Geometry(positions=positions)
             if gapcolor is not None and dashPattern:
                 gapRgba = colors.rgba(gapcolor)
-                gapMat = _material(
-                    gfx.LineMaterial,
-                    aa=True,
-                    thickness=max(linewidth, 1.0),
-                    color=gfx.Color(*gapRgba),
-                )
+                gapMat = _material(gfx.LineMaterial, aa=True, color=gfx.Color(*gapRgba))
+                self.lineMaterials.append((gapMat, linewidth))
                 self.group.add(gfx.Line(geom, gapMat))
 
             mat = _material(
                 gfx.LineMaterial,
                 aa=True,
-                thickness=max(linewidth, 1.0),
                 color=gfxColor,
                 dash_pattern=dashPattern if dashPattern else (),
             )
+            self.lineMaterials.append((mat, linewidth))
             self.group.add(gfx.Line(geom, mat))
 
     @staticmethod
@@ -1148,6 +1140,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     labels.append(label)
                 continue
             item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+            if isinstance(item, (_PygfxCurveItem, _PygfxShapeItem)):
+                for material, width in item.lineMaterials:
+                    material.thickness = self._lineWidth(width)
             if isinstance(item, _PygfxCurveItem) and item._pointsObj is not None:
                 item._pointsObj.material.size = self._symbolSize(
                     item.symbol, item.symbolSize
@@ -1172,6 +1167,15 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         if symbol in _ODD_SIZE_SYMBOLS:
             size = size // 2 * 2 + 1.0
         return size / self._plotFrame.devicePixelRatio
+
+    def _lineWidth(self, width: float) -> float:
+        """Width in logical pixels of a line of width points, as GLLines2D.render"""
+        return (
+            width
+            / 72.0
+            * self._plotFrame.dotsPerInch
+            / self._plotFrame.devicePixelRatio
+        )
 
     def _markerObjects(self, item):
         """Return the scene objects of a marker and its text label or None"""
@@ -1274,7 +1278,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         mat = _material(
             gfx.LineMaterial,
             aa=True,
-            thickness=max(item["linewidth"], 1.0),
+            thickness=self._lineWidth(item["linewidth"]),
             color=gfxColor,
             dash_pattern=dashPattern if dashPattern else (),
         )

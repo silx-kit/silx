@@ -2440,6 +2440,41 @@ def testPygfxSymbolEdges(qWidgetFactory, monkeypatch):
     assert (rows.min(), rows.max()) == (y - size // 2, y + size // 2)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "kind,points", [("curve", 3), ("errorbar", 1), ("shape", 3), ("marker", 3)]
+)
+def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
+    """Line widths are in points, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 288.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        plot.addCurve((10, 90), (50, 50), color="red", linewidth=3, resetzoom=False)
+    elif kind == "errorbar":
+        plot.addCurve(
+            (50,), (50,), xerror=20, color="red", linestyle=" ", resetzoom=False
+        )
+    elif kind == "shape":
+        plot.addShape((10, 90), (50, 50), shape="polylines", color="red", linewidth=3)
+    else:
+        plot.addYMarker(50, color="red").setLineWidth(3)
+    image, ratio = _renderPygfx(plot)
+
+    # Frame coordinates are in device pixels
+    x = backend._plotFrame.dataToPixel(45, 50)[0]
+    top, height = backend._plotFrame.plotOrigin[1], backend._plotFrame.plotSize[1]
+    # Red over white blended in linear light, inside the frame and off the ticks
+    green = image[top + 1 : top + height - 1, x, 1] / 255
+    coverage = 1 - numpy.where(
+        green <= 0.04045, green / 12.92, ((green + 0.055) / 1.055) ** 2.4
+    )
+    assert abs(numpy.count_nonzero(coverage > 0.5) - points * 4 * ratio) <= 1
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
