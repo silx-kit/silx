@@ -722,6 +722,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     Automatically forced to "bitmap" on native Wayland (see __init__).
     Set before creating the plot."""
 
+    _TEXT_MARKER_PADDING = 4
+
     def __init__(self, plot, parent=None):
         present_method = self.PRESENT_METHOD
         # On native Wayland the "screen" present shares Qt's wl_display
@@ -844,16 +846,23 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         align: str,
         valign: str,
         rotate: float = 0.0,
+        bgcolor: RGBAColorType | None = None,
+        padding: int = 0,
     ) -> gfx.Group | None:
         """Text in device pixels drawn as the OpenGL backend Text2D draws it,
         or None for blank text"""
         if not text.strip():
             return None
         coverage, baseline = _rasterText(text, font, self._plotFrame.dotsPerInch)
+        padding = max(0, int(padding * self.getDevicePixelRatio()))
+        coverage = numpy.pad(coverage, padding)
         height, width = coverage.shape
-        rgba = numpy.empty((height, width, 4), dtype=numpy.uint8)
-        rgba[..., :3] = numpy.round(numpy.asarray(color[:3]) * 255)
-        rgba[..., 3] = numpy.round(coverage * color[3])
+        if bgcolor is None:
+            bgcolor = (*color[:3], 0.0)
+        mix = coverage[..., numpy.newaxis] / 255
+        rgba = numpy.round(
+            255 * ((1 - mix) * numpy.asarray(bgcolor) + mix * numpy.asarray(color))
+        ).astype(numpy.uint8)
 
         xOrig = {"left": 0, "right": -width, "center": -width // 2}[align]
         yOrig = {
@@ -1114,12 +1123,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 return [symbol], None
             label = self._textObject(
                 text,
-                self._getDefaultFont(),
+                item["font"],
                 item["color"],
                 pixelPos[0] + pixelOffset,
                 pixelPos[1] + pixelOffset,
                 "left",
                 "top",
+                bgcolor=item["bgcolor"],
+                padding=self._TEXT_MARKER_PADDING,
             )
             return [symbol], label
 
@@ -1139,12 +1150,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if text is not None:
                 label = self._textObject(
                     text,
-                    self._getDefaultFont(),
+                    item["font"],
                     item["color"],
                     right - pixelOffset,
                     pixelPos[1] - pixelOffset,
                     "right",
                     "bottom",
+                    bgcolor=item["bgcolor"],
+                    padding=self._TEXT_MARKER_PADDING,
                 )
         else:
             # Vertical line at x
@@ -1162,12 +1175,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if text is not None:
                 label = self._textObject(
                     text,
-                    self._getDefaultFont(),
+                    item["font"],
                     item["color"],
                     pixelPos[0] + pixelOffset,
                     top + pixelOffset,
                     "left",
                     "top",
+                    bgcolor=item["bgcolor"],
+                    padding=self._TEXT_MARKER_PADDING,
                 )
 
         dashPattern = item["dashpattern"]
@@ -1508,6 +1523,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         font: qt.QFont,
         bgcolor: RGBAColorType | None,
     ) -> object:
+        if font is None:
+            font = self._getDefaultFont()
         return _PygfxMarkerItem(
             x,
             y,

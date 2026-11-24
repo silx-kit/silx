@@ -2299,6 +2299,31 @@ def testPygfxLogAxesCurvePick(qWidgetFactory):
     assert results == [("curve", [1])]
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxMarkerLabelBox(qWidgetFactory):
+    """A marker label is the raster of its font in its padded background box"""
+    from silx.gui.utils.matplotlib import rasterMathText
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    font = qt.QFont(plot._backend._getDefaultFont())
+    font.setPointSize(20)
+    marker = plot.addXMarker(50, text="Label", color="black")
+    marker.setFont(font)
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+
+    frame = plot._backend._plotFrame
+    x = int(frame.dataToPixel(50, 50)[0] + 3)
+    y = frame.margins.top + 3
+    raster, _ = rasterMathText("Label", font, frame.dotsPerInch)
+    padding = int(4 * frame.devicePixelRatio)
+    height, width = (size + 2 * padding for size in raster.shape)
+    rows, columns = numpy.nonzero(numpy.all(image == _RED, axis=2))
+    assert (rows.min(), columns.min()) == (y, x)
+    assert (rows.max() + 1 - y, columns.max() + 1 - x) == (height, width)
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
