@@ -421,7 +421,7 @@ inline void bitunshuffle64( local uint8_t* inp,
             uint32_t u8_word_pos = read_bit>>3; // /8
             uint32_t u8_bit_pos = read_bit&7; // %8
             // if (lid==0) printf("dpos %u bit %u read at %u,%u\n",dpos,bit,u8_word_pos,u8_bit_pos);
-            res |= ((inp[u8_word_pos]>>u8_bit_pos) & 1)<<bit;
+            res |= ((uint64_t)((inp[u8_word_pos]>>u8_bit_pos) & 1) << bit);
         }
         // if (lid==0) printf("dpos %u res %u\n",dpos,res);
         uchar8 tmp = as_uchar8(res);
