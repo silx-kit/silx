@@ -2674,6 +2674,22 @@ def testPygfxErrorBarColor(qWidgetFactory, color):
     assert image[py - 2 : py + 3, px].max(axis=1).min() < 128
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "color, expected",
+    [("red", (255, 0, 0)), (numpy.array(((0.0, 0.0, 1.0, 1.0),) * 2), (0, 0, 0))],
+)
+def testPygfxCurveFillColor(qWidgetFactory, color, expected):
+    """Curve fill has the curve color, and per vertex colors have no fill"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setDataBackgroundColor("black")
+    plot.addCurve((0, 1), (0.5, 0.5), color=color, fill=True)
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+    px, py = plot._backend._plotFrame.dataToPixel(0.5, 0.25)
+    assert numpy.abs(image[py, px].astype(int) - expected).max() <= 2, image[py, px]
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

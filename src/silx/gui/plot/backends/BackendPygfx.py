@@ -348,9 +348,9 @@ class _PygfxCurveItem:
         # Sub-objects are drawn in the order they are added, as in GLPlotCurve:
         # fill, error bars, lines (gap color under the dashes), then symbols
 
-        # Fill between curve and baseline
-        if fill and len(x) >= 2:
-            fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
+        # Fill between curve and baseline, none for per vertex colors as in OpenGL
+        if fill and len(x) >= 2 and not perVertexColor:
+            fillObj = self._buildFill(x, y, baseline, uniformColor)
             if fillObj is not None:
                 self.group.add(fillObj)
 
@@ -457,7 +457,7 @@ class _PygfxCurveItem:
         return xVertices, yVertices
 
     @staticmethod
-    def _buildFill(x, y, baseline, color, alpha):
+    def _buildFill(x, y, baseline, color):
         """Build a filled mesh between curve and baseline."""
         if baseline is None:
             baseY = numpy.zeros_like(y)
@@ -485,9 +485,8 @@ class _PygfxCurveItem:
         vertices = numpy.array(vertices, dtype=numpy.float32)
         indices = numpy.array(indices, dtype=numpy.int32)
 
-        fillColor = gfx.Color(color.r, color.g, color.b, alpha * 0.5)
         geom = gfx.Geometry(positions=vertices, indices=indices)
-        mat = _material(gfx.MeshBasicMaterial, color=fillColor, side="both")
+        mat = _material(gfx.MeshBasicMaterial, color=color, side="both")
         return gfx.Mesh(geom, mat)
 
 
