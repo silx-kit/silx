@@ -527,10 +527,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 ) or not axis_scale.isValid(yAxisScale, numpy.min(item["y"])):
                     continue  # Ignore items out of axes supported range
 
+                # hline and vline are at their last point, as in matplotlib
                 if item["shape"] == "hline":
                     width = self._plotFrame.size[0]
                     _, yPixel = self._plotFrame.dataToPixel(
-                        0.5 * sum(self._plotFrame.dataRanges[0]), item["y"], axis="left"
+                        0.5 * sum(self._plotFrame.dataRanges[0]),
+                        item["y"][-1],
+                        axis="left",
                     )
                     subShapes = [
                         numpy.array(
@@ -540,7 +543,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 elif item["shape"] == "vline":
                     xPixel, _ = self._plotFrame.dataToPixel(
-                        item["x"], 0.5 * sum(self._plotFrame.dataRanges[1]), axis="left"
+                        item["x"][-1],
+                        0.5 * sum(self._plotFrame.dataRanges[1]),
+                        axis="left",
                     )
                     height = self._plotFrame.size[1]
                     subShapes = [

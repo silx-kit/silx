@@ -44,6 +44,7 @@ from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, Curve, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
+from silx.gui.utils.image import convertQImageToArray
 
 from .utils import PlotWidgetTestCase
 
@@ -2214,3 +2215,27 @@ def test_data_range_ignores_added_hidden_item(qapp: qt.QApplication) -> None:
     assert plot.getDataRange().x == (0, 1)
     plot.setAttribute(qt.Qt.WA_DeleteOnClose)
     plot.close()
+
+
+def _renderGl(plot: PlotWidget) -> numpy.ndarray:
+    """Draw the OpenGL backend now and return its RGB image"""
+    widget = plot.getWidgetHandle().findChild(qt.QOpenGLWidget)
+    return convertQImageToArray(widget.grabFramebuffer())[..., :3]
+
+
+@pytest.mark.usefixtures("use_opengl")
+@pytest.mark.parametrize("shape", ["hline", "vline"])
+def testGlShapeAxisLine(qWidgetFactory, shape):
+    """hline and vline shapes cross the plot area at their last point"""
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.4), (0.3, 0.6), shape=shape, fill=False, linewidth=3)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.4, 0.6)
+    axis = 1 if shape == "vline" else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if axis else image[y, pixels]
+    assert line.max() < 128
