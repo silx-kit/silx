@@ -55,6 +55,9 @@ class Program:
         array attached to it in order for the rendering to occur....
     """
 
+    # Per OpenGL context, 1 + the highest attribute location of its compiled programs
+    _attributeLocationCounts = weakref.WeakKeyDictionary()
+
     def __init__(self, vertexShader, fragmentShader, attrib0="position"):
         self._vertexShader = vertexShader
         self._fragmentShader = fragmentShader
@@ -150,6 +153,11 @@ class Program:
             self._programs[glcontext] = self._compileGL(
                 self._vertexShader, self._fragmentShader, self._attrib0
             )
+            counts = Program._attributeLocationCounts
+            counts[glcontext] = max(
+                counts.get(glcontext, 0),
+                max(self.attributes.values(), default=-1) + 1,
+            )
 
         if _logger.getEffectiveLevel() <= logging.DEBUG:
             gl.glValidateProgram(self.program)
@@ -159,6 +167,11 @@ class Program:
                 )
 
         gl.glUseProgram(self.program)
+
+        # An array left enabled by an earlier draw can point to a deleted buffer or
+        # freed memory, and drivers may read every enabled array, used or not
+        for location in range(Program._attributeLocationCounts[glcontext]):
+            gl.glDisableVertexAttribArray(location)
 
     def setUniformMatrix(self, name, value, transpose=True, safe=False):
         """Wrap glUniformMatrix[2|3|4]fv

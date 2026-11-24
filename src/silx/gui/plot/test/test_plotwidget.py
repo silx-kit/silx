@@ -2258,3 +2258,24 @@ def testGlShapeNotFinite(qWidgetFactory):
         assert image[y - 1 : y + 2, x].min() < 128
     x, y = frame.dataToPixel(5, 5)
     assert image[y - 1 : y + 2, x].min() == 255
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlProgramUseDisablesAttributeArrays(qWidgetFactory):
+    """Using a program leaves no vertex attribute array of earlier draws enabled"""
+    from silx.gui import _glutils
+    from silx.gui._glutils import gl
+
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    # Scatter points are drawn with a color array
+    plot.addScatter((0, 1, 0, 1), (0, 0, 2, 2), (0, 1, 2, 3))
+    _renderGl(plot)
+
+    backend = plot._backend
+    backend.makeCurrent()
+    with _glutils.Context.current(backend.context()):
+        backend._progBase.use()
+        enabled = numpy.zeros(4, dtype=numpy.int32)
+        for location in range(gl.glGetIntegerv(gl.GL_MAX_VERTEX_ATTRIBS)):
+            gl.glGetVertexAttribiv(location, gl.GL_VERTEX_ATTRIB_ARRAY_ENABLED, enabled)
+            assert enabled[0] == gl.GL_FALSE, f"location {location}"
