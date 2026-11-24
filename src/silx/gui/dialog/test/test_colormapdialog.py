@@ -398,39 +398,31 @@ def testUpdateImageData(qapp, qWidgetFactory):
     assert dialog._histoWidget.getFiniteRange() == (1, 4)
 
 
-@pytest.mark.parametrize(
-    "name, expected",
-    [
-        ("gray", "reversed gray"),
-        ("reversed gray", "gray"),
-        ("viridis", "viridis_r"),
-        ("viridis_r", "viridis"),
-        ("temperature", None),
-    ],
-)
+_REVERSED_COLORMAP_NAMES = [
+    ("gray", "reversed gray"),
+    ("reversed gray", "gray"),
+    ("temperature", None),
+]
+_UNREVERSED_COLORMAP_NAMES = [
+    ("gray", ("gray", False)),
+    ("reversed gray", ("gray", True)),
+    ("viridis", ("viridis", False)),
+    ("temperature", ("temperature", False)),
+]
+if "viridis_r" in Colormap.getSupportedColormaps():  # requires matplotlib
+    _REVERSED_COLORMAP_NAMES += [("viridis", "viridis_r"), ("viridis_r", "viridis")]
+    _UNREVERSED_COLORMAP_NAMES += [("viridis_r", ("viridis", True))]
+
+
+@pytest.mark.parametrize("name, expected", _REVERSED_COLORMAP_NAMES)
 def testReversedColormapName(name, expected):
     """Test the name of the reversed counterpart of a colormap"""
-    if "viridis_r" in (name, expected) and (
-        "viridis_r" not in Colormap.getSupportedColormaps()
-    ):
-        pytest.skip("matplotlib is required for 'viridis_r'")
     assert ColormapDialog._reversedColormapName(name) == expected
 
 
-@pytest.mark.parametrize(
-    "name, expected",
-    [
-        ("gray", ("gray", False)),
-        ("reversed gray", ("gray", True)),
-        ("viridis", ("viridis", False)),
-        ("viridis_r", ("viridis", True)),
-        ("temperature", ("temperature", False)),
-    ],
-)
+@pytest.mark.parametrize("name, expected", _UNREVERSED_COLORMAP_NAMES)
 def testUnreversedColormapName(name, expected):
     """Test the name of the non-reversed colormap"""
-    if name == "viridis_r" and "viridis_r" not in Colormap.getSupportedColormaps():
-        pytest.skip("matplotlib is required for 'viridis_r'")
     assert ColormapDialog._unreversedColormapName(name) == expected
 
 
