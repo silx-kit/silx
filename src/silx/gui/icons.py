@@ -36,6 +36,7 @@ import os
 import weakref
 from pathlib import Path
 from . import qt
+from .qt import inspect as qt_inspect
 import silx.resources
 from silx.utils import weakref as silxweakref
 
@@ -75,6 +76,10 @@ _supported_formats = None
 """Order of file format extension to check"""
 
 
+_svgIconEngines = set()
+"""References to the SVG icon engines that Qt can still use (PySide6 only)"""
+
+
 class _SvgIconEngine(qt.QIconEngine):
     """Icon engine for SVG icons which tweaks color according to color scheme."""
 
@@ -83,6 +88,19 @@ class _SvgIconEngine(qt.QIconEngine):
         self._name = name
         self._lightSVG = self._readSVG(self._name)
         self._darkSVG = self._lightSVG.replace(b"<svg", b'<svg class="dark"')
+        if qt.BINDING == "PySide6":
+            # PySide6 crashes when Python frees the engine while Qt uses it:
+            # when the garbage collector frees the engine with its QIcon,
+            # or when clone() returns. Keep it until Qt deletes it.
+            # Remove this workaround when PySide6 is fixed and silx requires
+            # the fixed version. PySide6 bug report draft:
+            # https://github.com/silx-kit/silx/issues/4852#issuecomment-7049056072
+            _svgIconEngines.add(self)
+            # Release the engines that Qt already deleted, so that the set
+            # does not grow forever
+            _svgIconEngines.difference_update(
+                [engine for engine in _svgIconEngines if not qt_inspect.isValid(engine)]
+            )
 
     @staticmethod
     def _readSVG(name: str) -> bytes:
