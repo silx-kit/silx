@@ -2,7 +2,7 @@ annotated-types==0.4.0
 appdirs==1.4.4
 attrs==21.2.0
 backcall==0.2.0
-certifi==2026.10.23
+certifi==2026.11.20
 charset-normalizer==3.5.2
 contourpy==1.0.1
 coverage==6.2
