@@ -301,7 +301,7 @@ adds support for accessing experimental data through `blissdata <https://bliss.g
 
 It installs:
 
-* `blissdata <https://github.com/HDFGroup/h5pyd>`_
+* `blissdata <https://gitlab.esrf.fr/bliss/blissdata>`_
 
 Build dependencies
 ++++++++++++++++++
