@@ -174,9 +174,14 @@ _SYMBOL_ALPHAS = {
 _SYMBOL_ALPHAS["."] = _SYMBOL_ALPHAS["o"]
 _SYMBOL_ALPHAS[","] = _SYMBOL_ALPHAS["s"]
 
+# Symbols whose size in pixels is rounded to an odd number by Points2D
+_ODD_SIZE_SYMBOLS = {"+", "_", "|", "tickleft", "tickright", "tickup", "tickdown"}
 
-def _symbolMaterial(symbol, size, color, colorMode) -> gfx.PointsMarkerMaterial | None:
+
+def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None:
     """Material drawing symbol as the OpenGL backend, None for no symbol.
+
+    Its size is left to BackendPygfx._symbolSize at draw time.
 
     pygfx takes a signed distance d and makes the opacity sqrt(0.5 - d),
     so the distance returned here gives the OpenGL symbol alpha.
@@ -199,7 +204,6 @@ def _symbolMaterial(symbol, size, color, colorMode) -> gfx.PointsMarkerMaterial 
         aa=True,
         marker="custom",
         custom_sdf=sdf,
-        size=size,
         color=color,
         color_mode=colorMode,
         edge_width=0.0,
@@ -268,6 +272,8 @@ class _PygfxCurveItem:
         baseline,
     ):
         self.yaxis = yaxis
+        self.symbol = symbol
+        self.symbolSize = symbolsize
         self.group = gfx.Group()
         self._lineObj = None
         self._pointsObj = None
@@ -348,14 +354,8 @@ class _PygfxCurveItem:
             self.group.add(self._lineObj)
 
         # Symbol / Points
-        pointSize = symbolsize if symbol != "," else 1.0
-        if symbol == ".":
-            pointSize = max(pointSize * 0.5, 1.0)
         mat = _symbolMaterial(
-            symbol,
-            pointSize,
-            uniformColor,
-            "vertex" if perVertexColor else "uniform",
+            symbol, uniformColor, "vertex" if perVertexColor else "uniform"
         )
         if mat is not None:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
@@ -1146,6 +1146,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     labels.append(label)
                 continue
             item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+            if isinstance(item, _PygfxCurveItem) and item._pointsObj is not None:
+                item._pointsObj.material.size = self._symbolSize(
+                    item.symbol, item.symbolSize
+                )
             if plotItem.isOverlay():
                 overlayObjects.append(item.group)
             else:
@@ -1155,6 +1159,17 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         _setChildren(
             self._overlayScene, overlayObjects + labels + self._crosshairObjects()
         )
+
+    def _symbolSize(self, symbol, size: float) -> float:
+        """Size in logical pixels of a symbol of size points, as Points2D.render"""
+        if symbol == ",":
+            size = 1.0
+        elif symbol == ".":
+            size = math.ceil(0.5 * size) + 1.0
+        size = size / 72.0 * self._plotFrame.dotsPerInch
+        if symbol in _ODD_SIZE_SYMBOLS:
+            size = size // 2 * 2 + 1.0
+        return size / self._plotFrame.devicePixelRatio
 
     def _markerObjects(self, item):
         """Return the scene objects of a marker and its text label or None"""
@@ -1175,10 +1190,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if pixelPos is None:
                 return [], None
             symbols = []
-            mat = _symbolMaterial(
-                item["symbol"], item["symbolsize"], gfxColor, "uniform"
-            )
+            mat = _symbolMaterial(item["symbol"], gfxColor, "uniform")
             if mat is not None:
+                mat.size = self._symbolSize(item["symbol"], item["symbolsize"])
                 geom = gfx.Geometry(
                     positions=numpy.array([[*pixelPos, 0]], dtype=numpy.float32)
                 )

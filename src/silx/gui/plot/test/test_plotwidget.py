@@ -2397,6 +2397,29 @@ def testPygfxSymbolShape(qWidgetFactory, kind, symbol, reaches):
         assert x not in columns[rows == rows.min()]
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "marker"])
+@pytest.mark.parametrize("symbol,points", [("s", 20), ("o", 20), (".", 11)])
+def testPygfxSymbolSize(qWidgetFactory, monkeypatch, kind, symbol, points):
+    """Symbol size is in points at the current DPI, as with the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 144.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        item = plot.addCurve((50,), (50,), color="red", symbol=symbol, linestyle=" ")
+    else:
+        item = plot.addMarker(50, 50, color="red", symbol=symbol)
+    item.setSymbolSize(20)
+    image, ratio = _renderPygfx(plot)
+
+    columns = numpy.nonzero(image[..., 0].astype(int) - image[..., 1] > 10)[1]
+    width = columns.max() - columns.min() + 1
+    assert abs(width - points * 2 * ratio) <= 1
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
