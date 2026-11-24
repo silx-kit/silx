@@ -99,15 +99,16 @@ def _rasterText(
     return raster
 
 
-# Dash pattern mapping: silx linestyle -> pygfx dash_pattern
-# pygfx dash_pattern is a tuple of (dash, gap, ...) relative to line thickness
+# silx linestyle -> (offset, dash pattern) in line widths, as in BackendOpenGL:
+# a None pattern draws no line, () a solid line
 _DASH_PATTERNS = {
-    "": None,
-    " ": None,
-    "-": None,  # solid
-    "--": (3.7, 1.6, 3.7, 1.6),
-    "-.": (6.4, 1.6, 1, 1.6),
-    ":": (1, 1.65, 1, 1.65),
+    "": (0.0, None),
+    " ": (0.0, None),
+    "-": (0.0, ()),
+    "--": (0.0, (3.7, 1.6, 3.7, 1.6)),
+    "-.": (0.0, (6.4, 1.6, 1, 1.6)),
+    ":": (0.0, (1, 1.65, 1, 1.65)),
+    None: (0.0, None),
 }
 
 
@@ -134,14 +135,12 @@ class _DashedLineShader(LineShader):
         super().bake_function(wobject, camera, camera._view_size)
 
 
-def _lineStyleToDashPattern(linestyle):
-    """Convert silx linestyle to pygfx dash_pattern tuple."""
-    if linestyle is None or linestyle in ("", " "):
-        return None
-    if isinstance(linestyle, tuple) and len(linestyle) == 2:
-        # Custom (offset, (on, off, on, off, ...))
-        return linestyle[1]
-    return _DASH_PATTERNS.get(linestyle)
+def _lineStyleToDashOffsetPattern(linestyle):
+    """Convert a silx linestyle to its dash (offset, pattern)"""
+    if linestyle is None or isinstance(linestyle, str):
+        return _DASH_PATTERNS[linestyle]
+    offset, pattern = linestyle
+    return float(offset), () if pattern is None else tuple(pattern)
 
 
 # WGSL ports of the alphaSymbol functions of glutils.GLPlotCurve.Points2D.
@@ -368,7 +367,7 @@ class _PygfxCurveItem:
             self.group.add(errorGroup)
 
         # Line
-        dashPattern = _lineStyleToDashPattern(linestyle)
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
         hasLine = linestyle not in (None, "", " ")
         if hasLine and len(x) > 1:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
@@ -393,7 +392,8 @@ class _PygfxCurveItem:
                 aa=True,
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
-                dash_pattern=dashPattern if dashPattern else (),
+                dash_pattern=dashPattern,
+                dash_offset=dashOffset,
             )
             self.lineMaterials.append((mat, linewidth))
             self._lineObj = gfx.Line(geom, mat)
@@ -662,7 +662,7 @@ class _PygfxShapeItem(dict):
         fill = fill if shape != "polylines" else False
 
         rgba = colors.rgba(color)
-        dashPattern = _lineStyleToDashPattern(linestyle)
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
 
         self.update(
             {
@@ -721,7 +721,8 @@ class _PygfxShapeItem(dict):
                 _DashedLineMaterial,
                 aa=True,
                 color=gfxColor,
-                dash_pattern=dashPattern if dashPattern else (),
+                dash_pattern=dashPattern,
+                dash_offset=dashOffset,
             )
             self.lineMaterials.append((mat, linewidth))
             self.group.add(gfx.Line(geom, mat))
@@ -790,7 +791,7 @@ class _PygfxMarkerItem(dict):
         if isConstraint:
             x, y = constraint(x, y)
 
-        dashPattern = _lineStyleToDashPattern(linestyle)
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
 
         self.update(
             {
@@ -803,6 +804,7 @@ class _PygfxMarkerItem(dict):
                 "symbolsize": symbolsize,
                 "linewidth": linewidth,
                 "linestyle": linestyle,
+                "dashoffset": dashOffset,
                 "dashpattern": dashPattern,
                 "yaxis": yaxis,
                 "font": font,
@@ -1309,14 +1311,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                     padding=self._TEXT_MARKER_PADDING,
                 )
 
-        dashPattern = item["dashpattern"]
         geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
         mat = _material(
             _DashedLineMaterial,
             aa=True,
             thickness=self._lineWidth(item["linewidth"]),
             color=gfxColor,
-            dash_pattern=dashPattern if dashPattern else (),
+            dash_pattern=item["dashpattern"],
+            dash_offset=item["dashoffset"],
         )
         return [gfx.Line(geom, mat)], label
 

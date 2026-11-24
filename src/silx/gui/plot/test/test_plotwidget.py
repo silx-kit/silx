@@ -2571,6 +2571,18 @@ def testPygfxDashLength(qWidgetFactory, kind):
     assert numpy.abs(runs - 2 * width).max() <= 1
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashOffset(qWidgetFactory, kind):
+    """The dash offset moves the pattern back along the line, as in OpenGL"""
+    row, width = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
+    offsetRow = _renderDashedRow(qWidgetFactory, kind, (1, (2, 2)))[0]
+    # An offset of 1 line width moves the dashes 1 line width to the left
+    shift = round(width)
+    mismatch = (offsetRow[:-shift] < 128) != (row[shift:] < 128)
+    assert mismatch.mean() < 0.2
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
