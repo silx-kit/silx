@@ -1,8 +1,10 @@
 import logging
 from typing import Sequence
+import h5py
 import numpy
 
 from silx.gui import qt
+from silx.io.nxdata._utils import AxisDataset
 from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
 from .NumpyAxesSelector import NumpyAxesSelector
 from ..utils import blockSignals
@@ -12,7 +14,7 @@ _logger = logging.getLogger(__name__)
 
 
 def _get_matching_axes_names(
-    axes_names: Sequence[str | None], axes: list[numpy.ndarray | None]
+    axes_names: Sequence[str | None], axes: Sequence[AxisDataset]
 ) -> list[str | None]:
     nb_axes = len(axes)
     if len(axes_names) == nb_axes:
@@ -39,8 +41,8 @@ class NxVolumePlot(qt.QWidget):
     def __init__(self, parent: qt.QWidget | None = None):
         super().__init__(parent)
 
-        self.__signal: numpy.ndarray | None = None
-        self.__axes: list[numpy.ndarray | None] | None = None
+        self.__signal: h5py.Dataset | numpy.ndarray | None = None
+        self.__axes: list[AxisDataset] | None = None
         self.__axes_names: list[str | None] | None = None
         from ._VolumeWindow import VolumeWindow
 
@@ -58,8 +60,8 @@ class NxVolumePlot(qt.QWidget):
 
     def setVolumeData(
         self,
-        signal: numpy.ndarray,
-        axes: Sequence[numpy.ndarray | None] | None = None,
+        signal: h5py.Dataset | numpy.ndarray,
+        axes: Sequence[AxisDataset] | None = None,
         axes_names: Sequence[str | None] | None = None,
         title: str | None = None,
         selection: tuple[int | slice, ...] | None = None,
