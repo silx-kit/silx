@@ -1307,9 +1307,7 @@ class _Points(Geometry):
     attribute float size;
 
     uniform mat4 matrix;
-    uniform mat4 transformMat;
 
-    varying vec4 vCameraPosition;
     varying $valueType vValue;
     varying float vSize;
 
@@ -1319,7 +1317,6 @@ class _Points(Geometry):
 
         vec4 positionVec4 = vec4(x, y, z, 1.0);
         gl_Position = matrix * positionVec4;
-        vCameraPosition = transformMat * positionVec4;
 
         gl_PointSize = size;
         vSize = size;
@@ -1328,7 +1325,6 @@ class _Points(Geometry):
         string.Template("""
     #version 120
 
-    varying vec4 vCameraPosition;
     varying float vSize;
     varying $valueType vValue;
 
@@ -1342,13 +1338,14 @@ class _Points(Geometry):
 
     void main(void)
     {
-        // Clip with the camera position of the fragment, not of the sprite
-        // center, so that the clip plane cuts the symbol
+        // Clip with the camera position of the fragment,
+        // so that the clip plane cuts the symbol
         vec3 ndc = vec3(
             (gl_FragCoord.xy - viewportOrigin) / viewportSize,
             gl_FragCoord.z) * 2.0 - 1.0;
-        vec4 position = projectionInverse * vec4(ndc, 1.0);
-        $scenePreCall(position / position.w);
+        vec4 cameraPosition = projectionInverse * vec4(ndc, 1.0);
+        cameraPosition = cameraPosition / cameraPosition.w;
+        $scenePreCall(cameraPosition);
 
         float alpha = alphaSymbol(gl_PointCoord, vSize);
 
@@ -1358,7 +1355,7 @@ class _Points(Geometry):
             discard;
         }
 
-        $scenePostCall(vCameraPosition);
+        $scenePostCall(cameraPosition);
     }
     """),
     )
@@ -1421,8 +1418,6 @@ class _Points(Geometry):
         # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
         program.setUniformMatrix("matrix", ctx.objectToNDC.matrix)
-        program.setUniformMatrix("transformMat", ctx.objectToCamera.matrix, safe=True)
-
         program.setUniformMatrix(
             "projectionInverse", ctx.projection.getInverseMatrix(), safe=True
         )
@@ -1677,7 +1672,6 @@ class Spheres(Geometry):
     - Do not support non-uniform scaling.
     - Assume the projection keeps ratio.
     - Do not render distorion by perspective projection.
-    - If the sphere center is clipped, the whole sphere is not displayed.
     """
 
     # TODO check those links
@@ -1707,7 +1701,6 @@ class Spheres(Geometry):
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec4 vColor;
-    varying float vViewDepth;
     varying float vViewRadius;
 
     void main(void)
@@ -1729,7 +1722,6 @@ class Spheres(Geometry):
 
         vColor = color;
         vViewRadius = 0.5 * viewSize;
-        vViewDepth = vCameraPosition.z;
     }
     """,
         string.Template("""
@@ -1740,7 +1732,6 @@ class Spheres(Geometry):
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec4 vColor;
-    varying float vViewDepth;
     varying float vViewRadius;
 
     $sceneDecl
@@ -1758,18 +1749,32 @@ class Spheres(Geometry):
         }
         normal.z = sqrt(1.0 - sqLength);
 
-        /*Lighting performed in camera*/
-        vec3 position = vCameraPosition.xyz + vViewRadius * normal;
-        $scenePreCall(vec4(position, 1.0));
+        /* Point on the front hemisphere */
+        vec4 cameraPosition = vec4(vCameraPosition.xyz + vViewRadius * normal, 1.0);
+        float shading = 1.0;
 
-        gl_FragColor = $lightingCall(vColor, position, normal);
+        if (isClipped(cameraPosition)) {
+            /* Front point is clipped:
+               use the point on the back hemisphere and shade it */
+            cameraPosition = vec4(
+                vCameraPosition.xyz + vViewRadius * vec3(normal.xy, -normal.z),
+                1.0);
+            /* It is seen from inside: light it with the inward normal,
+             * and darken it to distinguish it from the outside */
+            normal.xy = -normal.xy;
+            shading = 0.6;
+        }
+        $scenePreCall(cameraPosition);
+
+        /*Lighting performed in camera*/
+        gl_FragColor = $lightingCall(vColor, cameraPosition.xyz, normal);
+        gl_FragColor.rgb *= shading;
 
         /*Offset depth*/
-        float viewDepth = vViewDepth + vViewRadius * normal.z;
-        vec2 clipZW = viewDepth * projMat[2].zw + projMat[3].zw;
+        vec2 clipZW = cameraPosition.z * projMat[2].zw + projMat[3].zw;
         gl_FragDepth = 0.5 * (clipZW.x / clipZW.y) + 0.5;
 
-        $scenePostCall(vCameraPosition);
+        $scenePostCall(cameraPosition);
     }
     """),
     )
