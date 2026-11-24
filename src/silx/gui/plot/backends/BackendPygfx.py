@@ -292,6 +292,54 @@ def _pixelLines(vertices, width: float, color) -> gfx.Mesh:
     )
 
 
+_HATCH_STEP = 20
+"""Pixels between the lines of the hatch of OpenGL FilledShape2D"""
+
+
+def _hatchSegments(points, height: int, box) -> numpy.ndarray:
+    """Return the vertices of the hatch segments inside a polygon of pixels.
+
+    OpenGL draws the hatch at the pixels of column px and row py from the top
+    with px + py + 1 = height mod 20, centered on the lines X + Y = c where
+    c = height mod 20, inside the polygon by the even-odd rule of its stencil.
+    As OpenGL fills only its viewport, the segments are clipped to the box
+    (left, top, right, bottom) so that their count is bounded by its size.
+    """
+    left, top, right, bottom = box
+    points = numpy.asarray(points, dtype=numpy.float64)
+    s0 = points.sum(axis=1)
+    s1 = numpy.roll(s0, -1)
+    x0 = points[:, 0]
+    x1 = numpy.roll(x0, -1)
+
+    # Lines start + k * step crossing the box, for 0 <= k < kEnd, crossing each
+    # edge, half-open to count vertices once
+    start = left + top + (height - left - top) % _HATCH_STEP
+    kEnd = (right + bottom - start) // _HATCH_STEP + 1
+    first, last = (
+        numpy.clip(numpy.ceil((bound - start) / _HATCH_STEP), 0, kEnd)
+        for bound in (numpy.minimum(s0, s1), numpy.maximum(s0, s1))
+    )
+    count = (last - first).astype(numpy.int64)
+    edge = numpy.repeat(numpy.arange(len(points)), count)
+    k = numpy.arange(len(edge)) - numpy.repeat(
+        numpy.cumsum(count) - count - first, count
+    )
+    c = start + _HATCH_STEP * k
+    x = x0[edge] + (c - s0[edge]) / (s1[edge] - s0[edge]) * (x1[edge] - x0[edge])
+
+    # Along each line, crossings pair up to bound the inside of the polygon
+    order = numpy.lexsort((x, c))
+    x = x[order].reshape(-1, 2)
+    c = c[order][::2]
+    xMin = numpy.maximum(x[:, 0], numpy.maximum(left, c - bottom))
+    xMax = numpy.minimum(x[:, 1], numpy.minimum(right, c - top))
+    inside = xMax > xMin
+    x = numpy.stack((xMin[inside], xMax[inside]), axis=-1)
+    segments = numpy.stack((x, c[inside, numpy.newaxis] - x), axis=-1)
+    return segments.reshape(-1, 2)
+
+
 def _setChildren(group: gfx.Group, objects: list) -> None:
     """Make objects the children of group, in this order"""
     if group.children != tuple(objects):
@@ -608,7 +656,10 @@ class _PygfxTrianglesItem:
 
 
 class _PygfxShapeItem(dict):
-    """Manages pygfx scene objects for shapes."""
+    """Shape parameters, with the points in data coordinates.
+
+    Its scene objects are built in pixels at each draw, as OpenGL draws shapes.
+    """
 
     def __init__(
         self,
@@ -627,115 +678,32 @@ class _PygfxShapeItem(dict):
         if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
             raise NotImplementedError(f"Unsupported shape {shape}")
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
 
         if shape == "rectangle":
             xMin, xMax = x
-            x = numpy.array((xMin, xMin, xMax, xMax), dtype=numpy.float32)
+            x = numpy.array((xMin, xMin, xMax, xMax))
             yMin, yMax = y
-            y = numpy.array((yMin, yMax, yMax, yMin), dtype=numpy.float32)
+            y = numpy.array((yMin, yMax, yMax, yMin))
 
-        fill = fill if shape != "polylines" else False
-
-        rgba = colors.rgba(color)
         dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
 
         self.update(
             {
                 "shape": shape,
-                "color": rgba,
-                "fill": fill,
+                "color": colors.rgba(color),
+                # Ignore fill for polylines to mimic matplotlib
+                "fill": fill and shape != "polylines",
                 "x": x,
                 "y": y,
                 "linewidth": linewidth,
+                "dashoffset": dashOffset,
+                "dashpattern": dashPattern,
+                "gapcolor": None if gapcolor is None else colors.rgba(gapcolor),
                 "overlay": overlay,
             }
         )
-
-        self.lineMaterials = []
-        """Line materials with their width in points, sized at draw time"""
-        self.group = gfx.Group()
-        self.yaxis = "left"
-
-        gfxColor = gfx.Color(*rgba)
-
-        # Build outline
-        if shape in ("polygon", "rectangle"):
-            positions = numpy.zeros((len(x) + 1, 3), dtype=numpy.float32)
-            positions[:-1, 0] = x
-            positions[:-1, 1] = y
-            positions[-1, 0] = x[0]
-            positions[-1, 1] = y[0]
-        elif shape == "polylines":
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
-        elif shape == "hline":
-            # At the last point as in matplotlib, made widget long at each draw
-            positions = numpy.array(((0, y[-1], 0), (1, y[-1], 0)), dtype=numpy.float32)
-        elif shape == "vline":
-            positions = numpy.array(((x[-1], 0, 0), (x[-1], 1, 0)), dtype=numpy.float32)
-        else:
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
-
-        # Fill, then the gap color line under the dashed line, as in OpenGL
-        if fill and shape in ("polygon", "rectangle") and len(x) >= 3:
-            fillObj = self._buildPolygonFill(x, y, rgba)
-            if fillObj is not None:
-                self.group.add(fillObj)
-
-        if dashPattern is not None and len(positions) >= 2:
-            geom = gfx.Geometry(positions=positions)
-            if gapcolor is not None and dashPattern:
-                gapRgba = colors.rgba(gapcolor)
-                gapMat = _material(gfx.LineMaterial, aa=True, color=gfx.Color(*gapRgba))
-                self.lineMaterials.append((gapMat, linewidth))
-                self.group.add(gfx.Line(geom, gapMat))
-
-            mat = _material(
-                _DashedLineMaterial,
-                aa=True,
-                color=gfxColor,
-                dash_pattern=dashPattern,
-                dash_offset=dashOffset,
-            )
-            self.lineMaterials.append((mat, linewidth))
-            self.group.add(gfx.Line(geom, mat))
-
-    @staticmethod
-    def _buildPolygonFill(x, y, rgba):
-        """Create a semi-transparent polygon fill using a triangle fan mesh."""
-        n = len(x)
-        if n < 3:
-            return None
-
-        # Sort vertices by angle from centroid to avoid bowtie patterns
-        cx, cy = numpy.nanmean(x), numpy.nanmean(y)
-        angles = numpy.arctan2(y - cy, x - cx)
-        order = numpy.argsort(angles)
-        x = x[order]
-        y = y[order]
-
-        # Triangle fan from vertex 0
-        positions = numpy.zeros((n, 3), dtype=numpy.float32)
-        positions[:, 0] = x
-        positions[:, 1] = y
-
-        indices = numpy.zeros(((n - 2), 3), dtype=numpy.uint32)
-        for i in range(n - 2):
-            indices[i] = [0, i + 1, i + 2]
-
-        fillColor = gfx.Color(rgba[0], rgba[1], rgba[2], 0.3)
-        geom = gfx.Geometry(indices=indices, positions=positions)
-        mat = _material(
-            gfx.MeshBasicMaterial,
-            color=fillColor,
-            side="both",
-        )
-        return gfx.Mesh(geom, mat)
 
 
 class _PygfxMarkerItem(dict):
@@ -1140,7 +1108,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         As in the OpenGL backend, overlay items are drawn over the frame,
         followed by the marker labels and the crosshair.
         Both scenes are in plot area pixels: item groups hold scaled data,
-        mapped through the transform of their Y axis.
+        mapped through the transform of their Y axis, while markers and
+        shapes are built in pixels.
         """
         dataObjects = []
         overlayObjects = []
@@ -1155,28 +1124,20 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 if label is not None:
                     labels.append(label)
                 continue
-            matrix = self._dataToPixelMatrices[item.yaxis]
-            if isinstance(item, _PygfxShapeItem) and item["shape"] in (
-                "hline",
-                "vline",
-            ):
-                # Stretch the unit line across the widget, as OpenGL draws it
-                # from the widget edge where its dashes start
-                axis = 0 if item["shape"] == "hline" else 1
-                matrix = matrix.copy()
-                matrix[axis] = 0
-                matrix[axis, axis] = self._plotFrame.size[axis]
-            item.group.local.matrix = matrix
-            if isinstance(item, (_PygfxCurveItem, _PygfxShapeItem)):
-                for material, width in item.lineMaterials:
-                    material.thickness = self._lineWidth(width)
-            if isinstance(item, _PygfxCurveItem):
-                for material, symbol, size in item.pointMaterials:
-                    material.size = self._symbolSize(symbol, size)
-            if plotItem.isOverlay():
-                overlayObjects.append(item.group)
+            if isinstance(item, _PygfxShapeItem):
+                objects = self._shapeObjects(item)
             else:
-                dataObjects.append(item.group)
+                item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+                if isinstance(item, _PygfxCurveItem):
+                    for material, width in item.lineMaterials:
+                        material.thickness = self._lineWidth(width)
+                    for material, symbol, size in item.pointMaterials:
+                        material.size = self._symbolSize(symbol, size)
+                objects = [item.group]
+            if plotItem.isOverlay():
+                overlayObjects.extend(objects)
+            else:
+                dataObjects.extend(objects)
 
         _setChildren(self._dataScene, dataObjects)
         _setChildren(
@@ -1312,6 +1273,83 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             dash_offset=item["dashoffset"],
         )
         return [gfx.Line(geom, mat)], label
+
+    def _shapeObjects(self, item):
+        """Return the scene objects of a shape, in pixels as OpenGL draws it"""
+        frame = self._plotFrame
+        for values, axis in ((item["x"], frame.xAxis), (item["y"], frame.yAxis)):
+            values = values[numpy.isfinite(values)]
+            if len(values) == 0 or not axis_scale.isValid(axis.scale, values.min()):
+                return []  # Out of the axes supported range
+
+        shape = item["shape"]
+        # hline and vline are widget long at their last point, where dashes start
+        if shape == "hline":
+            xMiddle = 0.5 * sum(frame.dataRanges[0])
+            pixel = frame.dataToPixel(xMiddle, item["y"][-1], axis="left")
+            if pixel is None:
+                return []
+            subShapes = [numpy.array(((0, pixel[1]), (frame.size[0], pixel[1])))]
+        elif shape == "vline":
+            yMiddle = 0.5 * sum(frame.dataRanges[1])
+            pixel = frame.dataToPixel(item["x"][-1], yMiddle, axis="left")
+            if pixel is None:
+                return []
+            subShapes = [numpy.array(((pixel[0], 0), (pixel[0], frame.size[1])))]
+        else:
+            # Sub-shapes between the not finite points
+            finite = numpy.isfinite(item["x"]) & numpy.isfinite(item["y"])
+            splits = numpy.concatenate(
+                ([-1], numpy.flatnonzero(~finite), [len(finite)])
+            )
+            subShapes = [
+                numpy.transpose(
+                    frame.dataToPixel(
+                        item["x"][begin:end], item["y"][begin:end], axis="left"
+                    )
+                )
+                for begin, end in zip(splits[:-1] + 1, splits[1:])
+                if end > begin
+            ]
+
+        left, top = frame.plotOrigin
+        width, height = frame.plotSize
+        plotBox = left, top, left + width, top + height
+        color = gfx.Color(*item["color"])
+        thickness = self._lineWidth(item["linewidth"])
+        objects = []
+        for points in subShapes:
+            if item["fill"] and shape not in ("hline", "vline"):
+                segments = _hatchSegments(points, frame.size[1], plotBox)
+                if len(segments) > 0:
+                    objects.append(_pixelLines(segments, 1.0, color))
+
+            if item["dashpattern"] is None or len(points) < 2:
+                continue
+            if shape != "polylines":
+                points = numpy.append(points, points[:1], axis=0)
+            positions = numpy.zeros((len(points), 3), dtype=numpy.float32)
+            positions[:, :2] = points
+            geometry = gfx.Geometry(positions=positions)
+            # The gap color line under the dashed line, as in OpenGL
+            if item["gapcolor"] is not None and item["dashpattern"]:
+                gapMaterial = _material(
+                    gfx.LineMaterial,
+                    aa=True,
+                    thickness=thickness,
+                    color=gfx.Color(*item["gapcolor"]),
+                )
+                objects.append(gfx.Line(geometry, gapMaterial))
+            material = _material(
+                _DashedLineMaterial,
+                aa=True,
+                thickness=thickness,
+                color=color,
+                dash_pattern=item["dashpattern"],
+                dash_offset=item["dashoffset"],
+            )
+            objects.append(gfx.Line(geometry, material))
+        return objects
 
     def _crosshairObjects(self):
         """Return the crosshair cursor lines"""
@@ -1592,8 +1630,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 "Cannot add item with coordinate outside Y axis valid range"
             )
 
-        x = self._plotFrame.xAxis.applyScale(x)
-        y = self._plotFrame.yAxis.applyScale(y)
         return _PygfxShapeItem(
             x,
             y,

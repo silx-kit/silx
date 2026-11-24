@@ -2208,7 +2208,10 @@ def testPygfxOverlayShapePosition(qWidgetFactory, scale, inverted):
     image, ratio = _renderPygfx(plot)
     for (x, y), inside in (((20, 20), True), ((20, 70), False), ((70, 20), False)):
         px, py = plot.dataToPixel(x, y)
-        isYellow = tuple(image[int(py * ratio), int(px * ratio)]) == (255, 255, 0)
+        px, py = int(px * ratio), int(py * ratio)
+        # Wide enough to hold a line of the 20 pixels hatch
+        area = image[py - 10 : py + 11, px - 10 : px + 11]
+        isYellow = numpy.all(area == (255, 255, 0))
         assert isYellow != inside, (x, y)
 
 
@@ -2631,6 +2634,75 @@ def testPygfxShapeAxisLine(qWidgetFactory, shape):
     pixels = numpy.arange(start, start + frame.plotSize[axis])
     line = image[pixels, x] if axis else image[y, pixels]
     assert line.max() < 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeSubShapes(qWidgetFactory):
+    """Not finite points split a shape in sub-shapes, each closed"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    x = (0.1, 0.3, 0.2, numpy.nan, 0.6, 0.9, 0.75)
+    y = (0.1, 0.1, 0.3, numpy.nan, 0.6, 0.6, 0.9)
+    plot.addShape(x, y, shape="polygon", color="black", fill=False, linewidth=2)
+    image = _renderPygfx(plot)[0].max(axis=2)
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, drawn in ((0.15, 0.2, True), (0.675, 0.75, True), (0.425, 0.5, False)):
+        px, py = frame.dataToPixel(x, y)
+        darkest = image[py - 2 : py + 3, px - 2 : px + 3].min()
+        assert (darkest < 128) == drawn, (x, y)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillHatch(qWidgetFactory):
+    """Shapes are filled with the hatch of OpenGL, a line every 20 pixels"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.8), (0.2, 0.8), shape="rectangle", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, top = frame.dataToPixel(0.2, 0.8)
+    right, bottom = frame.dataToPixel(0.8, 0.2)
+    rows, columns = numpy.mgrid[top + 3 : bottom - 3, left + 3 : right - 3]
+    hatch = (columns + rows + 1 - frame.size[1]) % 20 == 0
+    inside = image[rows, columns]
+    assert inside[hatch].max() < 128
+    assert inside[~hatch].min() > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillZoomed(qWidgetFactory):
+    """The hatch of a shape far larger than the plot area is drawn in it"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((-1e9, 1e9), (-1e9, 1e9), shape="rectangle", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, top = frame.dataToPixel(0.1, 0.9)
+    right, bottom = frame.dataToPixel(0.9, 0.1)
+    rows, columns = numpy.mgrid[top:bottom, left:right]
+    hatch = (columns + rows + 1 - frame.size[1]) % 20 == 0
+    inside = image[rows, columns]
+    assert inside[hatch].max() < 128
+    assert inside[~hatch].min() > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillConcave(qWidgetFactory):
+    """Concave polygons are filled inside only"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    x = (0.1, 0.9, 0.9, 0.5, 0.1)
+    y = (0.1, 0.1, 0.9, 0.3, 0.9)
+    plot.addShape(x, y, shape="polygon", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, filled in ((0.5, 0.2, True), (0.5, 0.7, False)):
+        px, py = frame.dataToPixel(x, y)
+        darkest = image[py - 20 : py + 21, px - 20 : px + 21].min()
+        assert (darkest < 128) if filled else (darkest > 250), (x, y)
 
 
 @pytest.mark.usefixtures("use_pygfx")
