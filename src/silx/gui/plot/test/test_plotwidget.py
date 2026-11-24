@@ -2420,6 +2420,26 @@ def testPygfxSymbolSize(qWidgetFactory, monkeypatch, kind, symbol, points):
     assert abs(width - points * 2 * ratio) <= 1
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxSymbolEdges(qWidgetFactory, monkeypatch):
+    """As OpenGL points, symbols leave out pixels centered on their right and top edges"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 144.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    # Markers are at pixel corners, where the edges of odd sizes cross pixel centers
+    plot.addMarker(50, 50, color="red", symbol="+").setSymbolSize(20)
+    image, ratio = _renderPygfx(plot)
+
+    size = 40 * ratio // 2 * 2 + 1
+    x, y = backend._plotFrame.dataToPixel(50, 50)  # In device pixels
+    rows, columns = numpy.nonzero(image[..., 0].astype(int) - image[..., 1] > 10)
+    assert (columns.min(), columns.max()) == (x - size // 2 - 1, x + size // 2 - 1)
+    assert (rows.min(), rows.max()) == (y - size // 2, y + size // 2)
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

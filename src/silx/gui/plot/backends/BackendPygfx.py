@@ -185,16 +185,18 @@ def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None
 
     pygfx takes a signed distance d and makes the opacity sqrt(0.5 - d),
     so the distance returned here gives the OpenGL symbol alpha.
-    Fragments outside the square of the OpenGL point are not drawn.
+    Only fragments in the OpenGL point are drawn: those centered in
+    [-size/2, size/2) along x and y upward, with a margin for float errors.
     """
     alpha = _SYMBOL_ALPHAS.get(symbol)
     if alpha is None:
         return None
     sdf = f"""
-        let q = vec2<f32>(coord.x, -coord.y);
-        if (max(abs(q.x), abs(q.y)) > 0.5 * size) {{
+        let r = coord + 0.001;
+        if (min(r.x, r.y) < -0.5 * size || max(r.x, r.y) >= 0.5 * size) {{
             return 1.0;
         }}
+        let q = vec2<f32>(coord.x, -coord.y);
         var alpha = 0.0;
         {alpha}
         return 0.5 - alpha * alpha;
