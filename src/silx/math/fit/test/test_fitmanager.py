@@ -26,6 +26,7 @@ Tests for fitmanager module
 
 import unittest
 import numpy
+import pytest
 import os.path
 
 from silx.math.fit import fitmanager
@@ -476,3 +477,37 @@ class TestPolynomials(unittest.TestCase):
 
     def testQuintic(self):
         self._testPoly([1, -2, 3, -4, -5, 6], "Degree 5 Polynomial", places=4)
+
+
+@pytest.mark.parametrize("not_finite_in", ["x", "y", "x and y"])
+@pytest.mark.parametrize("weighted", [False, True])
+@pytest.mark.parametrize("background", ["Constant", "Strip", "Snip"])
+def test_fit_ignores_not_finite_data(background, weighted, not_finite_in):
+    """Fit and fit curve skip the data points that are not finite."""
+    x = numpy.arange(500.0)
+    y = 1000 * numpy.exp(-((x - 250) ** 2) / (2 * 8.5**2)) + 50 + 0.1 * x
+    # for example points that are not acquired yet
+    expected_nan = []
+    if "x" in not_finite_in:
+        x[10] = numpy.nan
+        expected_nan.append(10)
+    if "y" in not_finite_in:
+        y[20] = numpy.nan
+        expected_nan.append(20)
+
+    fm = fitmanager.FitManager()
+    fm.setdata(x, y)
+    fm.loadtheories(fittheories)
+    fm.loadbgtheories(bgtheories)
+    fm.settheory("Gaussians")
+    fm.setbackground(background)
+    fm.configure(WeightFlag=weighted)
+    fm.estimate()
+
+    # Running the fit tolerates not finite input data.
+    params, _, _ = fm.runfit()
+    assert params[-2] == pytest.approx(250, abs=0.1)  # peak position
+
+    # The fit curve has the data shape, with NaN at the not finite points.
+    fit = fm.gendata()
+    assert numpy.flatnonzero(numpy.isnan(fit)).tolist() == expected_nan

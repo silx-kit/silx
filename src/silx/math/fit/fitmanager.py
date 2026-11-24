@@ -527,7 +527,8 @@ class FitManager:
         and the fitted parameters.
 
         :param x: Independent variable where the function is calculated.
-            If ``None``, use :attr:`xdata`.
+            If ``None``, use :attr:`xdata`. In that case, the result is NaN where
+            :attr:`xdata` or :attr:`ydata` is not finite.
         :param paramlist: List of dictionaries, each dictionary item being a
             fit parameter. The dictionary's format is documented in
             :attr:`fit_results`.
@@ -540,7 +541,13 @@ class FitManager:
         from a list of parameter dictionaries, if field ``code`` is not set
         to ``"IGNORE"``.
         """
-        x = self.xdata if x is None else numpy.asarray(x)
+        if x is None:
+            x = self.xdata
+            finite_mask = self._finite_mask
+        else:
+            x = numpy.asarray(x)
+            # Mask not finite x values (with support of nD x)
+            finite_mask = numpy.all(numpy.isfinite(x), axis=tuple(range(1, x.ndim)))
 
         if paramlist is None:
             paramlist = self.fit_results
@@ -551,9 +558,6 @@ class FitManager:
                     active_params.append(param["fitresult"])
                 else:
                     active_params.append(param["estimation"])
-
-        # Mask x with not finite (support nD x)
-        finite_mask = numpy.all(numpy.isfinite(x), axis=tuple(range(1, x.ndim)))
 
         if numpy.all(finite_mask):  # All values are finite: fast path
             return self.fitfunction(numpy.array(x, copy=True), *active_params)
@@ -883,6 +887,7 @@ class FitManager:
         # Filter-out not finite data
         ywork = self.ydata[self._finite_mask]
         xwork = self.xdata[self._finite_mask]
+        sigmawork = None if self.sigmay is None else self.sigmay[self._finite_mask]
 
         try:
             params, covariance_matrix, infodict = leastsq(
@@ -890,7 +895,7 @@ class FitManager:
                 xwork,
                 ywork,
                 param_val,
-                sigma=self.sigmay,
+                sigma=sigmawork,
                 constraints=param_constraints,
                 model_deriv=self.theories[self.selectedtheory].derivative,
                 full_output=True,
@@ -939,7 +944,8 @@ class FitManager:
             nb_bg_pars = len(bg_pars_list)
 
             bgfun = self.bgtheories[self.selectedbg].function
-            result += bgfun(x, self.ydata, *pars[0:nb_bg_pars])
+            ywork = self.ydata[self._finite_mask]
+            result += bgfun(x, ywork, *pars[0:nb_bg_pars])
         else:
             nb_bg_pars = 0
 
