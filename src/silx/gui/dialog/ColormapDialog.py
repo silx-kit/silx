@@ -1747,7 +1747,7 @@ class ColormapDialog(qt.QDialog):
                 comboBox.setCurrentIndex(index)
                 button.setChecked(True)
             else:
-                comboBox.setCurrentColors(lut)
+                comboBox._setCurrentLut(lut)
                 button.setChecked(False)
 
     def _updateColormapLut(self):

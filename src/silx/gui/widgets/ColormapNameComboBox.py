@@ -141,9 +141,9 @@ class ColormapNameComboBox(qt.QComboBox):
             self._setCurrentName(name)
         else:
             lut = colormap.getColormapLUT()
-            self.setCurrentColors(lut)
+            self._setCurrentLut(lut)
 
-    def setCurrentColors(self, lut: numpy.ndarray):
+    def _setCurrentLut(self, lut: numpy.ndarray):
         """Select the custom LUT with the given colors, add it if needed.
 
         :param lut: Colors of the LUT
