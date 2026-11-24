@@ -2229,6 +2229,27 @@ def testPygfxRightAxisCurve(qWidgetFactory, inverted):
     assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxImagePixelExact(qWidgetFactory):
+    """An image at one texel per pixel is drawn texel for texel, not smoothed"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    left, top, width, height = plot.getPlotBoundsInPixels()
+    checkerboard = numpy.indices((height, width)).sum(axis=0) % 2 * 255
+    plot.addImage(
+        checkerboard.astype(numpy.uint8),
+        colormap=Colormap("gray", vmin=0, vmax=255),
+    )
+    plot.setLimits(0, width, 0, height)
+
+    image, ratio = _renderPygfx(plot)
+    step = round(ratio)  # Image pixels per widget pixel
+    area = image[
+        (top + 1) * step : (top + height - 1) * step : step,
+        (left + 1) * step : (left + width - 1) * step : step,
+    ]
+    assert numpy.all((area == 0) | (area == 255))
+
+
 def _logPlot(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     plot.getXAxis().setScale("log")

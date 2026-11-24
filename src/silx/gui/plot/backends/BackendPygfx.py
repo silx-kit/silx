@@ -222,6 +222,7 @@ class _PygfxCurveItem:
                 errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
                 errMat = _material(
                     gfx.LineSegmentMaterial,
+                    aa=True,
                     thickness=1.0,
                     color=uniformColor,
                 )
@@ -248,6 +249,7 @@ class _PygfxCurveItem:
                 gapRgba = colors.rgba(gapcolor)
                 gapMat = _material(
                     gfx.LineMaterial,
+                    aa=True,
                     thickness=max(linewidth, 1.0),
                     color=gfx.Color(*gapRgba),
                 )
@@ -255,6 +257,7 @@ class _PygfxCurveItem:
 
             mat = _material(
                 gfx.LineMaterial,
+                aa=True,
                 thickness=max(linewidth, 1.0),
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
@@ -282,6 +285,7 @@ class _PygfxCurveItem:
             geom = gfx.Geometry(positions=positions, **pointKwargs)
             mat = _material(
                 gfx.PointsMarkerMaterial,
+                aa=True,
                 marker=markerShape,
                 size=pointSize,
                 color=uniformColor,
@@ -589,6 +593,7 @@ class _PygfxShapeItem(dict):
                 gapRgba = colors.rgba(gapcolor)
                 gapMat = _material(
                     gfx.LineMaterial,
+                    aa=True,
                     thickness=max(linewidth, 1.0),
                     color=gfx.Color(*gapRgba),
                 )
@@ -596,6 +601,7 @@ class _PygfxShapeItem(dict):
 
             mat = _material(
                 gfx.LineMaterial,
+                aa=True,
                 thickness=max(linewidth, 1.0),
                 color=gfxColor,
                 dash_pattern=dashPattern if dashPattern else (),
@@ -749,7 +755,11 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         # pygfx rendering objects
         _restrictWgpuToPrimaryBackends()  # Must be done before creating the renderer
         # No distance sorting: objects are drawn in scene order
-        self._renderer = gfx.WgpuRenderer(self, sort_objects=False)
+        # Device resolution without post-processing, as the OpenGL backend:
+        # supersampling and DDAA would blur text, images and thin lines
+        self._renderer = gfx.WgpuRenderer(
+            self, sort_objects=False, pixel_scale=1, ppaa="none"
+        )
 
         # Widget pixels over the plot area, and the transforms to them from
         # each Y axis' scaled data coordinates: both updated by _syncCamera
@@ -1067,6 +1077,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             )
             mat = _material(
                 gfx.PointsMarkerMaterial,
+                aa=True,
                 marker=_SYMBOL_MAP.get(item["symbol"], "plus"),
                 size=item["symbolsize"],
                 color=gfxColor,
@@ -1129,6 +1140,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
         mat = _material(
             gfx.LineMaterial,
+            aa=True,
             thickness=max(item["linewidth"], 1.0),
             color=gfxColor,
             dash_pattern=dashPattern if dashPattern else (),
