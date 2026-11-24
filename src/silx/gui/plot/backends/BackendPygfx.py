@@ -693,10 +693,11 @@ class _PygfxShapeItem(dict):
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
             positions[:, 1] = y
-        elif shape in ("line", "hline", "vline"):
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
+        elif shape == "hline":
+            # At the last point as in matplotlib, made widget long at each draw
+            positions = numpy.array(((0, y[-1], 0), (1, y[-1], 0)), dtype=numpy.float32)
+        elif shape == "vline":
+            positions = numpy.array(((x[-1], 0, 0), (x[-1], 1, 0)), dtype=numpy.float32)
         else:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
@@ -1176,7 +1177,18 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 if label is not None:
                     labels.append(label)
                 continue
-            item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+            matrix = self._dataToPixelMatrices[item.yaxis]
+            if isinstance(item, _PygfxShapeItem) and item["shape"] in (
+                "hline",
+                "vline",
+            ):
+                # Stretch the unit line across the widget, as OpenGL draws it
+                # from the widget edge where its dashes start
+                axis = 0 if item["shape"] == "hline" else 1
+                matrix = matrix.copy()
+                matrix[axis] = 0
+                matrix[axis, axis] = self._plotFrame.size[axis]
+            item.group.local.matrix = matrix
             if isinstance(item, (_PygfxCurveItem, _PygfxShapeItem)):
                 for material, width in item.lineMaterials:
                     material.thickness = self._lineWidth(width)

@@ -2615,6 +2615,24 @@ def testPygfxMarkerDashPhase(qWidgetFactory, vertical):
     assert numpy.mean((line.min(axis=1) < 128) != expected) < 0.2
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("shape", ["hline", "vline"])
+def testPygfxShapeAxisLine(qWidgetFactory, shape):
+    """hline and vline shapes cross the plot area at their last point"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.4), (0.3, 0.6), shape=shape, fill=False, linewidth=3)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.4, 0.6)
+    axis = 1 if shape == "vline" else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if axis else image[y, pixels]
+    assert line.max() < 128
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
