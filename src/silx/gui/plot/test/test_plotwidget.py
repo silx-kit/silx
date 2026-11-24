@@ -2212,6 +2212,55 @@ def testPygfxOverlayShapePosition(qWidgetFactory, scale, inverted):
         assert isYellow != inside, (x, y)
 
 
+def _logPlot(qWidgetFactory):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getXAxis().setScale("log")
+    plot.getYAxis().setScale("log")
+    return plot
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxLogAxesMarkers(qWidgetFactory):
+    """Markers are drawn and picked at their data position on log axes"""
+    plot = _logPlot(qWidgetFactory)
+    plot.addYMarker(500, legend="hline", color="red").setLineWidth(5)
+    plot.addXMarker(500, legend="vline", color="red").setLineWidth(5)
+    plot.addMarker(
+        200,
+        300,
+        legend="point",
+        color="red",
+        symbol="o",
+        draggable=True,
+        constraint=lambda x, y: (x, 200),
+    )
+    plot.setLimits(1, 1000, 1, 1000)
+
+    image, ratio = _renderPygfx(plot)
+    for name, (x, y) in (
+        ("hline", (5, 500)),
+        ("vline", (500, 5)),
+        ("point", (200, 200)),
+    ):
+        px, py = plot.dataToPixel(x, y)
+        assert tuple(image[int(py * ratio), int(px * ratio)]) == _RED, name
+        assert [r.getItem().getName() for r in plot.pickItems(px, py)] == [name]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxLogAxesCurvePick(qWidgetFactory):
+    plot = _logPlot(qWidgetFactory)
+    plot.addCurve((10, 100), (10, 100), legend="curve", symbol="o", linestyle=" ")
+    plot.setLimits(1, 1000, 1, 1000)
+    _renderPygfx(plot)
+
+    px, py = plot.dataToPixel(100, 100)
+    results = [
+        (r.getItem().getName(), list(r.getIndices())) for r in plot.pickItems(px, py)
+    ]
+    assert results == [("curve", [1])]
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 

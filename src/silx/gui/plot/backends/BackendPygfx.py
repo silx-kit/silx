@@ -635,7 +635,10 @@ class _PygfxShapeItem(dict):
 
 
 class _PygfxMarkerItem(dict):
-    """Manages pygfx scene objects for markers."""
+    """Marker parameters, with the position in data coordinates.
+
+    Its scene objects are built in pixels at each draw, as for OpenGL markers.
+    """
 
     def __init__(
         self,
@@ -681,26 +684,6 @@ class _PygfxMarkerItem(dict):
                 "bgcolor": bgcolor,
             }
         )
-
-        self.group = gfx.Group()
-        rgba = colors.rgba(color)
-        gfxColor = gfx.Color(*rgba)
-
-        if x is not None and y is not None:
-            # Point marker
-            positions = numpy.array([[x, y, 0]], dtype=numpy.float32)
-            markerShape = _SYMBOL_MAP.get(symbol, "plus")
-            geom = gfx.Geometry(positions=positions)
-            mat = _material(
-                gfx.PointsMarkerMaterial,
-                marker=markerShape,
-                size=symbolsize,
-                color=gfxColor,
-                edge_width=1.0,
-                edge_color=gfxColor,
-            )
-            self._pointsObj = gfx.Points(geom, mat)
-            self.group.add(self._pointsObj)
 
 
 # BackendPygfx ################################################################
@@ -1083,18 +1066,31 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         pixelOffset = 3
 
         if xCoord is not None and yCoord is not None:
-            # Point marker: the symbol is in data coordinates
-            item.group.local.matrix = self._dataToPixelMatrix
+            # Point marker
             pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
-            if text is None or pixelPos is None:
-                return [item.group], None
+            if pixelPos is None:
+                return [], None
+            geom = gfx.Geometry(
+                positions=numpy.array([[*pixelPos, 0]], dtype=numpy.float32)
+            )
+            mat = _material(
+                gfx.PointsMarkerMaterial,
+                marker=_SYMBOL_MAP.get(item["symbol"], "plus"),
+                size=item["symbolsize"],
+                color=gfxColor,
+                edge_width=1.0,
+                edge_color=gfxColor,
+            )
+            symbol = gfx.Points(geom, mat)
+            if text is None:
+                return [symbol], None
             label = self._markerLabel(
                 text,
                 gfxColor,
                 (pixelPos[0] + pixelOffset, pixelPos[1] + pixelOffset),
                 "top-left",
             )
-            return [item.group], label
+            return [symbol], label
 
         label = None
         if xCoord is None:
@@ -1492,15 +1488,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         font: qt.QFont,
         bgcolor: RGBAColorType | None,
     ) -> object:
-        # Scale marker coordinates
-        if x is not None:
-            x = self._plotFrame.xAxis.applyScale(x)
-        if y is not None:
-            yAxis = (
-                self._plotFrame.y2Axis if yaxis == "right" else self._plotFrame.yAxis
-            )
-            y = yAxis.applyScale(y)
-
         return _PygfxMarkerItem(
             x,
             y,
@@ -1648,6 +1635,12 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             return None
         xPick1, yPick1 = dataPos
 
+        # The curve geometry holds scaled data
+        yAxis = (
+            self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
+        )
+        xPick0, xPick1 = self._plotFrame.xAxis.applyScale((xPick0, xPick1))
+        yPick0, yPick1 = yAxis.applyScale((yPick0, yPick1))
         xPickMin = min(xPick0, xPick1)
         xPickMax = max(xPick0, xPick1)
         yPickMin = min(yPick0, yPick1)
