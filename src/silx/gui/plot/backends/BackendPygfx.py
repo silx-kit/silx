@@ -1269,9 +1269,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             )
             if pixelPos is None:
                 return [], None
-            left = self._plotFrame.margins.left
             right = self._plotFrame.size[0] - self._plotFrame.margins.right
-            positions = [[left, pixelPos[1], 0], [right, pixelPos[1], 0]]
+            # Edge to edge of the widget as in OpenGL, where the dashes start;
+            # the plot area rect clips it
+            positions = [[0, pixelPos[1], 0], [self._plotFrame.size[0], pixelPos[1], 0]]
             if text is not None:
                 label = self._textObject(
                     text,
@@ -1295,8 +1296,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if pixelPos is None:
                 return [], None
             top = self._plotFrame.margins.top
-            bottom = self._plotFrame.size[1] - self._plotFrame.margins.bottom
-            positions = [[pixelPos[0], top, 0], [pixelPos[0], bottom, 0]]
+            # Edge to edge of the widget, as the horizontal line
+            positions = [[pixelPos[0], 0, 0], [pixelPos[0], self._plotFrame.size[1], 0]]
             if text is not None:
                 label = self._textObject(
                     text,

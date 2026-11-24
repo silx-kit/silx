@@ -2591,6 +2591,30 @@ def testPygfxNoLineStyle(qWidgetFactory, kind):
     assert row.min() >= 128
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("vertical", [False, True])
+def testPygfxMarkerDashPhase(qWidgetFactory, vertical):
+    """Marker dashes start at the widget edge, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    marker = plot.addXMarker(0.5) if vertical else plot.addYMarker(0.5)
+    marker.setLineStyle((0, (2, 2)))
+    # The dash period divides none of the plot margins at both pixel ratios
+    marker.setLineWidth(5)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.5, 0.5)
+    axis = 1 if vertical else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if vertical else image[y, pixels]
+    width = 5 / 72 * frame.dotsPerInch
+    # Dashes and gaps of 2 line widths counted from the widget edge
+    expected = (pixels + 0.5) / width % 4 < 2
+    assert numpy.mean((line.min(axis=1) < 128) != expected) < 0.2
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
