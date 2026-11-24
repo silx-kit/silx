@@ -1716,7 +1716,7 @@ class ColormapDialog(qt.QDialog):
                 self._histoWidget.setFiniteRange(dataRange)
                 self._histoWidget.updateNormalization()
 
-    def _getComboBoxcurrentColors(self) -> numpy.ndarray:
+    def _getCurrentColormapColors(self) -> numpy.ndarray:
         """Returns the colors of the colormap selected in the combo box"""
         name = self._comboBoxColormap.getCurrentName()
         if name is None:
@@ -1743,7 +1743,7 @@ class ColormapDialog(qt.QDialog):
 
             lut = colormap.getColormapLUT(copy=False)
             if button.isChecked() and numpy.array_equal(
-                lut[::-1], self._getComboBoxcurrentColors()
+                lut[::-1], self._getCurrentColormapColors()
             ):
                 return  # Already displayed (e.g., a reversed 'temperature')
 
@@ -1768,7 +1768,7 @@ class ColormapDialog(qt.QDialog):
                 if name is not None:
                     colormap.setName(name)
                 else:
-                    colors = self._getComboBoxcurrentColors()
+                    colors = self._getCurrentColormapColors()
                     colormap.setColormapLUT(colors[::-1] if isReversed else colors)
         self._histoWidget.updateLut()
 
