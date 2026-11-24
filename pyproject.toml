@@ -91,7 +91,7 @@ doc = [
     'pandoc',                    # For documentation Qt snapshot updates
 ]
 test = [
-    'silx[full,h5pyd]',
+    'silx[full,blissdata,h5pyd]',
     'bitshuffle',
     'imageio[tifffile] >= 2.18.0',  # For dictdump links tests
     'scipy >= 1.10',             # For scipy.datasets.ascent
