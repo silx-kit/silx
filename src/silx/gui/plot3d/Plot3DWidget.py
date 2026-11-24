@@ -404,6 +404,11 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         return convertArrayToQImage(image)
 
+    def _makeCurrentAndRenderPendingChanges(self):
+        self.makeCurrent()
+        if self._updating:
+            self.paintGL()
+
     def wheelEvent(self, event):
         x, y = qt.getMouseEventPosition(event)
         xpixel = x * self.getDevicePixelRatio()
@@ -412,10 +417,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         event.accept()
 
         if self.eventHandler is not None and angle != 0 and self.isValid():
-            self.makeCurrent()
-            if self._updating:
-                # The zoom reads the depth buffer: render the pending changes first
-                self.paintGL()
+            self._makeCurrentAndRenderPendingChanges()
             self.eventHandler.handleEvent("wheel", xpixel, ypixel, angle)
 
     def keyPressEvent(self, event):
@@ -474,7 +476,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         event.accept()
 
         if self.eventHandler is not None and self.isValid():
-            self.makeCurrent()
+            self._makeCurrentAndRenderPendingChanges()
             self.eventHandler.handleEvent("press", xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
@@ -484,7 +486,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         event.accept()
 
         if self.eventHandler is not None and self.isValid():
-            self.makeCurrent()
+            self._makeCurrentAndRenderPendingChanges()
             self.eventHandler.handleEvent("move", xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
@@ -495,5 +497,5 @@ class Plot3DWidget(glu.OpenGLWidget):
         event.accept()
 
         if self.eventHandler is not None and self.isValid():
-            self.makeCurrent()
+            self._makeCurrentAndRenderPendingChanges()
             self.eventHandler.handleEvent("release", xpixel, ypixel, btn)

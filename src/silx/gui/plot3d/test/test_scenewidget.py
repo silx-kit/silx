@@ -110,3 +110,42 @@ class TestPlot3DWidget:
         assert steps[1] < steps[0]
         assert steps[2] < steps[1]
         assert steps[3] < steps[2]
+
+    @pytest.mark.parametrize(
+        "eventType,button",
+        [
+            (qt.QEvent.MouseButtonPress, qt.Qt.LeftButton),
+            (qt.QEvent.MouseMove, qt.Qt.NoButton),
+            (qt.QEvent.MouseButtonRelease, qt.Qt.LeftButton),
+        ],
+        ids=["press", "move", "release"],
+    )
+    def testMouseEventRendersPendingChanges(
+        self, qWidgetFactory, qapp, eventType, button
+    ):
+        sceneWidget = qWidgetFactory(SceneWidget)
+        sceneWidget.resize(600, 600)
+        scatter = sceneWidget.add3DScatter(
+            *numpy.random.default_rng(0).random((4, 2000)) * 10
+        )
+        sceneWidget.resetZoom()
+        for _ in range(30):
+            qapp.processEvents()
+
+        # Change the scene without letting the queued repaint happen
+        scatter.setTranslation(1, 1, 1)
+        assert sceneWidget._updating
+
+        pos = qt.QPointF(100, 100)
+        event = qt.QMouseEvent(
+            eventType,
+            pos,
+            qt.QPointF(sceneWidget.mapToGlobal(pos.toPoint())),
+            button,
+            button,
+            qt.Qt.NoModifier,
+        )
+        qt.QApplication.sendEvent(sceneWidget, event)
+
+        # Interactions read the depth buffer: the scene must have been rendered
+        assert not sceneWidget._updating
