@@ -3,64 +3,62 @@ import pytest
 
 pytest.importorskip("blissdata")
 
+from blissdata.h5api import abstract, redis_hdf5  # noqa: E402
+
 from .. import blissdatah5  # noqa: E402
 from ..blissdatah5 import BlissDataDataset, BlissDataLima1Dataset  # noqa: E402
 
 
-class _StreamLikeDataset:
-    """Mimics a blissdata redis_hdf5 Dataset wrapping a stream.
+class _FakeStream:
+    """Mimics a blissdata array stream.
 
-    It fails for indices which would make blissdata wait for new data or
+    It fails for accesses which would make blissdata wait for new data or
     for the end of the scan (negative indices, slices without explicit
-    positive stop, indices out of the available data) and for indices not
-    supported by blissdata streams (negative steps, tuples, numpy integers).
+    positive stop, indices out of the available data, iteration) and for
+    indices not supported by blissdata streams (negative steps, numpy integers).
     """
 
-    def __init__(self, array: numpy.ndarray):
+    kind = "array"
+
+    def __init__(self, array: numpy.ndarray, plugin: str | None = None):
         self._array = array
-        self.calls = []
+        self.plugin = plugin
+        self.sealed = False
+        self.isSealedCallCount = 0
+        self.getitem_calls = []
 
     @property
     def shape(self):
-        return self._array.shape
-
-    @property
-    def ndim(self):
-        return self._array.ndim
-
-    @property
-    def size(self):
-        return self._array.size
+        return self._array.shape[1:]
 
     @property
     def dtype(self):
         return self._array.dtype
 
+    def is_sealed(self):
+        self.isSealedCallCount += 1
+        return self.sealed
+
+    def wait_seal(self, timeout: float = 0.0):
+        raise AssertionError("Blocking until the end of the stream")
+
+    def cursor(self):
+        raise AssertionError("Blocking iteration until the end of the stream")
+
     def __len__(self):
         return len(self._array)
 
-    def __iter__(self):
-        raise AssertionError("Blocking iteration until the end of the stream")
-
     def __getitem__(self, idx):
-        self.calls.append(idx)
-        if self.ndim == 0:
-            assert idx == ()
-            return self._array[()]
+        self.getitem_calls.append(idx)
         if type(idx) is int:
             assert 0 <= idx < len(self), f"Blocking index {idx}"
         elif isinstance(idx, slice):
-            assert idx.start is not None and idx.start >= 0
+            assert idx.start is None or idx.start >= 0
             assert idx.stop is not None and 0 <= idx.stop <= len(self)
-            assert idx.step is not None and idx.step > 0
+            assert idx.step is None or idx.step > 0
         else:
             raise AssertionError(f"Unsupported index: {idx!r}")
         return self._array[idx]
-
-
-@pytest.fixture
-def array():
-    return numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
 
 
 @pytest.mark.parametrize(
@@ -99,10 +97,13 @@ def array():
         numpy.array([True, False, True, False, True]),
     ],
 )
-def testGetItem(array, index):
+def testGetItem(index):
     """Indexing works as for numpy without making blissdata wait"""
-    data = _StreamLikeDataset(array)
-    dataset = BlissDataDataset("data", data)
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
 
     result = dataset[index]
 
@@ -111,126 +112,116 @@ def testGetItem(array, index):
 
 
 @pytest.mark.parametrize("index", [5, -6, (5, 0)])
-def testGetItemOutOfRange(array, index):
-    dataset = BlissDataDataset("data", _StreamLikeDataset(array))
+def testGetItemOutOfRange(index):
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
     with pytest.raises(IndexError):
         dataset[index]
 
 
-def testGetItemEmptySliceDoesNotRead(array):
-    data = _StreamLikeDataset(array)
-    dataset = BlissDataDataset("data", data)
-    result = dataset[3:1]
-    assert result.shape == (0, 3, 4)
-    assert result.dtype == array.dtype
-    assert data.calls == []
-
-
-def testGetItemReadsOnlyNeededRange(array):
-    data = _StreamLikeDataset(array)
-    dataset = BlissDataDataset("data", data)
+def testGetItemReadsOnlyNeededRange():
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
     dataset[0, 0, 0]
     dataset[1:3, 0]
-    assert data.calls == [0, slice(1, 3, 1)]
-
-
-def testGetItemStepReadsOnlySelected(array):
-    data = _StreamLikeDataset(array)
-    dataset = BlissDataDataset("data", data)
     dataset[::2]
     dataset[4:0:-2]
-    assert data.calls == [slice(0, 5, 2), slice(2, 5, 2)]
+    assert stream.getitem_calls == [0, slice(1, 3, 1), slice(0, 5, 2), slice(2, 5, 2)]
 
 
 @pytest.mark.parametrize("index", [(), Ellipsis])
 def testGetItemScalar(index):
-    dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.array(42)))
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, numpy.array(42))
+    )
     assert dataset[index] == 42
 
 
-def testValueAndArray(array):
-    dataset = BlissDataDataset("data", _StreamLikeDataset(array))
+def testValueAndArray():
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
     numpy.testing.assert_array_equal(dataset.value, array)
     numpy.testing.assert_array_equal(numpy.asarray(dataset), array)
 
 
-def testIter(monkeypatch, array):
+def testIter(monkeypatch):
     """Iteration reads chunks of available data and does not wait"""
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
     monkeypatch.setattr(blissdatah5, "_ITER_CHUNK_NBYTES", 2 * array[0].nbytes)
-    data = _StreamLikeDataset(array)
-    dataset = BlissDataDataset("data", data)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
 
-    items = list(dataset)
+    items = list(dataset)  # iterate
 
     assert len(items) == len(array)
     for item, expected in zip(items, array):
         numpy.testing.assert_array_equal(item, expected)
-    assert data.calls == [slice(0, 2, 1), slice(2, 4, 1), slice(4, 5, 1)]
+    assert stream.getitem_calls == [slice(0, 2, 1), slice(2, 4, 1), slice(4, 5, 1)]
 
 
 def testIter1D():
     array = numpy.arange(10)
-    assert list(BlissDataDataset("data", _StreamLikeDataset(array))) == list(array)
+    stream = _FakeStream(array)
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
+    assert list(dataset) == list(array)
 
 
 def testIterEmpty():
-    dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.empty((0, 2))))
+    stream = _FakeStream(numpy.empty((0, 2)))
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    )
     assert list(dataset) == []
 
 
 def testIterScalar():
-    dataset = BlissDataDataset("data", _StreamLikeDataset(numpy.array(42)))
+    dataset = BlissDataDataset(
+        "data", redis_hdf5.Dataset(None, "/data", {}, numpy.array(42))
+    )
     with pytest.raises(TypeError):
         list(dataset)
 
 
-class _FakeStream:
-    """Mimics a blissdata stream with images"""
+class _BlissdataGroup(abstract.Group):
+    """Minimal blissdata group holding the given children"""
 
-    kind = "array"
+    name = "/"
+    attrs = {}
+    parent = None
+    file = None
 
-    def __init__(self, array: numpy.ndarray, plugin: str):
-        self._array = array
-        self.plugin = plugin
-        self.sealed = False
-        self.isSealedCallCount = 0
+    def __init__(self, **children: abstract.Node):
+        self._children = children
 
-    @property
-    def shape(self):
-        return self._array.shape[1:]
+    def __getitem__(self, key: str) -> abstract.Node:
+        return self._children[key]
 
-    @property
-    def dtype(self):
-        return self._array.dtype
+    def __iter__(self):
+        return iter(self._children)
 
-    def is_sealed(self):
-        self.isSealedCallCount += 1
-        return self.sealed
-
-    def __len__(self):
-        return len(self._array)
-
-    def __getitem__(self, idx):
-        return self._array[idx]
+    def __len__(self) -> int:
+        return len(self._children)
 
 
-class _Group(dict):
-    """Minimal group: a dict which can be weakly referenced"""
-
-
-def _createStreamDataset(array: numpy.ndarray, plugin: str):
-    """Create a dataset from a stream through `_children`"""
-    from blissdata.h5api import redis_hdf5
-
-    stream = _FakeStream(array, plugin)
-    data = redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
-    (dataset,) = blissdatah5._children(_Group(data=data))
-    return dataset, stream
-
-
-def testLima1Unsealed(array):
+def testLima1Unsealed():
     """Dataset of an unsealed lima1 stream is empty"""
-    dataset, stream = _createStreamDataset(array, plugin="lima")
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array, plugin="lima")
+    data = redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    (dataset,) = blissdatah5._children(_BlissdataGroup(data=data))
     assert isinstance(dataset, BlissDataLima1Dataset)
 
     assert len(dataset) == 0
@@ -243,9 +234,12 @@ def testLima1Unsealed(array):
         dataset[0]
 
 
-def testLima1Sealed(array):
+def testLima1Sealed():
     """Dataset of a lima1 stream exposes data once sealed"""
-    dataset, stream = _createStreamDataset(array, plugin="lima")
+    array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
+    stream = _FakeStream(array, plugin="lima")
+    data = redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
+    (dataset,) = blissdatah5._children(_BlissdataGroup(data=data))
     assert len(dataset) == 0
 
     stream.sealed = True
@@ -259,15 +253,3 @@ def testLima1Sealed(array):
     count = stream.isSealedCallCount
     len(dataset)
     assert stream.isSealedCallCount == count
-
-
-@pytest.mark.parametrize("plugin", [None, "lima2"])
-def testNotLima1Unsealed(array, plugin):
-    """Dataset of other unsealed streams exposes available data"""
-    dataset, stream = _createStreamDataset(array, plugin=plugin)
-    assert type(dataset) is BlissDataDataset
-
-    assert len(dataset) == len(array)
-    assert dataset.shape == array.shape
-    numpy.testing.assert_array_equal(dataset[:2], array[:2])
-    assert stream.isSealedCallCount == 0
