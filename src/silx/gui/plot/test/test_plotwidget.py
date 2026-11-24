@@ -2483,6 +2483,26 @@ def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
     assert abs(numpy.count_nonzero(coverage > 0.5) - points * 4 * ratio) <= 1
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCrosshair(qapp, qWidgetFactory):
+    """The crosshair covers the pixel under the mouse, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.setGraphCursor(True, color="red", linewidth=1)
+    # Sent to the canvas: moving the system cursor is unreliable
+    pos = qt.QPointF(*(int(v) for v in plot.dataToPixel(0.3, 0.3)))
+    event = qt.QMouseEvent(
+        qt.QEvent.MouseMove, pos, pos, qt.Qt.NoButton, qt.Qt.NoButton, qt.Qt.NoModifier
+    )
+    qapp.sendEvent(plot.getWidgetHandle(), event)
+    image = _renderPygfx(plot)[0]
+
+    x, y = (int(v) for v in plot._backend._mousePosInPixels)
+    isRed = image[..., 0].astype(int) - image[..., 1] > 100
+    assert numpy.nonzero(isRed[y + 10])[0].tolist() == [x]
+    assert numpy.nonzero(isRed[:, x + 10])[0].tolist() == [y]
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

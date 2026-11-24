@@ -1291,7 +1291,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         color, linewidth = self._crosshairCursor
         gfxColor = gfx.Color(*color)
-        mx, my = self._mousePosInPixels
+        # At the center of the pixel under the mouse, as BackendOpenGL
+        mx, my = (v + 0.5 for v in self._mousePosInPixels)
 
         left, top = self._plotFrame.plotOrigin
         pw, ph = self._plotFrame.plotSize
