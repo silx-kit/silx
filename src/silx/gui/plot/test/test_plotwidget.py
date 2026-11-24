@@ -2239,3 +2239,22 @@ def testGlShapeAxisLine(qWidgetFactory, shape):
     pixels = numpy.arange(start, start + frame.plotSize[axis])
     line = image[pixels, x] if axis else image[y, pixels]
     assert line.max() < 128
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlShapeNotFinite(qWidgetFactory):
+    """Shapes are drawn as the sub-shapes between their not finite points"""
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    plot.setLimits(0, 10, 0, 10)
+    x, y = (1, 9, numpy.nan, 1, 9), (2, 2, numpy.nan, 8, 8)
+    plot.addShape(x, y, legend="polylines", shape="polylines", fill=False)
+    # Not drawn, as its last point is not finite
+    plot.addShape((1, 9), (5, numpy.nan), legend="hline", shape="hline", fill=False)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for y in (2, 8):
+        x, y = frame.dataToPixel(5, y)
+        assert image[y - 1 : y + 2, x].min() < 128
+    x, y = frame.dataToPixel(5, 5)
+    assert image[y - 1 : y + 2, x].min() == 255

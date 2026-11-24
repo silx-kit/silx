@@ -522,37 +522,49 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                if not axis_scale.isValid(
-                    xAxisScale, numpy.min(item["x"])
-                ) or not axis_scale.isValid(yAxisScale, numpy.min(item["y"])):
+                # Not finite points split shapes, only the others are checked
+                xFinite = item["x"][numpy.isfinite(item["x"])]
+                yFinite = item["y"][numpy.isfinite(item["y"])]
+                if (
+                    len(xFinite) == 0
+                    or len(yFinite) == 0
+                    or not axis_scale.isValid(xAxisScale, xFinite.min())
+                    or not axis_scale.isValid(yAxisScale, yFinite.min())
+                ):
                     continue  # Ignore items out of axes supported range
 
                 # hline and vline are at their last point, as in matplotlib
                 if item["shape"] == "hline":
                     width = self._plotFrame.size[0]
-                    _, yPixel = self._plotFrame.dataToPixel(
+                    pixel = self._plotFrame.dataToPixel(
                         0.5 * sum(self._plotFrame.dataRanges[0]),
                         item["y"][-1],
                         axis="left",
                     )
-                    subShapes = [
-                        numpy.array(
-                            ((0.0, yPixel), (width, yPixel)), dtype=numpy.float32
+                    subShapes = []
+                    if pixel is not None:
+                        subShapes.append(
+                            numpy.array(
+                                ((0.0, pixel[1]), (width, pixel[1])),
+                                dtype=numpy.float32,
+                            )
                         )
-                    ]
 
                 elif item["shape"] == "vline":
-                    xPixel, _ = self._plotFrame.dataToPixel(
+                    pixel = self._plotFrame.dataToPixel(
                         item["x"][-1],
                         0.5 * sum(self._plotFrame.dataRanges[1]),
                         axis="left",
                     )
                     height = self._plotFrame.size[1]
-                    subShapes = [
-                        numpy.array(
-                            ((xPixel, 0), (xPixel, height)), dtype=numpy.float32
+                    subShapes = []
+                    if pixel is not None:
+                        subShapes.append(
+                            numpy.array(
+                                ((pixel[0], 0), (pixel[0], height)),
+                                dtype=numpy.float32,
+                            )
                         )
-                    ]
 
                 else:
                     # Split sub-shapes at not finite values
