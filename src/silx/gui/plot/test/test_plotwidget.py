@@ -2324,6 +2324,26 @@ def testPygfxMarkerLabelBox(qWidgetFactory):
     assert (rows.max() + 1 - y, columns.max() + 1 - x) == (height, width)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("inverted", [False, True])
+def testPygfxPointMarkerLabelPosition(qWidgetFactory, inverted):
+    """A point marker label is below its right, above it with the Y axis inverted"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    plot.getYAxis().setInverted(inverted)
+    marker = plot.addMarker(50, 50, text="Label", color="black", symbol="o")
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+
+    px, py = plot._backend._plotFrame.dataToPixel(50, 50)
+    rows, columns = numpy.nonzero(numpy.all(image == _RED, axis=2))
+    assert columns.min() == int(px + 3)
+    if inverted:
+        assert rows.max() + 1 == int(py - 3)
+    else:
+        assert rows.min() == int(py + 3)
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

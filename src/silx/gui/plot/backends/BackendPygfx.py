@@ -1121,14 +1121,18 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             symbol = gfx.Points(geom, mat)
             if text is None:
                 return [symbol], None
+            if self._plotFrame.isYAxisInverted:
+                valign, vPixelOffset = "bottom", -pixelOffset
+            else:
+                valign, vPixelOffset = "top", pixelOffset
             label = self._textObject(
                 text,
                 item["font"],
                 item["color"],
                 pixelPos[0] + pixelOffset,
-                pixelPos[1] + pixelOffset,
+                pixelPos[1] + vPixelOffset,
                 "left",
-                "top",
+                valign,
                 bgcolor=item["bgcolor"],
                 padding=self._TEXT_MARKER_PADDING,
             )
