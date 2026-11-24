@@ -2579,6 +2579,26 @@ def testPygfxLineEnds(qWidgetFactory, kind):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+def testPygfxErrorBarEnds(qWidgetFactory, monkeypatch):
+    """Error bars end at their points without cap, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    # Error bars 4 pixels wide, wider than their ticks
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 288.0 * backend.getDevicePixelRatio()
+    )
+    plot.addCurve((50,), (50,), xerror=20, linestyle=" ", resetzoom=False)
+    plot.setLimits(0, 100, 0, 100)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = backend._plotFrame  # In device pixels
+    left, row = frame.dataToPixel(30, 50)
+    right = frame.dataToPixel(70, 50)[0]
+    assert image[row, left + 2] < 128 and image[row, right - 2] < 128
+    assert image[row, left - 2] > 250 and image[row, right + 2] > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
 @pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
 def testPygfxDashEnds(qWidgetFactory, kind):
     """Dashes end square at their length, as in the OpenGL backend"""

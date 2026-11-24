@@ -142,6 +142,17 @@ class _GLLineShader(LineShader):
         super().bake_function(wobject, camera, camera._view_size)
 
 
+class _GLLineSegmentMaterial(gfx.LineSegmentMaterial):
+    """Line segment material drawn as GLLines2D in GL_LINES mode"""
+
+
+@register_wgpu_render_function(gfx.Line, _GLLineSegmentMaterial)
+class _GLLineSegmentShader(_GLLineShader):
+    def __init__(self, wobject):
+        super().__init__(wobject)
+        self["line_type"] = "segment"
+
+
 class _SRGBVertexMeshMaterial(gfx.MeshBasicMaterial):
     """Mesh material with vertex colors in sRGB, as those of lines and points"""
 
@@ -436,7 +447,7 @@ class _PygfxCurveItem:
             segments = segments[numpy.isfinite(segments).all(axis=(1, 2))]
             if len(segments) > 0:
                 errGeom = gfx.Geometry(positions=segments.reshape(-1, 3))
-                errMat = _material(gfx.LineSegmentMaterial, aa=True, color=errorColor)
+                errMat = _material(_GLLineSegmentMaterial, aa=True, color=errorColor)
                 self.lineMaterials.append((errMat, 1.0))
                 self.group.add(gfx.Line(errGeom, errMat))
             for tickSymbol, vertices in (("|", xVertices), ("_", yVertices)):
