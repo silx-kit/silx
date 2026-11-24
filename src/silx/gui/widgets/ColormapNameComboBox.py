@@ -68,6 +68,7 @@ class ColormapNameComboBox(qt.QComboBox):
             iconKey = name
         else:
             colors = numpy.asarray(colors)
+            # numpy arrays are not hashable: build the key from shape, dtype and raw data
             iconKey = colors.shape, colors.dtype.str, colors.tobytes()
         icon = _colormapIconPreview.get(iconKey, None)
         if icon is None:
