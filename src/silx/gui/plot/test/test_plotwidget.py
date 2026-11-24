@@ -2452,8 +2452,9 @@ def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
     """Line widths are in points, as in the OpenGL backend"""
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     backend = plot._backend
+    # 4.25 pixels per point, so that line edges cover parts of pixels
     monkeypatch.setattr(
-        backend, "getDotsPerInch", lambda: 288.0 * backend.getDevicePixelRatio()
+        backend, "getDotsPerInch", lambda: 306.0 * backend.getDevicePixelRatio()
     )
     plot.setLimits(0, 100, 0, 100)
     if kind == "curve":
@@ -2478,12 +2479,12 @@ def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
     # Frame coordinates are in device pixels
     x = backend._plotFrame.dataToPixel(45, 50)[0]
     top, height = backend._plotFrame.plotOrigin[1], backend._plotFrame.plotSize[1]
-    # Red over white blended in linear light, inside the frame and off the ticks
-    green = image[top + 1 : top + height - 1, x, 1] / 255
-    coverage = 1 - numpy.where(
-        green <= 0.04045, green / 12.92, ((green + 0.055) / 1.055) ** 2.4
-    )
-    assert abs(numpy.count_nonzero(coverage > 0.5) - points * 4 * ratio) <= 1
+    # Red over white, inside the frame and off the ticks
+    coverage = 1 - image[top + 1 : top + height - 1, x, 1] / 255
+    width = points * 4.25 * ratio
+    assert abs(numpy.count_nonzero(coverage > 0.5) - width) <= 1
+    # Anti-aliased edges add no ink
+    assert abs(coverage.sum() - width) <= 0.1
 
 
 @pytest.mark.usefixtures("use_pygfx")
@@ -2681,6 +2682,21 @@ def testPygfxShapeAxisLine(qWidgetFactory, shape):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+def testPygfxAlphaBlending(qWidgetFactory):
+    """Colors are blended in sRGB as in the OpenGL backend, not in linear light"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    green = numpy.zeros((10, 10, 4), dtype=numpy.uint8)
+    green[..., 1], green[..., 3] = 255, 128
+    plot.addImage(_rgbImage(_RED), legend="red", z=0)
+    plot.addImage(green, legend="green", z=1)
+    plot.setLimits(0, 10, 0, 10)
+    image = _renderPygfx(plot)[0].astype(int)
+
+    px, py = plot._backend._plotFrame.dataToPixel(5, 5)  # In device pixels
+    assert numpy.abs(image[py, px] - (127, 128, 0)).max() <= 2, image[py, px]
+
+
+@pytest.mark.usefixtures("use_pygfx")
 def testPygfxTrianglesVertexColors(qWidgetFactory):
     """Vertex colors are sRGB, interpolated as in the OpenGL backend"""
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
@@ -2860,11 +2876,7 @@ def testPygfxTextRaster(qWidgetFactory, text):
     top = int(backend._plotFrame.plotOrigin[1] - 2)  # Above the frame
     width = image.shape[1]
     value = image[:top, width // 4 : 3 * width // 4].min(axis=2) / 255
-    # pygfx blends black over white in linear light
-    linear = numpy.where(
-        value <= 0.04045, value / 12.92, ((value + 0.055) / 1.055) ** 2.4
-    )
-    coverage = _inkCrop(1 - linear)
+    coverage = _inkCrop(1 - value)
 
     glImage, _ = rasterMathText(
         text, backend._getDefaultFont(), backend.getDotsPerInch()

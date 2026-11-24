@@ -39,7 +39,9 @@ from matplotlib.font_manager import FontProperties, findfont
 
 from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
+import wgpu
 from pygfx.renderers.wgpu import register_wgpu_render_function
+from pygfx.renderers.wgpu.engine.blender import Blender
 from pygfx.renderers.wgpu.shaders.lineshader import LineShader
 from pygfx.renderers.wgpu.shaders.meshshader import MeshShader
 from wgpu.backends.wgpu_native.extras import set_instance_extras
@@ -121,10 +123,12 @@ class _GLLineMaterial(gfx.LineMaterial):
 class _GLLineShader(LineShader):
     def get_code(self):
         # pygfx rounds dash ends, which lengthens dashes by the line width,
-        # and caps lines beyond their end points and broken joins
+        # caps lines beyond their end points and broken joins, and takes the
+        # square root of edge coverages, which blending in sRGB makes darker
         return (
             super()
             .get_code()
+            .replace("alpha = sqrt(alpha);", "")
             .replace(
                 "let dist_to_stroke_dash_p = length(vec_to_dash_p) - half_thickness_p;",
                 "let dist_to_stroke_dash_p = select(-1e9, 1e9, dist_to_dash_p > 0.0);",
@@ -170,6 +174,58 @@ class _SRGBVertexMeshShader(MeshShader):
                 "diffuse_color = vec4<f32>(srgb2physical(varyings.color.rgb), varyings.color.a);",
             )
         )
+
+
+class _SRGBBlender(Blender):
+    """Blender blending sRGB colors, as OpenGL does, instead of linear ones.
+
+    Fragments are written in sRGB to a color target that does not convert them,
+    so that they are blended as stored, and the target is read back as sRGB.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.texture_info["color"]["format"] = wgpu.TextureFormat.rgba8unorm
+
+    def get_texture_view(self, name, usage, *, create_if_not_exist=False):
+        if name != "color":
+            return super().get_texture_view(
+                name, usage, create_if_not_exist=create_if_not_exist
+            )
+        texture = self._textures.get(name)
+        if texture is None:
+            if not create_if_not_exist:
+                return None
+            texture = self._textures[name] = self.device.create_texture(
+                size=(*self.size, 1),
+                usage=self.texture_info[name]["usage"],
+                format=wgpu.TextureFormat.rgba8unorm,
+                view_formats=[wgpu.TextureFormat.rgba8unorm_srgb],
+            )
+        if usage == wgpu.TextureUsage.TEXTURE_BINDING:
+            return texture.create_view(
+                format=wgpu.TextureFormat.rgba8unorm_srgb, usage=usage
+            )
+        return texture.create_view(usage=usage)
+
+    def get_shader_kwargs(self, material_pick_write, alpha_config):
+        kwargs = super().get_shader_kwargs(material_pick_write, alpha_config)
+        if kwargs["alpha_method"] != "blended":
+            raise RuntimeError(f"Unsupported alpha method: {kwargs['alpha_method']}")
+        kwargs["fragment_output_code"] = (
+            kwargs["fragment_output_code"].replace(
+                "struct FragmentOutput {",
+                "struct FragmentOutput {\n// virtualfield stub: bool = false;",
+            )
+            + """
+            fn apply_virtual_fields_of_fragment_output(outp: ptr<function,FragmentOutput>, stub: bool) {
+                let c = clamp((*outp).color.rgb, vec3f(0.0), vec3f(1.0));
+                let srgb = select(1.055 * pow(c, vec3f(1.0 / 2.4)) - 0.055, 12.92 * c, c <= vec3f(0.0031308));
+                (*outp).color = vec4f(srgb, (*outp).color.a);
+            }
+            """
+        )
+        return kwargs
 
 
 def _lineStyleToDashOffsetPattern(linestyle):
@@ -865,6 +921,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._renderer = gfx.WgpuRenderer(
             self, sort_objects=False, pixel_scale=1, ppaa="none"
         )
+        self._renderer._blender = _SRGBBlender()  # pygfx has no public option
 
         # Widget pixels over the plot area, and the transforms to them from
         # each Y axis' scaled data coordinates: both updated by _syncCamera
