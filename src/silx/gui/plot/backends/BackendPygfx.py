@@ -41,6 +41,7 @@ from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
 from pygfx.renderers.wgpu import register_wgpu_render_function
 from pygfx.renderers.wgpu.shaders.lineshader import LineShader
+from pygfx.renderers.wgpu.shaders.meshshader import MeshShader
 from wgpu.backends.wgpu_native.extras import set_instance_extras
 
 from .. import items
@@ -139,6 +140,25 @@ class _GLLineShader(LineShader):
         # pygfx measures dashes over the canvas size instead of the render
         # rect the shader draws into, which shrinks them in the plot area
         super().bake_function(wobject, camera, camera._view_size)
+
+
+class _SRGBVertexMeshMaterial(gfx.MeshBasicMaterial):
+    """Mesh material with vertex colors in sRGB, as those of lines and points"""
+
+
+@register_wgpu_render_function(gfx.Mesh, _SRGBVertexMeshMaterial)
+class _SRGBVertexMeshShader(MeshShader):
+    def get_code(self):
+        # pygfx takes mesh vertex colors as physical: convert them after their
+        # interpolation, which OpenGL does between sRGB colors
+        return (
+            super()
+            .get_code()
+            .replace(
+                "diffuse_color = varyings.color;",
+                "diffuse_color = vec4<f32>(srgb2physical(varyings.color.rgb), varyings.color.a);",
+            )
+        )
 
 
 def _lineStyleToDashOffsetPattern(linestyle):
@@ -648,7 +668,7 @@ class _PygfxTrianglesItem:
         if not isinstance(color, str) and numpy.ndim(color) == 2:
             color = _vertexColorsToFloatRGBA(color, alpha)
             geom = gfx.Geometry(positions=positions, indices=triangles, colors=color)
-            mat = _material(gfx.MeshBasicMaterial, color_mode="vertex", side="both")
+            mat = _material(_SRGBVertexMeshMaterial, color_mode="vertex", side="both")
         else:
             rgba = colors.rgba(color)
             geom = gfx.Geometry(positions=positions, indices=triangles)

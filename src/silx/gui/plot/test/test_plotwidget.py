@@ -2661,6 +2661,26 @@ def testPygfxShapeAxisLine(qWidgetFactory, shape):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+def testPygfxTrianglesVertexColors(qWidgetFactory):
+    """Vertex colors are sRGB, interpolated as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addScatter(
+        (0, 1, 0, 1),
+        (0, 0, 1, 1),
+        (0, 1, 0, 1),
+        colormap=Colormap("gray", vmin=0, vmax=1),
+    )
+    plot.getScatter().setVisualization("solid")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0].astype(int)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x in (0.25, 0.5, 0.75):
+        px, py = frame.dataToPixel(x, 0.5)
+        assert numpy.abs(image[py, px] - 255 * x).max() <= 3, (x, image[py, px])
+
+
+@pytest.mark.usefixtures("use_pygfx")
 def testPygfxShapeSubShapes(qWidgetFactory):
     """Not finite points split a shape in sub-shapes, each closed"""
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
