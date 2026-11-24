@@ -20,6 +20,8 @@ Release Notes
 * `silx.gui.plot.Plot2D`: Added an action to the toolbar to show/hide the axes (`Issue #4793 <https://github.com/silx-kit/silx/issues/4793>`_)
 * `silx.gui.plot.items.Scatter`: Fixed missing scatter profiles when several profiles are computed at the same time (`Issue #4838 <https://github.com/silx-kit/silx/issues/4838>`_)
 * `silx.gui.plot.tools.profile`: Fixed an outdated profile replacing the current profile (`Issue #4844 <https://github.com/silx-kit/silx/issues/4844>`_)
+* `silx.gui.utils.testutils`: `TestCaseQt.mouseMove` sends the move event to the widget without moving the system cursor (`Issue #4840 <https://github.com/silx-kit/silx/issues/4840>`_)
+* `silx.gui.utils.testutils`: Added `TestCaseQt.mouseMoveWithSystemCursor` (`Issue #4840 <https://github.com/silx-kit/silx/issues/4840>`_)
 * `silx.gui.plot.stats`: Deprecated setting the stats context `data` and the context attributes `xData`, `yData`, `origin` and `scale` (`Issue #2367 <https://github.com/silx-kit/silx/issues/2367>`_)
 * `silx.gui.widgets.ThreadPoolPushButton`: Fixed crash with PySide6 when the button is deleted (`Issue #4831 <https://github.com/silx-kit/silx/issues/4831>`_)
 * `silx.io.specfile`: Fixed file header containing the first scan header for files without `#F` line (`Issue #3211 <https://github.com/silx-kit/silx/issues/3211>`_)

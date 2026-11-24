@@ -277,14 +277,117 @@ class TestCaseQt(unittest.TestCase):
         QTest.mouseDClick(widget, button, modifier, pos, delay)
         self.qWait(20)
 
-    def mouseMove(self, widget, pos=None, delay=-1):
-        """Simulate moving the mouse.
+    def mouseMove(
+        self, widget: qt.QWidget, pos: tuple[int, int] | None = None, delay: int = -1
+    ) -> None:
+        """Send a mouse move event at ``pos`` in ``widget``, with ``QApplication.sendEvent``.
 
-        See QTest.mouseMove for details.
+        The target of the event is the deepest child of ``widget`` at ``pos``, or
+        ``widget`` itself if it has no child at ``pos``. The target receives the
+        event during this call, in the same order as the other mouse events that
+        the test sends. The system cursor does not move: ``QCursor.pos()`` keeps
+        its old value.
+
+        Use it to simulate mouse moves, for example to draw, drag or hover.
+        To test code that reads ``QCursor.pos()``, use
+        :meth:`mouseMoveWithSystemCursor`.
+
+        :param widget: Widget that ``pos`` is relative to
+        :param pos: Position in widget coordinates (default: widget center)
+        :param delay: Time to wait in milliseconds before the move
         """
-        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
-        QTest.mouseMove(widget, pos, delay)
+        point = self._widgetPoint(widget, pos)
+
+        if delay > 0:
+            QTest.qWait(delay)
+
+        # The widget that a real mouse move at pos would reach
+        target = widget.childAt(point) or widget
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            qt.QPointF(target.mapFrom(widget, point)),
+            qt.QPointF(widget.mapToGlobal(point)),
+            qt.Qt.NoButton,
+            self.qapp.mouseButtons(),
+            self.qapp.keyboardModifiers(),
+        )
+
+        # Qt calls the mouse move handler of target before sendEvent returns
+        qt.QApplication.sendEvent(target, event)
+
+        # Let Qt handle what the move started (repaint, queued signals)
         self.qWait(20)
+
+    def mouseMoveWithSystemCursor(
+        self,
+        widget: qt.QWidget,
+        pos: tuple[int, int] | None = None,
+        delay: int = -1,
+        checkCursorPos: bool = False,
+    ) -> None:
+        """Move the system cursor to ``pos``, then process events, with ``QTest.mouseMove``.
+
+        The chain of events looks like this:
+
+        ::
+
+            test --> system cursor --> window system --> event queue --(maybe later)--> widget under the cursor
+
+        - System cursor: the mouse pointer of the operating system.
+          ``QCursor.pos()`` returns its position.
+        - Window system: the part of the operating system (for example X11,
+          Microsoft Windows or macOS) that puts mouse events in the event queue
+          of the application.
+        - Event queue: the list of events that wait for Qt to send them to widgets.
+
+        With the offscreen platform (``QT_QPA_PLATFORM=offscreen``), there is no
+        window system: Qt itself puts the move event in the event queue and the
+        widget under the cursor receives it during this call. With a window
+        system, that widget can receive it late, after the next mouse event that
+        the test sends. A widget other than the one at ``pos`` can also receive
+        it, for example one in another window.
+
+        No move event comes when the system cursor is already at ``pos``, or on
+        platforms that cannot move the system cursor (for example Wayland).
+        ``checkCursorPos`` only checks the position of the system cursor. It does
+        not check that a move event was received.
+
+        Use it when the tested code reads ``QCursor.pos()``, for example
+        ``PositionInfo.updateInfo``. Do not count how often this code runs: a late
+        move event can run it again. To simulate mouse moves, use :meth:`mouseMove`.
+
+        :param widget: Widget that ``pos`` is relative to
+        :param pos: Position in widget coordinates (default: widget center)
+        :param delay: Time to wait in milliseconds before the move
+        :param checkCursorPos: Check that the system cursor is at pos after the call.
+            If not, skip the test on Wayland and fail it on other platforms.
+        """
+        point = self._widgetPoint(widget, pos)
+
+        # Moves the system cursor, then processes events once. With a window
+        # system, the move event can arrive after this.
+        QTest.mouseMove(widget, point, delay)
+
+        # Let Qt handle what the move started (repaint, queued signals)
+        self.qWait(20)
+
+        if checkCursorPos:
+            self._checkCursorAt(widget, point)
+
+    @staticmethod
+    def _widgetPoint(widget: qt.QWidget, pos: tuple[int, int] | None) -> qt.QPoint:
+        """Returns pos as a QPoint, or the widget center if pos is None"""
+        if pos is None:
+            return widget.rect().center()
+        return qt.QPoint(int(pos[0]), int(pos[1]))
+
+    def _checkCursorAt(self, widget: qt.QWidget, point: qt.QPoint) -> None:
+        """Skip the test on Wayland or fail it if the system cursor is not at point"""
+        if widget.mapFromGlobal(qt.QCursor.pos()) == point:
+            return
+        if qt.QGuiApplication.platformName().startswith("wayland"):
+            self.skipTest("Wayland cannot move the system cursor")
+        self.fail(f"The system cursor is not at ({point.x()}, {point.y()})")
 
     def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate pressing a mouse button.
