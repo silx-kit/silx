@@ -56,6 +56,35 @@ class TestPlot3DWidget:
         qapp.processEvents()
         assert sceneWidget.getFogMode() == sceneWidget.FogMode.NONE
 
+    def testFirstRenderUsesResetCamera(self, qapp, qapp_utils):
+        # On the first display the camera is reset to show the whole scene
+        # (Plot3DWidget.paintGL). The first rendered frame must already use
+        # this camera, so the reset view does not need a further repaint.
+        sceneWidget = SceneWidget()
+        sceneWidget.resize(500, 400)
+        sceneWidget.add3DScatter(*numpy.random.default_rng(0).random((4, 500)) * 10)
+
+        camera = sceneWidget.viewport.camera.extrinsic
+        rendered = []
+        originalRender = sceneWidget._window.render
+
+        def tracedRender(*args, **kwargs):
+            rendered.append(numpy.array(camera.position))
+            originalRender(*args, **kwargs)
+
+        sceneWidget._window.render = tracedRender
+
+        sceneWidget.show()
+        qapp_utils.qWaitForWindowExposed(sceneWidget)
+        qapp.processEvents()
+
+        sceneWidget.close()
+        qapp.processEvents()
+
+        # The first frame is rendered with the reset camera.
+        assert rendered
+        assert numpy.allclose(rendered[0], camera.position)
+
     def testLightMode(self, qWidgetFactory, qapp):
         sceneWidget = qWidgetFactory(SceneWidget)
         _ = sceneWidget.addImage(numpy.arange(100).reshape(10, 10))
