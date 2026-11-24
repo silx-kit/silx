@@ -112,7 +112,7 @@ def _reversedColormapName(name: str) -> str | None:
 
 
 def _unreversedColormapName(name: str) -> tuple[str, bool]:
-    """Returns the name of the non-reversed colormap and whether name is reversed.
+    """Returns the name of the non-reversed colormap and whether the colormap is reversed.
 
     :param name: Name of the colormap
     """
