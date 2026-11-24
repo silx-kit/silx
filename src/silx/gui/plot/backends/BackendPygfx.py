@@ -458,21 +458,14 @@ class _PygfxCurveItem:
 
     @staticmethod
     def _buildFill(x, y, baseline, color):
-        """Build a filled mesh between curve and baseline."""
-        if baseline is None:
-            baseY = numpy.zeros_like(y)
-        elif isinstance(baseline, numpy.ndarray):
-            baseY = baseline
-        else:
-            baseY = numpy.full_like(y, float(baseline))
-
+        """Build a filled mesh between curve and baseline, in scaled coordinates."""
         n = len(x)
         # Create triangle strip: for each segment, two triangles
         vertices = []
         indices = []
         for i in range(n):
             vertices.append([x[i], y[i], 0])
-            vertices.append([x[i], baseY[i], 0])
+            vertices.append([x[i], baseline[i], 0])
 
         for i in range(n - 1):
             idx = i * 2
@@ -1497,8 +1490,12 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
             y = yScaled
 
-            if baseline is not None:
-                baseline = yAxis.applyScale(baseline)
+        if fill:
+            # As GLPlotCurve2D: 0 by default, and the bottom of a log axis for <= 0
+            dataBaseline = numpy.zeros(len(y)) + (0 if baseline is None else baseline)
+            baseline = yAxis.applyScale(dataBaseline)
+            if yAxis.scale == "log":
+                baseline[dataBaseline <= 0] = -38
 
         item = _PygfxCurveItem(
             x,

@@ -2690,6 +2690,20 @@ def testPygfxCurveFillColor(qWidgetFactory, color, expected):
     assert numpy.abs(image[py, px].astype(int) - expected).max() <= 2, image[py, px]
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("baseline", [None, 0])
+def testPygfxCurveFillLogBaseline(qWidgetFactory, baseline):
+    """On a log Y axis, a fill to 0 goes down to the bottom of the plot"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getYAxis().setScale("log")
+    plot.addCurve((0, 1), (10, 10), color="red", fill=True, baseline=baseline)
+    plot.setLimits(0, 1, 0.1, 100)
+    image = _renderPygfx(plot)[0]
+    for y in (0.2, 5):
+        px, py = plot._backend._plotFrame.dataToPixel(0.5, y)
+        assert tuple(image[py, px]) == (255, 0, 0), y
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)
