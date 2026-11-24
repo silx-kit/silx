@@ -90,20 +90,6 @@ class TestCaseQt(unittest.TestCase):
     simulating the event (as QTest does on Mac OSX).
     This was introduced to fix issues with continuous integration tests
     running with Xvfb on Linux.
-
-    Terms used by the mouse move methods:
-
-    - Move event: the message that tells a widget that the mouse moved.
-    - Event queue: the list of events that wait for Qt to send them to widgets.
-    - Process events: Qt sends the events in its event queue to the widgets.
-      The test lets Qt do this with :meth:`qWait`.
-    - System cursor: the mouse pointer of the operating system.
-      ``QCursor.pos()`` returns its position.
-    - Window system: the part of the operating system (X server, Windows,
-      macOS) that puts mouse events in the event queue of the application.
-    - Offscreen platform: the Qt platform without a window system
-      (``QT_QPA_PLATFORM=offscreen``). Qt itself puts the mouse events in the
-      event queue.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -294,26 +280,19 @@ class TestCaseQt(unittest.TestCase):
     def mouseMove(
         self, widget: qt.QWidget, pos: tuple[int, int] | None = None, delay: int = -1
     ) -> None:
-        """Send a move event to the widget at pos (``QApplication.sendEvent``).
+        """Send a mouse move event at ``pos`` in ``widget``, with ``QApplication.sendEvent``.
 
-        The widget at pos is the deepest child of widget at pos, or widget if it
-        has no child at pos.
-
-        - System cursor: does not move, so ``QCursor.pos()`` does not change.
-        - Move event with the offscreen platform: the widget receives it during
-          this call.
-        - Move event with a window system: the widget receives it during this
-          call. The event does not go through the window system.
-
-        ::
-
-            test --> widget at pos
+        The target of the event is the deepest child of ``widget`` at ``pos``, or
+        ``widget`` itself if it has no child at ``pos``. The target receives the
+        event during this call, in the same order as the other mouse events that
+        the test sends. The system cursor does not move: ``QCursor.pos()`` keeps
+        its old value.
 
         Use it to simulate mouse moves, for example to draw, drag or hover.
-        The widget receives the move events in the same order as the other mouse
-        events that the test sends.
+        To test code that reads ``QCursor.pos()``, use
+        :meth:`mouseMoveWithSystemCursor`.
 
-        :param widget: The widget
+        :param widget: Widget that ``pos`` is relative to
         :param pos: Position in widget coordinates (default: widget center)
         :param delay: Time to wait in milliseconds before the move
         """
@@ -346,28 +325,38 @@ class TestCaseQt(unittest.TestCase):
         delay: int = -1,
         checkCursorPos: bool = False,
     ) -> None:
-        """Move the system cursor to pos, then process events (``QTest.mouseMove``).
+        """Move the system cursor to ``pos``, then process events, with ``QTest.mouseMove``.
 
-        - System cursor: moves to pos.
-        - Move event with the offscreen platform: the widget receives it during
-          this call.
-        - Move event with a window system: the widget can receive it late, after
-          the next mouse event that the test sends. Another widget can receive it.
+        The chain of events looks like this:
 
         ::
 
             test --> system cursor --> window system --> event queue --(maybe later)--> widget under the cursor
 
-        On platforms that cannot move the system cursor (for example Wayland),
-        nothing happens: the system cursor does not move and no move event comes.
+        - System cursor: the mouse pointer of the operating system.
+          ``QCursor.pos()`` returns its position.
+        - Window system: the part of the operating system (for example X11,
+          Microsoft Windows or macOS) that puts mouse events in the event queue
+          of the application.
+        - Event queue: the list of events that wait for Qt to send them to widgets.
+
+        With the offscreen platform (``QT_QPA_PLATFORM=offscreen``), there is no
+        window system: Qt itself puts the move event in the event queue and the
+        widget under the cursor receives it during this call. With a window
+        system, that widget can receive it late, after the next mouse event that
+        the test sends. A widget other than the one at ``pos`` can also receive
+        it, for example one in another window.
+
+        No move event comes when the system cursor is already at ``pos``, or on
+        platforms that cannot move the system cursor (for example Wayland).
+        ``checkCursorPos`` only checks the position of the system cursor. It does
+        not check that a move event was received.
 
         Use it when the tested code reads ``QCursor.pos()``, for example
-        ``PositionInfo.updateInfo``. Do not count the calls of this code: a late
+        ``PositionInfo.updateInfo``. Do not count how often this code runs: a late
         move event can run it again. To simulate mouse moves, use :meth:`mouseMove`.
-        If the system cursor is already at pos, no move event comes.
-        ``checkCursorPos`` checks the cursor position only, not the move event.
 
-        :param widget: The widget
+        :param widget: Widget that ``pos`` is relative to
         :param pos: Position in widget coordinates (default: widget center)
         :param delay: Time to wait in milliseconds before the move
         :param checkCursorPos: Check that the system cursor is at pos after the call.
