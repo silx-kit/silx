@@ -2355,6 +2355,48 @@ def testPygfxPointMarkerOnLimit(qWidgetFactory):
     assert not numpy.any(numpy.all(image == _RED, axis=2))
 
 
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "marker"])
+@pytest.mark.parametrize(
+    "symbol,reaches",
+    [
+        # Whether the ink goes beyond 2 pixels left, right, up, down of the center
+        ("_", (True, True, False, False)),
+        ("|", (False, False, True, True)),
+        ("tickleft", (True, False, False, False)),
+        ("tickright", (False, True, False, False)),
+        ("tickup", (False, False, True, False)),
+        ("tickdown", (False, False, False, True)),
+        ("caretleft", (False, True, True, True)),
+        ("caretright", (True, False, True, True)),
+        ("caretup", (True, True, False, True)),
+        ("caretdown", (True, True, True, False)),
+        ("♥", (True, True, True, True)),
+        ("", None),
+    ],
+)
+def testPygfxSymbolShape(qWidgetFactory, kind, symbol, reaches):
+    """Each symbol has the shape of the OpenGL backend one, no symbol draws nothing"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        item = plot.addCurve((50,), (50,), color="red", symbol=symbol, linestyle=" ")
+    else:
+        item = plot.addMarker(50, 50, color="red", symbol=symbol)
+    item.setSymbolSize(20)
+    image, _ = _renderPygfx(plot)
+
+    rows, columns = numpy.nonzero((image[..., 0] > 128) & (image[..., 1] < 128))
+    if reaches is None:
+        assert len(rows) == 0
+        return
+    x, y = (int(v) for v in plot._backend._plotFrame.dataToPixel(50, 50))
+    distances = (x - columns.min(), columns.max() - x, y - rows.min(), rows.max() - y)
+    assert tuple(d > 2 for d in distances) == reaches
+    if symbol == "♥":  # Notch between the lobes
+        assert x not in columns[rows == rows.min()]
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

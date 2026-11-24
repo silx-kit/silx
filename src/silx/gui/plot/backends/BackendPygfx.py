@@ -119,21 +119,92 @@ def _lineStyleToDashPattern(linestyle):
     return _DASH_PATTERNS.get(linestyle)
 
 
-# silx symbol -> pygfx marker shape mapping
-_SYMBOL_MAP = {
-    "o": "circle",
-    ".": "circle",  # smaller via size
-    ",": "square",  # pixel
-    "+": "plus",
-    "x": "cross",
-    "d": "diamond",
-    "s": "square",
-    "^": "triangle_up",
-    "v": "triangle_down",
-    "<": "triangle_left",
-    ">": "triangle_right",
-    "*": "asterisk6",
+# WGSL ports of the alphaSymbol functions of glutils.GLPlotCurve.Points2D.
+# They set alpha from q, the pixel center offset to the symbol center with
+# y downward as gl_PointCoord, and size, both in device pixels.
+_SYMBOL_ALPHAS = {
+    "d": "alpha = clamp(0.5 * size - abs(q.x) - abs(q.y), 0.0, 1.0);",
+    "o": "alpha = clamp(0.5 * size - length(q), 0.0, 1.0);",
+    "s": "alpha = 1.0;",
+    "+": "alpha = 1.0 - smoothstep(0.5, 1.5, min(abs(q.x), abs(q.y)));",
+    "x": """
+        let pos = floor(q + 0.5 * size) + 0.5;
+        let d = abs(vec2<f32>(pos.x - pos.y, pos.x + pos.y - size));
+        alpha = 1.0 - smoothstep(0.5, 1.5, min(d.x, d.y));
+    """,
+    "*": """
+        let pos = floor(q + 0.5 * size) + 0.5;
+        let d = abs(vec2<f32>(pos.x - pos.y, pos.x + pos.y - size));
+        if (min(abs(q.x), abs(q.y)) < 0.5) {
+            alpha = 1.0;
+        } else if (min(d.x, d.y) <= 0.5) {
+            alpha = clamp(0.5 * size - length(q), 0.0, 1.0);
+        }
+    """,
+    "_": "alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y));",
+    "|": "alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x));",
+    "♥": """
+        var c = 1.5 * q / size;
+        c.y += 0.25;
+        let h = abs(atan2(c.x, -c.y) / 3.141593);
+        let d = (13.0 * h - 22.0 * h * h + 10.0 * h * h * h) / (6.0 - 5.0 * h);
+        alpha = 1.0 - smoothstep(0.001, 0.1, clamp(length(c) - d, 0.0, 1.0));
+    """,
+    "tickleft": "if (q.x <= 0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y)); }",
+    "tickright": "if (q.x >= -0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y)); }",
+    "tickup": "if (q.y <= 0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x)); }",
+    "tickdown": "if (q.y >= -0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x)); }",
+    "caretleft": """
+        let d = abs(q.x) - abs(q.y);
+        if (d >= -0.1 && q.x > 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretright": """
+        let d = abs(q.x) - abs(q.y);
+        if (d >= -0.1 && q.x < 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretup": """
+        let d = abs(q.y) - abs(q.x);
+        if (d >= -0.1 && q.y > 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretdown": """
+        let d = abs(q.y) - abs(q.x);
+        if (d >= -0.1 && q.y < 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
 }
+_SYMBOL_ALPHAS["."] = _SYMBOL_ALPHAS["o"]
+_SYMBOL_ALPHAS[","] = _SYMBOL_ALPHAS["s"]
+
+
+def _symbolMaterial(symbol, size, color, colorMode) -> gfx.PointsMarkerMaterial | None:
+    """Material drawing symbol as the OpenGL backend, None for no symbol.
+
+    pygfx takes a signed distance d and makes the opacity sqrt(0.5 - d),
+    so the distance returned here gives the OpenGL symbol alpha.
+    Fragments outside the square of the OpenGL point are not drawn.
+    """
+    alpha = _SYMBOL_ALPHAS.get(symbol)
+    if alpha is None:
+        return None
+    sdf = f"""
+        let q = vec2<f32>(coord.x, -coord.y);
+        if (max(abs(q.x), abs(q.y)) > 0.5 * size) {{
+            return 1.0;
+        }}
+        var alpha = 0.0;
+        {alpha}
+        return 0.5 - alpha * alpha;
+    """
+    return _material(
+        gfx.PointsMarkerMaterial,
+        aa=True,
+        marker="custom",
+        custom_sdf=sdf,
+        size=size,
+        color=color,
+        color_mode=colorMode,
+        edge_width=0.0,
+        edge_color=(0, 0, 0, 0),
+    )
 
 
 def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarray:
@@ -277,32 +348,25 @@ class _PygfxCurveItem:
             self.group.add(self._lineObj)
 
         # Symbol / Points
-        hasSymbol = symbol not in (None, "", " ")
-        if hasSymbol:
+        pointSize = symbolsize if symbol != "," else 1.0
+        if symbol == ".":
+            pointSize = max(pointSize * 0.5, 1.0)
+        mat = _symbolMaterial(
+            symbol,
+            pointSize,
+            uniformColor,
+            "vertex" if perVertexColor else "uniform",
+        )
+        if mat is not None:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
             positions[:, 1] = y
-
-            markerShape = _SYMBOL_MAP.get(symbol, "circle")
-            pointSize = symbolsize if symbol != "," else 1.0
-            if symbol == ".":
-                pointSize = max(pointSize * 0.5, 1.0)
 
             pointKwargs = {}
             if perVertexColor:
                 pointKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **pointKwargs)
-            mat = _material(
-                gfx.PointsMarkerMaterial,
-                aa=True,
-                marker=markerShape,
-                size=pointSize,
-                color=uniformColor,
-                color_mode="vertex" if perVertexColor else "uniform",
-                edge_width=0.5,
-                edge_color=uniformColor,
-            )
             self._pointsObj = gfx.Points(geom, mat)
             self.group.add(self._pointsObj)
 
@@ -1110,21 +1174,17 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
             if pixelPos is None:
                 return [], None
-            geom = gfx.Geometry(
-                positions=numpy.array([[*pixelPos, 0]], dtype=numpy.float32)
+            symbols = []
+            mat = _symbolMaterial(
+                item["symbol"], item["symbolsize"], gfxColor, "uniform"
             )
-            mat = _material(
-                gfx.PointsMarkerMaterial,
-                aa=True,
-                marker=_SYMBOL_MAP.get(item["symbol"], "plus"),
-                size=item["symbolsize"],
-                color=gfxColor,
-                edge_width=1.0,
-                edge_color=gfxColor,
-            )
-            symbol = gfx.Points(geom, mat)
+            if mat is not None:
+                geom = gfx.Geometry(
+                    positions=numpy.array([[*pixelPos, 0]], dtype=numpy.float32)
+                )
+                symbols.append(gfx.Points(geom, mat))
             if text is None:
-                return [symbol], None
+                return symbols, None
             if self._plotFrame.isYAxisInverted:
                 valign, vPixelOffset = "bottom", -pixelOffset
             else:
@@ -1140,7 +1200,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 bgcolor=item["bgcolor"],
                 padding=self._TEXT_MARKER_PADDING,
             )
-            return [symbol], label
+            return symbols, label
 
         label = None
         if xCoord is None:
