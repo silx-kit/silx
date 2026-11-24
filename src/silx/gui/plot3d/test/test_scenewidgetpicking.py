@@ -34,8 +34,10 @@ import numpy
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
+from silx.gui.utils.image import convertQImageToArray
 
 from silx.gui.plot3d.SceneWidget import SceneWidget, items
+from silx.gui.plot3d.scene import primitives
 
 
 @pytest.mark.usefixtures("use_opengl")
@@ -60,6 +62,79 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
         """Returns widget center"""
         size = self.widget.size()
         return size.width() // 2, size.height() // 2
+
+    def testClipPlaneClipsScatterSymbol(self):
+        """A clip plane clips a scatter symbol per-fragment, like other items"""
+        self.widget.resize(400, 400)
+
+        # Keep x >= 0.5 (the plane projects to a vertical line on screen)
+        clip = items.ClipPlane()
+        clip.setNormal((1, 0, 0))
+        clip.setPoint((0.5, 0, 0))
+        self.widget.addItem(clip)
+
+        # One symbol on the kept side, large enough to straddle the plane
+        scatter = self.widget.add3DScatter(
+            numpy.array([0.55]),
+            numpy.array([0.5]),
+            numpy.array([0.5]),
+            numpy.array([1.0]),
+        )
+        scatter.setSymbol("o")
+        scatter.setSymbolSize(60)
+        self.qapp.processEvents()
+
+        # Screen x of the clip plane at the symbol's row
+        planeNdc = clip._getScenePrimitive().objectToNDCTransform.transformPoint(
+            (0.5, 0.5, 0.5), perspectiveDivide=True
+        )
+        planeX = self.widget.viewport.ndcToWindow(planeNdc[0], planeNdc[1])[0]
+
+        # Dark pixels are the symbol (black on a gray background)
+        image = convertQImageToArray(self.widget.grab().toImage())
+        symbolXs = numpy.nonzero(numpy.all(image[..., :3] < 20, axis=-1))[1]
+
+        # Symbol is visible on the kept side
+        self.assertGreater(len(symbolXs), 0)
+        # It is clipped at the plane: nothing is drawn to its left. Before the
+        # fix the sprite was drawn whole, so it overhung the plane to the left.
+        self.assertGreaterEqual(min(symbolXs), planeX - 2)
+
+    def testClipPlaneClipsSpheres(self):
+        """A clip plane clips a sphere per-fragment, like other items"""
+        self.widget.resize(400, 400)
+
+        # Keep x >= 0.5 (the plane projects to a vertical line on screen)
+        clip = items.ClipPlane()
+        clip.setNormal((1, 0, 0))
+        clip.setPoint((0.5, 0, 0))
+        self.widget.addItem(clip)
+
+        # One black sphere on the kept side, large enough to straddle the plane.
+        # The scene group renders it after the clip plane, so it is clipped.
+        spheres = primitives.Spheres(
+            numpy.array([[0.55, 0.5, 0.5]], dtype=numpy.float32),
+            radius=0.2,
+            colors=(0.0, 0.0, 0.0, 1.0),
+        )
+        self.widget.getSceneGroup()._getGroupPrimitive().children.append(spheres)
+        self.qapp.processEvents()
+
+        # Screen x of the clip plane at the sphere's row
+        planeNdc = clip._getScenePrimitive().objectToNDCTransform.transformPoint(
+            (0.5, 0.5, 0.5), perspectiveDivide=True
+        )
+        planeX = self.widget.viewport.ndcToWindow(planeNdc[0], planeNdc[1])[0]
+
+        # Dark pixels are the sphere (black on a gray background)
+        image = convertQImageToArray(self.widget.grab().toImage())
+        sphereXs = numpy.nonzero(numpy.all(image[..., :3] < 20, axis=-1))[1]
+
+        # Sphere is visible on the kept side
+        self.assertGreater(len(sphereXs), 0)
+        # It is clipped at the plane: nothing is drawn to its left. Before the
+        # fix the sphere was clipped by its center, so it overhung the plane.
+        self.assertGreaterEqual(min(sphereXs), planeX - 2)
 
     def testPickImage(self):
         """Test picking of ImageData and ImageRgba items"""
