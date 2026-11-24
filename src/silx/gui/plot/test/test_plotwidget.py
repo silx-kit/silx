@@ -2906,6 +2906,24 @@ def testPygfxTextRaster(qWidgetFactory, text):
     assert numpy.allclose(coverage, glCoverage, atol=0.02)
 
 
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCanvasClosedWithWidget(qapp, qapp_utils):
+    """Deleting the plot closes its canvas, which stops its draw scheduling"""
+    plot = PlotWidget(backend="pygfx")
+    plot.show()
+    qapp_utils.qWaitForWindowExposed(plot)
+    backend = plot._backend
+    assert not backend.get_closed()
+
+    # The backend widget is deleted with its parent, without a close event
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
+    plot = None
+    qapp_utils.qWait(100)
+    assert not isValid(backend)
+    assert backend.get_closed()
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 

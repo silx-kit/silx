@@ -33,6 +33,7 @@ from collections import OrderedDict
 import functools
 import logging
 import math
+import weakref
 
 import numpy
 from matplotlib.font_manager import FontProperties, findfont
@@ -52,6 +53,7 @@ from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
 from ... import qt
+from ...qt.inspect import isValid
 from ..._geometry import segmentTrianglesIntersection
 from ...utils.matplotlib import rasterMathText
 from ._PlotFrameCore import PlotFrame2DCore
@@ -82,6 +84,13 @@ def _restrictWgpuToPrimaryBackends() -> None:
 @functools.cache
 def _logDpiOnce(message: str) -> None:
     _logger.error(message)
+
+
+def _closeCanvas(canvasRef: weakref.ref, *args) -> None:
+    """Close the canvas of a deleted widget"""
+    canvas = canvasRef()
+    if canvas is not None:
+        canvas.close()
 
 
 _TEXT_RASTERS: OrderedDict = OrderedDict()
@@ -891,6 +900,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             present_method=present_method,
             vsync=self.VSYNC,
         )
+        # The canvas closes on its close event, which a child widget deleted
+        # with its parent does not get: it would keep scheduling draws
+        self.destroyed.connect(functools.partial(_closeCanvas, weakref.ref(self)))
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         # Match OpenGLWidget: a layout is needed for Qt to respect sizeHint
@@ -2001,6 +2013,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def getWidgetHandle(self):
         return self
+
+    def _rc_close(self):
+        if isValid(self):  # Else the widget is deleted, see _closeCanvas
+            super()._rc_close()
 
     def paintEvent(self, event):
         # Flush dirty items inside the paint event, where GPU operations are
