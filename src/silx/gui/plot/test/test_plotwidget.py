@@ -2521,6 +2521,42 @@ def testPygfxFrameLineWidth(qWidgetFactory, grid):
     assert columns.tolist() == [x]
 
 
+def _renderDashedRow(qWidgetFactory, kind, linestyle):
+    """Draw a horizontal dashed line across the plot area, return its middle row"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    if kind == "curve":
+        plot.addCurve((0, 1), (0.5, 0.5), linestyle=linestyle, linewidth=4)
+    elif kind == "shape":
+        plot.addShape(
+            (0, 1),
+            (0.5, 0.5),
+            shape="polylines",
+            fill=False,
+            linestyle=linestyle,
+            linewidth=4,
+        )
+    else:
+        marker = plot.addYMarker(0.5)
+        marker.setLineStyle(linestyle)
+        marker.setLineWidth(4)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, width = frame.plotOrigin[0], frame.plotSize[0]
+    return image[frame.dataToPixel(0.5, 0.5)[1], left : left + width].min(axis=1)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashEnds(qWidgetFactory, kind):
+    """Dashes end square at their length, as in the OpenGL backend"""
+    row = _renderDashedRow(qWidgetFactory, kind, (0, (2, 2)))
+    runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
+    # Dashes as long as the gaps
+    assert runs.max() - runs.min() <= 1
+
+
 def _inkCrop(coverage):
     """coverage cropped to its pixels with ink"""
     rows, columns = numpy.nonzero(coverage > 0.1)

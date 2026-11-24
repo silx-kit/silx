@@ -39,6 +39,8 @@ from matplotlib.font_manager import FontProperties, findfont
 
 from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
+from pygfx.renderers.wgpu import register_wgpu_render_function
+from pygfx.renderers.wgpu.shaders.lineshader import LineShader
 from wgpu.backends.wgpu_native.extras import set_instance_extras
 
 from .. import items
@@ -107,6 +109,24 @@ _DASH_PATTERNS = {
     "-.": (6.4, 1.6, 1, 1.6),
     ":": (1, 1.65, 1, 1.65),
 }
+
+
+class _DashedLineMaterial(gfx.LineMaterial):
+    """Line material whose dashes are drawn as in GLLines2D"""
+
+
+@register_wgpu_render_function(gfx.Line, _DashedLineMaterial)
+class _DashedLineShader(LineShader):
+    def get_code(self):
+        # pygfx rounds dash ends, which lengthens dashes by the line width
+        return (
+            super()
+            .get_code()
+            .replace(
+                "let dist_to_stroke_dash_p = length(vec_to_dash_p) - half_thickness_p;",
+                "let dist_to_stroke_dash_p = select(-1e9, 1e9, dist_to_dash_p > 0.0);",
+            )
+        )
 
 
 def _lineStyleToDashPattern(linestyle):
@@ -364,7 +384,7 @@ class _PygfxCurveItem:
                 self.group.add(gfx.Line(geom, gapMat))
 
             mat = _material(
-                gfx.LineMaterial,
+                _DashedLineMaterial,
                 aa=True,
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
@@ -693,7 +713,7 @@ class _PygfxShapeItem(dict):
                 self.group.add(gfx.Line(geom, gapMat))
 
             mat = _material(
-                gfx.LineMaterial,
+                _DashedLineMaterial,
                 aa=True,
                 color=gfxColor,
                 dash_pattern=dashPattern if dashPattern else (),
@@ -1287,7 +1307,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         dashPattern = item["dashpattern"]
         geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
         mat = _material(
-            gfx.LineMaterial,
+            _DashedLineMaterial,
             aa=True,
             thickness=self._lineWidth(item["linewidth"]),
             color=gfxColor,
