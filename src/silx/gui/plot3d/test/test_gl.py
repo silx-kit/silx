@@ -27,7 +27,10 @@ __license__ = "MIT"
 __date__ = "10/08/2017"
 
 
+import gc
 import logging
+import weakref
+
 import pytest
 
 from silx.gui._glutils import gl, OpenGLWidget
@@ -74,3 +77,45 @@ class TestOpenGL(TestCaseQt):
         widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.qWaitForWindowExposed(widget)
         widget.close()
+
+    class CollectingWidget(OpenGLWidget):
+        """Widget running a garbage collection while painting"""
+
+        def __init__(self):
+            super().__init__()
+            self.contexts = []
+
+        def paintGL(self):
+            gc.collect()
+            self.contexts.append((qt.QOpenGLContext.currentContext(), self.context()))
+            self.makeCurrent()  # Qt crashes after paintGL without a context
+
+    def testGarbageCollectionInPaint(self):
+        """A collection deleting an OpenGL widget keeps the current context"""
+        gc.disable()  # Only the collection in paintGL deletes the widget
+        try:
+            deleted = OpenGLWidget()
+            deleted.resize(100, 100)
+            deleted.show()
+            self.qWaitForWindowExposed(deleted)
+            self.qWait(50)
+            deleted.close()
+            deleted.cycle = deleted
+            deletedRef = weakref.ref(deleted)
+            del deleted
+
+            widget = self.CollectingWidget()
+            contexts = widget.contexts
+            widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+            widget.resize(100, 100)
+            widget.show()
+            self.qWaitForWindowExposed(widget)
+            self.qWait(50)
+            widget.close()
+        finally:
+            gc.enable()
+
+        self.assertIsNone(deletedRef())
+        self.assertTrue(contexts)
+        for current, own in contexts:
+            self.assertIs(current, own)
