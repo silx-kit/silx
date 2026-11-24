@@ -339,6 +339,20 @@ def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None
     )
 
 
+def _dataOffset(x: numpy.ndarray, y: numpy.ndarray) -> numpy.ndarray:
+    """Finite minimum of x and y, or 0, to subtract from vertices before float32.
+
+    float32 steps are 128 at a timestamp, so items keep their vertices relative
+    to this offset, as GLPlotCurve2D does.
+    """
+    offset = numpy.zeros(2)
+    for index, values in enumerate((x, y)):
+        finite = values[numpy.isfinite(values)]
+        if finite.size:
+            offset[index] = finite.min()
+    return offset
+
+
 def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarray:
     """Convert per-vertex colors to a float32 RGBA array in [0, 1].
 
@@ -481,8 +495,10 @@ class _PygfxCurveItem:
         self._lineObj = None
         self._pointsObj = None
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        self.offset = _dataOffset(x, y)
+        """Data coordinates of the group origin, which vertices are relative to"""
+        x = (x - self.offset[0]).astype(numpy.float32)
+        y = (y - self.offset[1]).astype(numpy.float32)
 
         # Per-vertex color handling
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
@@ -500,7 +516,7 @@ class _PygfxCurveItem:
 
         # Fill between curve and baseline, none for per vertex colors as in OpenGL
         if fill and len(x) >= 2 and not perVertexColor:
-            fillObj = self._buildFill(x, y, baseline, uniformColor)
+            fillObj = self._buildFill(x, y, baseline - self.offset[1], uniformColor)
             if fillObj is not None:
                 self.group.add(fillObj)
 
@@ -642,6 +658,8 @@ class _PygfxImageItem:
     def __init__(self, data, origin, scale, colormap, alpha):
         self.group = gfx.Group()
         self.yaxis = "left"
+        self.offset = numpy.zeros(2)
+        """Data coordinates of the group origin: the image transform holds its origin"""
         self._imageObj = None
         self._scalarShape = None
         self._origin = origin
@@ -729,8 +747,10 @@ class _PygfxTrianglesItem:
         self.group = gfx.Group()
         self.yaxis = "left"
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        self.offset = _dataOffset(x, y)
+        """Data coordinates of the group origin, which vertices are relative to"""
+        x = (x - self.offset[0]).astype(numpy.float32)
+        y = (y - self.offset[1]).astype(numpy.float32)
         triangles = numpy.asarray(triangles, dtype=numpy.int32)
 
         self._x = x
@@ -1233,7 +1253,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if isinstance(item, _PygfxShapeItem):
                 objects = self._shapeObjects(item)
             else:
-                item.group.local.matrix = self._dataToPixelMatrices[item.yaxis]
+                # Translated in float64: float32 would lose a large offset
+                matrix = self._dataToPixelMatrices[item.yaxis].copy()
+                matrix[:2, 3] += matrix[:2, :2] @ item.offset
+                item.group.local.matrix = matrix
                 if isinstance(item, _PygfxCurveItem):
                     for material, width in item.lineMaterials:
                         material.thickness = self._lineWidth(width)
@@ -1912,12 +1935,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             return None
         xPick1, yPick1 = dataPos
 
-        # The curve geometry holds scaled data
+        # The curve geometry holds scaled data relative to the item offset
         yAxis = (
             self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
         )
-        xPick0, xPick1 = self._plotFrame.xAxis.applyScale((xPick0, xPick1))
-        yPick0, yPick1 = yAxis.applyScale((yPick0, yPick1))
+        xPick0, xPick1 = (
+            self._plotFrame.xAxis.applyScale((xPick0, xPick1)) - item.offset[0]
+        )
+        yPick0, yPick1 = yAxis.applyScale((yPick0, yPick1)) - item.offset[1]
         xPickMin = min(xPick0, xPick1)
         xPickMax = max(xPick0, xPick1)
         yPickMin = min(yPick0, yPick1)
@@ -1972,7 +1997,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def _pickTriangles(self, item, dataPos):
         """Pick a triangles item."""
-        x, y = dataPos
+        x, y = dataPos - item.offset  # Item vertices are relative to its offset
         xPts = item._x
         yPts = item._y
         triangles = item._triangles

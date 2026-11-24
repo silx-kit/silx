@@ -2924,6 +2924,84 @@ def testPygfxCanvasClosedWithWidget(qapp, qapp_utils):
     assert backend.get_closed()
 
 
+_LARGE = 1.79e9  # A timestamp, where float32 steps are 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "scatter", "errorbars", "fill", "solid"])
+def testPygfxLargeCoordinates(qWidgetFactory, kind):
+    """Items at large coordinates are drawn as precisely as near 0"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    redColormap = Colormap(colors=((1.0, 0.0, 0.0),), vmin=0, vmax=1)
+    center = _LARGE + 0.5
+    if kind == "curve":
+        plot.addCurve((center, center), (_LARGE, _LARGE + 1), color="red", linewidth=5)
+    elif kind == "scatter":
+        plot.addScatter(
+            (center,), (_LARGE + 0.45,), (0,), colormap=redColormap, symbol="s"
+        )
+        plot.getScatter().setSymbolSize(20)
+    elif kind == "errorbars":  # Black, crossing from points out of the plot
+        plot.addCurve(
+            (_LARGE - 1,), (_LARGE + 0.45,), legend="x", xerror=1.75, linestyle=" "
+        )
+        plot.addCurve((center,), (_LARGE - 1,), legend="y", yerror=1.75, linestyle=" ")
+    elif kind == "fill":
+        plot.addCurve(
+            (_LARGE, center, _LARGE + 1),
+            (_LARGE, center, _LARGE),
+            baseline=_LARGE,
+            fill=True,
+            color="red",
+            linestyle=" ",
+        )
+    else:
+        corners = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+        plot.addScatter(
+            _LARGE + corners[0], _LARGE + corners[1], (0,) * 4, colormap=redColormap
+        )
+        plot.getScatter().setVisualization("solid")
+    plot.setLimits(_LARGE, _LARGE + 1, _LARGE, _LARGE + 1)
+    image, ratio = _renderPygfx(plot)
+
+    def isDrawn(x, y):
+        """Whether a line of 1 pixel or more covers that data point"""
+        x, y = plot.dataToPixel(x, y)
+        col, row = int(x * ratio), int(y * ratio)
+        area = image[row - 1 : row + 2, col - 1 : col + 2].astype(int)
+        if kind == "errorbars":
+            return numpy.all(area < 64, axis=2).any()
+        return numpy.all(area == _RED, axis=2).any()
+
+    assert isDrawn(center, _LARGE + 0.45)
+    assert not isDrawn(center - 0.4, _LARGE + 0.85)
+    assert not isDrawn(center + 0.4, _LARGE + 0.85)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "visualization,position",
+    # On the point, or inside the triangle holding it
+    [("points", (0.75, 0.25)), ("solid", (0.7, 0.3))],
+)
+def testPygfxLargeCoordinatesPick(qWidgetFactory, visualization, position):
+    """Items at large coordinates are picked as precisely as near 0"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    offsets = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+    plot.addScatter(_LARGE + offsets[0], _LARGE + offsets[1], (0, 1, 2, 3))
+    plot.getScatter().setVisualization(visualization)
+    plot.setLimits(_LARGE, _LARGE + 1, _LARGE, _LARGE + 1)
+    _renderPygfx(plot)
+
+    def pick(x, y):
+        px, py = plot.dataToPixel(_LARGE + x, _LARGE + y)
+        return [list(r.getIndices()) for r in plot.pickItems(px, py)]
+
+    results = pick(*position)
+    assert len(results) == 1 and 1 in results[0], results
+    assert pick(0.1, 0.9) == []
+
+
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
     backend = "mpl"
 
