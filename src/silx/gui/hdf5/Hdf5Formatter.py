@@ -89,6 +89,8 @@ class Hdf5Formatter(qt.QObject):
         text = " \u00d7 ".join(shape)
         return text
 
+    _MAX_DISPLAYED_DATA = 5
+
     def humanReadableValue(self, dataset):
         if dataset.shape is None:
             return "No data"
@@ -102,8 +104,11 @@ class Hdf5Formatter(qt.QObject):
             numpy_object = dataset[()]
             text = self.__formatter.toString(numpy_object, dtype=dataset.dtype)
         else:
-            if 0 < dataset.size < 5 and dataset.compression is None:
-                numpy_object = dataset[0 : min(len(dataset), 5)]
+            if (
+                0 < dataset.size < self._MAX_DISPLAYED_DATA
+                and dataset.compression is None
+            ):
+                numpy_object = dataset[0 : min(len(dataset), self._MAX_DISPLAYED_DATA)]
                 text = self.__formatter.toString(numpy_object, dtype=dataset.dtype)
             else:
                 dimension = len(dataset.shape)
