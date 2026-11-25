@@ -156,7 +156,9 @@ def testValueAndArray():
 def testIter(monkeypatch):
     """Iteration reads chunks of available data and does not wait"""
     array = numpy.arange(5 * 3 * 4).reshape(5, 3, 4)
-    monkeypatch.setattr(blissdatah5, "_ITER_CHUNK_NBYTES", 2 * array[0].nbytes)
+    monkeypatch.setattr(
+        blissdatah5.BlissDataDataset, "_ITER_CHUNK_NBYTES", 2 * array[0].nbytes
+    )
     stream = _FakeStream(array)
     dataset = BlissDataDataset(
         "data", redis_hdf5.Dataset(None, "/data", {}, redis_hdf5.StreamAsArray(stream))
