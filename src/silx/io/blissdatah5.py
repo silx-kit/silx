@@ -71,6 +71,8 @@ class BlissDataDataset(commonh5.Dataset):
         return len(self._get_data())
 
     def __getitem__(self, item):
+        # This method aims at avoiding accessing data that is not yet available
+        # in order to avoid waiting for it
         data = self._get_data()
         if data.ndim == 0:
             if (isinstance(item, tuple) and item == ()) or item is Ellipsis:
