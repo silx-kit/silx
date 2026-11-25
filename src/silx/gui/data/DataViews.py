@@ -27,7 +27,6 @@ import logging
 from typing import Any
 import numpy
 
-from silx.gui.data.NXdataWidgets import ArrayImagePlot
 from silx.gui.plot3d import items
 from silx.gui.plot3d.SceneWindow import SceneWindow
 import silx.io
@@ -42,8 +41,13 @@ from silx.math.combo import min_max
 from ._DataInfo import DataInfo
 from ._DataView import DataView
 from ._DataView import DataViewPriority
-from ._RgbaImagePlot import RgbaImagePlot
-from ._NxCurvePlot import NxCurvePlot
+from ._RgbaImagePlot import RgbaImagePlot as _RgbaImagePlot
+from ._NXImagePlot import NXImagePlot as _NXImagePlot
+from ._NXCurvePlot import NXCurvePlot as _NXCurvePlot
+from ._NXScatterPlot import NXScatterPlot as _NXScatterPlot
+from ._NXComplexImagePlot import NXComplexImagePlot as _NXComplexImagePlot
+from ._NXVolumePlot import NXVolumePlot as _NXVolumePlot
+
 
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
@@ -1170,13 +1174,13 @@ class _NXdataCurveView(_NXdataBaseDataView):
             icon=icons.getQIcon("view-1d"),
         )
 
-    def createWidget(self, parent) -> NxCurvePlot:
-        widget = NxCurvePlot(parent)
+    def createWidget(self, parent) -> _NXCurvePlot:
+        widget = _NXCurvePlot(parent)
         return widget
 
     def axesNames(self, data, info):
         # Disabled the default axis selector widget
-        # NxCurvePlot implements its own
+        # _NXCurvePlot implements its own
         return None
 
     def _clear(self):
@@ -1232,9 +1236,7 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import XYVScatterPlot
-
-        widget = XYVScatterPlot(parent)
+        widget = _NXScatterPlot(parent)
         widget.getScatterView().setColormap(self.defaultColormap())
         widget.getScatterView().getScatterToolBar().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
@@ -1305,9 +1307,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data.NXdataWidgets import ArrayImagePlot
-
-        widget = ArrayImagePlot(parent)
+        widget = _NXImagePlot(parent)
         widget.getPlot().setDefaultColormap(self.defaultColormap())
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
@@ -1328,7 +1328,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             return
         self._updateColormap(nxd)
 
-        widget: ArrayImagePlot = self.getWidget()
+        widget: _NXImagePlot = self.getWidget()
         widget.setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             axes=nxd.axes,
@@ -1366,7 +1366,7 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        return RgbaImagePlot(parent)
+        return _RgbaImagePlot(parent)
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)
@@ -1381,7 +1381,7 @@ class _NXDataRgbaImageView(_NXdataBaseDataView):
         if nxd is None:
             return
 
-        widget: RgbaImagePlot = self.getWidget()
+        widget: _RgbaImagePlot = self.getWidget()
         widget.setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             axes=nxd.axes,
@@ -1410,9 +1410,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         )
 
     def createWidget(self, parent):
-        from silx.gui.data._NxComplexImagePlot import NxComplexImagePlot
-
-        widget = NxComplexImagePlot(parent, colormap=self.defaultColormap())
+        widget = _NXComplexImagePlot(parent, colormap=self.defaultColormap())
         widget.getPlot().getColormapAction().setColormapDialog(
             self.defaultColorDialog()
         )
@@ -1471,9 +1469,7 @@ class _NXdataVolumeView(_NXdataBaseDataView):
         return data
 
     def createWidget(self, parent):
-        from silx.gui.data._NxVolumePlot import NxVolumePlot
-
-        widget = NxVolumePlot(parent)
+        widget = _NXVolumePlot(parent)
         return widget
 
     def axesNames(self, data, info):

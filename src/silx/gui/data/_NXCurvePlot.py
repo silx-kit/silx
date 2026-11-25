@@ -14,7 +14,7 @@ from ._models import Axis, Signal
 from .NumpyAxesSelector import NumpyAxesSelector
 
 
-class NxCurvePlot(qt.QWidget):
+class NXCurvePlot(qt.QWidget):
     """
     Widget for plotting NXdata signals as curves, with support of auxiliary signals errors and axes.
 
