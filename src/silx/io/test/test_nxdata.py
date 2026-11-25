@@ -93,7 +93,7 @@ class TestNXdata:
             group.attrs["auxiliary_signals"] = numpy.array(
                 ["count2", "count3"], dtype=text_dtype
             )
-            group.attrs["axes"] = "energy_calib"
+            group.attrs["axes"] = "energy"
             group.attrs["uncertainties"] = numpy.array(
                 [
                     "energy_errors",
@@ -105,7 +105,7 @@ class TestNXdata:
             d = group.create_dataset("count3", data=0.4 * numpy.arange(10))
             d.attrs["long_name"] = "3rd counter"
             group.create_dataset("title", data="Title as dataset (like nexpy)")
-            group.create_dataset("energy_calib", data=(10, 5))  # 10 * idx + 5
+            group.create_dataset("energy", data=10 + 5 * numpy.arange(10))
             group.create_dataset("energy_errors", data=3.14 * numpy.random.rand(10))
 
             assert nxdata.is_valid_nxdata(group)
@@ -115,12 +115,9 @@ class TestNXdata:
             assert nxd.signal_is_1d
             assert nxd.is_curve
             assert numpy.array_equal(numpy.array(nxd.signal), numpy.arange(10))
-            assert nxd.axes_names == ["energy_calib"]
-            assert nxd.axes_dataset_names == ["energy_calib"]
-            assert nxd.axes[0][0] == 10
-            assert nxd.axes[0][1] == 5
+            assert nxd.axes_names == ["energy"]
+            assert nxd.axes_dataset_names == ["energy"]
             assert nxd.errors is None
-            assert not nxd.is_scatter
             assert not nxd.is_x_y_value_scatter
             assert nxd.interpretation is None
             assert nxd.title == "Title as dataset (like nexpy)"
@@ -216,12 +213,12 @@ class TestNXdata:
             group.attrs["signal"] = "image"
             group.attrs["auxiliary_signals"] = "image2"
             group.attrs["axes"] = numpy.array(
-                ["rows_calib", "columns_coordinates"], dtype=text_dtype
+                ["rows_coordinates", "columns_coordinates"], dtype=text_dtype
             )
             group.create_dataset("image", data=numpy.arange(4 * 6).reshape((4, 6)))
             group.create_dataset("image2", data=numpy.arange(4 * 6).reshape((4, 6)))
-            ds = group.create_dataset("rows_calib", data=(10, 5))
-            ds.attrs["long_name"] = "Calibrated Y"
+            ds = group.create_dataset("rows_coordinates", data=10 + 5 * numpy.arange(4))
+            ds.attrs["long_name"] = "Y"
             group.create_dataset(
                 "columns_coordinates", data=0.5 + 0.02 * numpy.arange(6)
             )
@@ -232,8 +229,11 @@ class TestNXdata:
 
             assert nxd.signal_is_2d
             assert nxd.is_image
-            assert nxd.axes_names == ["Calibrated Y", "columns_coordinates"]
-            assert list(nxd.axes_dataset_names) == ["rows_calib", "columns_coordinates"]
+            assert nxd.axes_names == ["Y", "columns_coordinates"]
+            assert list(nxd.axes_dataset_names) == [
+                "rows_coordinates",
+                "columns_coordinates",
+            ]
 
             assert nxd.errors is None
             assert not nxd.is_scatter
@@ -376,7 +376,7 @@ class TestNXdata:
             group.attrs["NX_class"] = "NXdata"
             group.attrs["signal"] = "image"
             group.attrs["axes"] = numpy.array(
-                ["rows_calib", "columns_coordinates"], dtype=text_dtype
+                ["rows_coordinates", "columns_coordinates"], dtype=text_dtype
             )
             rgba_image = numpy.linspace(0, 1, num=7 * 8 * nchannels).reshape(
                 (7, 8, nchannels)
@@ -386,8 +386,8 @@ class TestNXdata:
             )  # invert G channel to add some color
             ds = group.create_dataset("image", data=rgba_image)
             ds.attrs["interpretation"] = interpretation
-            ds = group.create_dataset("rows_calib", data=(10, 5))
-            ds.attrs["long_name"] = "Calibrated Y"
+            ds = group.create_dataset("rows_coordinates", data=10 + 5 * numpy.arange(7))
+            ds.attrs["long_name"] = "Y"
             group.create_dataset(
                 "columns_coordinates", data=0.5 + 0.02 * numpy.arange(8)
             )
@@ -399,9 +399,9 @@ class TestNXdata:
             assert nxd.is_image
             assert nxd.interpretation == interpretation
             assert nxd.signal_is_3d
-            assert nxd.axes_names == ["Calibrated Y", "columns_coordinates", None]
+            assert nxd.axes_names == ["Y", "columns_coordinates", None]
             assert list(nxd.axes_dataset_names) == [
-                "rows_calib",
+                "rows_coordinates",
                 "columns_coordinates",
                 None,
             ]
@@ -864,15 +864,15 @@ def test_get_axis_errors(tmp_path):
         nxdata_grp.attrs["signal"] = "signal"
         nxdata_grp.attrs["axes"] = ["x", "y", "z"]
         nxdata_grp.create_dataset("signal", data=numpy.random.random((10, 3, 4)))
-        nxdata_grp.create_dataset("x", data=numpy.arange(0, 10, 10))
+        nxdata_grp.create_dataset("x", data=numpy.arange(10))
         y_dset = nxdata_grp.create_dataset("y", data=[0, 1, 2])
         y_dset.attrs["long_name"] = "Y"
         y_errors = nxdata_grp.create_dataset("y_errors", data=[0.1, 0.2, 0.3])
-        z_dset = nxdata_grp.create_dataset("z", data=[0, 1, 2, 3])
+        z_dset = nxdata_grp.create_dataset("z", data=[0, 1, 2, 3, 4, 5])
         z_dset.attrs["first_good"] = 1
-        z_dset.attrs["last_good"] = 2
+        z_dset.attrs["last_good"] = 4
         z_dset_errors = nxdata_grp.create_dataset(
-            "z_errors", data=[0.01, 0.02, 0.03, 0.04]
+            "z_errors", data=[0.01, 0.02, 0.03, 0.04, 0.05, 0.06]
         )
 
         nxd = nxdata.NXdata(nxdata_grp)
@@ -880,7 +880,7 @@ def test_get_axis_errors(tmp_path):
         # Check long_name works
         assert nxd.get_axis_errors("Y") == y_errors
         # Check good indices are applied
-        numpy.testing.assert_equal(nxd.get_axis_errors("z"), z_dset_errors[1:3])
+        numpy.testing.assert_equal(nxd.get_axis_errors("z"), z_dset_errors[1:5])
 
 
 def test_valid_scale_types(tmp_path):

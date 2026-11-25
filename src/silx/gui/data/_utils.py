@@ -59,14 +59,9 @@ def isScatter(nxd: NXdata, naxes: int) -> bool:
 
 
 def _getAxisCalib(axis: AxisDataset, axis_length: int) -> AbstractCalibration:
-    if axis is None:
+    if axis is None or len(axis) != axis_length:
         return ArrayCalibration(numpy.arange(axis_length))
-    values = numpy.atleast_1d(numpy.asarray(axis))
-    if values.ndim != 1 or values.size != axis_length:
-        # Not a 1D coordinate array of the pixels of this dimension
-        # (e.g. a scalar or a wrong-length axis): fall back to indices.
-        return ArrayCalibration(numpy.arange(axis_length))
-    return ArrayCalibration(values)
+    return ArrayCalibration(axis)
 
 
 def getAxesCalib(
