@@ -202,13 +202,17 @@ class BlissDataLima1Dataset(BlissDataDataset):
         return super().size if self.__isSealed() else 0
 
 
-def _lima1Stream(data: _abstract.Dataset) -> _BaseStream | None:
-    """Returns the lima1 stream wrapped by a blissdata dataset if any, else None"""
-    array = getattr(data, "_array", None)
-    if not isinstance(array, _redis_hdf5.StreamAsArray):
+def _blissdata_stream(dataset: _abstract.Dataset) -> _BaseStream | None:
+    """Returns the stream wrapped by a blissdata Dataset if any, else None
+
+    See https://gitlab.esrf.fr/bliss/blissdata/-/work_items/32
+    """
+    if isinstance(dataset, _redis_hdf5.Dataset) and isinstance(
+        dataset._array, _redis_hdf5.StreamAsArray
+    ):
+        return dataset._array._stream
+    else:
         return None
-    stream = array._stream
-    return stream if stream.plugin == "lima" else None
 
 
 def _children(group: _abstract.Group) -> Generator[BlissDataDataset | BlissDataGroup]:
@@ -217,12 +221,14 @@ def _children(group: _abstract.Group) -> Generator[BlissDataDataset | BlissDataG
         if isinstance(item, _abstract.Group):
             yield BlissDataGroup(name, item, parent=group, attrs=item.attrs)
         elif isinstance(item, _abstract.Dataset):
-            stream = _lima1Stream(item)
-            if stream is None:
-                yield BlissDataDataset(name, item, parent=group, attrs=item.attrs)
-            else:
+            stream = _blissdata_stream(item)
+            if stream is not None and stream.plugin == "lima":
+                # Special case for Lima1 to prevent accessing frames during the scan
+                # since this may hang until the end of the scan
                 yield BlissDataLima1Dataset(
                     name, item, stream, parent=group, attrs=item.attrs
                 )
+            else:  # Default route for other streams and static datasets with live access
+                yield BlissDataDataset(name, item, parent=group, attrs=item.attrs)
         else:
             _logger.warning(f"Cannot map child {name}: Ignored")
