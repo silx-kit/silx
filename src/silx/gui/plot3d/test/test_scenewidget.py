@@ -32,7 +32,10 @@ import pytest
 import numpy
 
 from silx.gui import qt
+from silx.gui.plot3d import items
+from silx.gui.plot3d.scene import primitives
 from silx.gui.plot3d.SceneWidget import SceneWidget
+from silx.gui.utils.image import convertQImageToArray
 
 
 @pytest.mark.usefixtures("use_opengl")
@@ -178,3 +181,48 @@ class TestPlot3DWidget:
 
         # Interactions read the depth buffer: the scene must have been rendered
         assert not sceneWidget._updating
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testClipPlaneShowsBackOfSpheres(qapp, qWidgetFactory):
+    """A sphere cut by a clip plane shows its inside, darker than outside"""
+    sceneWidget = qWidgetFactory(SceneWidget)
+    sceneWidget.resize(400, 400)
+
+    # Keep the space behind the plane (the plane faces the camera)
+    clip = items.ClipPlane()
+    clip.setNormal((0, 0, -1))
+    sceneWidget.addItem(clip)
+
+    # One red sphere at the center of the view.
+    # The scene group renders it after the clip plane, so it is clipped.
+    spheres = primitives.Spheres(
+        numpy.array([[0.5, 0.5, 0.5]], dtype=numpy.float32),
+        radius=0.3,
+        colors=(1.0, 0.0, 0.0, 1.0),
+    )
+    sceneWidget.getSceneGroup()._getGroupPrimitive().children.append(spheres)
+    sceneWidget.resetZoom()
+
+    size = sceneWidget.size()
+    x, y = size.width() // 2, size.height() // 2
+
+    def centerColor():
+        qapp.processEvents()
+        image = convertQImageToArray(sceneWidget.grab().toImage())
+        return image[y, x, :3].astype(int)
+
+    def isRed(color):
+        return color[0] > 2 * color[1] and color[0] > 2 * color[2]
+
+    # The plane is in front of the sphere: nothing is cut
+    clip.setPoint((0.5, 0.5, 10.0))
+    outside = centerColor()
+    assert isRed(outside)
+
+    # The plane cuts the sphere at its center: the front half is removed
+    clip.setPoint((0.5, 0.5, 0.5))
+    inside = centerColor()
+    # The back half is displayed (not the gray background), but darker
+    assert isRed(inside)
+    assert inside[0] < outside[0]
