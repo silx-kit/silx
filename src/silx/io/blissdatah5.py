@@ -15,9 +15,6 @@ from blissdata.streams import BaseStream as _BaseStream
 
 _logger = logging.getLogger(__name__)
 
-_ITER_CHUNK_NBYTES = 16 * 1024**2
-"""Maximum size of data read at once when iterating over a dataset"""
-
 
 class BlissDataH5(commonh5.File):
     def __init__(
@@ -140,6 +137,12 @@ class BlissDataDataset(commonh5.Dataset):
             )
         return data[position]
 
+    _ITER_CHUNK_NBYTES = 16 * 1024**2
+    """Maximum size of data read at once when iterating over a dataset
+
+    This aims at avoiding loading too many data at once.
+    """
+
     def __iter__(self):
         """Iterate over the first axis, on data available when iteration starts.
 
@@ -151,7 +154,7 @@ class BlissDataDataset(commonh5.Dataset):
 
         length = len(self)
         itemNBytes = data.dtype.itemsize * math.prod(data.shape[1:])
-        chunkLength = max(1, _ITER_CHUNK_NBYTES // max(1, itemNBytes))
+        chunkLength = max(1, self._ITER_CHUNK_NBYTES // max(1, itemNBytes))
         for start in range(0, length, chunkLength):
             stop = min(start + chunkLength, length)
             yield from self.__getFirstAxis(slice(start, stop))
