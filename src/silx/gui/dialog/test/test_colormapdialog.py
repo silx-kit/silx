@@ -31,7 +31,6 @@ __date__ = "09/11/2018"
 import pytest
 
 from silx.gui import qt
-from silx.gui.utils import blockSignals
 from silx.gui.dialog import ColormapDialog
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.gui.plot.items.image import ImageData
@@ -398,125 +397,24 @@ def testUpdateImageData(qapp, qWidgetFactory):
     assert dialog._histoWidget.getFiniteRange() == (1, 4)
 
 
-_REVERSED_COLORMAP_NAMES = [
-    ("gray", "reversed gray"),
-    ("reversed gray", "gray"),
-    ("temperature", None),
-]
-_UNREVERSED_COLORMAP_NAMES = [
-    ("gray", ("gray", False)),
-    ("reversed gray", ("gray", True)),
-    ("viridis", ("viridis", False)),
-    ("temperature", ("temperature", False)),
-]
-if "viridis_r" in Colormap.getSupportedColormaps():  # requires matplotlib
-    _REVERSED_COLORMAP_NAMES += [("viridis", "viridis_r"), ("viridis_r", "viridis")]
-    _UNREVERSED_COLORMAP_NAMES += [("viridis_r", ("viridis", True))]
-
-
-@pytest.mark.parametrize("name, expected", _REVERSED_COLORMAP_NAMES)
-def testReversedColormapName(name, expected):
-    """Test the name of the reversed counterpart of a colormap"""
-    assert ColormapDialog._reversedColormapName(name) == expected
-
-
-@pytest.mark.parametrize("name, expected", _UNREVERSED_COLORMAP_NAMES)
-def testUnreversedColormapName(name, expected):
-    """Test the name of the non-reversed colormap"""
-    assert ColormapDialog._unreversedColormapName(name) == expected
-
-
-_LUT = numpy.array([[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]])
-
-
-@pytest.mark.parametrize(
-    "kwargs, reversedName, text",
-    [
-        # Colormap with a reversed counterpart
-        ({"name": "gray"}, "reversed gray", "Gray"),
-        # Colormap without reversed counterpart: reversed as a custom LUT
-        ({"name": "temperature"}, None, "Temperature"),
-        # Custom LUT
-        ({"colors": _LUT}, None, "Custom"),
-    ],
-)
-def testReverseColormap(qWidgetFactory, kwargs, reversedName, text):
-    """Test reversing the colormap from the dialog (back and forth)"""
+def testReverseColormap(qWidgetFactory):
+    """Test the reverse button and the colormap reversed state stay in sync"""
     dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
-    colormap = Colormap(**kwargs)
+    colormap = Colormap(name="gray")  # The dialog only keeps a weakref
     dialog.setColormap(colormap)
-
-    name = colormap.getName()
-    lut = colormap.getNColors()
-    comboBox = dialog._comboBoxColormap
-    nbItems = comboBox.count()
-
     button = dialog._reverseColormapButton
-    assert button.isCheckable()
-    assert button.isEnabled()
+    comboBox = dialog._comboBoxColormap
     assert not button.isChecked()
-    assert comboBox.currentText() == text
 
     button.setChecked(True)
-    assert colormap.getName() == reversedName
-    numpy.testing.assert_array_equal(colormap.getNColors(), lut[::-1])
-    # The reversed colormap is not added to the combo box
-    assert comboBox.currentText() == text
-    assert comboBox.count() == nbItems
+    assert colormap.isReversed()
+    assert colormap.getName() == "gray"
 
-    # Updating the widgets from the colormap keeps the same state
-    with blockSignals(comboBox):
-        dialog._updateColormapLutWidgets(colormap)
-    assert button.isChecked()
-    assert comboBox.currentText() == text
-
-    button.setChecked(False)
-    assert colormap.getName() == name
-    numpy.testing.assert_array_equal(colormap.getNColors(), lut)
-    assert comboBox.currentText() == text
-    assert comboBox.count() == nbItems
-
-
-@pytest.mark.parametrize(
-    "name, text, checked",
-    [
-        ("gray", "Gray", False),
-        ("reversed gray", "Gray", True),
-        ("viridis_r", "Viridis", True),
-    ],
-)
-def testReversedColormapDisplay(qWidgetFactory, name, text, checked):
-    """Test reversed colormaps are displayed as the non-reversed one + checked"""
-    if name not in Colormap.getSupportedColormaps():
-        pytest.skip(f"matplotlib is required for '{name}'")
-    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
-    colormap = Colormap(name=name)  # The dialog only keeps a weakref
-    dialog.setColormap(colormap)
-    assert dialog._comboBoxColormap.currentText() == text
-    assert dialog._reverseColormapButton.isChecked() is checked
-
-
-def testReverseColormapKeptOnSelection(qWidgetFactory):
-    """Test that the reverse state is kept when selecting another colormap"""
-    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
-    colormap = Colormap(name="gray")
-    dialog.setColormap(colormap)
-    comboBox = dialog._comboBoxColormap
-    button = dialog._reverseColormapButton
-
-    button.setChecked(True)
-    assert colormap.getName() == "reversed gray"
-
+    # Kept when selecting another colormap
     comboBox.setCurrentIndex(comboBox.findLutName("temperature"))
-    assert button.isChecked()
-    assert colormap.getName() is None
-    numpy.testing.assert_array_equal(
-        colormap.getNColors(), Colormap(name="temperature").getNColors()[::-1]
-    )
+    assert colormap.getName() == "temperature"
+    assert colormap.isReversed()
 
-    # Selecting 'Reversed Gray' is displayed as 'Gray' + reversed
-    button.setChecked(False)
-    comboBox.setCurrentIndex(comboBox.findLutName("reversed gray"))
-    assert colormap.getName() == "reversed gray"
-    assert comboBox.currentText() == "Gray"
-    assert button.isChecked()
+    # Updated when the colormap is changed outside of the dialog
+    colormap.setReversed(False)
+    assert not button.isChecked()
