@@ -951,7 +951,9 @@ class ColormapDialog(qt.QDialog):
             self._comboBoxColormapUpdated
         )
         self._reverseColormapButton = qt.QToolButton(parent=self)
-        self._reverseColormapButton.setIcon(qtawesome.icon("mdi.invert-colors"))
+        self._reverseColormapButton.setText("Reverse")
+        self._reverseColormapButton.setIcon(icons.getQIcon("reverse"))
+        self._reverseColormapButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
         self._reverseColormapButton.setToolTip("Reverse the colormap colors")
         self._reverseColormapButton.setCheckable(True)
         self._reverseColormapButton.toggled.connect(self._updateColormapLut)
