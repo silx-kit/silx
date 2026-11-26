@@ -1637,10 +1637,12 @@ class ColormapDialog(qt.QDialog):
             self._histoWidget.setFiniteRange((None, None))
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
-            self._updateColormapLutWidgets(colormap)
             with utils.blockSignals(self._comboBoxColormap):
+                self._comboBoxColormap.setCurrentLut(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
-            self._reverseColormapButton.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._reverseColormapButton):
+                self._reverseColormapButton.setChecked(colormap.isReversed())
+                self._reverseColormapButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
                 index = self._comboBoxNormalization.findData(
                     colormap.getNormalization()
@@ -1687,12 +1689,6 @@ class ColormapDialog(qt.QDialog):
                 self._histoWidget.setVisible(True)
                 self._histoWidget.setFiniteRange(dataRange)
                 self._histoWidget.updateNormalization()
-
-    def _updateColormapLutWidgets(self, colormap: Colormap):
-        """Update the colormap combo box and the reverse button from colormap."""
-        with utils.blockSignals(self._comboBoxColormap, self._reverseColormapButton):
-            self._comboBoxColormap.setCurrentLut(colormap)
-            self._reverseColormapButton.setChecked(colormap.isReversed())
 
     def _comboBoxColormapUpdated(self):
         """Callback executed when the combo box with the colormap LUT
