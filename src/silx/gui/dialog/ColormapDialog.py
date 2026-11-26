@@ -76,7 +76,6 @@ from ..plot.items import BoundingRect
 from ._ColormapPercentileWidget import ColormapPercentilesWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
-import qtawesome
 from silx.math.combo import min_max
 from silx.gui.plot import items
 from silx.gui import icons
