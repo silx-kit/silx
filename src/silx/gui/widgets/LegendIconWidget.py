@@ -474,7 +474,7 @@ class LegendIconWidget(qt.QWidget):
         Returns the key used to store the image in the data storage
         """
         if isinstance(colormap, numpy.ndarray):
-            # custom Colormap (no name) or Reversed Colormap use case.
+            # custom Colormap (no name) or reversed Colormap use case.
             # numpy arrays are not hashable: build the key from shape, dtype and raw data
             key = colormap.shape, colormap.dtype.str, colormap.tobytes()
         else:
