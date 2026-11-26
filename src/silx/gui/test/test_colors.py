@@ -686,3 +686,19 @@ class TestAutoscaleRange(ParametricTestCase):
                 else:
                     self.assertAlmostEqual(vRange[0], expectedRange[0])
                     self.assertAlmostEqual(vRange[1], expectedRange[1])
+
+
+def testReversed():
+    """Test reversing the colormap only reverses the displayed colors"""
+    colormap = Colormap(name="viridis", vmin=0, vmax=1)
+    colors = colormap.getNColors()
+
+    colormap.setReversed(True)
+    assert colormap.getName() == "viridis"
+    numpy.testing.assert_array_equal(colormap.getNColors(), colors[::-1])
+    numpy.testing.assert_array_equal(
+        colormap.applyToData(numpy.array([0.0, 1.0])), colors[[-1, 0]]
+    )
+    # The reversed state is part of the colormap state
+    assert colormap != Colormap(name="viridis", vmin=0, vmax=1)
+    assert colormap.copy() == colormap
