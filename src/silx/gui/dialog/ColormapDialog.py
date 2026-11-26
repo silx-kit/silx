@@ -66,6 +66,7 @@ import enum
 import logging
 
 import numpy
+import qtawesome
 
 from .. import qt
 from .. import utils
@@ -924,7 +925,7 @@ class ColormapDialog(qt.QDialog):
         )
         self._reverseColormapButton = qt.QToolButton(parent=self)
         self._reverseColormapButton.setText("Reverse")
-        self._reverseColormapButton.setIcon(icons.getQIcon("reverse"))
+        self._reverseColormapButton.setIcon(qtawesome.icon("ph.shuffle-simple"))
         self._reverseColormapButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
         self._reverseColormapButton.setToolTip("Reverse the colormap colors")
         self._reverseColormapButton.setCheckable(True)
