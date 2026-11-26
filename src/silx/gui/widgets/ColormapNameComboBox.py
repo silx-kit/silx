@@ -67,7 +67,8 @@ class ColormapNameComboBox(qt.QComboBox):
         if name is not None:
             iconKey = name
         else:
-            iconKey = tuple(colors)
+            colors = numpy.asarray(colors)
+            iconKey = colors.shape, colors.dtype.str, colors.tobytes()
         icon = _colormapIconPreview.get(iconKey, None)
         if icon is None:
             icon = self.createIconPreview(name, colors)

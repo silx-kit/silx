@@ -76,6 +76,7 @@ from ..plot.items import BoundingRect
 from ._ColormapPercentileWidget import ColormapPercentilesWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
+import qtawesome
 from silx.math.combo import min_max
 from silx.gui.plot import items
 from silx.gui import icons
@@ -90,6 +91,26 @@ from silx.utils.enum import Enum as _Enum
 _logger = logging.getLogger(__name__)
 
 _colormapIconPreview = {}
+
+
+def _reversedColormapName(name: str) -> str | None:
+    """Returns the name of the reversed counterpart of a colormap if it exists.
+
+    ('gray' <-> 'reversed gray', 'name' <-> 'name_r')
+
+    :param name: Name of the colormap
+    """
+    if name == "gray":
+        reversedName = "reversed gray"
+    elif name == "reversed gray":
+        reversedName = "gray"
+    elif name.endswith("_r"):
+        reversedName = name[:-2]
+    else:
+        reversedName = name + "_r"
+    if reversedName in Colormap.getSupportedColormaps():
+        return reversedName
+    return None
 
 
 class _DataRefHolder(items.Item, items.ColormapMixIn):
@@ -922,6 +943,12 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxColormap.currentIndexChanged[int].connect(
             self._comboBoxColormapUpdated
         )
+        self._reverseColormapButton = qt.QToolButton(parent=self)
+        self._reverseColormapButton.setIcon(qtawesome.icon("mdi.invert-colors"))
+        self._reverseColormapButton.setToolTip("Reverse the colormap colors")
+        self._reversedLut: tuple[str, numpy.ndarray] | None = None
+        """Name of the colormap reversed as a custom LUT and the resulting LUT"""
+        self._reverseColormapButton.clicked.connect(self._reverseColormap)
 
         # Normalization row
         self._comboBoxNormalization = qt.QComboBox(parent=self)
@@ -1075,7 +1102,11 @@ class ColormapDialog(qt.QDialog):
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
 
-        formLayout.addRow("Colormap:", self._comboBoxColormap)
+        colormapLayout = qt.QHBoxLayout()
+        colormapLayout.setContentsMargins(0, 0, 0, 0)
+        colormapLayout.addWidget(self._comboBoxColormap, 1)
+        colormapLayout.addWidget(self._reverseColormapButton)
+        formLayout.addRow("Colormap:", colormapLayout)
         formLayout.addRow("Normalization:", self._comboBoxNormalization)
         formLayout.addRow("Gamma:", self._gammaSpinBox)
 
@@ -1096,7 +1127,8 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
 
-        self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
+        self.setTabOrder(self._comboBoxColormap, self._reverseColormapButton)
+        self.setTabOrder(self._reverseColormapButton, self._comboBoxNormalization)
         self.setTabOrder(self._comboBoxNormalization, self._gammaSpinBox)
         self.setTabOrder(self._gammaSpinBox, self._minValue)
         self.setTabOrder(self._minValue, self._maxValue)
@@ -1613,6 +1645,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is None:
             self._comboBoxColormap.setEnabled(False)
+            self._reverseColormapButton.setEnabled(False)
             self._comboBoxNormalization.setEnabled(False)
             self._gammaSpinBox.setEnabled(False)
             self._autoScaleCombo.setEnabled(False)
@@ -1626,6 +1659,7 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._comboBoxColormap):
                 self._comboBoxColormap.setCurrentLut(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
+            self._reverseColormapButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
                 index = self._comboBoxNormalization.findData(
                     colormap.getNormalization()
@@ -1686,6 +1720,45 @@ class ColormapDialog(qt.QDialog):
                 else:
                     lut = self._comboBoxColormap.getCurrentColors()
                     colormap.setColormapLUT(lut)
+        self._histoWidget.updateLut()
+
+    def _reverseColormap(self):
+        """Callback executed when the reverse colormap button is clicked.
+
+        For a named colormap, its reversed counterpart is used when it exists.
+        Otherwise the colormap is set to a custom LUT with the colors in
+        reverse order, displayed as '<Name> (reversed)'.
+        Reversing it again restores the named colormap.
+        """
+        colormap = self.getColormap()
+        if colormap is None or not colormap.isEditable():
+            return
+        name = colormap.getName()
+        reversedName = None if name is None else _reversedColormapName(name)
+        if reversedName is not None:
+            colormap.setName(reversedName)
+        elif (
+            name is None
+            and self._reversedLut is not None
+            and numpy.array_equal(
+                colormap.getColormapLUT(copy=False), self._reversedLut[1]
+            )
+        ):
+            # Restore the named colormap that was reversed as a custom LUT
+            originalName = self._reversedLut[0]
+            self._reversedLut = None
+            colormap.setName(originalName)
+        else:
+            lut = colormap.getNColors()[::-1]
+            if name is not None:
+                self._reversedLut = name, lut
+            colormap.setColormapLUT(lut)
+            if name is not None:
+                index = self._comboBoxColormap.findLutColors(lut)
+                if index >= 0:
+                    self._comboBoxColormap.setItemText(
+                        index, f"{str.title(name)} (reversed)"
+                    )
         self._histoWidget.updateLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):
