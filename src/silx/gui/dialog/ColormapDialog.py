@@ -1704,7 +1704,8 @@ class ColormapDialog(qt.QDialog):
                 if name is not None:
                     colormap.setName(name)
                 else:
-                    colormap.setColormapLUT(self._comboBoxColormap.getCurrentColors())
+                    lut = self._comboBoxColormap.getCurrentColors()
+                    colormap.setColormapLUT(lut)
         self._histoWidget.updateLut()
 
     def _reverseColormapToggled(self, checked: bool):
