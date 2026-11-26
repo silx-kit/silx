@@ -395,3 +395,26 @@ def testUpdateImageData(qapp, qWidgetFactory):
     item.setData([(1, 2), (3, 4)])
 
     assert dialog._histoWidget.getFiniteRange() == (1, 4)
+
+
+def testReverseColormap(qWidgetFactory):
+    """Test the reverse button and the colormap reversed state stay in sync"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+    colormap = Colormap(name="gray")  # The dialog only keeps a weakref
+    dialog.setColormap(colormap)
+    button = dialog._reverseColormapButton
+    comboBox = dialog._comboBoxColormap
+    assert not button.isChecked()
+
+    button.setChecked(True)
+    assert colormap.isReversed()
+    assert colormap.getName() == "gray"
+
+    # Kept when selecting another colormap
+    comboBox.setCurrentIndex(comboBox.findLutName("temperature"))
+    assert colormap.getName() == "temperature"
+    assert colormap.isReversed()
+
+    # Updated when the colormap is changed outside of the dialog
+    colormap.setReversed(False)
+    assert not button.isChecked()

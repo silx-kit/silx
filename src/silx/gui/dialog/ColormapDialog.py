@@ -66,6 +66,7 @@ import enum
 import logging
 
 import numpy
+import qtawesome
 
 from .. import qt
 from .. import utils
@@ -922,6 +923,13 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxColormap.currentIndexChanged[int].connect(
             self._comboBoxColormapUpdated
         )
+        self._reverseColormapButton = qt.QToolButton(parent=self)
+        self._reverseColormapButton.setText("Reverse")
+        self._reverseColormapButton.setIcon(qtawesome.icon("ph.shuffle-simple"))
+        self._reverseColormapButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
+        self._reverseColormapButton.setToolTip("Reverse the colormap colors")
+        self._reverseColormapButton.setCheckable(True)
+        self._reverseColormapButton.toggled.connect(self._reverseColormapToggled)
 
         # Normalization row
         self._comboBoxNormalization = qt.QComboBox(parent=self)
@@ -1075,7 +1083,11 @@ class ColormapDialog(qt.QDialog):
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
 
-        formLayout.addRow("Colormap:", self._comboBoxColormap)
+        colormapLayout = qt.QHBoxLayout()
+        colormapLayout.setContentsMargins(0, 0, 0, 0)
+        colormapLayout.addWidget(self._comboBoxColormap, 1)
+        colormapLayout.addWidget(self._reverseColormapButton)
+        formLayout.addRow("Colormap:", colormapLayout)
         formLayout.addRow("Normalization:", self._comboBoxNormalization)
         formLayout.addRow("Gamma:", self._gammaSpinBox)
 
@@ -1096,7 +1108,8 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
 
-        self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
+        self.setTabOrder(self._comboBoxColormap, self._reverseColormapButton)
+        self.setTabOrder(self._reverseColormapButton, self._comboBoxNormalization)
         self.setTabOrder(self._comboBoxNormalization, self._gammaSpinBox)
         self.setTabOrder(self._gammaSpinBox, self._minValue)
         self.setTabOrder(self._minValue, self._maxValue)
@@ -1613,6 +1626,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is None:
             self._comboBoxColormap.setEnabled(False)
+            self._reverseColormapButton.setEnabled(False)
             self._comboBoxNormalization.setEnabled(False)
             self._gammaSpinBox.setEnabled(False)
             self._autoScaleCombo.setEnabled(False)
@@ -1626,6 +1640,9 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._comboBoxColormap):
                 self._comboBoxColormap.setCurrentLut(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._reverseColormapButton):
+                self._reverseColormapButton.setChecked(colormap.isReversed())
+                self._reverseColormapButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
                 index = self._comboBoxNormalization.findData(
                     colormap.getNormalization()
@@ -1678,7 +1695,7 @@ class ColormapDialog(qt.QDialog):
         is updated by user input.
         """
         colormap = self.getColormap()
-        if colormap is not None:
+        if colormap is not None and colormap.isEditable():
             with self._colormapChange:
                 name = self._comboBoxColormap.getCurrentName()
                 if name is not None:
@@ -1686,6 +1703,14 @@ class ColormapDialog(qt.QDialog):
                 else:
                     lut = self._comboBoxColormap.getCurrentColors()
                     colormap.setColormapLUT(lut)
+        self._histoWidget.updateLut()
+
+    def _reverseColormapToggled(self, checked: bool):
+        """Callback executed when the reverse button is toggled by user input."""
+        colormap = self.getColormap()
+        if colormap is not None and colormap.isEditable():
+            with self._colormapChange:
+                colormap.setReversed(checked)
         self._histoWidget.updateLut()
 
     def _autoRangeButtonsUpdated(self, autoRange):

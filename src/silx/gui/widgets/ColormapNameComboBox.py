@@ -67,7 +67,9 @@ class ColormapNameComboBox(qt.QComboBox):
         if name is not None:
             iconKey = name
         else:
-            iconKey = tuple(colors)
+            colors = numpy.asarray(colors)
+            # numpy arrays are not hashable: build the key from shape, dtype and raw data
+            iconKey = colors.shape, colors.dtype.str, colors.tobytes()
         icon = _colormapIconPreview.get(iconKey, None)
         if icon is None:
             icon = self.createIconPreview(name, colors)
@@ -142,7 +144,7 @@ class ColormapNameComboBox(qt.QComboBox):
             lut = colormap.getColormapLUT()
             self._setCurrentLut(lut)
 
-    def _setCurrentLut(self, lut):
+    def _setCurrentLut(self, lut: numpy.ndarray):
         index = self.findLutColors(lut)
         if index == -1:
             index = self.count()
@@ -152,7 +154,7 @@ class ColormapNameComboBox(qt.QComboBox):
             self.setItemData(index, lut, role=self.LUT_COLORS)
         self.setCurrentIndex(index)
 
-    def _setCurrentName(self, name):
+    def _setCurrentName(self, name: str):
         index = self.findLutName(name)
         if index < 0:
             index = self.count()

@@ -157,6 +157,7 @@ class GroupPropertiesWidget(qt.QWidget):
                         itemCmap.setName(colormap.getName())
                     else:
                         itemCmap.setColormapLUT(colormap.getColormapLUT())
+                    itemCmap.setReversed(colormap.isReversed())
                     itemCmap.setNormalization(colormap.getNormalization())
                     itemCmap.setGammaNormalizationParameter(
                         colormap.getGammaNormalizationParameter()

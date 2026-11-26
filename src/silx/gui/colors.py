@@ -284,6 +284,7 @@ class Colormap(qt.QObject):
     :param normalization: Normalization: 'linear' (default) or 'log'
     :param vmin: Lower bound of the colormap or None for autoscale (default)
     :param vmax: Upper bounds of the colormap or None for autoscale (default)
+    :param autoscaleMode: Autoscale mode, see :meth:`setAutoscaleMode`
     """
 
     LINEAR = "linear"
@@ -373,6 +374,7 @@ class Colormap(qt.QObject):
 
         self._name: str | None = None
         self._colors: numpy.ndarray | None = None
+        self._reversed: bool = False
 
         if colors is not None and name is not None:
             raise ValueError("name and colors arguments can't be set at the same time")
@@ -411,6 +413,7 @@ class Colormap(qt.QObject):
                 # There is no name so there is a color
                 assert colors is not None
                 self.setColormapLUT(colors)
+            self.setReversed(other.isReversed())
             self.setNaNColor(other.getNaNColor())
             self.setNormalization(other.getNormalization())
             self.setGammaNormalizationParameter(other.getGammaNormalizationParameter())
@@ -429,7 +432,7 @@ class Colormap(qt.QObject):
         """
         # Handle default value for nbColors
         if nbColors is None:
-            return numpy.array(self._colors, copy=True)
+            return numpy.array(self._getEffectiveLut(), copy=True)
         else:
             nbColors = int(nbColors)
             colormap = self.copy()
@@ -465,7 +468,8 @@ class Colormap(qt.QObject):
         """Return the list of colors for the colormap or None if not set.
 
         This returns None if the colormap was set with :meth:`setName`.
-        Use :meth:`getNColors` to get the colormap LUT for any colormap.
+        The colors are returned as set, regardless of :meth:`isReversed`.
+        Use :meth:`getNColors` to get the colors used to display the colormap.
 
         :param copy: If true a copy of the numpy array is provided
         :return: the list of colors for the colormap or None if not set
@@ -499,6 +503,23 @@ class Colormap(qt.QObject):
         self._colors = _colormap.array_to_rgba8888(colors)
         self._name = None
         self.sigChanged.emit()
+
+    def isReversed(self) -> bool:
+        return self._reversed
+
+    def setReversed(self, reversed: bool):
+        if reversed == self._reversed:
+            return
+        if not self.isEditable():
+            raise NotEditableError("Colormap is not editable")
+        self._reversed = reversed
+        self.sigChanged.emit()
+
+    def _getEffectiveLut(self) -> numpy.ndarray:
+        """Returns the LUT used for display, taking :meth:`isReversed` into account"""
+        if self._reversed:
+            return self._colors[::-1]
+        return self._colors
 
     def getNaNColor(self) -> qt.QColor:
         """Returns the color to use for Not-A-Number floating point value."""
@@ -810,6 +831,8 @@ class Colormap(qt.QObject):
             return self.getColormapLUT()
         elif item == "autoscaleMode":
             return self.getAutoscaleMode()
+        elif item == "reversed":
+            return self.isReversed()
         else:
             raise KeyError(item)
 
@@ -827,6 +850,7 @@ class Colormap(qt.QObject):
             "autoscale": self.isAutoscale(),
             "normalization": self.getNormalization(),
             "autoscaleMode": self.getAutoscaleMode(),
+            "reversed": self.isReversed(),
         }
 
     def _setFromDict(self, dic: dict):
@@ -875,6 +899,7 @@ class Colormap(qt.QObject):
             # if name is None => colors is not None
             assert colors is not None
             self.setColormapLUT(colors)
+        self._reversed = dic.get("reversed", False)
         self._vmin = vmin
         self._vmax = vmax
         self._autoscale = True if (vmin is None and vmax is None) else False
@@ -901,6 +926,7 @@ class Colormap(qt.QObject):
             normalization=self.getNormalization(),
             autoscaleMode=self.getAutoscaleMode(),
         )
+        colormap.setReversed(self.isReversed())
         colormap.setNaNColor(self.getNaNColor())
         colormap.setGammaNormalizationParameter(self.getGammaNormalizationParameter())
         colormap.setEditable(self.isEditable())
@@ -928,7 +954,12 @@ class Colormap(qt.QObject):
             array = data
 
         return _colormap.cmap(
-            array, self._colors, vmin, vmax, self._getNormalizer(), self.__nanColor
+            array,
+            self._getEffectiveLut(),
+            vmin,
+            vmax,
+            self._getNormalizer(),
+            self.__nanColor,
         )
 
     @staticmethod
@@ -971,13 +1002,14 @@ class Colormap(qt.QObject):
                 return False
         return (
             self.getName() == other.getName()
+            and self.isReversed() == other.isReversed()
             and self.getAutoscaleMode() == other.getAutoscaleMode()
             and self.getVMin() == other.getVMin()
             and self.getVMax() == other.getVMax()
             and numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
         )
 
-    _SERIAL_VERSION = 3
+    _SERIAL_VERSION = 4
 
     def restoreState(self, byteArray: qt.QByteArray) -> bool:
         """
@@ -1033,6 +1065,11 @@ class Colormap(qt.QObject):
                 stream.readInt32(),
             )
 
+        if version <= 3:
+            isReversed = False
+        else:
+            isReversed = stream.readBool()
+
         # emit change event only once
         old = self.blockSignals(True)
         try:
@@ -1043,6 +1080,7 @@ class Colormap(qt.QObject):
             if gamma is not None:
                 self.setGammaNormalizationParameter(gamma)
             self.setNaNColor(nanColor)
+            self.setReversed(isReversed)
         finally:
             self.blockSignals(old)
         self.sigChanged.emit()
@@ -1071,6 +1109,7 @@ class Colormap(qt.QObject):
         stream.writeInt32(nanColor.green())
         stream.writeInt32(nanColor.blue())
         stream.writeInt32(nanColor.alpha())
+        stream.writeBool(self.isReversed())
 
         return data
 
