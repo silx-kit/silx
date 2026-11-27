@@ -9,6 +9,8 @@ from .. import qt
 from ..colors import cursorColorForColormap
 from ..qt import inspect as qtinspect
 from ..plot import items
+from ..plot import PlotWidget
+from ..plot.items.core import LineStyleType
 from ..plot._utils.image import imageIndexSlices
 
 
@@ -20,11 +22,17 @@ class ScaleToCursorTool(qt.QObject):
     This region is displayed as a dashed rectangle.
     """
 
-    SCREEN_REGION_SIZE: int = 20
+    MIN_SCREEN_REGION_SIZE: int = 20
     """Minimum size of the region in screen pixels"""
 
-    IMAGE_REGION_SIZE: int = 20
+    MIN_IMAGE_REGION_SIZE: int = 20
     """Minimum size of the region in image pixels"""
+
+    OUTLINE_LINE_STYLE: LineStyleType = "--"
+    """Line style of the region outline."""
+
+    OUTLINE_LINE_WIDTH: float = 1.0
+    """Line width of the region outline."""
 
     sigRangeChanged = qt.Signal(object, object)
     """Signal emitted with the new (vmin, vmax) range"""
@@ -34,8 +42,8 @@ class ScaleToCursorTool(qt.QObject):
 
     def __init__(self, parent: qt.QObject | None = None):
         super().__init__(parent)
-        self.__item = None
-        self.__plot = None
+        self.__item: weakref.ref[items.ImageBase] | None = None
+        self.__plot: weakref.ref[PlotWidget] | None = None
         self.__outline: items.Shape | None = None
 
     def getItem(self) -> items.ImageBase | None:
@@ -118,13 +126,13 @@ class ScaleToCursorTool(qt.QObject):
         """Returns the region in data coordinates as (xmin, xmax, ymin, ymax)"""
         plot = self.__plot()
         xPixel, yPixel = event["xpixel"], event["ypixel"]
-        halfScreen = self.SCREEN_REGION_SIZE / 2
+        halfScreen = self.MIN_SCREEN_REGION_SIZE / 2
         x0, y0 = plot.pixelToData(xPixel - halfScreen, yPixel - halfScreen)
         x1, y1 = plot.pixelToData(xPixel + halfScreen, yPixel + halfScreen)
 
         # Make sure the region covers enough image pixels
         sx, sy = image.getScale()
-        halfImage = self.IMAGE_REGION_SIZE / 2
+        halfImage = self.MIN_IMAGE_REGION_SIZE / 2
         x, y = event["x"], event["y"]
         xmin = min(x0, x1, x - halfImage * abs(sx))
         xmax = max(x0, x1, x + halfImage * abs(sx))
@@ -132,16 +140,22 @@ class ScaleToCursorTool(qt.QObject):
         ymax = max(y0, y1, y + halfImage * abs(sy))
         return xmin, xmax, ymin, ymax
 
+    def __createOutline(self) -> items.Shape:
+        """Create the shape displaying the region used for the range."""
+        outline = items.Shape("rectangle")
+        outline.setName("__ScaleToCursorTool_outline__")
+        outline.setOverlay(True)
+        outline.setFill(False)
+        outline.setLineStyle(self.OUTLINE_LINE_STYLE)
+        outline.setLineWidth(self.OUTLINE_LINE_WIDTH)
+        return outline
+
     def __showOutline(self, image: items.ImageBase, slices: tuple[slice, slice]):
         """Display the outline of the image pixels used for the range"""
         plot = self.__plot()
         if self.__outline is None or self.__outline.getPlot() is not plot:
             # Create it or re-add it if it was removed (e.g., plot cleared)
-            self.__outline = items.Shape("rectangle")
-            self.__outline.setName("__ScaleToCursorTool_outline__")
-            self.__outline.setOverlay(True)
-            self.__outline.setFill(False)
-            self.__outline.setLineStyle("--")
+            self.__outline = self.__createOutline()
             plot.addItem(self.__outline)
 
         rows, columns = slices

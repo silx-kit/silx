@@ -76,6 +76,51 @@ def testScaleToCursor(plot, qapp_utils):
     assert colormap.getVRange() == (vmin, vmax)
 
 
+def testScaleToCursorDisabled(qWidgetFactory):
+    plot = qWidgetFactory(Plot2D)
+    dialog = plot.getColormapAction().getColormapDialog()
+    action = dialog.getScaleToCursorAction()
+    assert not action.isEnabled()  # No item
+
+    # Not supported for scatters
+    plot.addScatter((0, 1), (0, 1), (0, 1), legend="scatter")
+    plot.setActiveScatter("scatter")
+    assert not action.isEnabled()
+
+
+def _changeImage(plot, dialog):
+    plot.addImage(numpy.ones((10, 10)), legend="other")
+    plot.setActiveImage("other")
+
+
+_STOPPERS = {
+    "image-changed": _changeImage,
+    "image-removed": lambda plot, dialog: plot.remove("image", kind="image"),
+    "visible-area": lambda plot, dialog: dialog._visibleAreaButton.click(),
+    "selection": lambda plot, dialog: dialog._selectedAreaButton.setChecked(True),
+    "autoscale": lambda plot, dialog: dialog._autoButtons.click(),
+    "min-autoscale": lambda plot, dialog: dialog._minValue._autoToggleAction.trigger(),
+    "max-autoscale": lambda plot, dialog: dialog._maxValue._autoToggleAction.trigger(),
+}
+
+
+@pytest.mark.parametrize("stop", _STOPPERS.values(), ids=_STOPPERS.keys())
+def testScaleToCursorStopped(plot, qapp_utils, stop):
+    dialog = plot.getColormapAction().getColormapDialog()
+    action = dialog.getScaleToCursorAction()
+    plot.getColormapAction().trigger()  # Show the dialog
+    qapp_utils.qWait(100)
+
+    action.setChecked(True)
+    # Set a fixed range, so that autoscale controls switch autoscale on
+    _moveMouse(qapp_utils, plot, -40, 110)
+    assert None not in plot.getImage("image").getColormap().getVRange()
+
+    stop(plot, dialog)
+    qapp_utils.qWait(100)
+    assert not action.isChecked()
+
+
 def testScaleToCursorButton(plot, qapp_utils):
     dialog = plot.getColormapAction().getColormapDialog()
     action = dialog.getScaleToCursorAction()
@@ -90,71 +135,24 @@ def testScaleToCursorButton(plot, qapp_utils):
     action.setChecked(False)
     assert not dialog._cursorButton.isChecked()
 
-    # Mode is kept when the dialog is hidden
-    action.setChecked(True)
-    dialog.hide()
-    qapp_utils.qWait(100)
-    assert action.isChecked()
-
-    # Selection and cursor modes are exclusive
-    dialog.show()
-    qapp_utils.qWait(100)
+    # Cursor mode stops selection mode
     dialog._selectedAreaButton.setChecked(True)
-    qapp_utils.qWait(100)
-    assert not action.isChecked()
+    qapp_utils.qWait(100)  # Selection button handler is a queued connection
     action.setChecked(True)
     qapp_utils.qWait(100)
     assert not dialog._selectedAreaButton.isChecked()
 
-
-def testScaleToCursorStopped(plot, qapp_utils):
-    dialog = plot.getColormapAction().getColormapDialog()
-    action = dialog.getScaleToCursorAction()
-
-    # Stopped when the dialog item changes
-    action.setChecked(True)
-    plot.addImage(numpy.ones((10, 10)), legend="other")
-    plot.setActiveImage("other")
+    # Mode is kept when the dialog is hidden
+    dialog.hide()
     qapp_utils.qWait(100)
-    assert not action.isChecked()
-
-    # Stopped when the image is removed
-    action.setChecked(True)
     assert action.isChecked()
-    plot.remove("other", kind="image")
-    qapp_utils.qWait(100)
-    assert not action.isChecked()
 
 
-def testScaleToCursorDisabled(qWidgetFactory):
-    plot = qWidgetFactory(Plot2D)
+def testVisibleAreaStopsSelection(plot, qapp_utils):
     dialog = plot.getColormapAction().getColormapDialog()
-    action = dialog.getScaleToCursorAction()
-    assert not action.isEnabled()  # No item
-
-    # Not supported for scatters
-    plot.addScatter((0, 1), (0, 1), (0, 1), legend="scatter")
-    plot.setActiveScatter("scatter")
-    assert not action.isEnabled()
-    action.setChecked(True)
-    assert not action.isChecked() or not action.isEnabled()
-
-
-def testScaleToModesExclusive(plot, qapp_utils):
-    dialog = plot.getColormapAction().getColormapDialog()
-    action = dialog.getScaleToCursorAction()
-    plot.getColormapAction().trigger()  # Show the dialog
+    plot.getColormapAction().trigger()
     qapp_utils.qWait(100)
-
-    # Visible area stops cursor mode
-    action.setChecked(True)
-    dialog._visibleAreaButton.click()
-    qapp_utils.qWait(100)
-    assert not action.isChecked()
-
-    # Visible area stops selection mode
     dialog._selectedAreaButton.setChecked(True)
-    qapp_utils.qWait(100)
     dialog._visibleAreaButton.click()
     qapp_utils.qWait(100)
     assert not dialog._selectedAreaButton.isChecked()
@@ -178,31 +176,3 @@ def testScaleToCursorSharedDialog(plot, qWidgetFactory, qapp_utils):
     _moveMouse(qapp_utils, plot, -10, 110)
     vmin, vmax = colormap.getVRange()
     assert 100 <= vmin < vmax < 101
-
-
-@pytest.mark.parametrize("control", ["autoscale", "min", "max"])
-def testAutoscaleStopsScaleToCursor(plot, qapp_utils, control):
-    dialog = plot.getColormapAction().getColormapDialog()
-    action = dialog.getScaleToCursorAction()
-    colormap = plot.getImage("image").getColormap()
-    plot.getColormapAction().trigger()  # Show the dialog
-    qapp_utils.qWait(100)
-
-    action.setChecked(True)
-    _moveMouse(qapp_utils, plot, -40, 110)
-    assert None not in colormap.getVRange()
-
-    if control == "autoscale":
-        dialog._autoButtons.click()
-    elif control == "min":
-        dialog._minValue._autoToggleAction.trigger()
-    else:
-        dialog._maxValue._autoToggleAction.trigger()
-    qapp_utils.qWait(100)
-    assert not action.isChecked()
-    assert None in colormap.getVRange()
-
-    # Mouse moves no longer change the range
-    vrange = colormap.getVRange()
-    _moveMouse(qapp_utils, plot, -10, 110)
-    assert colormap.getVRange() == vrange

@@ -1033,20 +1033,21 @@ class ColormapDialog(qt.QDialog):
         self._scaleToCursorTool = ScaleToCursorTool(self)
         self._scaleToCursorTool.sigRangeChanged.connect(self._setColormapRange)
 
-        self._scaleToCursorAction = qt.QAction(self)
-        self._scaleToCursorAction.setCheckable(True)
-        self._scaleToCursorAction.setEnabled(False)
-        self._scaleToCursorAction.setText("Cursor")
-        self._scaleToCursorAction.setIcon(
-            qtawesome.icon("mdi6.image-filter-center-focus")
+        # When checked, the colormap range follows the data around the mouse
+        # cursor when it is over the image associated to the dialog.
+        # This mode stays active when the dialog is hidden, so this action can
+        # be added to another widget, e.g., with a keyboard shortcut.
+        action = qt.QAction(
+            qtawesome.icon("mdi6.image-filter-center-focus"), "Cursor", self
         )
-        self._scaleToCursorAction.setToolTip(
-            "Adjust the range to the data around the mouse cursor"
-        )
-        self._scaleToCursorAction.toggled.connect(self._handleScaleToCursorToggled)
+        action.setCheckable(True)
+        action.setEnabled(False)
+        action.setToolTip("Adjust the range to the data around the mouse cursor")
+        action.toggled.connect(self._handleScaleToCursorToggled)
         self._scaleToCursorTool.sigStopped.connect(
             lambda: self._scaleToCursorAction.setChecked(False)
         )
+        self._scaleToCursorAction = action
 
         self._cursorButton = qt.QPushButton(self)
         self._cursorButton.setCheckable(True)
@@ -1924,13 +1925,7 @@ class ColormapDialog(qt.QDialog):
         self._cursorButton.setEnabled(cursorEnabled)
 
     def getScaleToCursorAction(self) -> qt.QAction:
-        """Returns the checkable QAction controlling the scale to cursor mode.
-
-        When checked, the colormap range follows the data around the mouse
-        cursor when it is over the image associated to the dialog.
-        This mode stays active when the dialog is hidden, so this action can
-        be added to another widget, e.g., with a keyboard shortcut.
-        """
+        """Returns the checkable QAction controlling the scale to cursor mode."""
         return self._scaleToCursorAction
 
     def _handleScaleToCursorToggled(self, checked: bool):
