@@ -29,9 +29,10 @@ from __future__ import annotations
 __authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import contextlib
 import functools
+import itertools
 import logging
 import math
 import weakref
@@ -341,12 +342,32 @@ def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None
 
 
 def _symbolPoints(symbol, color) -> gfx.Points | None:
-    """Point of _symbolMaterial set by _setPositions, None for no symbol"""
+    """Points of _symbolMaterial set by _setPoints, None for no symbol"""
     material = _symbolMaterial(symbol, gfx.Color(*color), "uniform")
     if material is None:
         return None
     positions = numpy.zeros((1, 3), numpy.float32)
     return gfx.Points(gfx.Geometry(positions=positions), material)
+
+
+def _setPoints(points: gfx.Points, positions) -> None:
+    """Set the 2D positions of points of _symbolPoints.
+
+    Its buffer is written in place, and replaced by a twice larger one if full.
+    """
+    count = len(positions)
+    if points.geometry.positions.nitems < count:
+        capacity = max(count, 2 * points.geometry.positions.nitems)
+        buffer = numpy.zeros((capacity, 3), numpy.float32)
+        points.geometry = gfx.Geometry(positions=buffer)
+    buffer = points.geometry.positions
+    buffer.data[:count, :2] = positions
+    buffer.update_range(0, count)
+    buffer.draw_range = 0, count
+
+
+_MarkerSymbol = namedtuple("_MarkerSymbol", "symbol color size position")
+"""Symbol of a point marker at its position in pixels"""
 
 
 def _dataOffset(x: numpy.ndarray, y: numpy.ndarray) -> numpy.ndarray:
@@ -1130,6 +1151,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._cachedBgColor = (1.0, 1.0, 1.0, 1.0)
         self._frameSceneObjects = _SceneObjects()
         self._crosshairSceneObjects = _SceneObjects()
+        self._symbolSceneObjects = _SceneObjects()
 
         self._reusableImageItem = None  # Pool for image item reuse
 
@@ -1392,10 +1414,34 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             else:
                 dataObjects.extend(objects)
 
+        with self._symbolSceneObjects.draw() as take:
+            overlayObjects = self._mergeSymbols(take, overlayObjects)
         with self._crosshairSceneObjects.draw() as take:
             crosshair = self._crosshairObjects(take)
         _setChildren(self._dataScene, dataObjects)
         _setChildren(self._overlayScene, overlayObjects + labels + crosshair)
+
+    def _mergeSymbols(self, take, objects: list) -> list:
+        """Return objects with each run of _MarkerSymbol of the same symbol,
+        color and size replaced by its points, taken with take.
+
+        A run is drawn in its order in a single draw call, instead of one per
+        marker.
+        """
+        merged = []
+        for style, run in itertools.groupby(
+            objects, lambda o: o[:3] if isinstance(o, _MarkerSymbol) else None
+        ):
+            if style is None:
+                merged.extend(run)
+                continue
+            symbol, color, size = style
+            points = take(("symbols", symbol, color), _symbolPoints, symbol, color)
+            if points is not None:
+                points.material.size = size
+                _setPoints(points, [markerSymbol.position for markerSymbol in run])
+                merged.append(points)
+        return merged
 
     def _symbolSize(self, symbol, size: float) -> float:
         """Size in logical pixels of a symbol of size points, as Points2D.render"""
@@ -1418,8 +1464,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         )
 
     def _markerObjects(self, item, take):
-        """Return the scene objects of a marker and its text label or None,
-        taken with take"""
+        """Return the scene objects of a marker, with a _MarkerSymbol for its
+        symbol, and its text label or None, taken with take"""
         xCoord = item["x"]
         yCoord = item["y"]
         yAxis = item.get("yaxis", "left")
@@ -1435,14 +1481,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
             if pixelPos is None:
                 return [], None
-            symbols = []
-            symbol = item["symbol"], item["color"]
-            points = take(("symbol", *symbol), _symbolPoints, *symbol)
-            if points is not None:
-                size = self._symbolSize(item["symbol"], item["symbolsize"])
-                points.material.size = size
-                _setPositions(points.geometry, [pixelPos])
-                symbols.append(points)
+            size = self._symbolSize(item["symbol"], item["symbolsize"])
+            symbols = [_MarkerSymbol(item["symbol"], item["color"], size, pixelPos)]
             if text is None:
                 return symbols, None
             if self._plotFrame.isYAxisInverted:

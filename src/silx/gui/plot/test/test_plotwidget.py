@@ -2152,6 +2152,23 @@ def testPygfxItemOrder(qWidgetFactory, zFirst, zSecond, expected):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "first,second,expected", [("red", "blue", _RED), ("blue", "red", _BLUE)]
+)
+def testPygfxPointMarkerOrder(qWidgetFactory, first, second, expected):
+    """Point markers are painted in their order, those of the same style too"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    for index, color in enumerate((first, second, first)):
+        marker = plot.addMarker(5, 5, legend=str(index), color=color, symbol="s")
+        marker.setSymbolSize(20)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == expected
+
+
+@pytest.mark.usefixtures("use_pygfx")
 def testPygfxCurveAddedAfterImage(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     plot.addImage(_rgbImage(_BLUE), legend="image")
