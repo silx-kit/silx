@@ -11,10 +11,48 @@ from ...math.calibration import (
     LinearCalibration,
     NoCalibration,
 )
+from .. import qt
 from ..hdf5 import H5Node
+from ..plot import PlotWidget
+from ..plot.actions import PlotAction
 from ..plot.items import ImageBase
 
 ImageAxis = h5py.Dataset | Dataset | None
+
+
+class _ToggleScaleToCursorAction(PlotAction):
+    """Toggle the colormap dialog "Cursor" mode with the W key.
+
+    The shortcut is active when the plot has the keyboard focus.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`.
+        Set it (e.g., to the plot) to keep the action alive,
+        as :meth:`QWidget.addAction` does not take ownership.
+    """
+
+    def __init__(self, plot: PlotWidget, parent: qt.QObject | None = None):
+        super().__init__(
+            plot,
+            icon=qt.QIcon(),
+            text="Scale to cursor",
+            tooltip="Toggle the colormap range following the mouse cursor",
+            triggered=self._actionTriggered,
+            parent=parent,
+        )
+        self.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        self.setShortcutContext(qt.Qt.WidgetWithChildrenShortcut)
+
+    def _actionTriggered(self, checked: bool = False):
+        plot = self.plot
+        if plot is None:
+            return
+        colormapAction = plot.getColormapAction()
+        action = colormapAction.getColormapDialog().getScaleToCursorAction()
+        if not action.isChecked():
+            # The dialog can be shared with other plots: target this one
+            colormapAction._updateColormap()
+        action.trigger()
 
 
 def normalizeData(data):

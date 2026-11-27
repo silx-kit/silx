@@ -9,7 +9,7 @@ from ..plot.items import ImageBase
 from ..plot.MaskToolsWidget import MaskToolsWidget
 from ..utils import blockSignals
 from ._SignalSelector import SignalSelector
-from ._utils import ImageAxis
+from ._utils import ImageAxis, _ToggleScaleToCursorAction
 from .NumpyAxesSelector import NumpyAxesSelector
 
 
@@ -35,6 +35,7 @@ class BaseImagePlot(qt.QWidget):
         maskToolWidget = self._plot.getMaskToolsDockWidget().widget()
         if isinstance(maskToolWidget, MaskToolsWidget):
             maskToolWidget.setItemMaskUpdated(True)
+        self._plot.addAction(_ToggleScaleToCursorAction(self._plot, parent=self._plot))
 
         self._axesSelector = NumpyAxesSelector(self)
         self._axesSelector.selectionChanged.connect(self._updateImage)

@@ -156,3 +156,23 @@ def testVisibleAreaStopsSelection(plot, qapp_utils):
     dialog._visibleAreaButton.click()
     qapp_utils.qWait(100)
     assert not dialog._selectedAreaButton.isChecked()
+
+
+def testScaleToCursorSharedDialog(plot, qWidgetFactory, qapp_utils):
+    """A hidden plot sharing the dialog and colormap does not stop the mode"""
+    dialog = plot.getColormapAction().getColormapDialog()
+    colormap = plot.getImage("image").getColormap()
+
+    hiddenPlot = qWidgetFactory(Plot2D)
+    hiddenPlot.addImage(numpy.ones((10, 10)), colormap=colormap)
+    hiddenPlot.getColormapAction().setColormapDialog(dialog)
+    hiddenPlot.hide()
+    qapp_utils.qWait(100)
+
+    action = dialog.getScaleToCursorAction()
+    action.setChecked(True)
+    _moveMouse(qapp_utils, plot, -40, 110)
+    assert action.isChecked()
+    _moveMouse(qapp_utils, plot, -10, 110)
+    vmin, vmax = colormap.getVRange()
+    assert 100 <= vmin < vmax < 101

@@ -48,7 +48,12 @@ from ._NxCurvePlot import NxCurvePlot
 # DataViewHooks is part of the public API of this module
 from ._DataView import DataViewHooks  # noqa: F401
 
-from ._utils import isRgba, isScatter, normalizeComplex as _normalizeComplex
+from ._utils import (
+    _ToggleScaleToCursorAction,
+    isRgba,
+    isScatter,
+    normalizeComplex as _normalizeComplex,
+)
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -622,6 +627,7 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
+        widget.addAction(_ToggleScaleToCursorAction(widget, parent=widget))
 
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)
