@@ -44,6 +44,7 @@ from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, Curve, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
+from silx.gui.utils.image import convertQImageToArray
 
 from .utils import PlotWidgetTestCase
 
@@ -2214,3 +2215,97 @@ def test_data_range_ignores_added_hidden_item(qapp: qt.QApplication) -> None:
     assert plot.getDataRange().x == (0, 1)
     plot.setAttribute(qt.Qt.WA_DeleteOnClose)
     plot.close()
+
+
+def _renderGl(plot: PlotWidget) -> numpy.ndarray:
+    """Draw the OpenGL backend now and return its RGB image
+
+    Lines are checked as drawn, not as dark: Mesa 17 llvmpipe (Windows CI)
+    draws the first smooth line segment at about 14% opacity.
+    """
+    widget = plot.getWidgetHandle().findChild(qt.QOpenGLWidget)
+    return convertQImageToArray(widget.grabFramebuffer())[..., :3]
+
+
+@pytest.mark.usefixtures("use_opengl")
+@pytest.mark.parametrize("shape", ["hline", "vline"])
+def testGlShapeAxisLine(qWidgetFactory, shape):
+    """hline and vline shapes cross the plot area at their last point"""
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.4), (0.3, 0.6), shape=shape, fill=False, linewidth=3)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.4, 0.6)
+    axis = 1 if shape == "vline" else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if axis else image[y, pixels]
+    assert line.max() < 255
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlShapeNotFinite(qWidgetFactory):
+    """Shapes are drawn as the sub-shapes between their not finite points"""
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    plot.setLimits(0, 10, 0, 10)
+    x, y = (1, 9, numpy.nan, 1, 9), (2, 2, numpy.nan, 8, 8)
+    plot.addShape(x, y, legend="polylines", shape="polylines", fill=False)
+    # Not drawn, as its last point is not finite
+    plot.addShape((1, 9), (5, numpy.nan), legend="hline", shape="hline", fill=False)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for y in (2, 8):
+        x, y = frame.dataToPixel(5, y)
+        assert image[y - 1 : y + 2, x].min() < 255
+    x, y = frame.dataToPixel(5, 5)
+    assert image[y - 1 : y + 2, x].min() == 255
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlProgramUseDisablesAttributeArrays(qWidgetFactory):
+    """Using a program leaves no vertex attribute array of earlier draws enabled"""
+    from silx.gui import _glutils
+    from silx.gui._glutils import gl
+
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    # Scatter points are drawn with a color array
+    plot.addScatter((0, 1, 0, 1), (0, 0, 2, 2), (0, 1, 2, 3))
+    _renderGl(plot)
+
+    backend = plot._backend
+    backend.makeCurrent()
+    with _glutils.Context.current(backend.context()):
+        backend._progBase.use()
+        enabled = numpy.zeros(4, dtype=numpy.int32)
+        for location in range(gl.glGetIntegerv(gl.GL_MAX_VERTEX_ATTRIBS)):
+            gl.glGetVertexAttribiv(location, gl.GL_VERTEX_ATTRIB_ARRAY_ENABLED, enabled)
+            assert enabled[0] == gl.GL_FALSE, f"location {location}"
+
+
+@pytest.mark.usefixtures("use_opengl")
+def testGlTrianglesLargeCoordinates(qWidgetFactory):
+    """Triangles at large coordinates are drawn and picked as precisely as near 0"""
+    large = 1.79e9  # A timestamp, where float32 steps are 128
+    plot = qWidgetFactory(PlotWidget, backend="gl")
+    corners = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+    plot.addScatter(
+        large + corners[0],
+        large + corners[1],
+        (0,) * 4,
+        colormap=Colormap(colors=((1.0, 0.0, 0.0),), vmin=0, vmax=1),
+    )
+    plot.getScatter().setVisualization("solid")
+    plot.setLimits(large, large + 1, large, large + 1)
+    image = _renderGl(plot)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, inside in ((0.5, 0.5, True), (0.1, 0.9, False), (0.9, 0.1, False)):
+        col, row = frame.dataToPixel(large + x, large + y)
+        assert numpy.array_equal(image[row, col], (255, 0, 0)) == inside, (x, y)
+
+    px, py = plot.dataToPixel(large + 0.7, large + 0.3)
+    results = [list(r.getIndices()) for r in plot.pickItems(px, py)]
+    assert len(results) == 1 and 1 in results[0], results

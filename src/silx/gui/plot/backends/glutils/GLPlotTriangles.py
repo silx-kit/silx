@@ -39,6 +39,7 @@ from .... import _glutils as glutils
 from ...._geometry import segmentTrianglesIntersection
 from ...._glutils import gl
 from .GLPlotItem import GLPlotItem
+from .GLSupport import mat4Translate
 
 
 class GLPlotTriangles(GLPlotItem):
@@ -85,8 +86,8 @@ class GLPlotTriangles(GLPlotItem):
         """
         super().__init__()
         # Check and convert input data
-        x = numpy.ravel(numpy.array(x, dtype=numpy.float32))
-        y = numpy.ravel(numpy.array(y, dtype=numpy.float32))
+        x = numpy.ravel(numpy.asarray(x, dtype=numpy.float64))
+        y = numpy.ravel(numpy.asarray(y, dtype=numpy.float64))
         color = numpy.asarray(color)
         # Cast to uint32
         triangles = numpy.asarray(triangles, dtype=numpy.uint32)
@@ -102,9 +103,16 @@ class GLPlotTriangles(GLPlotItem):
             raise ValueError("Unsupported color type")
         assert triangles.ndim == 2 and triangles.shape[1] == 3
 
-        self.__x_y_color = x, y, color
         self.xMin, self.xMax = min_max(x, finite=True)
         self.yMin, self.yMax = min_max(y, finite=True)
+        # float32 steps are 128 at a timestamp: keep vertices relative to the minimum
+        self.offset = (
+            0.0 if self.xMin is None else self.xMin,
+            0.0 if self.yMin is None else self.yMin,
+        )
+        x = (x - self.offset[0]).astype(numpy.float32)
+        y = (y - self.offset[1]).astype(numpy.float32)
+        self.__x_y_color = x, y, color
         self.__triangles = triangles
         self.__alpha = numpy.clip(float(alpha), 0.0, 1.0)
         self.__vbos = None
@@ -122,6 +130,7 @@ class GLPlotTriangles(GLPlotItem):
         if x < self.xMin or x > self.xMax or y < self.yMin or y > self.yMax:
             return None
 
+        x, y = x - self.offset[0], y - self.offset[1]  # Relative to the vertices
         xPts, yPts = self.__x_y_color[:2]
         if self.__picking_triangles is None:
             self.__picking_triangles = numpy.zeros(
@@ -183,7 +192,8 @@ class GLPlotTriangles(GLPlotItem):
             self._PROGRAM.uniforms["matrix"],
             1,
             gl.GL_TRUE,
-            context.matrix.astype(numpy.float32),
+            # Translated in float64: float32 would lose a large offset
+            (context.matrix @ mat4Translate(*self.offset)).astype(numpy.float32),
         )
 
         gl.glUniform1f(self._PROGRAM.uniforms["alpha"], self.__alpha)
