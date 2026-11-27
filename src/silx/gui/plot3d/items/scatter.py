@@ -149,18 +149,9 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ("index", "depth")
-
-        rayNdc = context.getPickingSegment(frame="ndc")
-        if rayNdc is None:  # No picking outside viewport
-            return None
-
-        # Project data to NDC
         xData = self.getXData(copy=False)
         if len(xData) == 0:  # No data in the scatter
             return None
-
-        primitive = self._getScenePrimitive()
 
         dataPoints = numpy.transpose(
             (
@@ -171,27 +162,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             )
         )
 
-        pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            dataPoints, perspectiveDivide=True
-        )
-
-        # Perform picking
-        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold = self._getPickingDistances().reshape(-1, 1)
-        thresholdNdc = 2.0 * threshold / primitive.viewport.size
-        picked = numpy.where(
-            numpy.logical_and(
-                numpy.all(distancesNdc < thresholdNdc, axis=1),
-                numpy.logical_and(
-                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
-                ),
-            )
-        )[0]
-
-        if sort == "depth":
-            # Sort picked points from front to back
-            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+        picked = context.pickPoints(
+            self._getScenePrimitive(), dataPoints, self._getPickingDistances(), sort
+        )
 
         if picked.size > 0:
             return PickingResult(
@@ -408,33 +382,10 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ("index", "depth")
-
-        rayNdc = context.getPickingSegment(frame="ndc")
-        if rayNdc is None:  # No picking outside viewport
-            return None
-
-        # Project data to NDC
-        primitive = self._getScenePrimitive()
-        pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            points, perspectiveDivide=True
+        # pickPoints takes half the side of the picking square
+        picked = context.pickPoints(
+            self._getScenePrimitive(), points, 0.5 * numpy.asarray(threshold), sort
         )
-
-        # Perform picking
-        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
-        thresholdNdc = numpy.array(threshold).reshape(-1, 1) / primitive.viewport.size
-        picked = numpy.where(
-            numpy.logical_and(
-                numpy.all(distancesNdc < thresholdNdc, axis=1),
-                numpy.logical_and(
-                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
-                ),
-            )
-        )[0]
-
-        if sort == "depth":
-            # Sort picked points from front to back
-            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
             return PickingResult(
