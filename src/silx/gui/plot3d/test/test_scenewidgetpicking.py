@@ -204,6 +204,38 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 picking = list(self.widget.pickItems(1, 1))
                 self.assertEqual(len(picking), 0)
 
+    def testPickScatterDistance(self):
+        """Test scatter points are picked up to half their symbol size"""
+        # The picked point at the center, inside the data bounds
+        scatter2d = items.Scatter2D()
+        scatter2d.setData(x=(-10, 0, 10), y=(-10, 0, 10), value=(0, 1, 2))
+
+        scatter3d = items.Scatter3D()
+        scatter3d.setData(x=(-10, 0, 10), y=(-10, 0, 10), z=(0, 0, 0), value=(0, 1, 2))
+
+        devicePixelRatio = self.widget.getDevicePixelRatio()
+        for item in (scatter2d, scatter3d):
+            with self.subTest(item=item.__class__.__name__):
+                item.setSymbolSize(20)  # Picking distance: 10 device pixels
+                self.widget.clearItems()
+                self.widget.addItem(item)
+                self.widget.resetZoom("front")
+                self.qapp.processEvents()
+
+                primitive = item._getScenePrimitive()
+                ndc = primitive.objectToNDCTransform.transformPoints(
+                    numpy.array(((0.0, 0.0, 0.0, 1.0),)), perspectiveDivide=True
+                )
+                x, y = primitive.viewport.ndcToWindow(ndc[0, 0], ndc[0, 1])
+
+                for offset, nbPicked in ((8.0, 1), (12.0, 0)):
+                    picking = list(
+                        self.widget.pickItems(
+                            (x + offset) / devicePixelRatio, y / devicePixelRatio
+                        )
+                    )
+                    self.assertEqual(len(picking), nbPicked, f"offset {offset}")
+
     def testPickVolume(self):
         """Test picking of volume CutPlane and Isosurface items"""
         for dtype in (numpy.float32, numpy.complex64):

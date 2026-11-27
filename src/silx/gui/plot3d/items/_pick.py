@@ -28,6 +28,8 @@ __license__ = "MIT"
 __date__ = "24/09/2018"
 
 import logging
+from typing import Literal
+
 import numpy
 
 from ...plot.items._pick import PickingResult as _PickingResult
@@ -169,6 +171,54 @@ class PickContext:
         # frame is a scene Base object
         rayObject = frame.objectToSceneTransform.transformPoints(rayScene, direct=False)
         return rayObject
+
+    def pickPoints(
+        self,
+        primitive: Base,
+        points: numpy.ndarray,
+        threshold: float | numpy.ndarray,
+        sort: Literal["index", "depth"] = "depth",
+    ) -> numpy.ndarray:
+        """Returns the indices of the points close to the picked position.
+
+        :param primitive: The scene primitive in which points are expressed
+        :param points: Homogeneous coordinates of points as (N, 4)
+        :param threshold:
+            Picking threshold in pixels, either for all points or one per point.
+            Points are picked in a square of size 2 * threshold.
+        :param sort: How returned indices are sorted:
+
+            - 'index': sort by the value of the indices
+            - 'depth' (default): Sort by the depth of the points from the current
+              camera point of view.
+        """
+        assert sort in ("index", "depth")
+
+        rayNdc = self.getPickingSegment(frame="ndc")
+        if rayNdc is None:  # No picking outside viewport
+            return numpy.array((), dtype=numpy.int64)
+
+        pointsNdc = primitive.objectToNDCTransform.transformPoints(
+            points, perspectiveDivide=True
+        )
+
+        # Perform picking
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
+        # NDC span 2 across the viewport
+        thresholdNdc = 2.0 * numpy.reshape(threshold, (-1, 1)) / primitive.viewport.size
+        picked = numpy.where(
+            numpy.logical_and(
+                numpy.all(distancesNdc < thresholdNdc, axis=1),
+                numpy.logical_and(
+                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
+                ),
+            )
+        )[0]
+
+        if sort == "depth":
+            # Sort picked points from front to back
+            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+        return picked
 
 
 class PickingResult(_PickingResult):

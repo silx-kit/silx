@@ -189,8 +189,8 @@ class _HeightMap(DataItem3D):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :param float threshold: Picking threshold in pixel.
-            Perform picking in a square of size threshold x threshold.
+        :param float threshold: Picking threshold in pixels added to the symbol size.
+            See :meth:`PickContext.pickPoints`.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
@@ -199,14 +199,7 @@ class _HeightMap(DataItem3D):
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ("index", "depth")
-
-        rayNdc = context.getPickingSegment(frame="ndc")
-        if rayNdc is None:  # No picking outside viewport
-            return None
-
         # TODO no colormapped or color data
-        # Project data to NDC
         heightData = self.getData(copy=False)
         if heightData.size == 0:
             return  # Nothing displayed
@@ -218,29 +211,10 @@ class _HeightMap(DataItem3D):
             (numpy.ravel(x), numpy.ravel(y), z, numpy.ones_like(z))
         )
 
-        primitive = self._getScenePrimitive()
-
-        pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            dataPoints, perspectiveDivide=True
-        )
-
-        # Perform picking
-        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold += 1.0  # symbol size
-        thresholdNdc = 2.0 * threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(
-            numpy.logical_and(
-                numpy.all(distancesNdc < thresholdNdc, axis=1),
-                numpy.logical_and(
-                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
-                ),
-            )
-        )[0]
-
-        if sort == "depth":
-            # Sort picked points from front to back
-            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+        picked = context.pickPoints(
+            self._getScenePrimitive(), dataPoints, threshold + 1.0, sort
+        )
 
         if picked.size > 0:
             # Convert indices from 1D to 2D
