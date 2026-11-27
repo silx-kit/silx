@@ -1033,20 +1033,19 @@ class ColormapDialog(qt.QDialog):
         self._scaleToCursorTool = ScaleToCursorTool(self)
         self._scaleToCursorTool.sigRangeChanged.connect(self._setColormapRange)
 
-        self._scaleToCursorAction = qt.QAction(self)
-        self._scaleToCursorAction.setCheckable(True)
-        self._scaleToCursorAction.setEnabled(False)
-        self._scaleToCursorAction.setText("Cursor")
-        self._scaleToCursorAction.setIcon(
-            qtawesome.icon("mdi6.image-filter-center-focus")
+        action = qt.QAction(
+            qtawesome.icon("mdi6.image-filter-center-focus"), "Cursor", self
         )
-        self._scaleToCursorAction.setToolTip(
+        action.setCheckable(True)
+        action.setEnabled(False)
+        action.setToolTip(
             "Adjust the range to the data around the mouse cursor"
         )
-        self._scaleToCursorAction.toggled.connect(self._handleScaleToCursorToggled)
-        self._scaleToCursorTool.sigStopped.connect(
+        action.connect(self._handleScaleToCursorToggled)
+        action.connect(
             lambda: self._scaleToCursorAction.setChecked(False)
         )
+        self._scaleToCursorAction = action
 
         self._cursorButton = qt.QPushButton(self)
         self._cursorButton.setCheckable(True)
