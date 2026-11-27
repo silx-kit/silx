@@ -15,7 +15,7 @@ def testShortcutTargetsItsPlot(qWidgetFactory):
         plot = qWidgetFactory(Plot2D)
         plot.getColormapAction().setColormapDialog(dialog)
         plot.addImage(numpy.random.random((10, 10)))
-        shortcut = _ToggleScaleToCursorAction(plot)
+        shortcut = _ToggleScaleToCursorAction(plot, parent=plot)
 
         shortcut.trigger()
         assert action.isChecked()
