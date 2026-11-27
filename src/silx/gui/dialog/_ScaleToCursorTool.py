@@ -21,10 +21,10 @@ class ScaleToCursorTool(qt.QObject):
     This region is displayed as a dashed rectangle.
     """
 
-    SCREEN_REGION_SIZE: int = 20
+    MIN_SCREEN_REGION_SIZE: int = 20
     """Minimum size of the region in screen pixels"""
 
-    IMAGE_REGION_SIZE: int = 20
+    MIN_IMAGE_REGION_SIZE: int = 20
     """Minimum size of the region in image pixels"""
 
     sigRangeChanged = qt.Signal(object, object)
@@ -119,13 +119,13 @@ class ScaleToCursorTool(qt.QObject):
         """Returns the region in data coordinates as (xmin, xmax, ymin, ymax)"""
         plot = self.__plot()
         xPixel, yPixel = event["xpixel"], event["ypixel"]
-        halfScreen = self.SCREEN_REGION_SIZE / 2
+        halfScreen = self.MIN_SCREEN_REGION_SIZE / 2
         x0, y0 = plot.pixelToData(xPixel - halfScreen, yPixel - halfScreen)
         x1, y1 = plot.pixelToData(xPixel + halfScreen, yPixel + halfScreen)
 
         # Make sure the region covers enough image pixels
         sx, sy = image.getScale()
-        halfImage = self.IMAGE_REGION_SIZE / 2
+        halfImage = self.MIN_IMAGE_REGION_SIZE / 2
         x, y = event["x"], event["y"]
         xmin = min(x0, x1, x - halfImage * abs(sx))
         xmax = max(x0, x1, x + halfImage * abs(sx))
