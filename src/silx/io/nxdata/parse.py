@@ -294,7 +294,6 @@ class NXdata:
             signal_size = 1
             for dim in self.group[signal_name].shape:
                 signal_size *= dim
-            polynomial_axes_names = []
             for i, axis_name in enumerate(axes_names):
                 if axis_name == ".":
                     continue
@@ -318,27 +317,22 @@ class NXdata:
                     )
                     axis_len = lg_idx + 1 - fg_idx
 
-                if axis_len != signal_size:
-                    if axis_len not in self.group[signal_name].shape + (1, 2):
-                        self.issues.append(
-                            "Axis %s number of elements does not "
-                            % axis_name
-                            + "correspond to the length of any signal dimension,"
-                            " it does not appear to be a constant or a linear calibration,"
-                            + " and this does not seem to be a scatter plot."
-                        )
-                        continue
-                    elif axis_len in (1, 2):
-                        polynomial_axes_names.append(axis_name)
+                if (
+                    axis_len != signal_size
+                    and axis_len not in self.group[signal_name].shape
+                ):
+                    self.issues.append(
+                        "Axis %s number of elements does not " % axis_name
+                        + "correspond to the length of any signal dimension"
+                        + " and this does not seem to be a scatter plot."
+                    )
+                    continue
 
                 # Test individual uncertainties
                 errors_name = axis_name + "_errors"
                 if errors_name not in self.group and uncertainties_names is not None:
                     errors_name = uncertainties_names[i]
-                    if (
-                        errors_name in self.group
-                        and axis_name not in polynomial_axes_names
-                    ):
+                    if errors_name in self.group:
                         if self.group[errors_name].shape != self.group[axis_name].shape:
                             self.issues.append(
                                 "Errors '%s' does not have the same " % errors_name
@@ -875,11 +869,8 @@ class NXdata:
         ]:
             return False
         # the axis, if any, must be of the same length as the last dimension
-        # of the signal, or of length 2 (a + b *x scale)
-        if self.axes[-1] is not None and len(self.axes[-1]) not in [
-            self.signal.shape[-1],
-            2,
-        ]:
+        # of the signal
+        if self.axes[-1] is not None and len(self.axes[-1]) != self.signal.shape[-1]:
             return False
         if self.interpretation in (None, "scalar"):
             # We no longer test whether x values are monotonic
@@ -917,7 +908,7 @@ class NXdata:
             img_axes = self.axes[-2:]
             img_shape = self.signal.shape[-2:]
         for i, axis in enumerate(img_axes):
-            if axis is not None and len(axis) not in [img_shape[i], 2]:
+            if axis is not None and len(axis) != img_shape[i]:
                 return False
 
         return True
@@ -942,7 +933,7 @@ class NXdata:
             return False
         stack_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
-            if axis is not None and len(axis) not in [stack_shape[i], 2]:
+            if axis is not None and len(axis) != stack_shape[i]:
                 return False
         return True
 
@@ -965,7 +956,7 @@ class NXdata:
             return False
         volume_shape = self.signal.shape[-3:]
         for i, axis in enumerate(self.axes[-3:]):
-            if axis is not None and len(axis) not in [volume_shape[i], 2]:
+            if axis is not None and len(axis) != volume_shape[i]:
                 return False
         return True
 

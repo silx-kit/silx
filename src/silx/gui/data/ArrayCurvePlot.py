@@ -122,17 +122,10 @@ class ArrayCurvePlot(qt.QWidget):
     def _updateCurve(self):
         axes_selection = self._axesSelector.selection()
         ys = [sig[axes_selection] for sig in self.__signals]
-        y0 = ys[0]
-        len_y = len(y0)
+        len_y = len(ys[0])
         x = self.__axis
         if x is None:
             x = numpy.arange(len_y)
-        elif numpy.isscalar(x) or len(x) == 1:
-            # constant axis
-            x = x * numpy.ones_like(y0)
-        elif len(x) == 2 and len_y != 2:
-            # linear calibration a + b * x
-            x = x[0] + x[1] * numpy.arange(len_y)
 
         # Only remove curves that will no longer belong to the plot
         # So remaining curves keep their settings

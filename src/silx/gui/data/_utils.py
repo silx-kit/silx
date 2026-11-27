@@ -7,7 +7,6 @@ from ...io.nxdata.parse import NXdata
 from ...math.calibration import (
     AbstractCalibration,
     ArrayCalibration,
-    LinearCalibration,
     NoCalibration,
 )
 from ..hdf5 import H5Node
@@ -60,15 +59,8 @@ def isScatter(nxd: NXdata, naxes: int) -> bool:
 
 
 def _getAxisCalib(axis: AxisDataset, axis_length: int) -> AbstractCalibration:
-    if axis is None:
+    if axis is None or len(axis) != axis_length:
         return ArrayCalibration(numpy.arange(axis_length))
-    if numpy.isscalar(axis) or len(axis) == 1:
-        # constant axis
-        return ArrayCalibration(axis * numpy.ones((axis_length,)))
-    if len(axis) == 2:
-        # linear calibration
-        return LinearCalibration(slope=axis[0], y_intercept=axis[1])
-    # array
     return ArrayCalibration(axis)
 
 

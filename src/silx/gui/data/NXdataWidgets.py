@@ -35,7 +35,7 @@ from silx.gui.data._SignalSelector import SignalSelector
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.plot import StackView
 from silx.gui.plot.ComplexImageView import ComplexImageView
-from silx.math.calibration import ArrayCalibration, LinearCalibration, NoCalibration
+from silx.math.calibration import ArrayCalibration, NoCalibration
 
 from ._utils import getAxesCalib
 from ...utils.deprecation import deprecated_warning
@@ -425,10 +425,6 @@ class ArrayStackPlot(qt.QWidget):
         for axis in [z_axis, y_axis, x_axis]:
             if axis is None:
                 calibrations.append(NoCalibration())
-            elif len(axis) == 2:
-                calibrations.append(
-                    LinearCalibration(y_intercept=axis[0], slope=axis[1])
-                )
             else:
                 calibrations.append(ArrayCalibration(axis))
 
@@ -595,8 +591,6 @@ class ArrayVolumePlot(qt.QWidget):
         for axis in [x_axis, y_axis, z_axis]:
             if axis is None:
                 calibration = NoCalibration()
-            elif len(axis) == 2:
-                calibration = LinearCalibration(y_intercept=axis[0], slope=axis[1])
             else:
                 calibration = ArrayCalibration(axis)
             if not calibration.is_affine():
