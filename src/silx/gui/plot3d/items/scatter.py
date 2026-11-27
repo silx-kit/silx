@@ -372,8 +372,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         """Perform picking while in 'points' visualization mode
 
         :param PickContext context: Current picking context
-        :param Union[float,numpy.ndarray] threshold: Picking threshold in pixel.
-            Perform picking in a square of size threshold x threshold.
+        :param Union[float,numpy.ndarray] threshold: Picking threshold in pixels.
+            See :meth:`PickContext.pickPoints`.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
@@ -382,10 +382,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        # pickPoints takes half the side of the picking square
-        picked = context.pickPoints(
-            self._getScenePrimitive(), points, 0.5 * numpy.asarray(threshold), sort
-        )
+        picked = context.pickPoints(self._getScenePrimitive(), points, threshold, sort)
 
         if picked.size > 0:
             return PickingResult(
@@ -459,7 +456,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixI
 
         elif mode is self.Visualization.LINES:
             # Picking only at point
-            return self._pickPoints(context, points, threshold=5.0)
+            return self._pickPoints(context, points, threshold=2.5)
 
         else:  # mode == 'solid'
             return self._pickSolid(context, points)

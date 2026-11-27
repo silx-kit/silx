@@ -189,8 +189,8 @@ class _HeightMap(DataItem3D):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
-        :param float threshold: Picking threshold in pixel.
-            Perform picking in a square of size threshold x threshold.
+        :param float threshold: Picking threshold in pixels added to the symbol size.
+            See :meth:`PickContext.pickPoints`.
         :param str sort: How returned indices are sorted:
 
             - 'index' (default): sort by the value of the indices
