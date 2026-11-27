@@ -145,10 +145,10 @@ class SelectOneDataView(_CompositeDataView):
         :param qt.QWidget parent: Parent of the hold widget
         """
         super().__init__(parent, modeId, icon, label)
-        self.__views = {}
-        self.__currentView = None
+        self.__views: dict[str, DataView] = {}
+        self.__currentView: DataView | None = None
 
-    def getCurrentView(self):
+    def getCurrentView(self) -> DataView | None:
         return self.__currentView
 
     def setHooks(self, hooks):

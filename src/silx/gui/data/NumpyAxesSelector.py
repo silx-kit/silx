@@ -39,6 +39,8 @@ from silx.gui.utils import blockSignals
 from silx.utils.deprecation import deprecated
 import silx.utils.weakref
 
+from ._models import Permutation, Selection
+
 _logger = logging.getLogger(__name__)
 
 
@@ -242,7 +244,7 @@ class NumpyAxesSelector(qt.QWidget):
     customAxisChanged = qt.Signal(str, int)
     """Emitted when a custom axis change"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: qt.QWidget | None = None):
         """Constructor
 
         :param parent: Parent of the widget
@@ -307,11 +309,8 @@ class NumpyAxesSelector(qt.QWidget):
         except IndexError:
             return None
 
-    def setData(self, data):
-        """Set the input data unsed by the widget.
-
-        :param numpy.ndarray data: The input data
-        """
+    def setData(self, data: numpy.ndarray | None):
+        """Set the input data used by the widget."""
         if self.__data is not None:
             # clean up
             for widget in self.__axis:
@@ -372,18 +371,18 @@ class NumpyAxesSelector(qt.QWidget):
         for a in self.__axis:
             a.label().setFixedWidth(labelWidth)
 
-    def __axisValueChanged(self, axis, value):
+    def __axisValueChanged(self, axis: _Axis, value: int):
         name = axis.axisName()
         if name in self.__customAxisNames:
             self.customAxisChanged.emit(name, value)
         else:
             self.__updateSelectedData()
 
-    def __axisNameChanged(self, axis, name):
+    def __axisNameChanged(self, axis: _Axis, name: str):
         """Called when an axis name change.
 
-        :param _Axis axis: The changed axis
-        :param str name: The new name of the axis
+        :param axis: The changed axis
+        :param name: The new name of the axis
         """
         names = [x.axisName() for x in self.__axis]
         missingName = set(self.__axisNames) - set(names) - set("")
@@ -472,45 +471,42 @@ class NumpyAxesSelector(qt.QWidget):
             for sel, size in zip(self.selection(), shape)
             if not isinstance(sel, int)
         ]
+        if self.permutation() is None:
+            return numpy.zeros(outputShape, dtype=self.__data.dtype)
+
         return numpy.zeros(
             tuple(outputShape[i] for i in self.permutation()), dtype=self.__data.dtype
         )
 
-    def data(self):
-        """Returns the input data.
-
-        :rtype: Union[numpy.ndarray,None]
-        """
+    def data(self) -> numpy.ndarray | None:
+        """Returns the input data."""
         if self.__data is None:
             return None
         else:
             return numpy.asarray(self.__data)
 
-    def selectedData(self):
-        """Returns the output data.
+    def selectedData(self) -> numpy.ndarray | None:
+        """Returns the selected data.
 
         This is equivalent to::
 
           numpy.transpose(self.data()[self.selection()], self.permutation())
 
-        :rtype: Union[numpy.ndarray,None]
         """
         if self.__selectedData is None:
             return None
         else:
             return numpy.asarray(self.__selectedData)
 
-    def permutation(self):
+    def permutation(self) -> Permutation:
         """Returns the axes permutation to convert data subset to selected data.
 
-        If permutation cannot be computer, it returns None.
-
-        :rtype: Union[List[int],None]
+        If permutation cannot be computed, it returns None.
         """
         if self.__data is None:
             return None
         else:
-            indices = []
+            indices: list[int] = []
             for name in self.__axisNames:
                 index = 0
                 for axis in self.__axis:
@@ -524,11 +520,8 @@ class NumpyAxesSelector(qt.QWidget):
                     return None
             return tuple(indices)
 
-    def selection(self):
-        """Returns the selection tuple used to slice the data.
-
-        :rtype: tuple
-        """
+    def selection(self) -> Selection:
+        """Returns the selection tuple used to slice the data."""
         if self.__data is None:
             return tuple()
         else:
@@ -539,17 +532,17 @@ class NumpyAxesSelector(qt.QWidget):
                 ]
             )
 
-    def setSelection(self, selection, permutation=None):
+    def setSelection(self, selection: Selection, permutation: Permutation = None):
         """Set the selection along each dimension.
 
         tuple returned by :meth:`selection` can be provided as input,
         provided that it is for the same the number of axes and
         the same number of dimensions of the data.
 
-        :param List[Union[int,slice,None]] selection:
+        :param selection:
             The selection tuple with as one element for each dimension of the data.
             If an element is None, then the whole dimension is selected.
-        :param  Union[List[int],None] permutation:
+        :param permutation:
             The data axes indices to transpose.
             If not given, no permutation is applied
         :raise ValueError:
@@ -628,11 +621,9 @@ class NumpyAxesSelector(qt.QWidget):
             self.customAxisChanged.emit(name, value)
         self.__updateSelectedData()
 
-    def setNamedAxesSelectorVisibility(self, visible):
+    def setNamedAxesSelectorVisibility(self, visible: bool):
         """Show or hide the combo-boxes allowing to map the plot axes
         to the data dimension.
-
-        :param visible: Boolean
         """
         self.__namedAxesVisibility = visible
         for axis in self.__axis:

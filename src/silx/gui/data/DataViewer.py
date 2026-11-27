@@ -27,7 +27,6 @@ view from the ones provided by silx.
 
 import logging
 import os.path
-import collections
 from silx.gui import qt
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import (
@@ -41,6 +40,7 @@ from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.utils.deprecation import deprecated_warning
 
+from ._models import DataSelection
 from ._utils import normalizeData as _normalizeData
 
 __authors__ = ["V. Valls"]
@@ -49,11 +49,6 @@ __date__ = "12/02/2019"
 
 
 _logger = logging.getLogger(__name__)
-
-
-DataSelection = collections.namedtuple(
-    "DataSelection", ["filename", "datapath", "slice", "permutation"]
-)
 
 
 class DataViewer(qt.QFrame):
