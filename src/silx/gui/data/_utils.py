@@ -19,7 +19,7 @@ from ..plot.items import ImageBase
 ImageAxis = h5py.Dataset | Dataset | None
 
 
-class _ScaleToCursorShortcut(qt.QAction):
+class _ToggleScaleToCursorAction(qt.QAction):
     """Toggle the colormap dialog "Cursor" mode of the parent plot"""
 
     def __init__(self, plot: PlotWidget):

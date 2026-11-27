@@ -2,7 +2,7 @@
 
 import numpy
 
-from silx.gui.data._utils import _ScaleToCursorShortcut
+from silx.gui.data._utils import _ToggleScaleToCursorAction
 from silx.gui.dialog.ColormapDialog import ColormapDialog
 from silx.gui.plot import Plot2D
 
@@ -15,7 +15,7 @@ def testShortcutTargetsItsPlot(qWidgetFactory):
         plot = qWidgetFactory(Plot2D)
         plot.getColormapAction().setColormapDialog(dialog)
         plot.addImage(numpy.random.random((10, 10)))
-        shortcut = _ScaleToCursorShortcut(plot)
+        shortcut = _ToggleScaleToCursorAction(plot)
 
         shortcut.trigger()
         assert action.isChecked()
