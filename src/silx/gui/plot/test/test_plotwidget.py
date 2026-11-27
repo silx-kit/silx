@@ -43,6 +43,7 @@ from silx.gui import qt
 from silx.gui.qt.inspect import isValid
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items import BoundingRect, Curve, XAxisExtent, YAxisExtent, Axis
+from silx.gui.plot.items.axis import TickMode
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -2114,6 +2115,957 @@ class TestPlotImageLog_Pygfx(TestPlotImageLog):
 @pytest.mark.usefixtures("use_pygfx")
 class TestPlotMarkerLog_Pygfx(TestPlotMarkerLog):
     backend = "pygfx"
+
+
+def _renderPygfx(plot: PlotWidget):
+    """Draw the pygfx backend now, return the RGB image and its pixel ratio"""
+    widget = plot.getWidgetHandle()
+    widget.force_draw()
+    image = numpy.asarray(widget._renderer.snapshot())[..., :3]
+    return image, image.shape[0] / widget.height()
+
+
+def _rgbImage(color, size=10):
+    image = numpy.zeros((size, size, 3), dtype=numpy.uint8)
+    image[...] = color
+    return image
+
+
+_RED, _BLUE = (255, 0, 0), (0, 0, 255)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "zFirst,zSecond,expected",
+    [(0, 0, _BLUE), (5, 0, _RED)],
+)
+def testPygfxItemOrder(qWidgetFactory, zFirst, zSecond, expected):
+    """Higher z is painted on top, then the item added last"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addImage(_rgbImage(_RED), legend="first", z=zFirst)
+    plot.addImage(_rgbImage(_BLUE), legend="second", z=zSecond)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == expected
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "first,second,expected", [("red", "blue", _RED), ("blue", "red", _BLUE)]
+)
+def testPygfxPointMarkerOrder(qWidgetFactory, first, second, expected):
+    """Point markers are painted in their order, those of the same style too"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    for index, color in enumerate((first, second, first)):
+        marker = plot.addMarker(5, 5, legend=str(index), color=color, symbol="s")
+        marker.setSymbolSize(20)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == expected
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxPanBackReusesObjects(qWidgetFactory, monkeypatch):
+    """Panning back and forth draws the views again without creating objects"""
+    import pygfx
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 10, 0, 10)
+    first = _renderPygfx(plot)[0].copy()
+    plot.pan("right", 0.1)  # The tick label 0 leaves the view
+    _renderPygfx(plot)
+    plot.pan("left", 0.1)
+    _renderPygfx(plot)
+
+    created = []
+    init = pygfx.WorldObject.__init__
+
+    def countedInit(self, *args, **kwargs):
+        created.append(type(self).__name__)
+        init(self, *args, **kwargs)
+
+    monkeypatch.setattr(pygfx.WorldObject, "__init__", countedInit)
+    for _ in range(2):
+        plot.pan("right", 0.1)
+        _renderPygfx(plot)
+        plot.pan("left", 0.1)
+        image = _renderPygfx(plot)[0]
+    assert created == []
+    assert numpy.array_equal(image, first)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCurveAddedAfterImage(qWidgetFactory):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addImage(_rgbImage(_BLUE), legend="image")
+    plot.addCurve((0, 10), (5, 5), legend="curve", color="red", linewidth=5, z=0)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 5)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxPlotAreaLayers(qWidgetFactory):
+    """Grid and data background are under items, markers are over them"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setGraphGrid("both")
+    plot.setDataBackgroundColor("yellow")
+    plot.addImage(_rgbImage(_BLUE), legend="image")
+    marker = plot.addYMarker(2, legend="marker", color="red")
+    marker.setLineWidth(5)
+    plot.setLimits(0, 10, 0, 10)
+
+    image, ratio = _renderPygfx(plot)
+    x, y = plot.dataToPixel(5, 2)
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+    # Center of the plot area: crosses grid lines, away from ticks and marker
+    left, top, width, height = (v * ratio for v in plot.getPlotBoundsInPixels())
+    center = image[
+        int(top + height * 0.3) : int(top + height * 0.7),
+        int(left + width * 0.3) : int(left + width * 0.7),
+    ]
+    assert numpy.all(center == _BLUE)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("scale,inverted", [("linear", True), ("log", False)])
+def testPygfxOverlayShapePosition(qWidgetFactory, scale, inverted):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setDataBackgroundColor("yellow")
+    plot.getXAxis().setScale(scale)
+    plot.getYAxis().setScale(scale)
+    plot.getYAxis().setInverted(inverted)
+    plot.addShape(
+        (10, 40),
+        (10, 40),
+        legend="overlay",
+        shape="rectangle",
+        color="blue",
+        fill=True,
+        overlay=True,
+    )
+    plot.setLimits(1, 100, 1, 100)
+
+    image, ratio = _renderPygfx(plot)
+    for (x, y), inside in (((20, 20), True), ((20, 70), False), ((70, 20), False)):
+        px, py = plot.dataToPixel(x, y)
+        px, py = int(px * ratio), int(py * ratio)
+        # Wide enough to hold a line of the 20 pixels hatch
+        area = image[py - 10 : py + 11, px - 10 : px + 11]
+        isYellow = numpy.all(area == (255, 255, 0))
+        assert isYellow != inside, (x, y)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("inverted", [False, True])
+def testPygfxRightAxisCurve(qWidgetFactory, inverted):
+    """A curve on the right Y axis uses its limits and shows that axis"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getYAxis().setInverted(inverted)
+    plot.addCurve(
+        (0, 10), (80, 80), legend="curve", color="red", linewidth=5, yaxis="right"
+    )
+    plot.setLimits(0, 10, 0, 10, 0, 100)
+
+    image, ratio = _renderPygfx(plot)
+    assert plot.getYAxis(axis="right").isVisible()
+    x, y = plot.dataToPixel(5, 80, axis="right")
+    assert tuple(image[int(y * ratio), int(x * ratio)]) == _RED
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxImagePixelExact(qWidgetFactory):
+    """An image at one texel per pixel is drawn texel for texel, not smoothed"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    left, top, width, height = plot.getPlotBoundsInPixels()
+    checkerboard = numpy.indices((height, width)).sum(axis=0) % 2 * 255
+    plot.addImage(
+        checkerboard.astype(numpy.uint8),
+        colormap=Colormap("gray", vmin=0, vmax=255),
+    )
+    plot.setLimits(0, width, 0, height)
+
+    image, ratio = _renderPygfx(plot)
+    step = round(ratio)  # Image pixels per widget pixel
+    area = image[
+        (top + 1) * step : (top + height - 1) * step : step,
+        (left + 1) * step : (left + width - 1) * step : step,
+    ]
+    assert numpy.all((area == 0) | (area == 255))
+
+
+def _logPlot(qWidgetFactory):
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getXAxis().setScale("log")
+    plot.getYAxis().setScale("log")
+    return plot
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxLogAxesMarkers(qWidgetFactory):
+    """Markers are drawn and picked at their data position on log axes"""
+    plot = _logPlot(qWidgetFactory)
+    plot.addYMarker(500, legend="hline", color="red").setLineWidth(5)
+    plot.addXMarker(500, legend="vline", color="red").setLineWidth(5)
+    plot.addMarker(
+        200,
+        300,
+        legend="point",
+        color="red",
+        symbol="o",
+        draggable=True,
+        constraint=lambda x, y: (x, 200),
+    )
+    plot.setLimits(1, 1000, 1, 1000)
+
+    image, ratio = _renderPygfx(plot)
+    for name, (x, y) in (
+        ("hline", (5, 500)),
+        ("vline", (500, 5)),
+        ("point", (200, 200)),
+    ):
+        px, py = plot.dataToPixel(x, y)
+        assert tuple(image[int(py * ratio), int(px * ratio)]) == _RED, name
+        assert [r.getItem().getName() for r in plot.pickItems(px, py)] == [name]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxLogAxesCurvePick(qWidgetFactory):
+    plot = _logPlot(qWidgetFactory)
+    plot.addCurve((10, 100), (10, 100), legend="curve", symbol="o", linestyle=" ")
+    plot.setLimits(1, 1000, 1, 1000)
+    _renderPygfx(plot)
+
+    px, py = plot.dataToPixel(100, 100)
+    results = [
+        (r.getItem().getName(), list(r.getIndices())) for r in plot.pickItems(px, py)
+    ]
+    assert results == [("curve", [1])]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxMarkerLabelBox(qWidgetFactory):
+    """A marker label is the raster of its font in its padded background box"""
+    from silx.gui.utils.matplotlib import rasterMathText
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    font = qt.QFont(plot._backend._getDefaultFont())
+    font.setPointSize(20)
+    marker = plot.addXMarker(50, text="Label", color="black")
+    marker.setFont(font)
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+
+    frame = plot._backend._plotFrame
+    x = int(frame.dataToPixel(50, 50)[0] + 3)
+    y = frame.margins.top + 3
+    raster, _ = rasterMathText("Label", font, frame.dotsPerInch)
+    padding = int(4 * frame.devicePixelRatio)
+    height, width = (size + 2 * padding for size in raster.shape)
+    rows, columns = numpy.nonzero(numpy.all(image == _RED, axis=2))
+    assert (rows.min(), columns.min()) == (y, x)
+    assert (rows.max() + 1 - y, columns.max() + 1 - x) == (height, width)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("inverted", [False, True])
+def testPygfxPointMarkerLabelPosition(qWidgetFactory, inverted):
+    """A point marker label is below its right, above it with the Y axis inverted"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    plot.getYAxis().setInverted(inverted)
+    marker = plot.addMarker(50, 50, text="Label", color="black", symbol="o")
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+
+    px, py = plot._backend._plotFrame.dataToPixel(50, 50)
+    rows, columns = numpy.nonzero(numpy.all(image == _RED, axis=2))
+    assert columns.min() == int(px + 3)
+    if inverted:
+        assert rows.max() + 1 == int(py - 3)
+    else:
+        assert rows.min() == int(py + 3)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxPointMarkerOnLimit(qWidgetFactory):
+    """A point marker is not drawn unless strictly inside the axes limits"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    marker = plot.addMarker(50, 100, text="Label", color="red", symbol="o")
+    marker.setBackgroundColor("red")
+    image, _ = _renderPygfx(plot)
+    assert not numpy.any(numpy.all(image == _RED, axis=2))
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "marker"])
+@pytest.mark.parametrize(
+    "symbol,reaches",
+    [
+        # Whether the ink goes beyond 2 pixels left, right, up, down of the center
+        ("_", (True, True, False, False)),
+        ("|", (False, False, True, True)),
+        ("tickleft", (True, False, False, False)),
+        ("tickright", (False, True, False, False)),
+        ("tickup", (False, False, True, False)),
+        ("tickdown", (False, False, False, True)),
+        ("caretleft", (False, True, True, True)),
+        ("caretright", (True, False, True, True)),
+        ("caretup", (True, True, False, True)),
+        ("caretdown", (True, True, True, False)),
+        ("♥", (True, True, True, True)),
+        ("", None),
+    ],
+)
+def testPygfxSymbolShape(qWidgetFactory, kind, symbol, reaches):
+    """Each symbol has the shape of the OpenGL backend one, no symbol draws nothing"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        item = plot.addCurve((50,), (50,), color="red", symbol=symbol, linestyle=" ")
+    else:
+        item = plot.addMarker(50, 50, color="red", symbol=symbol)
+    item.setSymbolSize(20)
+    image, _ = _renderPygfx(plot)
+
+    rows, columns = numpy.nonzero((image[..., 0] > 128) & (image[..., 1] < 128))
+    if reaches is None:
+        assert len(rows) == 0
+        return
+    x, y = (int(v) for v in plot._backend._plotFrame.dataToPixel(50, 50))
+    distances = (x - columns.min(), columns.max() - x, y - rows.min(), rows.max() - y)
+    assert tuple(d > 2 for d in distances) == reaches
+    if symbol == "♥":  # Notch between the lobes
+        assert x not in columns[rows == rows.min()]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "marker"])
+@pytest.mark.parametrize("symbol,points", [("s", 20), ("o", 20), (".", 11)])
+def testPygfxSymbolSize(qWidgetFactory, monkeypatch, kind, symbol, points):
+    """Symbol size is in points at the current DPI, as with the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 144.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        item = plot.addCurve((50,), (50,), color="red", symbol=symbol, linestyle=" ")
+    else:
+        item = plot.addMarker(50, 50, color="red", symbol=symbol)
+    item.setSymbolSize(20)
+    image, ratio = _renderPygfx(plot)
+
+    columns = numpy.nonzero(image[..., 0].astype(int) - image[..., 1] > 10)[1]
+    width = columns.max() - columns.min() + 1
+    assert abs(width - points * 2 * ratio) <= 1
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxSymbolEdges(qWidgetFactory, monkeypatch):
+    """As OpenGL points, symbols leave out pixels centered on their right and top edges"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 144.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    # Markers are at pixel corners, where the edges of odd sizes cross pixel centers
+    plot.addMarker(50, 50, color="red", symbol="+").setSymbolSize(20)
+    image, ratio = _renderPygfx(plot)
+
+    size = 40 * ratio // 2 * 2 + 1
+    x, y = backend._plotFrame.dataToPixel(50, 50)  # In device pixels
+    rows, columns = numpy.nonzero(image[..., 0].astype(int) - image[..., 1] > 10)
+    assert (columns.min(), columns.max()) == (x - size // 2 - 1, x + size // 2 - 1)
+    assert (rows.min(), rows.max()) == (y - size // 2, y + size // 2)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "kind,points",
+    [("curve", 3), ("errorbar", 1), ("shape", 3), ("overlay", 1), ("marker", 3)],
+)
+def testPygfxLineWidth(qWidgetFactory, monkeypatch, kind, points):
+    """Line widths are in points, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    # 4.25 pixels per point, so that line edges cover parts of pixels
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 306.0 * backend.getDevicePixelRatio()
+    )
+    plot.setLimits(0, 100, 0, 100)
+    if kind == "curve":
+        plot.addCurve((10, 90), (50, 50), color="red", linewidth=3, resetzoom=False)
+    elif kind == "errorbar":
+        plot.addCurve(
+            (50,), (50,), xerror=20, color="red", linestyle=" ", resetzoom=False
+        )
+    elif kind in ("shape", "overlay"):
+        plot.addShape(
+            (10, 90),
+            (50, 50),
+            shape="polylines",
+            color="red",
+            overlay=kind == "overlay",
+            linewidth=points,
+        )
+    else:
+        plot.addYMarker(50, color="red").setLineWidth(3)
+    image, ratio = _renderPygfx(plot)
+
+    # Frame coordinates are in device pixels
+    x = backend._plotFrame.dataToPixel(45, 50)[0]
+    top, height = backend._plotFrame.plotOrigin[1], backend._plotFrame.plotSize[1]
+    # Red over white, inside the frame and off the ticks
+    coverage = 1 - image[top + 1 : top + height - 1, x, 1] / 255
+    width = points * 4.25 * ratio
+    assert abs(numpy.count_nonzero(coverage > 0.5) - width) <= 1
+    # Anti-aliased edges add no ink
+    assert abs(coverage.sum() - width) <= 0.1
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCrosshair(qapp, qWidgetFactory):
+    """The crosshair covers the pixel under the mouse, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.setGraphCursor(True, color="red", linewidth=1)
+    # Sent to the canvas: moving the system cursor is unreliable
+    pos = qt.QPointF(*(int(v) for v in plot.dataToPixel(0.3, 0.3)))
+    event = qt.QMouseEvent(
+        qt.QEvent.MouseMove, pos, pos, qt.Qt.NoButton, qt.Qt.NoButton, qt.Qt.NoModifier
+    )
+    qapp.sendEvent(plot.getWidgetHandle(), event)
+    image = _renderPygfx(plot)[0]
+
+    x, y = (int(v) for v in plot._backend._mousePosInPixels)
+    isRed = image[..., 0].astype(int) - image[..., 1] > 100
+    assert numpy.nonzero(isRed[y + 10])[0].tolist() == [x]
+    assert numpy.nonzero(isRed[:, x + 10])[0].tolist() == [y]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("grid", [False, True])
+def testPygfxFrameLineWidth(qWidgetFactory, grid):
+    """Frame and grid lines are 1 device pixel wide, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    # Puts the grid line at 40 inside the pixel that dataToPixel truncates to
+    plot.setLimits(0, 99, 0, 99)
+    plot.setGraphGrid(grid)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(40, 45)  # Off the ticks at both pixel ratios
+    if not grid:  # Left border, on the pixel left of the plot area
+        x = frame.plotOrigin[0] - 1
+    columns = numpy.nonzero(image[y, x - 5 : x + 5].min(axis=1) < 250)[0] + x - 5
+    assert columns.tolist() == [x]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxTimeSeriesTickDensity(qWidgetFactory, monkeypatch):
+    """Time series have 1 tick per inch, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 101.6 * backend.getDevicePixelRatio()
+    )
+    plot.getXAxis().setTickMode(TickMode.TIME_SERIES)
+    plot.getXAxis().setTimeZone("UTC")
+    plot.getXAxis().setLimits(0, 48 * 3600)
+    _renderPygfx(plot)
+
+    frame = backend._plotFrame  # In device pixels
+    assert round(frame.plotSize[0] / frame.dotsPerInch) == 5
+    hours = [dataPos / 3600 for _, dataPos, _ in frame.xAxis.ticks]
+    assert hours == [0, 12, 24, 36, 48]
+
+
+def _renderLineRow(qWidgetFactory, kind, linestyle):
+    """Draw a 4 points wide horizontal line across the plot area.
+
+    Return its middle row and its width, both in device pixels.
+    """
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    if kind == "curve":
+        plot.addCurve((0, 1), (0.5, 0.5), linestyle=linestyle, linewidth=4)
+    elif kind == "shape":
+        plot.addShape(
+            (0, 1),
+            (0.5, 0.5),
+            shape="polylines",
+            fill=False,
+            linestyle=linestyle,
+            linewidth=4,
+        )
+    else:
+        marker = plot.addYMarker(0.5)
+        marker.setLineStyle(linestyle)
+        marker.setLineWidth(4)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, width = frame.plotOrigin[0], frame.plotSize[0]
+    row = image[frame.dataToPixel(0.5, 0.5)[1], left : left + width].min(axis=1)
+    return row, 4 / 72 * frame.dotsPerInch
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "gapcolor", "shape"])
+def testPygfxLineEnds(qWidgetFactory, kind):
+    """Lines end at their points without cap, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    if kind == "shape":
+        plot.addShape(
+            (0.2, 0.8), (0.5, 0.5), shape="polylines", color="black", linewidth=8
+        )
+    else:
+        plot.addCurve((0.2, 0.8), (0.5, 0.5), color="black", linewidth=8)
+        if kind == "gapcolor":
+            plot.getCurve().setLineStyle("--")
+            plot.getCurve().setLineGapColor("black")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, row = frame.dataToPixel(0.2, 0.5)
+    right = frame.dataToPixel(0.8, 0.5)[0]
+    assert image[row, left + 2] < 128 and image[row, right - 2] < 128
+    assert image[row, left - 2] > 250 and image[row, right + 2] > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxErrorBarEnds(qWidgetFactory, monkeypatch):
+    """Error bars end at their points without cap, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    backend = plot._backend
+    # Error bars 4 pixels wide, wider than their ticks
+    monkeypatch.setattr(
+        backend, "getDotsPerInch", lambda: 288.0 * backend.getDevicePixelRatio()
+    )
+    plot.addCurve((50,), (50,), xerror=20, linestyle=" ", resetzoom=False)
+    plot.setLimits(0, 100, 0, 100)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = backend._plotFrame  # In device pixels
+    left, row = frame.dataToPixel(30, 50)
+    right = frame.dataToPixel(70, 50)[0]
+    assert image[row, left + 2] < 128 and image[row, right - 2] < 128
+    assert image[row, left - 2] > 250 and image[row, right + 2] > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashEnds(qWidgetFactory, kind):
+    """Dashes end square at their length, as in the OpenGL backend"""
+    row = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))[0]
+    runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
+    # Dashes as long as the gaps
+    assert runs.max() - runs.min() <= 1
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashLength(qWidgetFactory, kind):
+    """Dash lengths scale with the line width, as in the OpenGL backend"""
+    row, width = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))
+    runs = numpy.diff(numpy.flatnonzero(numpy.diff(row < 128)))
+    # Dashes and gaps twice the line width
+    assert numpy.abs(runs - 2 * width).max() <= 1
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxDashOffset(qWidgetFactory, kind):
+    """The dash offset moves the pattern back along the line, as in OpenGL"""
+    row, width = _renderLineRow(qWidgetFactory, kind, (0, (2, 2)))
+    offsetRow = _renderLineRow(qWidgetFactory, kind, (1, (2, 2)))[0]
+    # An offset of 1 line width moves the dashes 1 line width to the left
+    shift = round(width)
+    mismatch = (offsetRow[:-shift] < 128) != (row[shift:] < 128)
+    assert mismatch.mean() < 0.2
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "shape", "marker"])
+def testPygfxNoLineStyle(qWidgetFactory, kind):
+    """An empty linestyle draws no line, as in the OpenGL backend"""
+    row = _renderLineRow(qWidgetFactory, kind, "")[0]
+    assert row.min() >= 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("vertical", [False, True])
+def testPygfxMarkerDashPhase(qWidgetFactory, vertical):
+    """Marker dashes start at the widget edge, as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    marker = plot.addXMarker(0.5) if vertical else plot.addYMarker(0.5)
+    marker.setLineStyle((0, (2, 2)))
+    # The dash period divides none of the plot margins at both pixel ratios
+    marker.setLineWidth(5)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.5, 0.5)
+    axis = 1 if vertical else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if vertical else image[y, pixels]
+    width = 5 / 72 * frame.dotsPerInch
+    # Dashes and gaps of 2 line widths counted from the widget edge
+    expected = (pixels + 0.5) / width % 4 < 2
+    assert numpy.mean((line.min(axis=1) < 128) != expected) < 0.2
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("shape", ["hline", "vline"])
+def testPygfxShapeAxisLine(qWidgetFactory, shape):
+    """hline and vline shapes cross the plot area at their last point"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.4), (0.3, 0.6), shape=shape, fill=False, linewidth=3)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    x, y = frame.dataToPixel(0.4, 0.6)
+    axis = 1 if shape == "vline" else 0
+    start = frame.plotOrigin[axis]
+    pixels = numpy.arange(start, start + frame.plotSize[axis])
+    line = image[pixels, x] if axis else image[y, pixels]
+    assert line.max() < 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxAlphaBlending(qWidgetFactory):
+    """Colors are blended in sRGB as in the OpenGL backend, not in linear light"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    green = numpy.zeros((10, 10, 4), dtype=numpy.uint8)
+    green[..., 1], green[..., 3] = 255, 128
+    plot.addImage(_rgbImage(_RED), legend="red", z=0)
+    plot.addImage(green, legend="green", z=1)
+    plot.setLimits(0, 10, 0, 10)
+    image = _renderPygfx(plot)[0].astype(int)
+
+    px, py = plot._backend._plotFrame.dataToPixel(5, 5)  # In device pixels
+    assert numpy.abs(image[py, px] - (127, 128, 0)).max() <= 2, image[py, px]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxTrianglesVertexColors(qWidgetFactory):
+    """Vertex colors are sRGB, interpolated as in the OpenGL backend"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addScatter(
+        (0, 1, 0, 1),
+        (0, 0, 1, 1),
+        (0, 1, 0, 1),
+        colormap=Colormap("gray", vmin=0, vmax=1),
+    )
+    plot.getScatter().setVisualization("solid")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0].astype(int)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x in (0.25, 0.5, 0.75):
+        px, py = frame.dataToPixel(x, 0.5)
+        assert numpy.abs(image[py, px] - 255 * x).max() <= 3, (x, image[py, px])
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeSubShapes(qWidgetFactory):
+    """Not finite points split a shape in sub-shapes, each closed"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    x = (0.1, 0.3, 0.2, numpy.nan, 0.6, 0.9, 0.75)
+    y = (0.1, 0.1, 0.3, numpy.nan, 0.6, 0.6, 0.9)
+    plot.addShape(x, y, shape="polygon", color="black", fill=False, linewidth=2)
+    image = _renderPygfx(plot)[0].max(axis=2)
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, drawn in ((0.15, 0.2, True), (0.675, 0.75, True), (0.425, 0.5, False)):
+        px, py = frame.dataToPixel(x, y)
+        darkest = image[py - 2 : py + 3, px - 2 : px + 3].min()
+        assert (darkest < 128) == drawn, (x, y)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillHatch(qWidgetFactory):
+    """Shapes are filled with the hatch of OpenGL, a line every 20 pixels"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((0.2, 0.8), (0.2, 0.8), shape="rectangle", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, top = frame.dataToPixel(0.2, 0.8)
+    right, bottom = frame.dataToPixel(0.8, 0.2)
+    rows, columns = numpy.mgrid[top + 3 : bottom - 3, left + 3 : right - 3]
+    hatch = (columns + rows + 1 - frame.size[1]) % 20 == 0
+    inside = image[rows, columns]
+    assert inside[hatch].max() < 128
+    assert inside[~hatch].min() > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillZoomed(qWidgetFactory):
+    """The hatch of a shape far larger than the plot area is drawn in it"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    plot.addShape((-1e9, 1e9), (-1e9, 1e9), shape="rectangle", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    left, top = frame.dataToPixel(0.1, 0.9)
+    right, bottom = frame.dataToPixel(0.9, 0.1)
+    rows, columns = numpy.mgrid[top:bottom, left:right]
+    hatch = (columns + rows + 1 - frame.size[1]) % 20 == 0
+    inside = image[rows, columns]
+    assert inside[hatch].max() < 128
+    assert inside[~hatch].min() > 250
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxShapeFillConcave(qWidgetFactory):
+    """Concave polygons are filled inside only"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 1, 0, 1)
+    x = (0.1, 0.9, 0.9, 0.5, 0.1)
+    y = (0.1, 0.1, 0.9, 0.3, 0.9)
+    plot.addShape(x, y, shape="polygon", color="black", fill=True)
+    image = _renderPygfx(plot)[0].max(axis=2)
+
+    frame = plot._backend._plotFrame  # In device pixels
+    for x, y, filled in ((0.5, 0.2, True), (0.5, 0.7, False)):
+        px, py = frame.dataToPixel(x, y)
+        darkest = image[py - 20 : py + 21, px - 20 : px + 21].min()
+        assert (darkest < 128) if filled else (darkest > 250), (x, y)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxErrorBarTicks(qWidgetFactory):
+    """Error bars have 7 points ticks at their ends and at the data point"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve((0.5,), (0.5,), xerror=0.2, yerror=0.2, color="black", linestyle=" ")
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+
+    frame = plot._backend._plotFrame  # In device pixels
+    half = int(7 / 72 * frame.dotsPerInch) // 2 - 1
+    for x, y, vertical in (
+        (0.3, 0.5, True),
+        (0.5, 0.5, True),
+        (0.7, 0.5, True),
+        (0.5, 0.3, False),
+        (0.5, 0.5, False),
+        (0.5, 0.7, False),
+    ):
+        px, py = frame.dataToPixel(x, y)
+        if vertical:
+            tick = image[py - half : py + half + 1, px]
+        else:
+            tick = image[py, px - half : px + half + 1]
+        assert tick.max() < 128, (x, y)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("color", ["red", numpy.array(((1.0, 0.0, 0.0, 1.0),))])
+def testPygfxErrorBarColor(qWidgetFactory, color):
+    """Error bars are black whatever the curve color"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve((0.5,), (0.5,), xerror=0.2, yerror=0.2, color=color)
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+    frame = plot._backend._plotFrame  # In device pixels
+    px, py = frame.dataToPixel(0.5, 0.4)
+    assert image[py, px - 2 : px + 3].max(axis=1).min() < 128
+    px, py = frame.dataToPixel(0.4, 0.5)
+    assert image[py - 2 : py + 3, px].max(axis=1).min() < 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "color, expected",
+    [("red", (255, 0, 0)), (numpy.array(((0.0, 0.0, 1.0, 1.0),) * 2), (0, 0, 0))],
+)
+def testPygfxCurveFillColor(qWidgetFactory, color, expected):
+    """Curve fill has the curve color, and per vertex colors have no fill"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setDataBackgroundColor("black")
+    plot.addCurve((0, 1), (0.5, 0.5), color=color, fill=True)
+    plot.setLimits(0, 1, 0, 1)
+    image = _renderPygfx(plot)[0]
+    px, py = plot._backend._plotFrame.dataToPixel(0.5, 0.25)
+    assert numpy.abs(image[py, px].astype(int) - expected).max() <= 2, image[py, px]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("baseline", [None, 0])
+def testPygfxCurveFillLogBaseline(qWidgetFactory, baseline):
+    """On a log Y axis, a fill to 0 goes down to the bottom of the plot"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.getYAxis().setScale("log")
+    plot.addCurve((0, 1), (10, 10), color="red", fill=True, baseline=baseline)
+    plot.setLimits(0, 1, 0.1, 100)
+    image = _renderPygfx(plot)[0]
+    for y in (0.2, 5):
+        px, py = plot._backend._plotFrame.dataToPixel(0.5, y)
+        assert tuple(image[py, px]) == (255, 0, 0), y
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("x, y", [((0, 1), (1, -1)), ((1, 0), (-1, 1))])
+def testPygfxCurveFillCrossing(qWidgetFactory, x, y):
+    """A fill crossing its baseline covers each side between curve and baseline"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.addCurve(x, y, color="red", fill=True, baseline=0, linestyle=" ")
+    plot.setLimits(0, 1, -1, 1)
+    image = _renderPygfx(plot)[0]
+    points = (
+        (0.25, 0.1, True),
+        (0.25, -0.1, False),
+        (0.75, -0.1, True),
+        (0.75, 0.1, False),
+    )
+    for x, y, filled in points:
+        px, py = plot._backend._plotFrame.dataToPixel(x, y)
+        assert (tuple(image[py, px]) == (255, 0, 0)) == filled, (x, y)
+
+
+def _inkCrop(coverage):
+    """coverage cropped to its pixels with ink"""
+    rows, columns = numpy.nonzero(coverage > 0.1)
+    return coverage[rows.min() : rows.max() + 1, columns.min() : columns.max() + 1]
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("text", ["HHHH", "\u22121.5", r"$2\theta^2$"])
+def testPygfxTextRaster(qWidgetFactory, text):
+    """The title is the OpenGL backend raster of the text, pixel for pixel"""
+    from silx.gui.utils.matplotlib import rasterMathText
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setGraphTitle(text)
+    image, _ = _renderPygfx(plot)
+
+    backend = plot._backend
+    top = int(backend._plotFrame.plotOrigin[1] - 2)  # Above the frame
+    width = image.shape[1]
+    value = image[:top, width // 4 : 3 * width // 4].min(axis=2) / 255
+    coverage = _inkCrop(1 - value)
+
+    glImage, _ = rasterMathText(
+        text, backend._getDefaultFont(), backend.getDotsPerInch()
+    )
+    glCoverage = _inkCrop(glImage / 255)
+    assert coverage.shape == glCoverage.shape
+    assert numpy.allclose(coverage, glCoverage, atol=0.02)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+def testPygfxCanvasClosedWithWidget(qapp, qapp_utils):
+    """Deleting the plot closes its canvas, which stops its draw scheduling"""
+    plot = PlotWidget(backend="pygfx")
+    plot.show()
+    qapp_utils.qWaitForWindowExposed(plot)
+    backend = plot._backend
+    assert not backend.get_closed()
+
+    # The backend widget is deleted with its parent, without a close event
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
+    plot = None
+    qapp_utils.qWait(100)
+    assert not isValid(backend)
+    assert backend.get_closed()
+
+
+_LARGE = 1.79e9  # A timestamp, where float32 steps are 128
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize("kind", ["curve", "scatter", "errorbars", "fill", "solid"])
+def testPygfxLargeCoordinates(qWidgetFactory, kind):
+    """Items at large coordinates are drawn as precisely as near 0"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    redColormap = Colormap(colors=((1.0, 0.0, 0.0),), vmin=0, vmax=1)
+    center = _LARGE + 0.5
+    if kind == "curve":
+        plot.addCurve((center, center), (_LARGE, _LARGE + 1), color="red", linewidth=5)
+    elif kind == "scatter":
+        plot.addScatter(
+            (center,), (_LARGE + 0.45,), (0,), colormap=redColormap, symbol="s"
+        )
+        plot.getScatter().setSymbolSize(20)
+    elif kind == "errorbars":  # Black, crossing from points out of the plot
+        plot.addCurve(
+            (_LARGE - 1,), (_LARGE + 0.45,), legend="x", xerror=1.75, linestyle=" "
+        )
+        plot.addCurve((center,), (_LARGE - 1,), legend="y", yerror=1.75, linestyle=" ")
+    elif kind == "fill":
+        plot.addCurve(
+            (_LARGE, center, _LARGE + 1),
+            (_LARGE, center, _LARGE),
+            baseline=_LARGE,
+            fill=True,
+            color="red",
+            linestyle=" ",
+        )
+    else:
+        corners = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+        plot.addScatter(
+            _LARGE + corners[0], _LARGE + corners[1], (0,) * 4, colormap=redColormap
+        )
+        plot.getScatter().setVisualization("solid")
+    plot.setLimits(_LARGE, _LARGE + 1, _LARGE, _LARGE + 1)
+    image, ratio = _renderPygfx(plot)
+
+    def isDrawn(x, y):
+        """Whether a line of 1 pixel or more covers that data point"""
+        x, y = plot.dataToPixel(x, y)
+        col, row = int(x * ratio), int(y * ratio)
+        area = image[row - 1 : row + 2, col - 1 : col + 2].astype(int)
+        if kind == "errorbars":
+            return numpy.all(area < 64, axis=2).any()
+        return numpy.all(area == _RED, axis=2).any()
+
+    assert isDrawn(center, _LARGE + 0.45)
+    assert not isDrawn(center - 0.4, _LARGE + 0.85)
+    assert not isDrawn(center + 0.4, _LARGE + 0.85)
+
+
+@pytest.mark.usefixtures("use_pygfx")
+@pytest.mark.parametrize(
+    "visualization,position",
+    # On the point, or inside the triangle holding it
+    [("points", (0.75, 0.25)), ("solid", (0.7, 0.3))],
+)
+def testPygfxLargeCoordinatesPick(qWidgetFactory, visualization, position):
+    """Items at large coordinates are picked as precisely as near 0"""
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    offsets = numpy.array(((0.25, 0.75, 0.25, 0.75), (0.25, 0.25, 0.75, 0.75)))
+    plot.addScatter(_LARGE + offsets[0], _LARGE + offsets[1], (0, 1, 2, 3))
+    plot.getScatter().setVisualization(visualization)
+    plot.setLimits(_LARGE, _LARGE + 1, _LARGE, _LARGE + 1)
+    _renderPygfx(plot)
+
+    def pick(x, y):
+        px, py = plot.dataToPixel(_LARGE + x, _LARGE + y)
+        return [list(r.getIndices()) for r in plot.pickItems(px, py)]
+
+    results = pick(*position)
+    assert len(results) == 1 and 1 in results[0], results
+    assert pick(0.1, 0.9) == []
 
 
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):

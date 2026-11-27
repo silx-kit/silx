@@ -29,15 +29,24 @@ from __future__ import annotations
 __authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
+from collections import OrderedDict, deque, namedtuple
+import contextlib
 import functools
+import itertools
 import logging
 import math
-import re
+import weakref
 
 import numpy
+from matplotlib.font_manager import FontProperties, findfont
 
 from rendercanvas.qt import QRenderWidget
 import pygfx as gfx
+import wgpu
+from pygfx.renderers.wgpu import register_wgpu_render_function
+from pygfx.renderers.wgpu.engine.blender import Blender
+from pygfx.renderers.wgpu.shaders.lineshader import LineShader
+from pygfx.renderers.wgpu.shaders.meshshader import MeshShader
 from wgpu.backends.wgpu_native.extras import set_instance_extras
 
 from .. import items
@@ -46,7 +55,9 @@ from ..items.types import AxisScaleType
 from . import BackendBase
 from ... import colors
 from ... import qt
+from ...qt.inspect import isValid
 from ..._geometry import segmentTrianglesIntersection
+from ...utils.matplotlib import rasterMathText
 from ._PlotFrameCore import PlotFrame2DCore
 from ._PlotImageFile import saveImageToFile
 from .utils import findDimToKeep, ensureAspectRatio
@@ -77,53 +88,300 @@ def _logDpiOnce(message: str) -> None:
     _logger.error(message)
 
 
-_MATHDEFAULT_RE = re.compile(r"\$\\mathdefault\{([^}]*)\}\$")
+def _closeCanvas(canvasRef: weakref.ref, *args) -> None:
+    """Close the canvas of a deleted widget"""
+    canvas = canvasRef()
+    if canvas is not None:
+        canvas.close()
 
 
-def _stripMathDefault(text):
-    """Strip matplotlib's $\\mathdefault{...}$ LaTeX wrapping from tick labels."""
-    if text is None:
-        return text
-    return _MATHDEFAULT_RE.sub(r"\1", text)
+_TEXT_RASTERS: OrderedDict = OrderedDict()
+"""Least recently used text rasters, as cached by the OpenGL backend"""
 
 
-# Dash pattern mapping: silx linestyle -> pygfx dash_pattern
-# pygfx dash_pattern is a tuple of (dash, gap, ...) relative to line thickness
+def _rasterText(
+    text: str, font: qt.QFont, dotsPerInch: float
+) -> tuple[numpy.ndarray, float]:
+    """rasterMathText of the text, the raster of the OpenGL backend"""
+    key = text, font.key(), dotsPerInch
+    raster = _TEXT_RASTERS.pop(key, None)
+    if raster is None:
+        raster = rasterMathText(text, font, dotsPerInch)
+        if len(_TEXT_RASTERS) >= 128:
+            _TEXT_RASTERS.popitem(last=False)
+    _TEXT_RASTERS[key] = raster
+    return raster
+
+
+# silx linestyle -> (offset, dash pattern) in line widths, as in BackendOpenGL:
+# a None pattern draws no line, () a solid line
 _DASH_PATTERNS = {
-    "": None,
-    " ": None,
-    "-": None,  # solid
-    "--": (3.7, 1.6, 3.7, 1.6),
-    "-.": (6.4, 1.6, 1, 1.6),
-    ":": (1, 1.65, 1, 1.65),
+    "": (0.0, None),
+    " ": (0.0, None),
+    "-": (0.0, ()),
+    "--": (0.0, (3.7, 1.6, 3.7, 1.6)),
+    "-.": (0.0, (6.4, 1.6, 1, 1.6)),
+    ":": (0.0, (1, 1.65, 1, 1.65)),
+    None: (0.0, None),
 }
 
 
-def _lineStyleToDashPattern(linestyle):
-    """Convert silx linestyle to pygfx dash_pattern tuple."""
-    if linestyle is None or linestyle in ("", " "):
+class _GLLineMaterial(gfx.LineMaterial):
+    """Line material drawn as GLLines2D, which ends lines and dashes square"""
+
+
+@register_wgpu_render_function(gfx.Line, _GLLineMaterial)
+class _GLLineShader(LineShader):
+    def get_code(self):
+        # pygfx rounds dash ends, which lengthens dashes by the line width,
+        # caps lines beyond their end points and broken joins, and takes the
+        # square root of edge coverages, which blending in sRGB makes darker
+        return (
+            super()
+            .get_code()
+            .replace("alpha = sqrt(alpha);", "")
+            .replace(
+                "let dist_to_stroke_dash_p = length(vec_to_dash_p) - half_thickness_p;",
+                "let dist_to_stroke_dash_p = select(-1e9, 1e9, dist_to_dash_p > 0.0);",
+            )
+            .replace(
+                "var dist_to_stroke_p = length(segment_coord_p) - half_thickness_p;",
+                "var dist_to_stroke_p = length(segment_coord_p) - half_thickness_p;\n"
+                "if (!is_join && segment_coord_p.x != 0.0) { discard; }",
+            )
+        )
+
+    def bake_function(self, wobject, camera, logical_size):
+        # pygfx measures dashes over the canvas size instead of the render
+        # rect the shader draws into, which shrinks them in the plot area
+        super().bake_function(wobject, camera, camera._view_size)
+
+
+class _GLLineSegmentMaterial(gfx.LineSegmentMaterial):
+    """Line segment material drawn as GLLines2D in GL_LINES mode"""
+
+
+@register_wgpu_render_function(gfx.Line, _GLLineSegmentMaterial)
+class _GLLineSegmentShader(_GLLineShader):
+    def __init__(self, wobject):
+        super().__init__(wobject)
+        self["line_type"] = "segment"
+
+
+class _SRGBVertexMeshMaterial(gfx.MeshBasicMaterial):
+    """Mesh material with vertex colors in sRGB, as those of lines and points"""
+
+
+@register_wgpu_render_function(gfx.Mesh, _SRGBVertexMeshMaterial)
+class _SRGBVertexMeshShader(MeshShader):
+    def get_code(self):
+        # pygfx takes mesh vertex colors as physical: convert them after their
+        # interpolation, which OpenGL does between sRGB colors
+        return (
+            super()
+            .get_code()
+            .replace(
+                "diffuse_color = varyings.color;",
+                "diffuse_color = vec4<f32>(srgb2physical(varyings.color.rgb), varyings.color.a);",
+            )
+        )
+
+
+class _SRGBBlender(Blender):
+    """Blender blending sRGB colors, as OpenGL does, instead of linear ones.
+
+    Fragments are written in sRGB to a color target that does not convert them,
+    so that they are blended as stored, and the target is read back as sRGB.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.texture_info["color"]["format"] = wgpu.TextureFormat.rgba8unorm
+
+    def get_texture_view(self, name, usage, *, create_if_not_exist=False):
+        if name != "color":
+            return super().get_texture_view(
+                name, usage, create_if_not_exist=create_if_not_exist
+            )
+        texture = self._textures.get(name)
+        if texture is None:
+            if not create_if_not_exist:
+                return None
+            texture = self._textures[name] = self.device.create_texture(
+                size=(*self.size, 1),
+                usage=self.texture_info[name]["usage"],
+                format=wgpu.TextureFormat.rgba8unorm,
+                view_formats=[wgpu.TextureFormat.rgba8unorm_srgb],
+            )
+        if usage == wgpu.TextureUsage.TEXTURE_BINDING:
+            return texture.create_view(
+                format=wgpu.TextureFormat.rgba8unorm_srgb, usage=usage
+            )
+        return texture.create_view(usage=usage)
+
+    def get_shader_kwargs(self, material_pick_write, alpha_config):
+        kwargs = super().get_shader_kwargs(material_pick_write, alpha_config)
+        if kwargs["alpha_method"] != "blended":
+            raise RuntimeError(f"Unsupported alpha method: {kwargs['alpha_method']}")
+        kwargs["fragment_output_code"] = (
+            kwargs["fragment_output_code"].replace(
+                "struct FragmentOutput {",
+                "struct FragmentOutput {\n// virtualfield stub: bool = false;",
+            )
+            + """
+            fn apply_virtual_fields_of_fragment_output(outp: ptr<function,FragmentOutput>, stub: bool) {
+                let c = clamp((*outp).color.rgb, vec3f(0.0), vec3f(1.0));
+                let srgb = select(1.055 * pow(c, vec3f(1.0 / 2.4)) - 0.055, 12.92 * c, c <= vec3f(0.0031308));
+                (*outp).color = vec4f(srgb, (*outp).color.a);
+            }
+            """
+        )
+        return kwargs
+
+
+def _lineStyleToDashOffsetPattern(linestyle):
+    """Convert a silx linestyle to its dash (offset, pattern)"""
+    if linestyle is None or isinstance(linestyle, str):
+        return _DASH_PATTERNS[linestyle]
+    offset, pattern = linestyle
+    return float(offset), () if pattern is None else tuple(pattern)
+
+
+# WGSL ports of the alphaSymbol functions of glutils.GLPlotCurve.Points2D.
+# They set alpha from q, the pixel center offset to the symbol center with
+# y downward as gl_PointCoord, and size, both in device pixels.
+_SYMBOL_ALPHAS = {
+    "d": "alpha = clamp(0.5 * size - abs(q.x) - abs(q.y), 0.0, 1.0);",
+    "o": "alpha = clamp(0.5 * size - length(q), 0.0, 1.0);",
+    "s": "alpha = 1.0;",
+    "+": "alpha = 1.0 - smoothstep(0.5, 1.5, min(abs(q.x), abs(q.y)));",
+    "x": """
+        let pos = floor(q + 0.5 * size) + 0.5;
+        let d = abs(vec2<f32>(pos.x - pos.y, pos.x + pos.y - size));
+        alpha = 1.0 - smoothstep(0.5, 1.5, min(d.x, d.y));
+    """,
+    "*": """
+        let pos = floor(q + 0.5 * size) + 0.5;
+        let d = abs(vec2<f32>(pos.x - pos.y, pos.x + pos.y - size));
+        if (min(abs(q.x), abs(q.y)) < 0.5) {
+            alpha = 1.0;
+        } else if (min(d.x, d.y) <= 0.5) {
+            alpha = clamp(0.5 * size - length(q), 0.0, 1.0);
+        }
+    """,
+    "_": "alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y));",
+    "|": "alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x));",
+    "♥": """
+        var c = 1.5 * q / size;
+        c.y += 0.25;
+        let h = abs(atan2(c.x, -c.y) / 3.141593);
+        let d = (13.0 * h - 22.0 * h * h + 10.0 * h * h * h) / (6.0 - 5.0 * h);
+        alpha = 1.0 - smoothstep(0.001, 0.1, clamp(length(c) - d, 0.0, 1.0));
+    """,
+    "tickleft": "if (q.x <= 0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y)); }",
+    "tickright": "if (q.x >= -0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.y)); }",
+    "tickup": "if (q.y <= 0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x)); }",
+    "tickdown": "if (q.y >= -0.5) { alpha = 1.0 - smoothstep(0.5, 1.5, abs(q.x)); }",
+    "caretleft": """
+        let d = abs(q.x) - abs(q.y);
+        if (d >= -0.1 && q.x > 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretright": """
+        let d = abs(q.x) - abs(q.y);
+        if (d >= -0.1 && q.x < 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretup": """
+        let d = abs(q.y) - abs(q.x);
+        if (d >= -0.1 && q.y > 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+    "caretdown": """
+        let d = abs(q.y) - abs(q.x);
+        if (d >= -0.1 && q.y < 0.5) { alpha = smoothstep(-0.1, 0.1, d); }
+    """,
+}
+_SYMBOL_ALPHAS["."] = _SYMBOL_ALPHAS["o"]
+_SYMBOL_ALPHAS[","] = _SYMBOL_ALPHAS["s"]
+
+# Symbols whose size in pixels is rounded to an odd number by Points2D
+_ODD_SIZE_SYMBOLS = {"+", "_", "|", "tickleft", "tickright", "tickup", "tickdown"}
+
+
+def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None:
+    """Material drawing symbol as the OpenGL backend, None for no symbol.
+
+    Its size is left to BackendPygfx._symbolSize at draw time.
+
+    pygfx takes a signed distance d and makes the opacity sqrt(0.5 - d),
+    so the distance returned here gives the OpenGL symbol alpha.
+    Only fragments in the OpenGL point are drawn: those centered in
+    [-size/2, size/2) along x and y upward, with a margin for float errors.
+    """
+    alpha = _SYMBOL_ALPHAS.get(symbol)
+    if alpha is None:
         return None
-    if isinstance(linestyle, tuple) and len(linestyle) == 2:
-        # Custom (offset, (on, off, on, off, ...))
-        return linestyle[1]
-    return _DASH_PATTERNS.get(linestyle)
+    sdf = f"""
+        let r = coord + 0.001;
+        if (min(r.x, r.y) < -0.5 * size || max(r.x, r.y) >= 0.5 * size) {{
+            return 1.0;
+        }}
+        let q = vec2<f32>(coord.x, -coord.y);
+        var alpha = 0.0;
+        {alpha}
+        return 0.5 - alpha * alpha;
+    """
+    return _material(
+        gfx.PointsMarkerMaterial,
+        aa=True,
+        marker="custom",
+        custom_sdf=sdf,
+        color=color,
+        color_mode=colorMode,
+        edge_width=0.0,
+        edge_color=(0, 0, 0, 0),
+    )
 
 
-# silx symbol -> pygfx marker shape mapping
-_SYMBOL_MAP = {
-    "o": "circle",
-    ".": "circle",  # smaller via size
-    ",": "square",  # pixel
-    "+": "plus",
-    "x": "cross",
-    "d": "diamond",
-    "s": "square",
-    "^": "triangle_up",
-    "v": "triangle_down",
-    "<": "triangle_left",
-    ">": "triangle_right",
-    "*": "asterisk6",
-}
+def _symbolPoints(symbol, color) -> gfx.Points | None:
+    """Points of _symbolMaterial set by _setPoints, None for no symbol"""
+    material = _symbolMaterial(symbol, gfx.Color(*color), "uniform")
+    if material is None:
+        return None
+    positions = numpy.zeros((1, 3), numpy.float32)
+    return gfx.Points(gfx.Geometry(positions=positions), material)
+
+
+def _setPoints(points: gfx.Points, positions) -> None:
+    """Set the 2D positions of points of _symbolPoints.
+
+    Its buffer is written in place, and replaced by a twice larger one if full.
+    """
+    count = len(positions)
+    if points.geometry.positions.nitems < count:
+        capacity = max(count, 2 * points.geometry.positions.nitems)
+        buffer = numpy.zeros((capacity, 3), numpy.float32)
+        points.geometry = gfx.Geometry(positions=buffer)
+    buffer = points.geometry.positions
+    buffer.data[:count, :2] = positions
+    buffer.update_range(0, count)
+    buffer.draw_range = 0, count
+
+
+_MarkerSymbol = namedtuple("_MarkerSymbol", "symbol color size position")
+"""Symbol of a point marker at its position in pixels"""
+
+
+def _dataOffset(x: numpy.ndarray, y: numpy.ndarray) -> numpy.ndarray:
+    """Finite minimum of x and y, or 0, to subtract from vertices before float32.
+
+    float32 steps are 128 at a timestamp, so items keep their vertices relative
+    to this offset, as GLPlotCurve2D does.
+    """
+    offset = numpy.zeros(2)
+    for index, values in enumerate((x, y)):
+        finite = values[numpy.isfinite(values)]
+        if finite.size:
+            offset[index] = finite.min()
+    return offset
 
 
 def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarray:
@@ -145,6 +403,215 @@ def _vertexColorsToFloatRGBA(color: numpy.ndarray, alpha: float) -> numpy.ndarra
         )
     rgba[:, 3] *= alpha
     return rgba
+
+
+def _material(cls, *args, **kwargs):
+    """Create a pygfx material that ignores the depth buffer.
+
+    Items are drawn in silx order, so the paint order alone decides what is on
+    top: with depth testing, the first object drawn would win at equal depth.
+    """
+    return cls(*args, depth_test=False, **kwargs)
+
+
+def _setPositions(geometry: gfx.Geometry, points) -> None:
+    """Write the 2D points in place into the positions of geometry"""
+    positions = geometry.positions
+    positions.data[:, :2] = points
+    positions.update_full()
+
+
+def _pixelLine(count: int, color, dashOffset=0.0, dashPattern=()) -> gfx.Line:
+    """Line of count points set by _setPositions, drawn as GLLines2D"""
+    return gfx.Line(
+        gfx.Geometry(positions=numpy.zeros((count, 3), numpy.float32)),
+        _material(
+            _GLLineMaterial,
+            aa=True,
+            color=gfx.Color(*color),
+            dash_pattern=dashPattern,
+            dash_offset=dashOffset,
+        ),
+    )
+
+
+def _pixelLinesGeometry(capacity: int) -> gfx.Geometry:
+    """Geometry of capacity quads of 2 triangles each"""
+    quads = numpy.arange(4 * capacity, dtype=numpy.uint32).reshape(-1, 4)
+    return gfx.Geometry(
+        positions=numpy.zeros((4 * capacity, 3), numpy.float32),
+        indices=quads[:, (0, 1, 2, 0, 2, 3)].reshape(-1, 3),
+    )
+
+
+def _pixelLinesMesh(color) -> gfx.Mesh:
+    """Mesh of segments set by _setPixelLines"""
+    return gfx.Mesh(
+        _pixelLinesGeometry(1),
+        _material(gfx.MeshBasicMaterial, color=gfx.Color(*color), side="both"),
+    )
+
+
+def _setPixelLines(mesh: gfx.Mesh, vertices, width: float) -> None:
+    """Set the segments between pairs of screen vertices, filled as glLineWidth
+    draws them, into a mesh of _pixelLinesMesh.
+
+    pygfx lines get no thinner than 1.415 pixels, so a 1 pixel line covers 1
+    or 2 pixels depending on where it falls: fill rectangles of width instead.
+    """
+    start, end = numpy.asarray(vertices, numpy.float64).reshape(-1, 2, 2).swapaxes(0, 1)
+    direction = end - start
+    length = numpy.linalg.norm(direction, axis=1, keepdims=True)
+    normal = (
+        direction[:, ::-1] * (-0.5 * width, 0.5 * width) / numpy.maximum(length, 1e-12)
+    )
+    corners = numpy.stack(
+        (start - normal, start + normal, end + normal, end - normal), 1
+    ).reshape(-1, 2)
+    # Buffers are written in place, and replaced by twice larger ones if full
+    if mesh.geometry.positions.nitems < len(corners):
+        capacity = max(len(start), mesh.geometry.positions.nitems // 2)
+        mesh.geometry = _pixelLinesGeometry(capacity)
+    positions = mesh.geometry.positions
+    positions.data[: len(corners), :2] = corners
+    positions.update_range(0, len(corners))
+    mesh.geometry.indices.draw_range = 0, 2 * len(start)
+
+
+def _textGroup(
+    text: str,
+    font: qt.QFont,
+    dotsPerInch: float,
+    color: RGBAColorType,
+    align: str,
+    valign: str,
+    rotate: float,
+    bgcolor: RGBAColorType | None,
+    padding: int,
+) -> gfx.Group:
+    """Text at the origin drawn as the OpenGL backend Text2D draws it"""
+    coverage, baseline = _rasterText(text, font, dotsPerInch)
+    coverage = numpy.pad(coverage, padding)
+    height, width = coverage.shape
+    if bgcolor is None:
+        bgcolor = (*color[:3], 0.0)
+    mix = coverage[..., numpy.newaxis] / 255
+    rgba = numpy.round(
+        255 * ((1 - mix) * numpy.asarray(bgcolor) + mix * numpy.asarray(color))
+    ).astype(numpy.uint8)
+
+    xOrig = {"left": 0, "right": -width, "center": -width // 2}[align]
+    yOrig = {
+        "baseline": -baseline,
+        "top": 0,
+        "bottom": -height,
+        "center": -height // 2,
+    }[valign]
+
+    image = gfx.Image(
+        gfx.Geometry(grid=gfx.Texture(rgba, dim=2)),
+        _material(gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)),
+    )
+    # Texel centers are on integer coordinates
+    image.local.position = (xOrig + 0.5, yOrig + 0.5, 0)
+    group = gfx.Group()
+    group.add(image)
+    group.local.euler_z = math.radians(rotate)
+    return group
+
+
+_HATCH_STEP = 20
+"""Pixels between the lines of the hatch of OpenGL FilledShape2D"""
+
+
+def _hatchSegments(points, height: int, box) -> numpy.ndarray:
+    """Return the vertices of the hatch segments inside a polygon of pixels.
+
+    OpenGL draws the hatch at the pixels of column px and row py from the top
+    with px + py + 1 = height mod 20, centered on the lines X + Y = c where
+    c = height mod 20, inside the polygon by the even-odd rule of its stencil.
+    As OpenGL fills only its viewport, the segments are clipped to the box
+    (left, top, right, bottom) so that their count is bounded by its size.
+    """
+    left, top, right, bottom = box
+    points = numpy.asarray(points, dtype=numpy.float64)
+    s0 = points.sum(axis=1)
+    s1 = numpy.roll(s0, -1)
+    x0 = points[:, 0]
+    x1 = numpy.roll(x0, -1)
+
+    # Lines start + k * step crossing the box, for 0 <= k < kEnd, crossing each
+    # edge, half-open to count vertices once
+    start = left + top + (height - left - top) % _HATCH_STEP
+    kEnd = (right + bottom - start) // _HATCH_STEP + 1
+    first, last = (
+        numpy.clip(numpy.ceil((bound - start) / _HATCH_STEP), 0, kEnd)
+        for bound in (numpy.minimum(s0, s1), numpy.maximum(s0, s1))
+    )
+    count = (last - first).astype(numpy.int64)
+    edge = numpy.repeat(numpy.arange(len(points)), count)
+    k = numpy.arange(len(edge)) - numpy.repeat(
+        numpy.cumsum(count) - count - first, count
+    )
+    c = start + _HATCH_STEP * k
+    x = x0[edge] + (c - s0[edge]) / (s1[edge] - s0[edge]) * (x1[edge] - x0[edge])
+
+    # Along each line, crossings pair up to bound the inside of the polygon
+    order = numpy.lexsort((x, c))
+    x = x[order].reshape(-1, 2)
+    c = c[order][::2]
+    xMin = numpy.maximum(x[:, 0], numpy.maximum(left, c - bottom))
+    xMax = numpy.minimum(x[:, 1], numpy.minimum(right, c - top))
+    inside = xMax > xMin
+    x = numpy.stack((xMin[inside], xMax[inside]), axis=-1)
+    segments = numpy.stack((x, c[inside, numpy.newaxis] - x), axis=-1)
+    return segments.reshape(-1, 2)
+
+
+def _setChildren(group: gfx.Group, objects: list) -> None:
+    """Make objects the children of group, in this order"""
+    if group.children != tuple(objects):
+        group.clear()
+        group.add(*objects)
+
+
+class _SceneObjects:
+    """Scene objects in pixels of an owner, kept from one draw to the next.
+
+    Creating pygfx objects costs far more than updating them: a draw takes
+    each object it shows by a key of the arguments it is created from, which
+    creates it only if none of the last draws left one with that key, and
+    updates it in place. An object is dropped once _KEPT_DRAWS draws in a row
+    did not take it, so that one shown again soon, as a tick label panned out
+    and back, is not created again.
+    """
+
+    _KEPT_DRAWS = 16
+
+    def __init__(self):
+        self._kept = deque(maxlen=self._KEPT_DRAWS)
+        """Objects last taken by each of the last draws, by key, oldest first"""
+        self._taken = {}
+
+    @contextlib.contextmanager
+    def draw(self):
+        """Context of a draw, giving its take(key, create, *args) function"""
+        try:
+            yield self._take
+        finally:
+            self._kept.append(self._taken)
+            self._taken = {}
+
+    def _take(self, key, create, *args):
+        for kept in reversed(self._kept):
+            objects = kept.get(key)
+            if objects:
+                sceneObject = objects.pop()
+                break
+        else:
+            sceneObject = create(*args)
+        self._taken.setdefault(key, []).append(sceneObject)
+        return sceneObject
 
 
 # Item classes ################################################################
@@ -171,12 +638,18 @@ class _PygfxCurveItem:
         baseline,
     ):
         self.yaxis = yaxis
+        self.lineMaterials = []
+        """Line materials with their width in points, sized at draw time"""
+        self.pointMaterials = []
+        """Points materials with their symbol and size in points, sized at draw time"""
         self.group = gfx.Group()
         self._lineObj = None
         self._pointsObj = None
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        self.offset = _dataOffset(x, y)
+        """Data coordinates of the group origin, which vertices are relative to"""
+        x = (x - self.offset[0]).astype(numpy.float32)
+        y = (y - self.offset[1]).astype(numpy.float32)
 
         # Per-vertex color handling
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
@@ -189,10 +662,38 @@ class _PygfxCurveItem:
             rgba = colors.rgba(color)
             uniformColor = gfx.Color(rgba[0], rgba[1], rgba[2], rgba[3] * alpha)
 
+        # Sub-objects are drawn in the order they are added, as in GLPlotCurve:
+        # fill, error bars, lines (gap color under the dashes), then symbols
+
+        # Fill between curve and baseline, none for per vertex colors as in OpenGL
+        if fill and len(x) >= 2 and not perVertexColor:
+            fillObj = self._buildFill(x, y, baseline - self.offset[1], uniformColor)
+            if fillObj is not None:
+                self.group.add(fillObj)
+
+        # Error bars, then their ticks, in OpenGL's black whatever the curve color
+        if xerror is not None or yerror is not None:
+            errorColor = gfx.Color(0, 0, 0, 1)
+            xVertices, yVertices = self._errorBarVertices(x, y, xerror, yerror)
+            segments = numpy.concatenate((xVertices, yVertices)).reshape(-1, 2, 3)
+            segments = segments[numpy.isfinite(segments).all(axis=(1, 2))]
+            if len(segments) > 0:
+                errGeom = gfx.Geometry(positions=segments.reshape(-1, 3))
+                errMat = _material(_GLLineSegmentMaterial, aa=True, color=errorColor)
+                self.lineMaterials.append((errMat, 1.0))
+                self.group.add(gfx.Line(errGeom, errMat))
+            for tickSymbol, vertices in (("|", xVertices), ("_", yVertices)):
+                vertices = vertices[numpy.isfinite(vertices).all(axis=1)]
+                if len(vertices) > 0:
+                    tickMat = _symbolMaterial(tickSymbol, errorColor, "uniform")
+                    self.pointMaterials.append((tickMat, tickSymbol, 7))
+                    self.group.add(
+                        gfx.Points(gfx.Geometry(positions=vertices), tickMat)
+                    )
+
         # Line
-        dashPattern = _lineStyleToDashPattern(linestyle)
-        hasLine = linestyle not in (None, "", " ")
-        if hasLine and len(x) > 1:
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
+        if dashPattern is not None and len(x) > 1:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
             positions[:, 1] = y
@@ -202,163 +703,106 @@ class _PygfxCurveItem:
                 lineKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **lineKwargs)
-            mat = gfx.LineMaterial(
-                thickness=max(linewidth, 1.0),
+
+            # Gap color line under the dashed line
+            if gapcolor is not None and dashPattern:
+                gapRgba = colors.rgba(gapcolor)
+                gapMat = _material(_GLLineMaterial, aa=True, color=gfx.Color(*gapRgba))
+                self.lineMaterials.append((gapMat, linewidth))
+                self.group.add(gfx.Line(geom, gapMat))
+
+            mat = _material(
+                _GLLineMaterial,
+                aa=True,
                 color=uniformColor,
                 color_mode="vertex" if perVertexColor else "uniform",
-                dash_pattern=dashPattern if dashPattern else (),
+                dash_pattern=dashPattern,
+                dash_offset=dashOffset,
             )
+            self.lineMaterials.append((mat, linewidth))
             self._lineObj = gfx.Line(geom, mat)
             self.group.add(self._lineObj)
 
-            # Gap color line (behind the dashed line via z-offset)
-            if gapcolor is not None and dashPattern:
-                gapPositions = positions.copy()
-                gapPositions[:, 2] = -0.1  # slightly behind
-                gapRgba = colors.rgba(gapcolor)
-                gapMat = gfx.LineMaterial(
-                    thickness=max(linewidth, 1.0),
-                    color=gfx.Color(*gapRgba),
-                )
-                gapLineObj = gfx.Line(gfx.Geometry(positions=gapPositions), gapMat)
-                self.group.add(gapLineObj)
-
         # Symbol / Points
-        hasSymbol = symbol not in (None, "", " ")
-        if hasSymbol:
+        mat = _symbolMaterial(
+            symbol, uniformColor, "vertex" if perVertexColor else "uniform"
+        )
+        if mat is not None:
             positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
             positions[:, 0] = x
             positions[:, 1] = y
-
-            markerShape = _SYMBOL_MAP.get(symbol, "circle")
-            pointSize = symbolsize if symbol != "," else 1.0
-            if symbol == ".":
-                pointSize = max(pointSize * 0.5, 1.0)
 
             pointKwargs = {}
             if perVertexColor:
                 pointKwargs["colors"] = vertexColors
 
             geom = gfx.Geometry(positions=positions, **pointKwargs)
-            mat = gfx.PointsMarkerMaterial(
-                marker=markerShape,
-                size=pointSize,
-                color=uniformColor,
-                color_mode="vertex" if perVertexColor else "uniform",
-                edge_width=0.5,
-                edge_color=uniformColor,
-            )
+            self.pointMaterials.append((mat, symbol, symbolsize))
             self._pointsObj = gfx.Points(geom, mat)
             self.group.add(self._pointsObj)
 
-        # Error bars
-        if xerror is not None or yerror is not None:
-            errorGroup = gfx.Group()
-            errSegments = self._buildErrorBarSegments(x, y, xerror, yerror)
-            if len(errSegments) > 0:
-                errGeom = gfx.Geometry(positions=errSegments.astype(numpy.float32))
-                errMat = gfx.LineSegmentMaterial(
-                    thickness=1.0,
-                    color=uniformColor,
-                )
-                errLine = gfx.Line(errGeom, errMat)
-                errorGroup.add(errLine)
-            self.group.add(errorGroup)
+    @staticmethod
+    def _errorBarVertices(x, y, xerror, yerror):
+        """X and Y error bars vertices, laid out as in GLPlotCurve's _ErrorBars.
 
-        # Fill between curve and baseline
-        if fill and len(x) >= 2:
-            fillObj = self._buildFill(x, y, baseline, uniformColor, alpha)
-            if fillObj is not None:
-                fillObj.local.z = -0.2  # behind curve line
-                self.group.add(fillObj)
+        Each data point has the 4 vertices: high, point, point, low, as 2
+        segments and 4 ticks. A missing error gives NaN high and low vertices,
+        leaving only the ticks on the data point.
+        """
+
+        def bounds(values, error):
+            if error is None:
+                error = numpy.nan
+            error = numpy.asarray(error, dtype=numpy.float32)
+            if error.ndim == 2 and error.shape[1] == 1:
+                error = numpy.ravel(error)
+            minus, plus = (error[0], error[1]) if error.ndim == 2 else (error, error)
+            with numpy.errstate(invalid="ignore"):
+                return numpy.stack(
+                    numpy.broadcast_arrays(
+                        values + plus, values, values, values - minus
+                    ),
+                    axis=1,
+                ).ravel()
+
+        xVertices = numpy.zeros((4 * len(x), 3), dtype=numpy.float32)
+        xVertices[:, 0] = bounds(x, xerror)
+        xVertices[:, 1] = numpy.repeat(y, 4)
+        yVertices = numpy.zeros((4 * len(x), 3), dtype=numpy.float32)
+        yVertices[:, 0] = numpy.repeat(x, 4)
+        yVertices[:, 1] = bounds(y, yerror)
+        return xVertices, yVertices
 
     @staticmethod
-    def _buildErrorBarSegments(x, y, xerror, yerror):
-        """Build line segments for error bars."""
-        parts = []
+    def _buildFill(x, y, baseline, color):
+        """Build the mesh between curve and baseline, in scaled coordinates.
 
-        if yerror is not None:
-            yerror = numpy.asarray(yerror, dtype=numpy.float64)
-            if yerror.ndim == 2 and yerror.shape[1] == 1:
-                yerror = numpy.ravel(yerror)
-            if yerror.ndim == 0:
-                yErrMinus = numpy.full_like(y, yerror)
-                yErrPlus = yErrMinus
-            elif yerror.ndim == 1:
-                yErrMinus = yerror
-                yErrPlus = yerror
-            else:
-                yErrMinus = yerror[0]
-                yErrPlus = yerror[1]
-            n = len(x)
-            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
-            seg[0::2, 0] = x
-            seg[0::2, 1] = y - yErrMinus
-            seg[0::2, 2] = 0
-            seg[1::2, 0] = x
-            seg[1::2, 1] = y + yErrPlus
-            seg[1::2, 2] = 0
-            parts.append(seg)
-
-        if xerror is not None:
-            xerror = numpy.asarray(xerror, dtype=numpy.float64)
-            if xerror.ndim == 2 and xerror.shape[1] == 1:
-                xerror = numpy.ravel(xerror)
-            if xerror.ndim == 0:
-                xErrMinus = numpy.full_like(x, xerror)
-                xErrPlus = xErrMinus
-            elif xerror.ndim == 1:
-                xErrMinus = xerror
-                xErrPlus = xerror
-            else:
-                xErrMinus = xerror[0]
-                xErrPlus = xerror[1]
-            n = len(x)
-            seg = numpy.empty((n * 2, 3), dtype=numpy.float64)
-            seg[0::2, 0] = x - xErrMinus
-            seg[0::2, 1] = y
-            seg[0::2, 2] = 0
-            seg[1::2, 0] = x + xErrPlus
-            seg[1::2, 1] = y
-            seg[1::2, 2] = 0
-            parts.append(seg)
-
-        if parts:
-            return numpy.concatenate(parts)
-        return numpy.empty((0, 3), dtype=numpy.float64)
-
-    @staticmethod
-    def _buildFill(x, y, baseline, color, alpha):
-        """Build a filled mesh between curve and baseline."""
-        if baseline is None:
-            baseY = numpy.zeros_like(y)
-        elif isinstance(baseline, numpy.ndarray):
-            baseY = baseline
-        else:
-            baseY = numpy.full_like(y, float(baseline))
-
-        n = len(x)
-        # Create triangle strip: for each segment, two triangles
-        vertices = []
-        indices = []
-        for i in range(n):
-            vertices.append([x[i], y[i], 0])
-            vertices.append([x[i], baseY[i], 0])
-
-        for i in range(n - 1):
-            idx = i * 2
-            indices.append([idx, idx + 1, idx + 2])
-            indices.append([idx + 1, idx + 3, idx + 2])
-
-        if not indices:
+        Each finite segment fills the area between its curve and baseline edges,
+        split where they cross. Where segments overlap along x, as when x goes
+        back, their areas add up, whereas OpenGL's even-odd stencil empties them.
+        """
+        finite = numpy.isfinite(x) & numpy.isfinite(y) & numpy.isfinite(baseline)
+        i = numpy.nonzero(finite[:-1] & finite[1:])[0]
+        if len(i) == 0:
             return None
 
-        vertices = numpy.array(vertices, dtype=numpy.float32)
-        indices = numpy.array(indices, dtype=numpy.int32)
+        # Segment corners: A, C on the curve and B, D on the baseline, at x0, x1
+        x0, x1, y0, y1 = x[i], x[i + 1], y[i], y[i + 1]
+        b0, b1 = baseline[i], baseline[i + 1]
+        d0, d1 = y0 - b0, y1 - b1
+        crossing = d0 * d1 < 0
+        # Triangles ABP and QDC, with P the crossing point and Q = P, or else
+        # P = D and Q = A, the two halves of quadrilateral ABDC
+        t = numpy.where(crossing, d0 / numpy.where(crossing, d0 - d1, 1), 1)
+        px, py = x0 + t * (x1 - x0), b0 + t * (b1 - b0)
+        qx, qy = numpy.where(crossing, px, x0), numpy.where(crossing, py, y0)
 
-        fillColor = gfx.Color(color.r, color.g, color.b, alpha * 0.5)
-        geom = gfx.Geometry(positions=vertices, indices=indices)
-        mat = gfx.MeshBasicMaterial(color=fillColor, side="both")
+        positions = numpy.zeros((6 * len(i), 3), dtype=numpy.float32)
+        positions[:, 0] = numpy.stack((x0, x0, px, qx, x1, x1), axis=1).ravel()
+        positions[:, 1] = numpy.stack((y0, b0, py, qy, b1, y1), axis=1).ravel()
+        indices = numpy.arange(len(positions), dtype=numpy.int32).reshape(-1, 3)
+        geom = gfx.Geometry(positions=positions, indices=indices)
+        mat = _material(gfx.MeshBasicMaterial, color=color, side="both")
         return gfx.Mesh(geom, mat)
 
 
@@ -371,6 +815,8 @@ class _PygfxImageItem:
     def __init__(self, data, origin, scale, colormap, alpha):
         self.group = gfx.Group()
         self.yaxis = "left"
+        self.offset = numpy.zeros(2)
+        """Data coordinates of the group origin: the image transform holds its origin"""
         self._imageObj = None
         self._scalarShape = None
         self._origin = origin
@@ -435,7 +881,9 @@ class _PygfxImageItem:
             geom = gfx.Geometry(grid=gfx.Texture(rgba, dim=2))
             # uint8 textures are sampled as unorm and scaled by 255 in the
             # shader, so contrast limits must match the uint8 range
-            mat = gfx.ImageBasicMaterial(interpolation="nearest", clim=(0, 255))
+            mat = _material(
+                gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)
+            )
             self._imageObj = gfx.Image(geom, mat)
             self.group.add(self._imageObj)
         else:
@@ -456,8 +904,10 @@ class _PygfxTrianglesItem:
         self.group = gfx.Group()
         self.yaxis = "left"
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        self.offset = _dataOffset(x, y)
+        """Data coordinates of the group origin, which vertices are relative to"""
+        x = (x - self.offset[0]).astype(numpy.float32)
+        y = (y - self.offset[1]).astype(numpy.float32)
         triangles = numpy.asarray(triangles, dtype=numpy.int32)
 
         self._x = x
@@ -471,11 +921,12 @@ class _PygfxTrianglesItem:
         if not isinstance(color, str) and numpy.ndim(color) == 2:
             color = _vertexColorsToFloatRGBA(color, alpha)
             geom = gfx.Geometry(positions=positions, indices=triangles, colors=color)
-            mat = gfx.MeshBasicMaterial(color_mode="vertex", side="both")
+            mat = _material(_SRGBVertexMeshMaterial, color_mode="vertex", side="both")
         else:
             rgba = colors.rgba(color)
             geom = gfx.Geometry(positions=positions, indices=triangles)
-            mat = gfx.MeshBasicMaterial(
+            mat = _material(
+                gfx.MeshBasicMaterial,
                 color=gfx.Color(rgba[0], rgba[1], rgba[2], rgba[3] * alpha),
                 side="both",
             )
@@ -484,7 +935,11 @@ class _PygfxTrianglesItem:
 
 
 class _PygfxShapeItem(dict):
-    """Manages pygfx scene objects for shapes."""
+    """Shape parameters, with the points in data coordinates.
+
+    Its scene objects are in pixels, as OpenGL draws shapes, and are updated
+    at each draw.
+    """
 
     def __init__(
         self,
@@ -503,122 +958,41 @@ class _PygfxShapeItem(dict):
         if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
             raise NotImplementedError(f"Unsupported shape {shape}")
 
-        x = numpy.asarray(x, dtype=numpy.float32)
-        y = numpy.asarray(y, dtype=numpy.float32)
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
 
         if shape == "rectangle":
             xMin, xMax = x
-            x = numpy.array((xMin, xMin, xMax, xMax), dtype=numpy.float32)
+            x = numpy.array((xMin, xMin, xMax, xMax))
             yMin, yMax = y
-            y = numpy.array((yMin, yMax, yMax, yMin), dtype=numpy.float32)
+            y = numpy.array((yMin, yMax, yMax, yMin))
 
-        fill = fill if shape != "polylines" else False
-
-        rgba = colors.rgba(color)
-        dashPattern = _lineStyleToDashPattern(linestyle)
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
 
         self.update(
             {
                 "shape": shape,
-                "color": rgba,
-                "fill": fill,
+                "color": colors.rgba(color),
+                # Ignore fill for polylines to mimic matplotlib
+                "fill": fill and shape != "polylines",
                 "x": x,
                 "y": y,
                 "linewidth": linewidth,
+                "dashoffset": dashOffset,
+                "dashpattern": dashPattern,
+                "gapcolor": None if gapcolor is None else colors.rgba(gapcolor),
                 "overlay": overlay,
             }
         )
-
-        self.group = gfx.Group()
-
-        gfxColor = gfx.Color(*rgba)
-
-        # Build outline
-        if shape in ("polygon", "rectangle"):
-            positions = numpy.zeros((len(x) + 1, 3), dtype=numpy.float32)
-            positions[:-1, 0] = x
-            positions[:-1, 1] = y
-            positions[-1, 0] = x[0]
-            positions[-1, 1] = y[0]
-        elif shape == "polylines":
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
-        elif shape in ("line", "hline", "vline"):
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
-        else:
-            positions = numpy.zeros((len(x), 3), dtype=numpy.float32)
-            positions[:, 0] = x
-            positions[:, 1] = y
-
-        if len(positions) >= 2:
-            # Gap color line: solid line behind the dashed foreground line.
-            # Must be at a lower z to pass the strict '<' depth test.
-            if gapcolor is not None and dashPattern:
-                gapPositions = positions.copy()
-                gapPositions[:, 2] = -0.1  # slightly behind
-                gapRgba = colors.rgba(gapcolor)
-                gapMat = gfx.LineMaterial(
-                    thickness=max(linewidth, 1.0),
-                    color=gfx.Color(*gapRgba),
-                )
-                gapLineObj = gfx.Line(gfx.Geometry(positions=gapPositions), gapMat)
-                self.group.add(gapLineObj)
-
-            # Foreground line (dashed or solid) at z=0 (in front of gap line)
-            geom = gfx.Geometry(positions=positions)
-            mat = gfx.LineMaterial(
-                thickness=max(linewidth, 1.0),
-                color=gfxColor,
-                dash_pattern=dashPattern if dashPattern else (),
-            )
-            lineObj = gfx.Line(geom, mat)
-            self.group.add(lineObj)
-
-        # Build fill for closed shapes
-        if fill and shape in ("polygon", "rectangle") and len(x) >= 3:
-            fillObj = self._buildPolygonFill(x, y, rgba)
-            if fillObj is not None:
-                fillObj.local.z = -0.2  # behind lines
-                self.group.add(fillObj)
-
-    @staticmethod
-    def _buildPolygonFill(x, y, rgba):
-        """Create a semi-transparent polygon fill using a triangle fan mesh."""
-        n = len(x)
-        if n < 3:
-            return None
-
-        # Sort vertices by angle from centroid to avoid bowtie patterns
-        cx, cy = numpy.nanmean(x), numpy.nanmean(y)
-        angles = numpy.arctan2(y - cy, x - cx)
-        order = numpy.argsort(angles)
-        x = x[order]
-        y = y[order]
-
-        # Triangle fan from vertex 0
-        positions = numpy.zeros((n, 3), dtype=numpy.float32)
-        positions[:, 0] = x
-        positions[:, 1] = y
-
-        indices = numpy.zeros(((n - 2), 3), dtype=numpy.uint32)
-        for i in range(n - 2):
-            indices[i] = [0, i + 1, i + 2]
-
-        fillColor = gfx.Color(rgba[0], rgba[1], rgba[2], 0.3)
-        geom = gfx.Geometry(indices=indices, positions=positions)
-        mat = gfx.MeshBasicMaterial(
-            color=fillColor,
-            side="both",
-            depth_write=False,
-        )
-        return gfx.Mesh(geom, mat)
+        self.sceneObjects = _SceneObjects()
 
 
 class _PygfxMarkerItem(dict):
-    """Manages pygfx scene objects for markers."""
+    """Marker parameters, with the position in data coordinates.
+
+    Its scene objects are in pixels, as for OpenGL markers, and are updated at
+    each draw.
+    """
 
     def __init__(
         self,
@@ -645,7 +1019,7 @@ class _PygfxMarkerItem(dict):
         if isConstraint:
             x, y = constraint(x, y)
 
-        dashPattern = _lineStyleToDashPattern(linestyle)
+        dashOffset, dashPattern = _lineStyleToDashOffsetPattern(linestyle)
 
         self.update(
             {
@@ -658,33 +1032,14 @@ class _PygfxMarkerItem(dict):
                 "symbolsize": symbolsize,
                 "linewidth": linewidth,
                 "linestyle": linestyle,
+                "dashoffset": dashOffset,
                 "dashpattern": dashPattern,
                 "yaxis": yaxis,
                 "font": font,
                 "bgcolor": bgcolor,
             }
         )
-
-        self.group = gfx.Group()
-        self._lineObj = None
-        self._textObj = None
-        rgba = colors.rgba(color)
-        gfxColor = gfx.Color(*rgba)
-
-        if x is not None and y is not None:
-            # Point marker
-            positions = numpy.array([[x, y, 0]], dtype=numpy.float32)
-            markerShape = _SYMBOL_MAP.get(symbol, "plus")
-            geom = gfx.Geometry(positions=positions)
-            mat = gfx.PointsMarkerMaterial(
-                marker=markerShape,
-                size=symbolsize,
-                color=gfxColor,
-                edge_width=1.0,
-                edge_color=gfxColor,
-            )
-            self._pointsObj = gfx.Points(geom, mat)
-            self.group.add(self._pointsObj)
+        self.sceneObjects = _SceneObjects()
 
 
 # BackendPygfx ################################################################
@@ -706,6 +1061,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
     Automatically forced to "bitmap" on native Wayland (see __init__).
     Set before creating the plot."""
 
+    _TEXT_MARKER_PADDING = 4
+
     def __init__(self, plot, parent=None):
         present_method = self.PRESENT_METHOD
         # On native Wayland the "screen" present shares Qt's wl_display
@@ -724,6 +1081,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             present_method=present_method,
             vsync=self.VSYNC,
         )
+        # The canvas closes on its close event, which a child widget deleted
+        # with its parent does not get: it would keep scheduling draws
+        self.destroyed.connect(functools.partial(_closeCanvas, weakref.ref(self)))
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         # Match OpenGLWidget: a layout is needed for Qt to respect sizeHint
@@ -748,27 +1108,34 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # pygfx rendering objects
         _restrictWgpuToPrimaryBackends()  # Must be done before creating the renderer
-        self._renderer = gfx.WgpuRenderer(self)
-        self._scene = gfx.Scene()
+        # No distance sorting: objects are drawn in scene order
+        # Device resolution without post-processing, as the OpenGL backend:
+        # supersampling and DDAA would blur text, images and thin lines
+        self._renderer = gfx.WgpuRenderer(
+            self, sort_objects=False, pixel_scale=1, ppaa="none"
+        )
+        self._renderer._blender = _SRGBBlender()  # pygfx has no public option
 
-        # Camera: orthographic for 2D plotting
-        self._camera = gfx.OrthographicCamera(640, 480, maintain_aspect=False)
+        # Widget pixels over the plot area, and the transforms to them from
+        # each Y axis' scaled data coordinates: both updated by _syncCamera
+        self._plotCamera = gfx.OrthographicCamera(maintain_aspect=False)
+        self._dataToPixelMatrices = {
+            "left": numpy.identity(4),
+            "right": numpy.identity(4),
+        }
 
-        # Scene hierarchy
         # Data area background: updated by setBackgroundColors
         self._bgObj = gfx.Background(
-            None, gfx.BackgroundMaterial(gfx.Color(*self._dataBackgroundColor))
+            None,
+            _material(gfx.BackgroundMaterial, gfx.Color(*self._dataBackgroundColor)),
         )
-        self._dataGroup = gfx.Group()
-        self._overlayGroup = gfx.Group()
+        self._gridGroup = gfx.Group()
+        self._plotBackgroundScene = gfx.Scene()
+        self._plotBackgroundScene.add(self._bgObj, self._gridGroup)
 
-        # Shift overlays forward in z so they always render in front of data.
-        # Camera z-range is wide (near=-100..far=100), so z=10 is safe.
-        self._overlayGroup.local.z = 10
-
-        self._scene.add(self._bgObj)
-        self._scene.add(self._dataGroup)
-        self._scene.add(self._overlayGroup)
+        # Filled by _syncItemScenes in back to front order
+        self._dataScene = gfx.Scene()
+        self._overlayScene = gfx.Scene()
 
         # PlotFrame for coordinate transforms
         self._plotFrame = PlotFrame2DCore(
@@ -782,20 +1149,20 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             int(self.getDevicePixelRatio() * 480),
         )
 
-        # Screen-space scene for frame/axes rendering (PR 9)
-        self._screenScene = gfx.Scene()
+        # Screen-space scenes for the widget background and the frame/axes
         self._screenBg = gfx.Background(
-            None, gfx.BackgroundMaterial(gfx.Color(1, 1, 1, 1))
+            None, _material(gfx.BackgroundMaterial, gfx.Color(1, 1, 1, 1))
         )
+        self._screenScene = gfx.Scene()
         self._screenScene.add(self._screenBg)
         self._screenFrameGroup = gfx.Group()
-        self._screenScene.add(self._screenFrameGroup)
+        self._frameScene = gfx.Scene()
+        self._frameScene.add(self._screenFrameGroup)
         self._screenCamera = gfx.OrthographicCamera(maintain_aspect=False)
         self._cachedBgColor = (1.0, 1.0, 1.0, 1.0)
-
-        # Crosshair cursor lines
-        self._crosshairHLine = None
-        self._crosshairVLine = None
+        self._frameSceneObjects = _SceneObjects()
+        self._crosshairSceneObjects = _SceneObjects()
+        self._symbolSceneObjects = _SceneObjects()
 
         self._reusableImageItem = None  # Pool for image item reuse
 
@@ -804,13 +1171,43 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self.setMouseTracking(True)
 
     def _getDefaultFont(self):
+        """Returns the default font, the one of the OpenGL backend"""
         if self._defaultFont is None:
-            app = qt.QApplication.instance()
-            if app is not None:
-                self._defaultFont = app.font()
-            else:
-                self._defaultFont = qt.QFont()
+            fontId = qt.QFontDatabase.addApplicationFont(
+                findfont(FontProperties(family=["sans-serif"]))
+            )
+            family = qt.QFontDatabase.applicationFontFamilies(fontId)[0]
+            font = qt.QFont(family, 10, qt.QFont.Normal, False)
+            font.setStyleStrategy(qt.QFont.PreferAntialias)
+            self._defaultFont = font
         return self._defaultFont
+
+    def _textObject(
+        self,
+        take,
+        text: str,
+        font: qt.QFont,
+        color: RGBAColorType,
+        x: float,
+        y: float,
+        align: str,
+        valign: str,
+        rotate: float = 0.0,
+        bgcolor: RGBAColorType | None = None,
+        padding: int = 0,
+    ) -> gfx.Group | None:
+        """Text in device pixels drawn as the OpenGL backend Text2D draws it,
+        taken with take, or None for blank text"""
+        if not text.strip():
+            return None
+        padding = max(0, int(padding * self.getDevicePixelRatio()))
+        content = self._plotFrame.dotsPerInch, color, align, valign, rotate
+        content += bgcolor, padding
+        group = take(
+            ("text", text, font.key(), *content), _textGroup, text, font, *content
+        )
+        group.local.position = (int(x), int(y), 0)
+        return group
 
     def getDevicePixelRatio(self):
         return self.devicePixelRatioF()
@@ -849,21 +1246,30 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             self._syncPlotFrame()
             self._syncCamera()
             self._updateFrame()
-            self._updateMarkers()
-            self._updateCrosshair()
+            self._syncItemScenes()
 
-            # First pass: render frame (background + axes) in full widget
-            self._renderer.render(self._screenScene, self._screenCamera, flush=False)
-
-            # Second pass: render data scene in plot area viewport only
             dpr = self.getDevicePixelRatio()
             left, top = self._plotFrame.plotOrigin
             pw, ph = self._plotFrame.plotSize
             # Viewport rect is in logical pixels
             plotRect = (left / dpr, top / dpr, pw / dpr, ph / dpr)
-            self._renderer.render(
-                self._scene, self._camera, rect=plotRect, flush=True, clear=False
+
+            # Same paint order as the OpenGL backend
+            passes = (
+                (self._screenScene, self._screenCamera, None),
+                (self._plotBackgroundScene, self._plotCamera, plotRect),
+                (self._dataScene, self._plotCamera, plotRect),
+                (self._frameScene, self._screenCamera, None),
+                (self._overlayScene, self._plotCamera, plotRect),
             )
+            for index, (scene, camera, rect) in enumerate(passes):
+                self._renderer.render(
+                    scene,
+                    camera,
+                    rect=rect,
+                    clear=index == 0,
+                    flush=index == len(passes) - 1,
+                )
 
     def _syncPlotFrame(self):
         """Sync plot frame size with widget size."""
@@ -876,51 +1282,63 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._plotFrame.dotsPerInch = self.getDotsPerInch()
 
     def _syncCamera(self):
-        """Update camera to match the current data ranges."""
+        """Update the plot area camera and the data to pixel transforms."""
+        # Plot area in widget pixels, y downward
+        left, top = self._plotFrame.plotOrigin
+        width, height = self._plotFrame.plotSize
+        self._plotCamera.show_rect(
+            left, left + width, top + height, top, depth=max(width, height, 1)
+        )
+
+        def displayedRange(range_, inverted):
+            """(first, last) data values along the pixel axis, never empty"""
+            first, last = range_
+            if first == last:
+                first, last = first - 0.5, last + 0.5
+            return (last, first) if inverted else (first, last)
+
         trRanges = self._plotFrame.transformedDataRanges
-        xMin, xMax = trRanges.x
-        yMin, yMax = trRanges.y
-
-        if self._plotFrame.isXAxisInverted:
-            xMin, xMax = xMax, xMin
-        if self._plotFrame.isYAxisInverted:
-            yMin, yMax = yMax, yMin
-
-        # Ensure non-zero extent to avoid camera errors
-        if xMin == xMax:
-            xMin -= 0.5
-            xMax += 0.5
-        if yMin == yMax:
-            yMin -= 0.5
-            yMax += 0.5
-
-        # show_rect(left, right, top, bottom)
-        # height = bottom - top; positive height means Y increases upward
-        # top=yMin, bottom=yMax → yMax at top of viewport, yMin at bottom
-        extent = max(abs(xMax - xMin), abs(yMax - yMin), 1.0)
-        self._camera.show_rect(xMin, xMax, yMin, yMax, depth=extent)
+        xMin, xMax = displayedRange(trRanges.x, self._plotFrame.isXAxisInverted)
+        sx = width / (xMax - xMin)
+        for axis, yRange in (("left", trRanges.y), ("right", trRanges.y2)):
+            yMin, yMax = displayedRange(yRange, self._plotFrame.isYAxisInverted)
+            sy = -height / (yMax - yMin)
+            self._dataToPixelMatrices[axis] = numpy.array(
+                (
+                    (sx, 0, 0, left - xMin * sx),
+                    (0, sy, 0, top - yMax * sy),
+                    (0, 0, 1, 0),
+                    (0, 0, 0, 1),
+                ),
+                dtype=numpy.float64,
+            )
 
     def _updateFrame(self):
         """Update axes, ticks, grid, labels in screen space."""
         # Update background color only when changed
         bgColor = self._backgroundColor
         if self._cachedBgColor != bgColor:
-            self._screenBg.material = gfx.BackgroundMaterial(gfx.Color(*bgColor))
+            self._screenBg.material = _material(
+                gfx.BackgroundMaterial, gfx.Color(*bgColor)
+            )
             self._cachedBgColor = bgColor
 
         if not self._plotFrame.isDirty:
             return  # Frame unchanged, keep cached objects
 
-        # Clear previous frame objects (frame group only, not markers/crosshair)
-        for child in list(self._screenFrameGroup.children):
-            self._screenFrameGroup.remove(child)
+        with self._frameSceneObjects.draw() as take:
+            frameObjects, gridObjects = self._frameObjects(take)
+        _setChildren(self._screenFrameGroup, frameObjects)
+        _setChildren(self._gridGroup, gridObjects)
 
+    def _frameObjects(self, take):
+        """Return the frame and the grid scene objects, taken with take"""
         if self._plotFrame.margins == self._plotFrame._NoDisplayMargins:
-            return
+            return [], []
 
         w, h = self._plotFrame.size
         if w <= 2 or h <= 2:
-            return
+            return [], []
 
         # Set screen camera to pixel coordinates (Y=0 at top, Y=h at bottom)
         # show_rect(left, right, top, bottom):
@@ -933,265 +1351,318 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         vertices, gridVertices, labelDicts = self._plotFrame._buildVerticesAndLabels()
         self._plotFrame._clearDirty()
 
-        # Render grid lines
+        # Grid and frame lines are 1 device pixel wide, as in GLPlotFrame
+        gridObjects = []
         if len(gridVertices) >= 2:
-            gridColor = gfx.Color(*self._plotFrame.gridColor)
-            geom = gfx.Geometry(
-                positions=numpy.column_stack(
-                    [gridVertices, numpy.zeros(len(gridVertices), dtype=numpy.float32)]
-                )
-            )
-            mat = gfx.LineSegmentMaterial(thickness=1.0, color=gridColor)
-            gridLine = gfx.Line(geom, mat)
-            self._screenFrameGroup.add(gridLine)
+            gridColor = self._plotFrame.gridColor
+            grid = take(("grid", gridColor), _pixelLinesMesh, gridColor)
+            _setPixelLines(grid, gridVertices, 1.0)
+            gridObjects.append(grid)
 
-        # Render frame lines (axes)
+        frameObjects = []
         if len(vertices) >= 2:
-            fgColor = gfx.Color(*self._plotFrame.foregroundColor)
-            geom = gfx.Geometry(
-                positions=numpy.column_stack(
-                    [vertices, numpy.zeros(len(vertices), dtype=numpy.float32)]
-                )
-            )
-            mat = gfx.LineSegmentMaterial(thickness=1.0, color=fgColor)
-            frameLine = gfx.Line(geom, mat)
-            self._screenFrameGroup.add(frameLine)
+            fgColor = self._plotFrame.foregroundColor
+            frame = take(("frame", fgColor), _pixelLinesMesh, fgColor)
+            _setPixelLines(frame, vertices, 1.0)
+            frameObjects.append(frame)
 
         # Render text labels (tick labels, axis titles, main title)
         for labelDict in labelDicts:
-            text = labelDict.get("text", "")
-            if not text:
-                continue
-            # Strip matplotlib LaTeX formatting
-            text = _stripMathDefault(text)
-
-            lx = labelDict["x"]
-            ly = labelDict["y"]
-            labelColor = labelDict.get("color", (0, 0, 0, 1))
-            rotate = labelDict.get("rotate", 0)
-
-            # Map alignment strings to pygfx anchor
-            align = labelDict.get("align", "center")
-            valign = labelDict.get("valign", "center")
-            anchor = self._mapAnchor(align, valign)
-
-            fontSize = 12.0
-            font = labelDict.get("font")
-            if font is not None:
-                ps = font.pointSizeF()
-                if ps > 0:
-                    fontSize = ps
-                else:
-                    px = font.pixelSize()
-                    if px > 0:
-                        fontSize = px * 72.0 / self.getDotsPerInch()
-
-            textObj = gfx.Text(
-                text=text,
-                material=gfx.TextMaterial(color=gfx.Color(*labelColor)),
-                font_size=fontSize,
-                anchor=anchor,
-                screen_space=True,
+            textObj = self._textObject(
+                take,
+                labelDict["text"],
+                labelDict["font"],
+                labelDict["color"],
+                labelDict["x"],
+                labelDict["y"],
+                labelDict["align"],
+                labelDict["valign"],
+                labelDict["rotate"],
             )
-            textObj.local.position = (lx, ly, 0)
+            if textObj is not None:
+                frameObjects.append(textObj)
+        return frameObjects, gridObjects
 
-            if rotate:
-                # Negate angle because screen camera flips Y
-                textObj.local.euler_z = math.radians(-rotate)
+    def _syncItemScenes(self):
+        """Fill the data and overlay scenes with the visible items, back to front.
 
-            self._screenFrameGroup.add(textObj)
+        As in the OpenGL backend, overlay items are drawn over the frame,
+        followed by the marker labels and the crosshair.
+        Both scenes are in plot area pixels: item groups hold scaled data,
+        mapped through the transform of their Y axis, while markers and
+        shapes are in pixels.
+        """
+        dataObjects = []
+        overlayObjects = []
+        labels = []
+        for plotItem in self.getItemsFromBackToFront(condition=lambda i: i.isVisible()):
+            item = plotItem._backendRenderer
+            if item is None:
+                continue
+            if isinstance(item, _PygfxMarkerItem):
+                with item.sceneObjects.draw() as take:
+                    objects, label = self._markerObjects(item, take)
+                overlayObjects.extend(objects)
+                if label is not None:
+                    labels.append(label)
+                continue
+            if isinstance(item, _PygfxShapeItem):
+                with item.sceneObjects.draw() as take:
+                    objects = self._shapeObjects(item, take)
+            else:
+                # Translated in float64: float32 would lose a large offset
+                matrix = self._dataToPixelMatrices[item.yaxis].copy()
+                matrix[:2, 3] += matrix[:2, :2] @ item.offset
+                item.group.local.matrix = matrix
+                if isinstance(item, _PygfxCurveItem):
+                    for material, width in item.lineMaterials:
+                        material.thickness = self._lineWidth(width)
+                    for material, symbol, size in item.pointMaterials:
+                        material.size = self._symbolSize(symbol, size)
+                objects = [item.group]
+            if plotItem.isOverlay():
+                overlayObjects.extend(objects)
+            else:
+                dataObjects.extend(objects)
 
-    def _updateMarkers(self):
-        """Update marker lines and text labels in screen space."""
-        plot = self._plotRef()
-        if plot is None:
-            return
+        with self._symbolSceneObjects.draw() as take:
+            overlayObjects = self._mergeSymbols(take, overlayObjects)
+        with self._crosshairSceneObjects.draw() as take:
+            crosshair = self._crosshairObjects(take)
+        _setChildren(self._dataScene, dataObjects)
+        _setChildren(self._overlayScene, overlayObjects + labels + crosshair)
 
+    def _mergeSymbols(self, take, objects: list) -> list:
+        """Return objects with each run of _MarkerSymbol of the same symbol,
+        color and size replaced by its points, taken with take.
+
+        A run is drawn in its order in a single draw call, instead of one per
+        marker.
+        """
+        merged = []
+        for style, run in itertools.groupby(
+            objects, lambda o: o[:3] if isinstance(o, _MarkerSymbol) else None
+        ):
+            if style is None:
+                merged.extend(run)
+                continue
+            symbol, color, size = style
+            points = take(("symbols", symbol, color), _symbolPoints, symbol, color)
+            if points is not None:
+                points.material.size = size
+                _setPoints(points, [markerSymbol.position for markerSymbol in run])
+                merged.append(points)
+        return merged
+
+    def _symbolSize(self, symbol, size: float) -> float:
+        """Size in logical pixels of a symbol of size points, as Points2D.render"""
+        if symbol == ",":
+            size = 1.0
+        elif symbol == ".":
+            size = math.ceil(0.5 * size) + 1.0
+        size = size / 72.0 * self._plotFrame.dotsPerInch
+        if symbol in _ODD_SIZE_SYMBOLS:
+            size = size // 2 * 2 + 1.0
+        return size / self._plotFrame.devicePixelRatio
+
+    def _lineWidth(self, width: float) -> float:
+        """Width in logical pixels of a line of width points, as GLLines2D.render"""
+        return (
+            width
+            / 72.0
+            * self._plotFrame.dotsPerInch
+            / self._plotFrame.devicePixelRatio
+        )
+
+    def _markerObjects(self, item, take):
+        """Return the scene objects of a marker, with a _MarkerSymbol for its
+        symbol, and its text label or None, taken with take"""
+        xCoord = item["x"]
+        yCoord = item["y"]
+        yAxis = item.get("yaxis", "left")
+        text = item["text"]
         pixelOffset = 3
 
-        for plotItem in self.getItemsFromBackToFront(condition=lambda i: i.isVisible()):
-            if plotItem._backendRenderer is None:
-                continue
-            item = plotItem._backendRenderer
-            if not isinstance(item, _PygfxMarkerItem):
-                continue
-
-            xCoord = item["x"]
-            yCoord = item["y"]
-            yAxis = item.get("yaxis", "left")
-            color = item["color"]
-            linewidth = item["linewidth"]
-            dashPattern = item["dashpattern"]
-
-            # Remove old line and text from the screen scene
-            if item._lineObj is not None:
-                if item._lineObj.parent is not None:
-                    item._lineObj.parent.remove(item._lineObj)
-                item._lineObj = None
-            if item._textObj is not None:
-                if item._textObj.parent is not None:
-                    item._textObj.parent.remove(item._textObj)
-                item._textObj = None
-
-            gfxColor = gfx.Color(*color)
-
-            if xCoord is None or yCoord is None:
-                # hline or vline marker — render in screen space
-                if xCoord is None:
-                    # Horizontal line at y
-                    pixelPos = self._plotFrame.dataToPixel(
-                        0.5 * sum(self._plotFrame.dataRanges[0]),
-                        yCoord,
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    left = self._plotFrame.margins.left
-                    right = self._plotFrame.size[0] - self._plotFrame.margins.right
-                    positions = numpy.array(
-                        [
-                            [left, pixelPos[1], 0],
-                            [right, pixelPos[1], 0],
-                        ],
-                        dtype=numpy.float32,
-                    )
-
-                    if item["text"] is not None:
-                        tx = right - pixelOffset
-                        ty = pixelPos[1] - pixelOffset
-                        textObj = gfx.Text(
-                            material=gfx.TextMaterial(color=gfxColor),
-                            text=item["text"],
-                            font_size=self._getDefaultFont().pointSizeF() or 10,
-                            anchor="bottom-right",
-                            screen_space=True,
-                        )
-                        textObj.local.position = (tx, ty, 0)
-                        item._textObj = textObj
-                        self._screenScene.add(textObj)
-                else:
-                    # Vertical line at x
-                    yRange = self._plotFrame.dataRanges[1 if yAxis == "left" else 2]
-                    pixelPos = self._plotFrame.dataToPixel(
-                        xCoord,
-                        0.5 * sum(yRange),
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    top = self._plotFrame.margins.top
-                    bottom = self._plotFrame.size[1] - self._plotFrame.margins.bottom
-                    positions = numpy.array(
-                        [
-                            [pixelPos[0], top, 0],
-                            [pixelPos[0], bottom, 0],
-                        ],
-                        dtype=numpy.float32,
-                    )
-
-                    if item["text"] is not None:
-                        tx = pixelPos[0] + pixelOffset
-                        ty = top + pixelOffset
-                        textObj = gfx.Text(
-                            material=gfx.TextMaterial(color=gfxColor),
-                            text=item["text"],
-                            font_size=self._getDefaultFont().pointSizeF() or 10,
-                            anchor="top-left",
-                            screen_space=True,
-                        )
-                        textObj.local.position = (tx, ty, 0)
-                        item._textObj = textObj
-                        self._screenScene.add(textObj)
-
-                geom = gfx.Geometry(positions=positions)
-                mat = gfx.LineMaterial(
-                    thickness=max(linewidth, 1.0),
-                    color=gfxColor,
-                    dash_pattern=dashPattern if dashPattern else (),
-                )
-                item._lineObj = gfx.Line(geom, mat)
-                self._screenScene.add(item._lineObj)
-
+        if xCoord is not None and yCoord is not None:
+            # Point marker, drawn only strictly inside the limits as in OpenGL
+            xmin, xmax = self._plot.getXAxis().getLimits()
+            ymin, ymax = self._plot.getYAxis(axis=yAxis).getLimits()
+            if not xmin < xCoord < xmax or not ymin < yCoord < ymax:
+                return [], None
+            pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
+            if pixelPos is None:
+                return [], None
+            size = self._symbolSize(item["symbol"], item["symbolsize"])
+            symbols = [_MarkerSymbol(item["symbol"], item["color"], size, pixelPos)]
+            if text is None:
+                return symbols, None
+            if self._plotFrame.isYAxisInverted:
+                valign, vPixelOffset = "bottom", -pixelOffset
             else:
-                # Point marker — text label in screen space
-                if item["text"] is not None:
-                    pixelPos = self._plotFrame.dataToPixel(
-                        xCoord,
-                        yCoord,
-                        axis=yAxis,
-                    )
-                    if pixelPos is None:
-                        continue
-                    tx = pixelPos[0] + pixelOffset
-                    ty = pixelPos[1] + pixelOffset
-                    textObj = gfx.Text(
-                        material=gfx.TextMaterial(color=gfxColor),
-                        text=item["text"],
-                        font_size=self._getDefaultFont().pointSizeF() or 10,
-                        anchor="top-left",
-                        screen_space=True,
-                    )
-                    textObj.local.position = (tx, ty, 0)
-                    item._textObj = textObj
-                    self._screenScene.add(textObj)
+                valign, vPixelOffset = "top", pixelOffset
+            label = self._textObject(
+                take,
+                text,
+                item["font"],
+                item["color"],
+                pixelPos[0] + pixelOffset,
+                pixelPos[1] + vPixelOffset,
+                "left",
+                valign,
+                bgcolor=item["bgcolor"],
+                padding=self._TEXT_MARKER_PADDING,
+            )
+            return symbols, label
 
-    def _updateCrosshair(self):
-        """Update crosshair cursor lines."""
-        # Remove old crosshair
-        if self._crosshairHLine is not None:
-            if self._crosshairHLine in self._screenScene.children:
-                self._screenScene.remove(self._crosshairHLine)
-            self._crosshairHLine = None
-        if self._crosshairVLine is not None:
-            if self._crosshairVLine in self._screenScene.children:
-                self._screenScene.remove(self._crosshairVLine)
-            self._crosshairVLine = None
+        label = None
+        if xCoord is None:
+            # Horizontal line at y
+            pixelPos = self._plotFrame.dataToPixel(
+                0.5 * sum(self._plotFrame.dataRanges[0]),
+                yCoord,
+                axis=yAxis,
+            )
+            if pixelPos is None:
+                return [], None
+            right = self._plotFrame.size[0] - self._plotFrame.margins.right
+            # Edge to edge of the widget as in OpenGL, where the dashes start;
+            # the plot area rect clips it
+            positions = [[0, pixelPos[1]], [self._plotFrame.size[0], pixelPos[1]]]
+            if text is not None:
+                label = self._textObject(
+                    take,
+                    text,
+                    item["font"],
+                    item["color"],
+                    right - pixelOffset,
+                    pixelPos[1] - pixelOffset,
+                    "right",
+                    "bottom",
+                    bgcolor=item["bgcolor"],
+                    padding=self._TEXT_MARKER_PADDING,
+                )
+        else:
+            # Vertical line at x
+            yRange = self._plotFrame.dataRanges[1 if yAxis == "left" else 2]
+            pixelPos = self._plotFrame.dataToPixel(
+                xCoord,
+                0.5 * sum(yRange),
+                axis=yAxis,
+            )
+            if pixelPos is None:
+                return [], None
+            top = self._plotFrame.margins.top
+            # Edge to edge of the widget, as the horizontal line
+            positions = [[pixelPos[0], 0], [pixelPos[0], self._plotFrame.size[1]]]
+            if text is not None:
+                label = self._textObject(
+                    take,
+                    text,
+                    item["font"],
+                    item["color"],
+                    pixelPos[0] + pixelOffset,
+                    top + pixelOffset,
+                    "left",
+                    "top",
+                    bgcolor=item["bgcolor"],
+                    padding=self._TEXT_MARKER_PADDING,
+                )
 
+        if item["dashpattern"] is None:
+            return [], label
+        style = item["color"], item["dashoffset"], item["dashpattern"]
+        line = take(("line", *style), _pixelLine, 2, *style)
+        line.material.thickness = self._lineWidth(item["linewidth"])
+        _setPositions(line.geometry, positions)
+        return [line], label
+
+    def _shapeObjects(self, item, take):
+        """Return the scene objects of a shape, in pixels as OpenGL draws it,
+        taken with take"""
+        frame = self._plotFrame
+        for values, axis in ((item["x"], frame.xAxis), (item["y"], frame.yAxis)):
+            values = values[numpy.isfinite(values)]
+            if len(values) == 0 or not axis_scale.isValid(axis.scale, values.min()):
+                return []  # Out of the axes supported range
+
+        shape = item["shape"]
+        # hline and vline are widget long at their last point, where dashes start
+        if shape == "hline":
+            xMiddle = 0.5 * sum(frame.dataRanges[0])
+            pixel = frame.dataToPixel(xMiddle, item["y"][-1], axis="left")
+            if pixel is None:
+                return []
+            subShapes = [numpy.array(((0, pixel[1]), (frame.size[0], pixel[1])))]
+        elif shape == "vline":
+            yMiddle = 0.5 * sum(frame.dataRanges[1])
+            pixel = frame.dataToPixel(item["x"][-1], yMiddle, axis="left")
+            if pixel is None:
+                return []
+            subShapes = [numpy.array(((pixel[0], 0), (pixel[0], frame.size[1])))]
+        else:
+            # Sub-shapes between the not finite points
+            finite = numpy.isfinite(item["x"]) & numpy.isfinite(item["y"])
+            splits = numpy.concatenate(
+                ([-1], numpy.flatnonzero(~finite), [len(finite)])
+            )
+            subShapes = [
+                numpy.transpose(
+                    frame.dataToPixel(
+                        item["x"][begin:end], item["y"][begin:end], axis="left"
+                    )
+                )
+                for begin, end in zip(splits[:-1] + 1, splits[1:])
+                if end > begin
+            ]
+
+        left, top = frame.plotOrigin
+        width, height = frame.plotSize
+        plotBox = left, top, left + width, top + height
+        color = item["color"]
+        thickness = self._lineWidth(item["linewidth"])
+        objects = []
+        for points in subShapes:
+            if item["fill"] and shape not in ("hline", "vline"):
+                segments = _hatchSegments(points, frame.size[1], plotBox)
+                if len(segments) > 0:
+                    hatch = take(("hatch", color), _pixelLinesMesh, color)
+                    _setPixelLines(hatch, segments, 1.0)
+                    objects.append(hatch)
+
+            if item["dashpattern"] is None or len(points) < 2:
+                continue
+            if shape != "polylines":
+                points = numpy.append(points, points[:1], axis=0)
+            lines = []
+            # The gap color line under the dashed line, as in OpenGL
+            if item["gapcolor"] is not None and item["dashpattern"]:
+                gap = len(points), item["gapcolor"]
+                lines.append(take(("gap", *gap), _pixelLine, *gap))
+            style = len(points), color, item["dashoffset"], item["dashpattern"]
+            lines.append(take(("line", *style), _pixelLine, *style))
+            for line in lines:
+                line.material.thickness = thickness
+                _setPositions(line.geometry, points)
+            objects.extend(lines)
+        return objects
+
+    def _crosshairObjects(self, take):
+        """Return the crosshair cursor lines, taken with take"""
         if self._crosshairCursor is None or self._mousePosInPixels is None:
-            return
+            return []
 
         color, linewidth = self._crosshairCursor
-        gfxColor = gfx.Color(*color)
-        mx, my = self._mousePosInPixels
+        # At the center of the pixel under the mouse, as BackendOpenGL
+        mx, my = (v + 0.5 for v in self._mousePosInPixels)
 
-        w, h = self._plotFrame.size
         left, top = self._plotFrame.plotOrigin
         pw, ph = self._plotFrame.plotSize
 
-        # Horizontal line
-        hPositions = numpy.array(
-            [
-                [left, my, 0],
-                [left + pw, my, 0],
-            ],
-            dtype=numpy.float32,
-        )
-        hGeom = gfx.Geometry(positions=hPositions)
-        hMat = gfx.LineMaterial(thickness=linewidth, color=gfxColor)
-        self._crosshairHLine = gfx.Line(hGeom, hMat)
-        self._screenScene.add(self._crosshairHLine)
-
-        # Vertical line
-        vPositions = numpy.array(
-            [
-                [mx, top, 0],
-                [mx, top + ph, 0],
-            ],
-            dtype=numpy.float32,
-        )
-        vGeom = gfx.Geometry(positions=vPositions)
-        vMat = gfx.LineMaterial(thickness=linewidth, color=gfxColor)
-        self._crosshairVLine = gfx.Line(vGeom, vMat)
-        self._screenScene.add(self._crosshairVLine)
-
-    @staticmethod
-    def _mapAnchor(align, valign):
-        """Map silx align/valign strings to pygfx anchor string."""
-        vmap = {"top": "top", "bottom": "bottom", "center": "middle"}
-        hmap = {"left": "left", "right": "right", "center": "center"}
-        v = vmap.get(str(valign), "middle")
-        h = hmap.get(str(align), "center")
-        return f"{v}-{h}"
+        # linewidth is in device pixels, as BackendOpenGL glLineWidth
+        segments = ((left, my), (left + pw, my), (mx, top), (mx, top + ph))
+        crosshair = take(("crosshair", color), _pixelLinesMesh, color)
+        _setPixelLines(crosshair, segments, linewidth)
+        return [crosshair]
 
     # QWidget events ########################################################
 
@@ -1353,8 +1824,12 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
             y = yScaled
 
-            if baseline is not None:
-                baseline = yAxis.applyScale(baseline)
+        if fill:
+            # As GLPlotCurve2D: 0 by default, and the bottom of a log axis for <= 0
+            dataBaseline = numpy.zeros(len(y)) + (0 if baseline is None else baseline)
+            baseline = yAxis.applyScale(dataBaseline)
+            if yAxis.scale == "log":
+                baseline[dataBaseline <= 0] = -38
 
         item = _PygfxCurveItem(
             x,
@@ -1372,7 +1847,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             symbolsize,
             baseline,
         )
-        self._dataGroup.add(item.group)
+        if yaxis == "right":
+            self._plotFrame.isY2Axis = True
         return item
 
     def addImage(self, data, origin, scale, colormap, alpha):
@@ -1410,20 +1886,15 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         if reuse is not None and data.ndim == 2 and reuse._scalarShape == data.shape:
             self._reusableImageItem = None
             reuse._build(data, (ox, oy), (sx, sy), colormap, alpha)
-            self._dataGroup.add(reuse.group)
             return reuse
 
         self._reusableImageItem = None
-        item = _PygfxImageItem(data, (ox, oy), (sx, sy), colormap, alpha)
-        self._dataGroup.add(item.group)
-        return item
+        return _PygfxImageItem(data, (ox, oy), (sx, sy), colormap, alpha)
 
     def addTriangles(self, x, y, triangles, color, alpha):
         x = self._plotFrame.xAxis.applyScale(numpy.asarray(x, dtype=numpy.float64))
         y = self._plotFrame.yAxis.applyScale(numpy.asarray(y, dtype=numpy.float64))
-        item = _PygfxTrianglesItem(x, y, triangles, color, alpha)
-        self._dataGroup.add(item.group)
-        return item
+        return _PygfxTrianglesItem(x, y, triangles, color, alpha)
 
     def addShape(
         self,
@@ -1455,12 +1926,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 "Cannot add item with coordinate outside Y axis valid range"
             )
 
-        x = self._plotFrame.xAxis.applyScale(x)
-        y = self._plotFrame.yAxis.applyScale(y)
-        # Ensure overlay outlines (e.g. zoom selection) are clearly visible
-        if overlay and linewidth < 2.0:
-            linewidth = 2.0
-        item = _PygfxShapeItem(
+        return _PygfxShapeItem(
             x,
             y,
             shape,
@@ -1471,11 +1937,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             linestyle,
             gapcolor,
         )
-        if overlay:
-            self._overlayGroup.add(item.group)
-        else:
-            self._dataGroup.add(item.group)
-        return item
 
     def addMarker(
         self,
@@ -1492,16 +1953,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         font: qt.QFont,
         bgcolor: RGBAColorType | None,
     ) -> object:
-        # Scale marker coordinates
-        if x is not None:
-            x = self._plotFrame.xAxis.applyScale(x)
-        if y is not None:
-            yAxis = (
-                self._plotFrame.y2Axis if yaxis == "right" else self._plotFrame.yAxis
-            )
-            y = yAxis.applyScale(y)
-
-        item = _PygfxMarkerItem(
+        if font is None:
+            font = self._getDefaultFont()
+        return _PygfxMarkerItem(
             x,
             y,
             text,
@@ -1515,9 +1969,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             font,
             bgcolor,
         )
-
-        self._overlayGroup.add(item.group)
-        return item
 
     # Backend API: Remove ####################################################
 
@@ -1535,10 +1986,6 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             # Pool scalar image items for reuse (avoids GPU object recreation)
             if isinstance(item, _PygfxImageItem) and item._scalarShape is not None:
                 self._reusableImageItem = item
-
-            group = item.group
-            if group.parent is not None:
-                group.parent.remove(group)
 
     # Backend API: Interaction ###############################################
 
@@ -1655,6 +2102,14 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             return None
         xPick1, yPick1 = dataPos
 
+        # The curve geometry holds scaled data relative to the item offset
+        yAxis = (
+            self._plotFrame.y2Axis if item.yaxis == "right" else self._plotFrame.yAxis
+        )
+        xPick0, xPick1 = (
+            self._plotFrame.xAxis.applyScale((xPick0, xPick1)) - item.offset[0]
+        )
+        yPick0, yPick1 = yAxis.applyScale((yPick0, yPick1)) - item.offset[1]
         xPickMin = min(xPick0, xPick1)
         xPickMax = max(xPick0, xPick1)
         yPickMin = min(yPick0, yPick1)
@@ -1709,7 +2164,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def _pickTriangles(self, item, dataPos):
         """Pick a triangles item."""
-        x, y = dataPos
+        x, y = dataPos - item.offset  # Item vertices are relative to its offset
         xPts = item._x
         yPts = item._y
         triangles = item._triangles
@@ -1750,6 +2205,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def getWidgetHandle(self):
         return self
+
+    def _rc_close(self):
+        if isValid(self):  # Else the widget is deleted, see _closeCanvas
+            super()._rc_close()
 
     def paintEvent(self, event):
         # Flush dirty items inside the paint event, where GPU operations are
