@@ -9,6 +9,7 @@ from .. import qt
 from ..colors import cursorColorForColormap
 from ..qt import inspect as qtinspect
 from ..plot import items
+from ..plot import PlotWidget
 from ..plot._utils.image import imageIndexSlices
 
 
@@ -34,8 +35,8 @@ class ScaleToCursorTool(qt.QObject):
 
     def __init__(self, parent: qt.QObject | None = None):
         super().__init__(parent)
-        self.__item = None
-        self.__plot = None
+        self.__item: weakref.ref[items.ImageBase] | None = None
+        self.__plot: weakref.ref[PlotWidget] | None = None
         self.__outline: items.Shape | None = None
 
     def getItem(self) -> items.ImageBase | None:
