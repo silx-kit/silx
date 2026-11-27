@@ -136,3 +136,38 @@ def test_3d_scatter(qapp_utils, qWidgetFactory, tmp_path):
         )
         numpy.testing.assert_equal(plotItem.getXData(), x)
         assert len(plotItem.getSymbolSize()) == len(x)
+
+
+def test_scatter_with_units_and_errors(qapp_utils, qWidgetFactory, tmp_path):
+    widget: DataViewer = qWidgetFactory(DataViewer)
+    n = 10
+    x = numpy.linspace(0.0, 1.0, n)
+    y = numpy.linspace(1.0, 2.0, n)
+    x_errors = numpy.full(n, 0.01)
+    y_errors = numpy.full(n, 0.02)
+
+    with h5py.File(tmp_path / "test.h5", "w") as h5file:
+        h5file.attrs["NX_class"] = "NXdata"
+        h5file.attrs["signal"] = "signal"
+        h5file.attrs["axes"] = ["x", "y"]
+        h5file.create_dataset("signal", data=numpy.arange(n, dtype=float))
+        h5file.create_dataset("x", data=x).attrs["units"] = "1/µm"
+        h5file.create_dataset("x_errors", data=x_errors)
+        h5file.create_dataset("y", data=y).attrs["long_name"] = "Angle y (rad)"
+        h5file.create_dataset("y_errors", data=y_errors)
+
+        widget.setData(h5file["/"])
+
+        # Wait for DataViewer to update the view, done with a QTimer
+        qapp_utils.qWait(100)
+
+        scatterView = widget.displayedView()
+        assert isinstance(scatterView, DataViews._NXdataXYVScatterView)
+        scatterPlot = scatterView.getWidget().getScatterView().getPlotWidget()
+        assert scatterPlot.getXAxis().getLabel() == "x (1/µm)"
+        assert scatterPlot.getYAxis().getLabel() == "Angle y (rad)"
+        scatter = scatterView.getWidget().getScatterView().getScatterItem()
+        numpy.testing.assert_array_equal(scatter.getXData(copy=False), x)
+        numpy.testing.assert_array_equal(scatter.getYData(copy=False), y)
+        numpy.testing.assert_array_equal(scatter.getXErrorData(copy=False), x_errors)
+        numpy.testing.assert_array_equal(scatter.getYErrorData(copy=False), y_errors)

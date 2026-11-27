@@ -35,6 +35,8 @@ Release Notes
 * `silx.opencl.codec.bitshuffle_lz4`: Fixed `BitshuffleLz4.decompress` returning wrong values for 64-bit data that uses its high bits (e.g. `float64` and large integers) (`Issue #4661 <https://github.com/silx-kit/silx/issues/4661>`_)
 * `silx.gui.plot3d`: Fixed the camera reset not being applied on the first display of a scene (`Issue #2650 <https://github.com/silx-kit/silx/issues/2650>`_)
 * `silx.gui.plot3d`: Fixed scatter symbols not being clipped by a clip plane (`Issue #2137 <https://github.com/silx-kit/silx/issues/2137>`_)
+* `silx.gui.data`: Fixed error when displaying NXdata scatters with errors and units
+* `silx.io.nxdata.parse.NXdata`: New property `axes_errors` to get all axes errors (`None` if there is none)
 
 3.1.2: 2026/09/03
 -----------------

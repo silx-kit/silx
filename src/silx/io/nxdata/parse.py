@@ -666,6 +666,21 @@ class NXdata:
         return list(axes_dataset_names)
 
     @property
+    def axes_errors(self) -> list[AxisDataset]:
+        """Return errors (uncertainties) associated with axes"""
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
+        axes_errors = []
+        for name in self.axes_dataset_names:
+            if name is None:
+                axes_errors.append(None)
+                continue
+            axes_errors.append(self.get_axis_errors(name))
+
+        return axes_errors
+
+    @property
     def title(self) -> str:
         """Plot title. If not found, returns an empty string.
 
