@@ -10,6 +10,7 @@ from ..colors import cursorColorForColormap
 from ..qt import inspect as qtinspect
 from ..plot import items
 from ..plot import PlotWidget
+from ..plot.items.core import LineStyleType
 from ..plot._utils.image import imageIndexSlices
 
 
@@ -26,6 +27,12 @@ class ScaleToCursorTool(qt.QObject):
 
     MIN_IMAGE_REGION_SIZE: int = 20
     """Minimum size of the region in image pixels"""
+
+    OUTLINE_LINE_STYLE: LineStyleType = "--"
+    """Line style of the region outline."""
+    
+    OUTLINE_LINE_WIDTH: float = 1.
+    """Line width of the region outline."""
 
     sigRangeChanged = qt.Signal(object, object)
     """Signal emitted with the new (vmin, vmax) range"""
@@ -133,16 +140,22 @@ class ScaleToCursorTool(qt.QObject):
         ymax = max(y0, y1, y + halfImage * abs(sy))
         return xmin, xmax, ymin, ymax
 
+    def __createOutline(self) -> items.Shape:
+        """Create the shape displaying the region used for the range."""
+        outline = items.Shape("rectangle")
+        outline.setName("__ScaleToCursorTool_outline__")
+        outline.setOverlay(True)
+        outline.setFill(False)
+        outline.setLineStyle(self.OUTLINE_LINE_STYLE)
+        outline.setLineWidth(self.OUTLINE_LINE_WIDTH)
+        return outline
+    
     def __showOutline(self, image: items.ImageBase, slices: tuple[slice, slice]):
         """Display the outline of the image pixels used for the range"""
         plot = self.__plot()
         if self.__outline is None or self.__outline.getPlot() is not plot:
             # Create it or re-add it if it was removed (e.g., plot cleared)
-            self.__outline = items.Shape("rectangle")
-            self.__outline.setName("__ScaleToCursorTool_outline__")
-            self.__outline.setOverlay(True)
-            self.__outline.setFill(False)
-            self.__outline.setLineStyle("--")
+            self.__outline = self.__createOutline()
             plot.addItem(self.__outline)
 
         rows, columns = slices
