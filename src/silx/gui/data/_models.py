@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import NamedTuple
 
 import h5py
 import numpy
@@ -31,3 +32,14 @@ class Signal(_BaseNxField):
 @dataclass
 class Axis(_BaseNxField):
     values: AxisDataset
+
+
+Selection = tuple[int | slice, ...]
+Permutation = tuple[int, ...] | None
+
+
+class DataSelection(NamedTuple):
+    filename: str | None
+    datapath: str | None
+    slice: Selection
+    permutation: Permutation

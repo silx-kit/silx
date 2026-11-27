@@ -6,6 +6,7 @@ from ...utils.deprecation import deprecated, deprecated_warning
 from .. import qt
 from ..colors import Colormap
 from ..dialog.ColormapDialog import ColormapDialog
+from ._models import DataSelection
 from ._utils import normalizeData
 
 _logger = logging.getLogger(__name__)
@@ -261,14 +262,13 @@ class DataView:
             + "]"
         )
 
-    def titleForSelection(self, selection):
+    def titleForSelection(self, selection: DataSelection) -> str:
         """Build title from given selection information.
 
-        :param NamedTuple selection: Data selected
-        :rtype: str
+        :param selection: Data selected
         """
         if selection is None or selection.filename is None:
-            return None
+            return ""
         else:
             directory, filename = os.path.split(selection.filename)
             try:
@@ -293,13 +293,12 @@ class DataView:
 
             return title
 
-    def setDataSelection(self, selection):
+    def setDataSelection(self, selection: DataSelection):
         """Set the data selection displayed by the view
 
         If called, it have to be called directly after `setData`.
 
         :param selection: Data selected
-        :type selection: NamedTuple
         """
         pass
 
