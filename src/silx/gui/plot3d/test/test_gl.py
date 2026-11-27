@@ -66,6 +66,45 @@ class TestOpenGL(TestCaseQt):
             gl.glClearColor(1.0, 1.0, 1.0, 1.0)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
+    class MouseMoveLogger(OpenGLWidget):
+        """Widget logging the position of mouse move events"""
+
+        def __init__(self):
+            super().__init__()
+            self.setMouseTracking(True)
+            self.positions = []
+
+        def mouseMoveEvent(self, event):
+            self.positions.append(qt.getMouseEventPosition(event))
+
+    def testMousePosition(self):
+        """Mouse events reach the widget at their sub-pixel position"""
+        if qt.BINDING == "PyQt5":
+            self.skipTest("Qt5 mouse event positions are integers")
+        widget = self.MouseMoveLogger()
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.resize(100, 100)
+        widget.show()
+        self.qWaitForWindowExposed(widget)
+
+        # Let Qt pick the receiver as for an event from the window system
+        window = widget.windowHandle()
+        position = qt.QPointF(10.5, 20.25)
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            position,
+            window.mapToGlobal(position),
+            qt.Qt.NoButton,
+            qt.Qt.NoButton,
+            qt.Qt.NoModifier,
+        )
+        widget.positions.clear()
+        qt.QApplication.sendEvent(window, event)
+        positions = widget.positions
+        widget.close()
+
+        self.assertEqual(positions, [(10.5, 20.25)])
+
     def testOpenGL(self):
         """Log OpenGL version using an OpenGLWidget"""
         super().setUp()
