@@ -1193,13 +1193,6 @@ class _NXdataCurveView(_NXdataBaseDataView):
         if nxd is None:
             return
 
-        axes_errors = []
-        for axis in nxd.axes_dataset_names:
-            if axis is None:
-                axes_errors.append(None)
-            else:
-                axes_errors.append(nxd.get_axis_errors(axis))
-
         self.getWidget().setCurvesData(
             signals=[nxd.signal] + nxd.auxiliary_signals,
             signal_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
@@ -1208,7 +1201,7 @@ class _NXdataCurveView(_NXdataBaseDataView):
             axes=nxd.axes,
             axes_scales=nxd.plot_style.axes_scale_types,
             axes_names=nxd.axes_names,
-            axes_errors=axes_errors,
+            axes_errors=nxd.axes_errors,
             title=nxd.title or nxd.signal_name,
             selection=nxd.get_default_slice_selection(expected_n_dims=1),
         )
@@ -1253,6 +1246,8 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
     def setData(self, data):
         data = self.normalizeData(data)
         nxd = nxdata.get_default(data, validate=False)
+        if nxd is None:
+            return
 
         x_axis, y_axis = nxd.axes[-2:]
         if x_axis is None:
@@ -1261,15 +1256,7 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
             y_axis = numpy.arange(nxd.signal.size)
 
         x_label, y_label = nxd.axes_names[-2:]
-        if x_label is not None:
-            x_errors = nxd.get_axis_errors(x_label)
-        else:
-            x_errors = None
-
-        if y_label is not None:
-            y_errors = nxd.get_axis_errors(y_label)
-        else:
-            y_errors = None
+        x_errors, y_errors = nxd.axes_errors[-2:]
 
         self._updateColormap(nxd)
 

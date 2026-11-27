@@ -200,7 +200,7 @@ class TestNXdata:
             assert not nxd.is_scatter
             assert not nxd.is_x_y_value_scatter
             assert nxd.interpretation == "spectrum"
-            assert nxd.get_axis_errors("energy").shape == (10,)
+            assert nxd.axis_errors[3].shape == (10,)
             # test getting axis errors by long_name
             assert numpy.array_equal(
                 nxd.get_axis_errors("Calibrated energy"), nxd.get_axis_errors("energy")
@@ -425,7 +425,7 @@ class TestNXdata:
             assert nxd.axes_names == ["x"]
             assert nxd.axes_dataset_names == ["x"]
             assert nxd.errors is not None
-            assert nxd.get_axis_errors("x").shape == (128,)
+            assert nxd.axes_errors[0].shape == (128,)
             assert nxd.is_scatter
             assert not nxd.is_x_y_value_scatter
             assert nxd.interpretation is None
@@ -450,8 +450,8 @@ class TestNXdata:
             assert nxd.axes_dataset_names
             assert nxd.axes_names
             assert nxd.axes_dataset_names == ["x", "y"]
-            assert nxd.get_axis_errors("x").shape == (128,)
-            assert nxd.get_axis_errors("y").shape == (128,)
+            assert nxd.axes_errors[0].shape == (128,)
+            assert nxd.axes_errors[1].shape == (128,)
             assert len(nxd.axes) == 2
             assert nxd.errors is None
             assert nxd.is_scatter
