@@ -30,8 +30,8 @@ class ScaleToCursorTool(qt.QObject):
 
     OUTLINE_LINE_STYLE: LineStyleType = "--"
     """Line style of the region outline."""
-    
-    OUTLINE_LINE_WIDTH: float = 1.
+
+    OUTLINE_LINE_WIDTH: float = 1.0
     """Line width of the region outline."""
 
     sigRangeChanged = qt.Signal(object, object)
@@ -149,7 +149,7 @@ class ScaleToCursorTool(qt.QObject):
         outline.setLineStyle(self.OUTLINE_LINE_STYLE)
         outline.setLineWidth(self.OUTLINE_LINE_WIDTH)
         return outline
-    
+
     def __showOutline(self, image: items.ImageBase, slices: tuple[slice, slice]):
         """Display the outline of the image pixels used for the range"""
         plot = self.__plot()
