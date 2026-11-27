@@ -49,7 +49,7 @@ from ._NxCurvePlot import NxCurvePlot
 from ._DataView import DataViewHooks  # noqa: F401
 
 from ._utils import (
-    addScaleToCursorShortcut,
+    _ScaleToCursorShortcut,
     isRgba,
     isScatter,
     normalizeComplex as _normalizeComplex,
@@ -627,7 +627,7 @@ class _Plot2dView(DataView):
         widget.setDefaultColormap(self.defaultColormap())
         widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
-        addScaleToCursorShortcut(widget)
+        widget.addAction(_ScaleToCursorShortcut(widget))
 
         self.__aggregationModeAction = AggregationModeAction(parent=widget)
         widget.toolBar().addAction(self.__aggregationModeAction)

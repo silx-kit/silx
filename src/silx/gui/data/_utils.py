@@ -36,15 +36,6 @@ class _ScaleToCursorShortcut(qt.QAction):
             colormapAction._updateColormap()
         action.trigger()
 
-
-def addScaleToCursorShortcut(plot: PlotWidget):
-    """Toggle the colormap dialog "Cursor" mode with the W key.
-
-    The shortcut is active when the plot has the keyboard focus.
-    """
-    plot.addAction(_ScaleToCursorShortcut(plot))
-
-
 def normalizeData(data):
     """Returns a normalized data.
 
