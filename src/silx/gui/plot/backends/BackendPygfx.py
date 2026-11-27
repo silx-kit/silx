@@ -30,6 +30,7 @@ __authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
 from collections import OrderedDict
+import contextlib
 import functools
 import logging
 import math
@@ -339,6 +340,15 @@ def _symbolMaterial(symbol, color, colorMode) -> gfx.PointsMarkerMaterial | None
     )
 
 
+def _symbolPoints(symbol, color) -> gfx.Points | None:
+    """Point of _symbolMaterial set by _setPositions, None for no symbol"""
+    material = _symbolMaterial(symbol, gfx.Color(*color), "uniform")
+    if material is None:
+        return None
+    positions = numpy.zeros((1, 3), numpy.float32)
+    return gfx.Points(gfx.Geometry(positions=positions), material)
+
+
 def _dataOffset(x: numpy.ndarray, y: numpy.ndarray) -> numpy.ndarray:
     """Finite minimum of x and y, or 0, to subtract from vertices before float32.
 
@@ -383,8 +393,47 @@ def _material(cls, *args, **kwargs):
     return cls(*args, depth_test=False, **kwargs)
 
 
-def _pixelLines(vertices, width: float, color) -> gfx.Mesh:
-    """Segments between pairs of screen vertices, filled as glLineWidth draws them.
+def _setPositions(geometry: gfx.Geometry, points) -> None:
+    """Write the 2D points in place into the positions of geometry"""
+    positions = geometry.positions
+    positions.data[:, :2] = points
+    positions.update_full()
+
+
+def _pixelLine(count: int, color, dashOffset=0.0, dashPattern=()) -> gfx.Line:
+    """Line of count points set by _setPositions, drawn as GLLines2D"""
+    return gfx.Line(
+        gfx.Geometry(positions=numpy.zeros((count, 3), numpy.float32)),
+        _material(
+            _GLLineMaterial,
+            aa=True,
+            color=gfx.Color(*color),
+            dash_pattern=dashPattern,
+            dash_offset=dashOffset,
+        ),
+    )
+
+
+def _pixelLinesGeometry(capacity: int) -> gfx.Geometry:
+    """Geometry of capacity quads of 2 triangles each"""
+    quads = numpy.arange(4 * capacity, dtype=numpy.uint32).reshape(-1, 4)
+    return gfx.Geometry(
+        positions=numpy.zeros((4 * capacity, 3), numpy.float32),
+        indices=quads[:, (0, 1, 2, 0, 2, 3)].reshape(-1, 3),
+    )
+
+
+def _pixelLinesMesh(color) -> gfx.Mesh:
+    """Mesh of segments set by _setPixelLines"""
+    return gfx.Mesh(
+        _pixelLinesGeometry(1),
+        _material(gfx.MeshBasicMaterial, color=gfx.Color(*color), side="both"),
+    )
+
+
+def _setPixelLines(mesh: gfx.Mesh, vertices, width: float) -> None:
+    """Set the segments between pairs of screen vertices, filled as glLineWidth
+    draws them, into a mesh of _pixelLinesMesh.
 
     pygfx lines get no thinner than 1.415 pixels, so a 1 pixel line covers 1
     or 2 pixels depending on where it falls: fill rectangles of width instead.
@@ -397,15 +446,57 @@ def _pixelLines(vertices, width: float, color) -> gfx.Mesh:
     )
     corners = numpy.stack(
         (start - normal, start + normal, end + normal, end - normal), 1
+    ).reshape(-1, 2)
+    # Buffers are written in place, and replaced by twice larger ones if full
+    if mesh.geometry.positions.nitems < len(corners):
+        capacity = max(len(start), mesh.geometry.positions.nitems // 2)
+        mesh.geometry = _pixelLinesGeometry(capacity)
+    positions = mesh.geometry.positions
+    positions.data[: len(corners), :2] = corners
+    positions.update_range(0, len(corners))
+    mesh.geometry.indices.draw_range = 0, 2 * len(start)
+
+
+def _textGroup(
+    text: str,
+    font: qt.QFont,
+    dotsPerInch: float,
+    color: RGBAColorType,
+    align: str,
+    valign: str,
+    rotate: float,
+    bgcolor: RGBAColorType | None,
+    padding: int,
+) -> gfx.Group:
+    """Text at the origin drawn as the OpenGL backend Text2D draws it"""
+    coverage, baseline = _rasterText(text, font, dotsPerInch)
+    coverage = numpy.pad(coverage, padding)
+    height, width = coverage.shape
+    if bgcolor is None:
+        bgcolor = (*color[:3], 0.0)
+    mix = coverage[..., numpy.newaxis] / 255
+    rgba = numpy.round(
+        255 * ((1 - mix) * numpy.asarray(bgcolor) + mix * numpy.asarray(color))
+    ).astype(numpy.uint8)
+
+    xOrig = {"left": 0, "right": -width, "center": -width // 2}[align]
+    yOrig = {
+        "baseline": -baseline,
+        "top": 0,
+        "bottom": -height,
+        "center": -height // 2,
+    }[valign]
+
+    image = gfx.Image(
+        gfx.Geometry(grid=gfx.Texture(rgba, dim=2)),
+        _material(gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)),
     )
-    positions = numpy.zeros((corners.size // 2, 3), numpy.float32)
-    positions[:, :2] = corners.reshape(-1, 2)
-    quads = numpy.arange(len(positions), dtype=numpy.uint32).reshape(-1, 4)
-    indices = numpy.concatenate((quads[:, (0, 1, 2)], quads[:, (0, 2, 3)]))
-    return gfx.Mesh(
-        gfx.Geometry(positions=positions, indices=indices),
-        _material(gfx.MeshBasicMaterial, color=color, side="both"),
-    )
+    # Texel centers are on integer coordinates
+    image.local.position = (xOrig + 0.5, yOrig + 0.5, 0)
+    group = gfx.Group()
+    group.add(image)
+    group.local.euler_z = math.radians(rotate)
+    return group
 
 
 _HATCH_STEP = 20
@@ -461,6 +552,34 @@ def _setChildren(group: gfx.Group, objects: list) -> None:
     if group.children != tuple(objects):
         group.clear()
         group.add(*objects)
+
+
+class _SceneObjects:
+    """Scene objects in pixels of an owner, kept from one draw to the next.
+
+    Creating pygfx objects costs far more than updating them: a draw takes
+    each object it shows by a key of the arguments it is created from, which
+    creates it only if the previous draw had none left with that key, and
+    updates it in place. The objects it does not take are dropped.
+    """
+
+    def __init__(self):
+        self._kept = {}
+        self._taken = {}
+
+    @contextlib.contextmanager
+    def draw(self):
+        """Context of a draw, giving its take(key, create, *args) function"""
+        try:
+            yield self._take
+        finally:
+            self._kept, self._taken = self._taken, {}
+
+    def _take(self, key, create, *args):
+        kept = self._kept.get(key)
+        sceneObject = kept.pop() if kept else create(*args)
+        self._taken.setdefault(key, []).append(sceneObject)
+        return sceneObject
 
 
 # Item classes ################################################################
@@ -786,7 +905,8 @@ class _PygfxTrianglesItem:
 class _PygfxShapeItem(dict):
     """Shape parameters, with the points in data coordinates.
 
-    Its scene objects are built in pixels at each draw, as OpenGL draws shapes.
+    Its scene objects are in pixels, as OpenGL draws shapes, and are updated
+    at each draw.
     """
 
     def __init__(
@@ -832,12 +952,14 @@ class _PygfxShapeItem(dict):
                 "overlay": overlay,
             }
         )
+        self.sceneObjects = _SceneObjects()
 
 
 class _PygfxMarkerItem(dict):
     """Marker parameters, with the position in data coordinates.
 
-    Its scene objects are built in pixels at each draw, as for OpenGL markers.
+    Its scene objects are in pixels, as for OpenGL markers, and are updated at
+    each draw.
     """
 
     def __init__(
@@ -885,6 +1007,7 @@ class _PygfxMarkerItem(dict):
                 "bgcolor": bgcolor,
             }
         )
+        self.sceneObjects = _SceneObjects()
 
 
 # BackendPygfx ################################################################
@@ -1005,6 +1128,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._frameScene.add(self._screenFrameGroup)
         self._screenCamera = gfx.OrthographicCamera(maintain_aspect=False)
         self._cachedBgColor = (1.0, 1.0, 1.0, 1.0)
+        self._frameSceneObjects = _SceneObjects()
+        self._crosshairSceneObjects = _SceneObjects()
 
         self._reusableImageItem = None  # Pool for image item reuse
 
@@ -1026,6 +1151,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
     def _textObject(
         self,
+        take,
         text: str,
         font: qt.QFont,
         color: RGBAColorType,
@@ -1038,38 +1164,16 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         padding: int = 0,
     ) -> gfx.Group | None:
         """Text in device pixels drawn as the OpenGL backend Text2D draws it,
-        or None for blank text"""
+        taken with take, or None for blank text"""
         if not text.strip():
             return None
-        coverage, baseline = _rasterText(text, font, self._plotFrame.dotsPerInch)
         padding = max(0, int(padding * self.getDevicePixelRatio()))
-        coverage = numpy.pad(coverage, padding)
-        height, width = coverage.shape
-        if bgcolor is None:
-            bgcolor = (*color[:3], 0.0)
-        mix = coverage[..., numpy.newaxis] / 255
-        rgba = numpy.round(
-            255 * ((1 - mix) * numpy.asarray(bgcolor) + mix * numpy.asarray(color))
-        ).astype(numpy.uint8)
-
-        xOrig = {"left": 0, "right": -width, "center": -width // 2}[align]
-        yOrig = {
-            "baseline": -baseline,
-            "top": 0,
-            "bottom": -height,
-            "center": -height // 2,
-        }[valign]
-
-        image = gfx.Image(
-            gfx.Geometry(grid=gfx.Texture(rgba, dim=2)),
-            _material(gfx.ImageBasicMaterial, interpolation="nearest", clim=(0, 255)),
+        content = self._plotFrame.dotsPerInch, color, align, valign, rotate
+        content += bgcolor, padding
+        group = take(
+            ("text", text, font.key(), *content), _textGroup, text, font, *content
         )
-        # Texel centers are on integer coordinates
-        image.local.position = (xOrig + 0.5, yOrig + 0.5, 0)
-        group = gfx.Group()
-        group.add(image)
         group.local.position = (int(x), int(y), 0)
-        group.local.euler_z = math.radians(rotate)
         return group
 
     def getDevicePixelRatio(self):
@@ -1189,15 +1293,19 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         if not self._plotFrame.isDirty:
             return  # Frame unchanged, keep cached objects
 
-        self._screenFrameGroup.clear()
-        self._gridGroup.clear()
+        with self._frameSceneObjects.draw() as take:
+            frameObjects, gridObjects = self._frameObjects(take)
+        _setChildren(self._screenFrameGroup, frameObjects)
+        _setChildren(self._gridGroup, gridObjects)
 
+    def _frameObjects(self, take):
+        """Return the frame and the grid scene objects, taken with take"""
         if self._plotFrame.margins == self._plotFrame._NoDisplayMargins:
-            return
+            return [], []
 
         w, h = self._plotFrame.size
         if w <= 2 or h <= 2:
-            return
+            return [], []
 
         # Set screen camera to pixel coordinates (Y=0 at top, Y=h at bottom)
         # show_rect(left, right, top, bottom):
@@ -1211,17 +1319,24 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         self._plotFrame._clearDirty()
 
         # Grid and frame lines are 1 device pixel wide, as in GLPlotFrame
+        gridObjects = []
         if len(gridVertices) >= 2:
-            gridColor = gfx.Color(*self._plotFrame.gridColor)
-            self._gridGroup.add(_pixelLines(gridVertices, 1.0, gridColor))
+            gridColor = self._plotFrame.gridColor
+            grid = take(("grid", gridColor), _pixelLinesMesh, gridColor)
+            _setPixelLines(grid, gridVertices, 1.0)
+            gridObjects.append(grid)
 
+        frameObjects = []
         if len(vertices) >= 2:
-            fgColor = gfx.Color(*self._plotFrame.foregroundColor)
-            self._screenFrameGroup.add(_pixelLines(vertices, 1.0, fgColor))
+            fgColor = self._plotFrame.foregroundColor
+            frame = take(("frame", fgColor), _pixelLinesMesh, fgColor)
+            _setPixelLines(frame, vertices, 1.0)
+            frameObjects.append(frame)
 
         # Render text labels (tick labels, axis titles, main title)
         for labelDict in labelDicts:
             textObj = self._textObject(
+                take,
                 labelDict["text"],
                 labelDict["font"],
                 labelDict["color"],
@@ -1232,7 +1347,8 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 labelDict["rotate"],
             )
             if textObj is not None:
-                self._screenFrameGroup.add(textObj)
+                frameObjects.append(textObj)
+        return frameObjects, gridObjects
 
     def _syncItemScenes(self):
         """Fill the data and overlay scenes with the visible items, back to front.
@@ -1241,7 +1357,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         followed by the marker labels and the crosshair.
         Both scenes are in plot area pixels: item groups hold scaled data,
         mapped through the transform of their Y axis, while markers and
-        shapes are built in pixels.
+        shapes are in pixels.
         """
         dataObjects = []
         overlayObjects = []
@@ -1251,13 +1367,15 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if item is None:
                 continue
             if isinstance(item, _PygfxMarkerItem):
-                objects, label = self._markerObjects(item)
+                with item.sceneObjects.draw() as take:
+                    objects, label = self._markerObjects(item, take)
                 overlayObjects.extend(objects)
                 if label is not None:
                     labels.append(label)
                 continue
             if isinstance(item, _PygfxShapeItem):
-                objects = self._shapeObjects(item)
+                with item.sceneObjects.draw() as take:
+                    objects = self._shapeObjects(item, take)
             else:
                 # Translated in float64: float32 would lose a large offset
                 matrix = self._dataToPixelMatrices[item.yaxis].copy()
@@ -1274,10 +1392,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             else:
                 dataObjects.extend(objects)
 
+        with self._crosshairSceneObjects.draw() as take:
+            crosshair = self._crosshairObjects(take)
         _setChildren(self._dataScene, dataObjects)
-        _setChildren(
-            self._overlayScene, overlayObjects + labels + self._crosshairObjects()
-        )
+        _setChildren(self._overlayScene, overlayObjects + labels + crosshair)
 
     def _symbolSize(self, symbol, size: float) -> float:
         """Size in logical pixels of a symbol of size points, as Points2D.render"""
@@ -1299,12 +1417,12 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             / self._plotFrame.devicePixelRatio
         )
 
-    def _markerObjects(self, item):
-        """Return the scene objects of a marker and its text label or None"""
+    def _markerObjects(self, item, take):
+        """Return the scene objects of a marker and its text label or None,
+        taken with take"""
         xCoord = item["x"]
         yCoord = item["y"]
         yAxis = item.get("yaxis", "left")
-        gfxColor = gfx.Color(*item["color"])
         text = item["text"]
         pixelOffset = 3
 
@@ -1318,13 +1436,13 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             if pixelPos is None:
                 return [], None
             symbols = []
-            mat = _symbolMaterial(item["symbol"], gfxColor, "uniform")
-            if mat is not None:
-                mat.size = self._symbolSize(item["symbol"], item["symbolsize"])
-                geom = gfx.Geometry(
-                    positions=numpy.array([[*pixelPos, 0]], dtype=numpy.float32)
-                )
-                symbols.append(gfx.Points(geom, mat))
+            symbol = item["symbol"], item["color"]
+            points = take(("symbol", *symbol), _symbolPoints, *symbol)
+            if points is not None:
+                size = self._symbolSize(item["symbol"], item["symbolsize"])
+                points.material.size = size
+                _setPositions(points.geometry, [pixelPos])
+                symbols.append(points)
             if text is None:
                 return symbols, None
             if self._plotFrame.isYAxisInverted:
@@ -1332,6 +1450,7 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             else:
                 valign, vPixelOffset = "top", pixelOffset
             label = self._textObject(
+                take,
                 text,
                 item["font"],
                 item["color"],
@@ -1357,9 +1476,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
             right = self._plotFrame.size[0] - self._plotFrame.margins.right
             # Edge to edge of the widget as in OpenGL, where the dashes start;
             # the plot area rect clips it
-            positions = [[0, pixelPos[1], 0], [self._plotFrame.size[0], pixelPos[1], 0]]
+            positions = [[0, pixelPos[1]], [self._plotFrame.size[0], pixelPos[1]]]
             if text is not None:
                 label = self._textObject(
+                    take,
                     text,
                     item["font"],
                     item["color"],
@@ -1382,9 +1502,10 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
                 return [], None
             top = self._plotFrame.margins.top
             # Edge to edge of the widget, as the horizontal line
-            positions = [[pixelPos[0], 0, 0], [pixelPos[0], self._plotFrame.size[1], 0]]
+            positions = [[pixelPos[0], 0], [pixelPos[0], self._plotFrame.size[1]]]
             if text is not None:
                 label = self._textObject(
+                    take,
                     text,
                     item["font"],
                     item["color"],
@@ -1398,19 +1519,15 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         if item["dashpattern"] is None:
             return [], label
-        geom = gfx.Geometry(positions=numpy.array(positions, dtype=numpy.float32))
-        mat = _material(
-            _GLLineMaterial,
-            aa=True,
-            thickness=self._lineWidth(item["linewidth"]),
-            color=gfxColor,
-            dash_pattern=item["dashpattern"],
-            dash_offset=item["dashoffset"],
-        )
-        return [gfx.Line(geom, mat)], label
+        style = item["color"], item["dashoffset"], item["dashpattern"]
+        line = take(("line", *style), _pixelLine, 2, *style)
+        line.material.thickness = self._lineWidth(item["linewidth"])
+        _setPositions(line.geometry, positions)
+        return [line], label
 
-    def _shapeObjects(self, item):
-        """Return the scene objects of a shape, in pixels as OpenGL draws it"""
+    def _shapeObjects(self, item, take):
+        """Return the scene objects of a shape, in pixels as OpenGL draws it,
+        taken with take"""
         frame = self._plotFrame
         for values, axis in ((item["x"], frame.xAxis), (item["y"], frame.yAxis)):
             values = values[numpy.isfinite(values)]
@@ -1450,49 +1567,40 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
         left, top = frame.plotOrigin
         width, height = frame.plotSize
         plotBox = left, top, left + width, top + height
-        color = gfx.Color(*item["color"])
+        color = item["color"]
         thickness = self._lineWidth(item["linewidth"])
         objects = []
         for points in subShapes:
             if item["fill"] and shape not in ("hline", "vline"):
                 segments = _hatchSegments(points, frame.size[1], plotBox)
                 if len(segments) > 0:
-                    objects.append(_pixelLines(segments, 1.0, color))
+                    hatch = take(("hatch", color), _pixelLinesMesh, color)
+                    _setPixelLines(hatch, segments, 1.0)
+                    objects.append(hatch)
 
             if item["dashpattern"] is None or len(points) < 2:
                 continue
             if shape != "polylines":
                 points = numpy.append(points, points[:1], axis=0)
-            positions = numpy.zeros((len(points), 3), dtype=numpy.float32)
-            positions[:, :2] = points
-            geometry = gfx.Geometry(positions=positions)
+            lines = []
             # The gap color line under the dashed line, as in OpenGL
             if item["gapcolor"] is not None and item["dashpattern"]:
-                gapMaterial = _material(
-                    _GLLineMaterial,
-                    aa=True,
-                    thickness=thickness,
-                    color=gfx.Color(*item["gapcolor"]),
-                )
-                objects.append(gfx.Line(geometry, gapMaterial))
-            material = _material(
-                _GLLineMaterial,
-                aa=True,
-                thickness=thickness,
-                color=color,
-                dash_pattern=item["dashpattern"],
-                dash_offset=item["dashoffset"],
-            )
-            objects.append(gfx.Line(geometry, material))
+                gap = len(points), item["gapcolor"]
+                lines.append(take(("gap", *gap), _pixelLine, *gap))
+            style = len(points), color, item["dashoffset"], item["dashpattern"]
+            lines.append(take(("line", *style), _pixelLine, *style))
+            for line in lines:
+                line.material.thickness = thickness
+                _setPositions(line.geometry, points)
+            objects.extend(lines)
         return objects
 
-    def _crosshairObjects(self):
-        """Return the crosshair cursor lines"""
+    def _crosshairObjects(self, take):
+        """Return the crosshair cursor lines, taken with take"""
         if self._crosshairCursor is None or self._mousePosInPixels is None:
             return []
 
         color, linewidth = self._crosshairCursor
-        gfxColor = gfx.Color(*color)
         # At the center of the pixel under the mouse, as BackendOpenGL
         mx, my = (v + 0.5 for v in self._mousePosInPixels)
 
@@ -1501,7 +1609,9 @@ class BackendPygfx(BackendBase.BackendBase, QRenderWidget):
 
         # linewidth is in device pixels, as BackendOpenGL glLineWidth
         segments = ((left, my), (left + pw, my), (mx, top), (mx, top + ph))
-        return [_pixelLines(segments, linewidth, gfxColor)]
+        crosshair = take(("crosshair", color), _pixelLinesMesh, color)
+        _setPixelLines(crosshair, segments, linewidth)
+        return [crosshair]
 
     # QWidget events ########################################################
 
