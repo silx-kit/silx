@@ -1033,6 +1033,11 @@ class ColormapDialog(qt.QDialog):
         self._scaleToCursorTool = ScaleToCursorTool(self)
         self._scaleToCursorTool.sigRangeChanged.connect(self._setColormapRange)
 
+        
+        #When checked, the colormap range follows the data around the mouse
+        #cursor when it is over the image associated to the dialog.
+        #This mode stays active when the dialog is hidden, so this action can
+        #be added to another widget, e.g., with a keyboard shortcut.
         action = qt.QAction(
             qtawesome.icon("mdi6.image-filter-center-focus"), "Cursor", self
         )
@@ -1924,11 +1929,6 @@ class ColormapDialog(qt.QDialog):
 
     def getScaleToCursorAction(self) -> qt.QAction:
         """Returns the checkable QAction controlling the scale to cursor mode.
-
-        When checked, the colormap range follows the data around the mouse
-        cursor when it is over the image associated to the dialog.
-        This mode stays active when the dialog is hidden, so this action can
-        be added to another widget, e.g., with a keyboard shortcut.
         """
         return self._scaleToCursorAction
 
