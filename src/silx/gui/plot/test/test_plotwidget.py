@@ -2169,6 +2169,36 @@ def testPygfxPointMarkerOrder(qWidgetFactory, first, second, expected):
 
 
 @pytest.mark.usefixtures("use_pygfx")
+def testPygfxPanBackReusesObjects(qWidgetFactory, monkeypatch):
+    """Panning back and forth draws the views again without creating objects"""
+    import pygfx
+
+    plot = qWidgetFactory(PlotWidget, backend="pygfx")
+    plot.setLimits(0, 10, 0, 10)
+    first = _renderPygfx(plot)[0].copy()
+    plot.pan("right", 0.1)  # The tick label 0 leaves the view
+    _renderPygfx(plot)
+    plot.pan("left", 0.1)
+    _renderPygfx(plot)
+
+    created = []
+    init = pygfx.WorldObject.__init__
+
+    def countedInit(self, *args, **kwargs):
+        created.append(type(self).__name__)
+        init(self, *args, **kwargs)
+
+    monkeypatch.setattr(pygfx.WorldObject, "__init__", countedInit)
+    for _ in range(2):
+        plot.pan("right", 0.1)
+        _renderPygfx(plot)
+        plot.pan("left", 0.1)
+        image = _renderPygfx(plot)[0]
+    assert created == []
+    assert numpy.array_equal(image, first)
+
+
+@pytest.mark.usefixtures("use_pygfx")
 def testPygfxCurveAddedAfterImage(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget, backend="pygfx")
     plot.addImage(_rgbImage(_BLUE), legend="image")

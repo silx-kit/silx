@@ -29,7 +29,7 @@ from __future__ import annotations
 __authors__ = ["S. Kim", "T. Vincent", "L. Huder"]
 __license__ = "MIT"
 
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict, deque, namedtuple
 import contextlib
 import functools
 import itertools
@@ -580,12 +580,17 @@ class _SceneObjects:
 
     Creating pygfx objects costs far more than updating them: a draw takes
     each object it shows by a key of the arguments it is created from, which
-    creates it only if the previous draw had none left with that key, and
-    updates it in place. The objects it does not take are dropped.
+    creates it only if none of the last draws left one with that key, and
+    updates it in place. An object is dropped once _KEPT_DRAWS draws in a row
+    did not take it, so that one shown again soon, as a tick label panned out
+    and back, is not created again.
     """
 
+    _KEPT_DRAWS = 16
+
     def __init__(self):
-        self._kept = {}
+        self._kept = deque(maxlen=self._KEPT_DRAWS)
+        """Objects last taken by each of the last draws, by key, oldest first"""
         self._taken = {}
 
     @contextlib.contextmanager
@@ -594,11 +599,17 @@ class _SceneObjects:
         try:
             yield self._take
         finally:
-            self._kept, self._taken = self._taken, {}
+            self._kept.append(self._taken)
+            self._taken = {}
 
     def _take(self, key, create, *args):
-        kept = self._kept.get(key)
-        sceneObject = kept.pop() if kept else create(*args)
+        for kept in reversed(self._kept):
+            objects = kept.get(key)
+            if objects:
+                sceneObject = objects.pop()
+                break
+        else:
+            sceneObject = create(*args)
         self._taken.setdefault(key, []).append(sceneObject)
         return sceneObject
 
