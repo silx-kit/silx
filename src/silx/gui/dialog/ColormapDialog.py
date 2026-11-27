@@ -74,6 +74,8 @@ from ..colors import Colormap, cursorColorForColormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
 from ..plot.items import BoundingRect
+from ..plot._utils.image import imageIndexSlices
+from ._ScaleToCursorTool import ScaleToCursorTool
 from ._ColormapPercentileWidget import ColormapPercentilesWidget
 from silx.gui.widgets.FloatEdit import FloatEdit
 import weakref
@@ -1034,6 +1036,34 @@ class ColormapDialog(qt.QDialog):
             self._handleScaleToSelectionToggled, type=qt.Qt.QueuedConnection
         )
 
+        # Scale to the data around the mouse cursor
+        self._scaleToCursorTool = ScaleToCursorTool(self)
+        self._scaleToCursorTool.sigRangeChanged.connect(self._setColormapRange)
+
+        # When checked, the colormap range follows the data around the mouse
+        # cursor when it is over the image associated to the dialog.
+        # This mode stays active when the dialog is hidden, so this action can
+        # be added to another widget, e.g., with a keyboard shortcut.
+        action = qt.QAction(
+            qtawesome.icon("mdi6.image-filter-center-focus"), "Cursor", self
+        )
+        action.setCheckable(True)
+        action.setEnabled(False)
+        action.setToolTip("Adjust the range to the data around the mouse cursor")
+        action.toggled.connect(self._handleScaleToCursorToggled)
+        self._scaleToCursorTool.sigStopped.connect(
+            lambda: self._scaleToCursorAction.setChecked(False)
+        )
+        self._scaleToCursorAction = action
+
+        self._cursorButton = qt.QPushButton(self)
+        self._cursorButton.setCheckable(True)
+        self._cursorButton.setEnabled(False)
+        self._cursorButton.setText(self._scaleToCursorAction.text())
+        self._cursorButton.setIcon(self._scaleToCursorAction.icon())
+        self._cursorButton.setToolTip(self._scaleToCursorAction.toolTip())
+        self._cursorButton.toggled.connect(self._scaleToCursorAction.setChecked)
+
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
         self._buttonsModal = qt.QDialogButtonBox(parent=self)
@@ -1065,6 +1095,7 @@ class ColormapDialog(qt.QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._visibleAreaButton)
         layout.addWidget(self._selectedAreaButton)
+        layout.addWidget(self._cursorButton)
         layout.addStretch()
         self._scaleToAreaGroup = qt.QWidget(self)
         self._scaleToAreaGroup.setLayout(layout)
@@ -1117,7 +1148,8 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._autoButtons, self._autoScaleCombo)
         self.setTabOrder(self._autoScaleCombo, self._visibleAreaButton)
         self.setTabOrder(self._visibleAreaButton, self._selectedAreaButton)
-        self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
+        self.setTabOrder(self._selectedAreaButton, self._cursorButton)
+        self.setTabOrder(self._cursorButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
         self._updatePercentilesWidgetEnabled()
@@ -1320,6 +1352,8 @@ class ColormapDialog(qt.QDialog):
         and :meth:`setHistogram`
         """
         old = self._getItem()
+        if old is not item:
+            self._scaleToCursorAction.setChecked(False)
         if old is item:
             # While event from items are not supported, we can't ignore dup items
             if item is not None:
@@ -1518,15 +1552,12 @@ class ColormapDialog(qt.QDialog):
             if data.ndim != 2:
                 return  # no-op
 
-            ox, oy = item.getOrigin()
-            sx, sy = item.getScale()
-
-            ystart = max(0, int((ymin - oy) / sy))
-            ystop = max(0, int(numpy.ceil((ymax - oy) / sy)))
-            xstart = max(0, int((xmin - ox) / sx))
-            xstop = max(0, int(numpy.ceil((xmax - ox) / sx)))
-
-            subset = data[ystart:ystop, xstart:xstop]
+            slices = imageIndexSlices(
+                item.getOrigin(), item.getScale(), data.shape, bounds
+            )
+            if slices is None:
+                return  # no-op
+            subset = data[slices]
 
         elif isinstance(item, items.Scatter):
             x = item.getXData(copy=False)
@@ -1537,6 +1568,9 @@ class ColormapDialog(qt.QDialog):
                     numpy.logical_and(ymin <= y, y <= ymax),
                 )
             ]
+
+        else:  # Other ColormapMixIn items are not supported
+            return  # no-op
 
         if subset.size == 0:
             return  # no-op
@@ -1605,6 +1639,8 @@ class ColormapDialog(qt.QDialog):
 
         self._colormap = colormap
         self.storeCurrentState()
+        # Sync even if hidden: the scale to cursor action can be used without the dialog
+        self._syncScaleToCursorEnabled()
         self._invalidateColormap()
 
     def _updateResetButton(self):
@@ -1717,6 +1753,9 @@ class ColormapDialog(qt.QDialog):
         """Callback executed when the autoscale buttons widget
         is updated by user input.
         """
+        if any(autoRange):
+            self._scaleToCursorAction.setChecked(False)
+
         dataRange = self._getFiniteColormapRange()
 
         # Final colormap range
@@ -1785,6 +1824,8 @@ class ColormapDialog(qt.QDialog):
     def _minAutoscaleUpdated(self, autoEnabled):
         """Callback executed when the min autoscale from
         the lineedit is updated by user input"""
+        if autoEnabled:
+            self._scaleToCursorAction.setChecked(False)
         colormap = self.getColormap()
         xmin, xmax = colormap.getVRange()
         if autoEnabled:
@@ -1796,6 +1837,8 @@ class ColormapDialog(qt.QDialog):
     def _maxAutoscaleUpdated(self, autoEnabled):
         """Callback executed when the max autoscale from
         the lineedit is updated by user input"""
+        if autoEnabled:
+            self._scaleToCursorAction.setChecked(False)
         colormap = self.getColormap()
         xmin, xmax = colormap.getVRange()
         if autoEnabled:
@@ -1889,9 +1932,48 @@ class ColormapDialog(qt.QDialog):
         if not enabled:
             self._selectedAreaButton.setChecked(False)
         self._selectedAreaButton.setEnabled(enabled)
+        self._syncScaleToCursorEnabled()
+
+    def _syncScaleToCursorEnabled(self):
+        """Set the state of the scale to cursor action and button"""
+        colormap = self.getColormap()
+        cursorEnabled = (
+            self._item is not None
+            and isinstance(self._getItem(), items.ImageBase)
+            and colormap is not None
+            and colormap.isEditable()
+        )
+        if not cursorEnabled:
+            self._scaleToCursorAction.setChecked(False)
+        self._scaleToCursorAction.setEnabled(cursorEnabled)
+        self._cursorButton.setEnabled(cursorEnabled)
+
+    def getScaleToCursorAction(self) -> qt.QAction:
+        """Returns the checkable QAction controlling the scale to cursor mode."""
+        return self._scaleToCursorAction
+
+    def _handleScaleToCursorToggled(self, checked: bool):
+        """Handle toggle of the scale to cursor action"""
+        with utils.blockSignals(self._cursorButton):
+            self._cursorButton.setChecked(checked)
+
+        if not checked:
+            self._scaleToCursorTool.stop()
+            return
+
+        self._selectedAreaButton.setChecked(False)
+        item = self._getItem()
+        if not isinstance(item, items.ImageBase) or not self._scaleToCursorTool.start(
+            item
+        ):
+            self._scaleToCursorAction.setChecked(False)
 
     def _handleScaleToVisibleAreaClicked(self):
         """Set colormap range from current item's visible area"""
+        # Scale to modes are exclusive
+        self._selectedAreaButton.setChecked(False)
+        self._scaleToCursorAction.setChecked(False)
+
         item = self._getItem()
         if item is None:
             return  # no-op
@@ -1913,6 +1995,8 @@ class ColormapDialog(qt.QDialog):
         if not checked:  # Reset button status
             self._selectedAreaButton.setText("Selection")
             return
+
+        self._scaleToCursorAction.setChecked(False)
 
         item = self._getItem()
         if item is None:

@@ -392,6 +392,7 @@ class ColormapAction(PlotAction):
         if self._dialog is None:
             self._dialog = self._createDialog(self.plot)
             self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+            self._updateColormap()  # Sync dialog with the plot even if not shown
         return self._dialog
 
     @staticmethod
