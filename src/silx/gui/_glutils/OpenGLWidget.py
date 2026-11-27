@@ -33,6 +33,7 @@ __date__ = "22/11/2019"
 
 
 import functools
+import gc
 import logging
 import sys
 
@@ -46,6 +47,34 @@ _logger = logging.getLogger(__name__)
 @functools.cache
 def _logErrorOnce(message: str) -> None:
     _logger.error(message)
+
+
+_contexts = set()
+"""Contexts of the initialized widgets, until Qt destroys them"""
+
+_contextBeforeCollection = None
+
+
+def _keepContextAcrossCollection(phase: str, info: dict) -> None:
+    """Make current again the context that was current before a garbage collection.
+
+    Deleting an initialized QOpenGLWidget leaves no context current, so a
+    collection deleting one while another widget paints makes Qt crash.
+    """
+    global _contextBeforeCollection
+    if phase == "start":
+        context = qt.QOpenGLContext.currentContext() if _contexts else None
+        _contextBeforeCollection = (
+            (context, context.surface()) if context in _contexts else None
+        )
+    elif _contextBeforeCollection is not None:
+        context, surface = _contextBeforeCollection
+        _contextBeforeCollection = None
+        if context in _contexts and qt.QOpenGLContext.currentContext() is not context:
+            context.makeCurrent(surface)
+
+
+gc.callbacks.append(_keepContextAcrossCollection)
 
 
 if not hasattr(qt, "QOpenGLWidget") and not hasattr(qt, "QGLWidget"):
@@ -192,6 +221,14 @@ else:
             if parent is None:
                 _logger.error("_OpenGLWidget has no parent")
                 return
+
+            if not self.__legacy:
+                context = self.context()
+                if context not in _contexts:
+                    _contexts.add(context)
+                    context.aboutToBeDestroyed.connect(
+                        functools.partial(_contexts.discard, context)
+                    )
 
             # Check OpenGL version
             if self.getOpenGLVersion() >= self.getRequestedOpenGLVersion():
